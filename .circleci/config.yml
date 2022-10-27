@@ -1,0 +1,85 @@
+version: 2.1
+jobs:
+  check_whitespace:
+    docker:
+      - image: cimg/base:2021.04
+    resource_class: small
+    steps:
+      - checkout
+      - run:
+          name: Check for trailing whitespace
+          command: ./dev-scripts/check-trailing-whitespace
+      - run:
+          name: Check that all text files end in a trailing newline
+          command: ./dev-scripts/check-trailing-newline
+  check_bash:
+    docker:
+      - image: koalaman/shellcheck-alpine:v0.8.0
+    steps:
+      - run:
+          name: Install dependencies needed to check out repo
+          command: apk add bash git openssh-client grep
+      - checkout
+      - run:
+          name: Run static analysis on bash scripts
+          command: ./dev-scripts/check-bash
+  check_frontend:
+    docker:
+      - image: cimg/node:16.14.2
+    steps:
+      - checkout
+      - run:
+          name: Download npm packages
+          command: npm install
+      - run:
+          name: Check formatting
+          command: npm run check-format
+      - run:
+          name: Check lint
+          command: npm run lint
+  test_go:
+    docker:
+      - image: cimg/go:1.19.1
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ./
+      - restore_cache:
+          keys:
+            - go-mod-v1-{{ checksum "go.sum" }}
+      - run:
+          name: Test go packages
+          command: dev-scripts/run-go-tests --full
+      - store_artifacts:
+          path: .coverage.html
+      - run:
+          name: Verify golang formatting
+          command: dev-scripts/check-go-formatting
+      - save_cache:
+          key: go-mod-v1-{{ checksum "go.sum" }}
+          paths:
+            - ~/go/pkg/mod
+  build_backend:
+    docker:
+      - image: cimg/go:1.19.1
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ./
+      - run:
+          name: Compile backend
+          command: dev-scripts/build-backend
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./bin/screenjournal
+workflows:
+  version: 2
+  test_deploy:
+    jobs:
+      - check_whitespace
+      - check_bash
+      - check_frontend
+      - test_go
+      - build_backend

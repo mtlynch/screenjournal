@@ -15,7 +15,7 @@ func main() {
 	log.Print("Starting screenjournal server")
 
 	h := gorilla.LoggingHandler(os.Stdout, handlers.New().Router())
-	if os.Getenv("PS_BEHIND_PROXY") != "" {
+	if os.Getenv("SJ_BEHIND_PROXY") != "" {
 		h = gorilla.ProxyIPHeadersHandler(h)
 	}
 	http.Handle("/", h)

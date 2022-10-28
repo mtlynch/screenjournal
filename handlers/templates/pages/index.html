@@ -1,0 +1,72 @@
+{{ define "style-tags" }}
+{{ end }}
+
+{{ define "script-tags" }}
+{{ end }}
+
+{{ define "custom-elements" }}
+{{ end }}
+
+{{ define "content" }}
+  <div class="px-4 py-5 my-5 text-center">
+    <h1 class="display-5 fw-bold">ScreenJournal</h1>
+    <div class="col-lg-6 mx-auto">
+      <p class="lead mb-4">Like Goodreads, but for couch potatoes.</p>
+      <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+        <a href="/sign-up" class="btn btn-primary btn-lg px-4 gap-3">
+          Sign up
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="b-example-divider"></div>
+
+  <div class="container px-4 py-5" id="featured-3">
+    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+      <div class="feature col">
+        <h2 class="fs-2">Find TV shows and movies your friends like</h2>
+        <p>
+          ScreenJournal lets you see what shows and movies your friends like to
+          give you viewing ideas.
+        </p>
+        <a href="/sign-up" class="icon-link d-inline-flex align-items-center">
+          Find stuff to watch
+          <svg class="bi" width="1em" height="1em">
+            <use xlink:href="#chevron-right" />
+          </svg>
+        </a>
+      </div>
+
+      <div class="feature col">
+        <h2 class="fs-2">Discuss good stuff</h2>
+        <p>
+          Talk about the latest episode of <i>Love is Blind</i> or try to figure
+          out the plot of whatever Christopher Nolan is doing.
+        </p>
+        <a href="/sign-up" class="icon-link d-inline-flex align-items-center">
+          Start discussing
+          <svg class="bi" width="1em" height="1em">
+            <use xlink:href="#chevron-right" />
+          </svg>
+        </a>
+      </div>
+
+      <div class="feature col">
+        <h2 class="fs-2">Remember what you've seen</h2>
+        <p>
+          Get ideas for new stuff by looking for actors and directors you've
+          liked in the past.
+        </p>
+        <a href="/sign-up" class="icon-link d-inline-flex align-items-center">
+          Start journaling
+          <svg class="bi" width="1em" height="1em">
+            <use xlink:href="#chevron-right" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+{{ end }}
+
+{{ template "base.html" }}

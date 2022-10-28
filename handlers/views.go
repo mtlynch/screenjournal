@@ -1,16 +1,37 @@
 package handlers
 
 import (
-	"fmt"
-	"log"
 	"net/http"
+	"path"
+	"text/template"
 )
 
 func (s Server) indexGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		if _, err := fmt.Fprint(w, "Hello from ScreenJournal"); err != nil {
-			log.Fatalf("failed to write HTTP response: %v", err)
+		if err := renderTemplate(w, "index.html", struct {
+			Title string
+		}{
+			Title: "ScreenJournal",
+		}, template.FuncMap{}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 	}
+}
+
+func renderTemplate(w http.ResponseWriter, templateFilename string, templateVars interface{}, funcMap template.FuncMap) error {
+	const templatesRootDir = "./templates"
+	const baseTemplate = "base"
+	const baseTemplateFilename = "base.html"
+
+	templateFiles := []string{}
+	templateFiles = append(templateFiles, path.Join(templatesRootDir, templateFilename))
+	templateFiles = append(templateFiles, path.Join(templatesRootDir, baseTemplateFilename))
+
+	t := template.Must(template.New(templateFilename).Funcs(funcMap).
+		ParseFiles(templateFiles...))
+	if err := t.ExecuteTemplate(w, baseTemplate, templateVars); err != nil {
+		return err
+	}
+	return nil
 }

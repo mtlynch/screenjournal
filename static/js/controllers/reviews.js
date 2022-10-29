@@ -1,4 +1,4 @@
-import { processJsonResponse } from "./common.js";
+import { processPlaintextResponse } from "./common.js";
 
 export function addReview(review) {
   return fetch(`/api/reviews`, {
@@ -8,9 +8,5 @@ export function addReview(review) {
       Accept: "application/json",
     },
     body: JSON.stringify(review),
-  })
-    .then(processJsonResponse)
-    .then((result) => {
-      return Promise.resolve(result.id);
-    });
+  }).then(processPlaintextResponse);
 }

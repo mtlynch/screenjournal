@@ -107,6 +107,46 @@ func (db db) ReadReviews() ([]screenjournal.Review, error) {
 	return reviews, nil
 }
 
+func (d db) InsertReview(rev screenjournal.Review) error {
+	log.Printf("inserting new review of %s: %v", rev.Title, rev.Rating.Int8())
+
+	if _, err := d.ctx.Exec(`
+	INSERT INTO
+		reviews
+	(
+		review_owner,
+    title,
+    rating,
+    blurb,
+    watched_date,
+    created_time,
+    last_modified_time
+	)
+	VALUES (
+		?, ?, ?, ?, ?, ?, ?
+	)
+	`,
+		rev.Owner,
+		rev.Title,
+		rev.Rating,
+		rev.Blurb,
+		formatWatchDate(rev.Watched),
+		formatTime(rev.Created),
+		formatTime(rev.Modified)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func parseDatetime(s string) (time.Time, error) {
 	return time.Parse(timeFormat, s)
+}
+
+func formatTime(t time.Time) string {
+	return t.Format(timeFormat)
+}
+
+func formatWatchDate(w screenjournal.WatchDate) string {
+	return formatTime(time.Time(w))
 }

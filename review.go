@@ -21,6 +21,14 @@ type (
 	}
 )
 
+func (id ReviewID) Int() int {
+	return int(id)
+}
+
+func (r Rating) Int8() int8 {
+	return int8(r)
+}
+
 func (wd WatchDate) Time() time.Time {
 	return time.Time(wd)
 }

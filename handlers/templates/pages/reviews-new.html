@@ -7,6 +7,24 @@
     import { showElement, hideElement } from "/js/lib/bootstrap.js";
     import { tzOffsetString } from "/js/lib/time.js";
 
+    function reviewFromForm() {
+      const title = document.getElementById("media-title").value;
+
+      const rating = parseInt(document.getElementById("rating-select").value);
+
+      const dateRaw = document.getElementById("watched-date").value;
+      const watched = `${dateRaw}T00:00:00.000${tzOffsetString()}`;
+
+      const blurb = document.getElementById("blurb").value;
+
+      return {
+        title,
+        rating,
+        watched,
+        blurb,
+      };
+    }
+
     document.addEventListener(
       "DOMContentLoaded",
       function () {
@@ -23,22 +41,9 @@
             hideElement(errorAlert);
             showElement(submitSpinner);
 
-            const mediaTitle = document.getElementById("media-title").value;
-
-            // TODO: rating
-
-            const dateRaw = document.getElementById("watched-date").value;
-
-            // TODO: blurb
-
-            const watchedTime = `${dateRaw}T00:00:00.000${tzOffsetString()}`;
-
-            addReview({
-              title: mediaTitle,
-              watchedTime: watchedTime,
-            })
-              .then((reviewId) => {
-                window.location.pathname = `/reviews/${reviewId}`;
+            addReview(reviewFromForm())
+              .then(() => {
+                window.location.pathname = `/reviews`;
               })
               .catch((error) => {
                 errorAlert.innerText = error;

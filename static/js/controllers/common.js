@@ -1,6 +1,6 @@
-export function processJsonResponse(response) {
+export function processPlaintextResponse(response) {
   if (response.ok) {
-    return response.json();
+    return response.text();
   }
   return response.text().then((error) => {
     return Promise.reject(error);

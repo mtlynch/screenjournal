@@ -7,6 +7,10 @@ func (s *Server) routes() {
 	s.router.HandleFunc("/api/auth", s.authDelete()).Methods(http.MethodDelete)
 	s.router.Use(s.checkAuthentication)
 
+	authenticatedApis := s.router.PathPrefix("/api").Subrouter()
+	authenticatedApis.Use(s.requireAuthentication)
+	authenticatedApis.HandleFunc("/reviews", s.reviewsPost()).Methods(http.MethodPost)
+
 	static := s.router.PathPrefix("/").Subrouter()
 	static.PathPrefix("/js/").HandlerFunc(serveStaticResource()).Methods(http.MethodGet)
 	static.PathPrefix("/third-party/").HandlerFunc(serveStaticResource()).Methods(http.MethodGet)

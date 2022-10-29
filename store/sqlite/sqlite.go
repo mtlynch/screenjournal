@@ -46,7 +46,7 @@ func (db db) ReadReviews() ([]screenjournal.Review, error) {
 	rows, err := db.ctx.Query(`
 	SELECT
 		id,
-		owner,
+		review_owner,
 		title,
 		rating,
 		blurb,

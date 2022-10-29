@@ -1,6 +1,6 @@
 CREATE TABLE reviews (
     id INTEGER PRIMARY KEY,
-    owner TEXT,
+    review_owner TEXT,
     title TEXT,
     rating INTEGER,
     blurb TEXT,

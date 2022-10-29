@@ -7,6 +7,8 @@ processes = []
 [env]
   PORT = "8080"
   SJ_BEHIND_PROXY="yes"
+  LITESTREAM_BUCKET="screenjournal-litestream"
+  LITESTREAM_ENDPOINT="s3.us-west-002.backblazeb2.com "
 
 [experimental]
   allowed_public_ports = []

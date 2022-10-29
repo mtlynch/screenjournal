@@ -9,9 +9,56 @@ set -u
 SJ_ARGS="$*"
 readonly SJ_ARGS
 
+# Parse the -db flag to screenjournal since we need to know it before passing it
+# along.
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    -db) DB_PATH="$2"; shift 2;;
+    -db=*) DB_PATH="${1#*=}"; shift 1;;
+    *) shift 1;;
+  esac
+done
+# We need to export DB_PATH because litestream.yml references it.
+export readonly DB_PATH
+
+is_litestream_enabled() {
+  set +ux
+
+  local IS_ENABLED='false'
+
+  if [[ -n "${LITESTREAM_BUCKET}" ]]; then
+    IS_ENABLED='true';
+  fi
+
+  set -ux
+
+  echo "${IS_ENABLED}"
+}
+
+IS_LITESTREAM_ENABLED="$(is_litestream_enabled)"
+readonly IS_LITESTREAM_ENABLED
+
 # Echo commands to stdout.
 set -x
 
 SJ_LAUNCH_CMD="/app/screenjournal ${SJ_ARGS}"
 
-eval "${SJ_LAUNCH_CMD}"
+if [[ "${IS_LITESTREAM_ENABLED}" == 'true' ]]; then
+  /app/litestream version
+  echo "LITESTREAM_BUCKET=${LITESTREAM_BUCKET}"
+  echo "LITESTREAM_ENDPOINT=${LITESTREAM_ENDPOINT}"
+
+  if [[ -f "$DB_PATH" ]]; then
+    echo "Existing database is $(stat -c %s "${DB_PATH}") bytes"
+  else
+    echo "No existing database found"
+    # Restore database from remote storage.
+    /app/litestream restore -if-replica-exists -v "${DB_PATH}"
+  fi
+
+  # Let Litestream start screenjournal as a child process
+  /app/litestream replicate -exec "$SJ_LAUNCH_CMD"
+else
+  echo "Starting without litestream"
+  eval "${SJ_LAUNCH_CMD}"
+fi

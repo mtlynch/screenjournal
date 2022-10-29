@@ -38,7 +38,7 @@ func (s Server) logInGet() http.HandlerFunc {
 		if err := renderTemplate(w, "login.html", struct {
 			Title string
 		}{
-			Title: "Log In",
+			Title: "Sign In",
 		}, template.FuncMap{}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

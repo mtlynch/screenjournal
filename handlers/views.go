@@ -82,7 +82,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 	}
 }
 
-func (s Server) dashboardGet() http.HandlerFunc {
+func (s Server) reviewsGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		reviews, err := s.store.ReadReviews()
 		if err != nil {
@@ -96,11 +96,11 @@ func (s Server) dashboardGet() http.HandlerFunc {
 			return reviews[i].Watched.Time().After(reviews[j].Watched.Time())
 		})
 
-		if err := renderTemplate(w, "dashboard.html", struct {
+		if err := renderTemplate(w, "reviews-index.html", struct {
 			commonProps
 			Reviews []screenjournal.Review
 		}{
-			commonProps: makeCommonProps("Dashboard", r.Context()),
+			commonProps: makeCommonProps("Ratings", r.Context()),
 			Reviews:     reviews,
 		}, template.FuncMap{
 			"formatWatchDate": func(t screenjournal.WatchDate) string {

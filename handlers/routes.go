@@ -13,7 +13,7 @@ func (s *Server) routes() {
 
 	authenticatedViews := s.router.PathPrefix("/").Subrouter()
 	authenticatedViews.Use(s.requireAuthentication)
-	authenticatedViews.HandleFunc("/dashboard", s.dashboardGet()).Methods(http.MethodGet)
+	authenticatedViews.HandleFunc("/reviews", s.reviewsGet()).Methods(http.MethodGet)
 
 	views := s.router.PathPrefix("/").Subrouter()
 	views.Use(upgradeToHttps)

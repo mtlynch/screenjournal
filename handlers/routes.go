@@ -9,6 +9,7 @@ func (s *Server) routes() {
 	views := s.router.PathPrefix("/").Subrouter()
 	views.Use(upgradeToHttps)
 	views.HandleFunc("/about", s.aboutGet()).Methods(http.MethodGet)
+	views.HandleFunc("/login", s.logInGet()).Methods(http.MethodGet)
 	views.HandleFunc("/sign-up", s.signUpGet()).Methods(http.MethodGet)
 	views.HandleFunc("/", s.indexGet()).Methods(http.MethodGet)
 }

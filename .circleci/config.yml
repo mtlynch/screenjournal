@@ -87,6 +87,25 @@ jobs:
               --disable_progress_bar \
               --dialect sqlite \
               store/sqlite/migrations
+  e2e:
+    docker:
+      - image: mcr.microsoft.com/playwright:v1.26.0-focal
+    environment:
+      NODE_ENV: development
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ./
+      - run:
+          name: Install dependencies
+          command: npm install
+      - run:
+          name: Run playwright tests
+          command: npx playwright test
+      - store_artifacts:
+          path: playwright-report
+      - store_artifacts:
+          path: e2e-results
   build_docker_images:
     docker:
       - image: cimg/base:stable
@@ -184,6 +203,12 @@ workflows:
           filters:
             tags:
               only: /.*/
+      - e2e:
+          filters:
+            tags:
+              only: /.*/
+          requires:
+            - build_backend
       - build_docker_images:
           requires:
             - check_whitespace

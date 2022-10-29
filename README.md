@@ -7,3 +7,11 @@
 [![License](http://img.shields.io/:license-agpl-blue.svg?style=flat-square)](LICENSE)
 
 Like Goodreads but for couch potatoes
+
+## Parameters
+
+### Command-line flags
+
+| Flag  | Meaning                 | Default Value     |
+| ----- | ----------------------- | ----------------- |
+| `-db` | Path to SQLite database | `"data/store.db"` |

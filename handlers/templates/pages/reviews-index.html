@@ -17,9 +17,11 @@
           <div class="card-body">
             <h5 class="card-title">{{ .Title }}</h5>
             <h6 class="card-subtitle mb-2 text-muted">{{ .Rating }} / 10</h6>
-            <p class="card-text">
-              {{ .Blurb }}
-            </p>
+            {{ with .Blurb }}
+              <p class="card-text">
+                {{ . }}
+              </p>
+            {{ end }}
             <a href="/reviews/{{ .ID }}/edit" class="card-link">Edit</a>
           </div>
           <div class="card-footer text-muted">

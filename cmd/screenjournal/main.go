@@ -20,6 +20,7 @@ func main() {
 
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	dbPath := flag.String("db", "data/store.db", "path to database")
+	flag.Parse()
 
 	authenticator, err := simple.New(requireEnv("SJ_ADMIN_USERNAME"), requireEnv("SJ_ADMIN_PASSWORD"))
 	if err != nil {

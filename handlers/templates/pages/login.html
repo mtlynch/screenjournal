@@ -22,9 +22,7 @@
     const errorContainer = document.getElementById("error");
     const authForm = document.getElementById("auth-form");
 
-    console.log("initializing form");
     authForm.addEventListener("submit", (evt) => {
-      console.log("submitted!");
       evt.preventDefault();
       const username = document.getElementById("username").value;
       const password = document.getElementById("password").value;
@@ -53,7 +51,7 @@
     <form id="auth-form" class="my-5">
       <div class="form-outline mb-4">
         <input type="text" id="username" class="form-control" required />
-        <label class="form-label" for="username">Email address</label>
+        <label class="form-label" for="username">Username</label>
       </div>
       <div class="form-outline mb-4">
         <input type="password" id="password" class="form-control" required />

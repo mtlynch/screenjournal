@@ -116,6 +116,7 @@ jobs:
             docker buildx build \
               --push \
               --platform "$BUILD_TARGETS" \
+              --tag "mtlynch/screenjournal:${CIRCLE_TAG}" \
               --tag mtlynch/screenjournal:latest \
               .
 workflows:
@@ -151,8 +152,6 @@ workflows:
             - build_backend
           filters:
             tags:
-              #only: /[0-9]+(\.[0-9]+){2}/
-              only: /.*/ # DEBUG
+              only: /[0-9]+(\.[0-9]+){2}/
             branches:
-              #ignore: /.*/
-              only: /.*/ # DEBUG
+              ignore: /.*/

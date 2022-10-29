@@ -2,6 +2,57 @@
 {{ end }}
 
 {{ define "script-tags" }}
+  <script type="module">
+    import { addReview } from "/js/controllers/reviews.js";
+    import { showElement, hideElement } from "/js/lib/bootstrap.js";
+    import { tzOffsetString } from "/js/lib/time.js";
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      function () {
+        const errorAlert = document.getElementById("error");
+        const submitSpinner = document.getElementById("submit-spinner");
+        const submitBtn = document.querySelector("form .btn-primary");
+
+        document
+          .getElementById("add-rating")
+          .addEventListener("submit", (evt) => {
+            evt.preventDefault();
+
+            submitBtn.disabled = true;
+            hideElement(errorAlert);
+            showElement(submitSpinner);
+
+            const mediaTitle = document.getElementById("media-title").value;
+
+            // TODO: rating
+
+            const dateRaw = document.getElementById("watched-date").value;
+
+            // TODO: blurb
+
+            const watchedTime = `${dateRaw}T00:00:00.000${tzOffsetString()}`;
+
+            addReview({
+              title: mediaTitle,
+              watchedTime: watchedTime,
+            })
+              .then((reviewId) => {
+                window.location.pathname = `/reviews/${reviewId}`;
+              })
+              .catch((error) => {
+                errorAlert.innerText = error;
+                showElement(errorAlert);
+              })
+              .finally(() => {
+                hideElement(submitSpinner);
+                submitBtn.disabled = false;
+              });
+          });
+      },
+      false
+    );
+  </script>
 {{ end }}
 
 {{ define "custom-elements" }}
@@ -10,15 +61,20 @@
 {{ define "content" }}
   <h1>Add Rating</h1>
 
-  <form class="my-5">
+  <form id="add-rating" class="my-5">
     <div class="mb-3">
       <label for="media-title" class="form-label">Title</label>
-      <input type="text" class="form-control" id="media-title" />
+      <input id="media-title" class="form-control" type="text" required />
     </div>
 
     <div class="mb-3">
       <label for="rating-select" class="form-label">Rating</label>
-      <select id="rating-select" class="form-select" aria-label="Rating">
+      <select
+        id="rating-select"
+        class="form-select"
+        aria-label="Rating"
+        required
+      >
         <option selected></option>
         {{ range .RatingOptions }}
           <option value="{{ . }}">{{ . }}</option>
@@ -35,6 +91,7 @@
         value="{{ .Today | formatDate }}"
         min="2000-01-01"
         max="{{ .Today | formatDate }}"
+        required
       />
     </div>
 
@@ -45,6 +102,14 @@
 
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
+
+  <div id="submit-spinner" class="spinner-border invisible" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+
+  <div id="error" class="alert alert-danger invisible" role="alert">
+    Placeholder error
+  </div>
 {{ end }}
 
 {{ template "base.html" }}

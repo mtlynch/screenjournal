@@ -74,6 +74,19 @@ jobs:
           root: ./
           paths:
             - ./bin/screenjournal
+  lint_sql:
+    docker:
+      - image: sqlfluff/sqlfluff:1.2.1
+        user: root
+    steps:
+      - checkout
+      - run:
+          name: Lint SQL files
+          command: |
+            sqlfluff lint \
+              --disable_progress_bar \
+              --dialect sqlite \
+              store/sqlite/migrations
   build_docker_images:
     docker:
       - image: cimg/base:stable
@@ -164,6 +177,10 @@ workflows:
             tags:
               only: /.*/
       - build_backend:
+          filters:
+            tags:
+              only: /.*/
+      - lint_sql:
           filters:
             tags:
               only: /.*/

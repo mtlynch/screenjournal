@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Exit build script on first failure.
+set -e
+
+# Exit on unset variable.
+set -u
+
+SJ_ARGS="$*"
+readonly SJ_ARGS
+
+# Echo commands to stdout.
+set -x
+
+SJ_LAUNCH_CMD="/app/screenjournal ${SJ_ARGS}"
+
+eval "${SJ_LAUNCH_CMD}"

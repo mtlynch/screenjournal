@@ -21,7 +21,7 @@ type (
 	}
 )
 
-func New(path string) store.Store {
+func New(path string, optimizeForLitestream bool) store.Store {
 	log.Printf("reading DB from %s", path)
 	ctx, err := sql.Open("sqlite3", path)
 	if err != nil {
@@ -35,11 +35,14 @@ func New(path string) store.Store {
 		log.Fatalf("failed to set pragmas: %v", err)
 	}
 
-	applyMigrations(ctx)
-
-	return &db{
-		ctx: ctx,
+	d := &db{ctx: ctx}
+	if optimizeForLitestream {
+		d.optimizeForLitestream()
 	}
+
+	d.applyMigrations()
+
+	return d
 }
 
 func (db db) ReadReviews() ([]screenjournal.Review, error) {

@@ -2,7 +2,6 @@ package sqlite
 
 import (
 	"context"
-	"database/sql"
 	"embed"
 	"fmt"
 	"log"
@@ -19,9 +18,9 @@ type dbMigration struct {
 //go:embed migrations/*.sql
 var migrationsFs embed.FS
 
-func applyMigrations(ctx *sql.DB) {
+func (d db) applyMigrations() {
 	var version int
-	if err := ctx.QueryRow(`PRAGMA user_version`).Scan(&version); err != nil {
+	if err := d.ctx.QueryRow(`PRAGMA user_version`).Scan(&version); err != nil {
 		log.Fatalf("failed to get user_version: %v", err)
 	}
 
@@ -36,7 +35,7 @@ func applyMigrations(ctx *sql.DB) {
 		if migration.version <= version {
 			continue
 		}
-		tx, err := ctx.BeginTx(context.Background(), nil)
+		tx, err := d.ctx.BeginTx(context.Background(), nil)
 		if err != nil {
 			log.Fatalf("failed to create migration transaction %d: %v", migration.version, err)
 		}

@@ -27,7 +27,7 @@ func main() {
 	}
 
 	ensureDirExists(filepath.Dir(*dbPath))
-	store := sqlite.New(*dbPath)
+	store := sqlite.New(*dbPath, isLitestreamEnabled())
 
 	h := gorilla.LoggingHandler(os.Stdout, handlers.New(authenticator, store).Router())
 	if os.Getenv("SJ_BEHIND_PROXY") != "" {
@@ -58,4 +58,8 @@ func ensureDirExists(dir string) {
 			panic(err)
 		}
 	}
+}
+
+func isLitestreamEnabled() bool {
+	return os.Getenv("LITESTREAM_BUCKET") != ""
 }

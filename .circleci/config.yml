@@ -116,7 +116,6 @@ jobs:
             docker buildx build \
               --push \
               --platform "$BUILD_TARGETS" \
-              --tag "mtlynch/screenjournal:${CIRCLE_TAG}" \
               --tag mtlynch/screenjournal:latest \
               .
 workflows:

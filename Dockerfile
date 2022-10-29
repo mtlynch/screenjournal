@@ -4,7 +4,6 @@ ARG TARGETPLATFORM
 
 COPY ./cmd /app/cmd
 COPY ./handlers /app/handlers
-COPY ./static /app/static
 COPY ./go.* /app/
 
 WORKDIR /app

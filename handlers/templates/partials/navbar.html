@@ -27,20 +27,40 @@
           <a class="nav-link" href="/about">About</a>
         </li>
       </ul>
-      <div class="ms-auto">
-        {{ if .IsAuthenticated }}
-          <a href="/logout" class="btn btn-primary btn-sm px-4 gap-3">
-            Log out
-          </a>
-        {{ else }}
+      {{ if .IsAuthenticated }}
+        <ul class="navbar-nav">
+          <li class="nav-item dropdown">
+            <a
+              class="nav-link dropdown-toggle"
+              href="#"
+              id="account-dropdown"
+              role="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              Account
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="account-dropdown">
+              <li>
+                <a href="/users/me" class="dropdown-item">Profile</a>
+              </li>
+              <li>
+                <a href="/logout" class="dropdown-item">Log out</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      {{ end }}
+      {{ if not .IsAuthenticated }}
+        <div class="ms-auto">
           <a href="/sign-up" class="btn btn-primary btn-sm px-4 gap-3">
             Sign up
           </a>
           <a href="/login" class="btn btn-outline-secondary btn-sm px-4 gap-3">
             Sign in
           </a>
-        {{ end }}
-      </div>
+        </div>
+      {{ end }}
     </div>
   </div>
 </nav>

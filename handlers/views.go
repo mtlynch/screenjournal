@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"sort"
 	"text/template"
 
 	"github.com/mtlynch/screenjournal/v2"
@@ -89,6 +90,11 @@ func (s Server) dashboardGet() http.HandlerFunc {
 			http.Error(w, "Failed to read reviews", http.StatusInternalServerError)
 			return
 		}
+
+		// Sort reviews starting with most recent watch dates.
+		sort.Slice(reviews, func(i, j int) bool {
+			return reviews[i].Watched.Time().After(reviews[j].Watched.Time())
+		})
 
 		if err := renderTemplate(w, "dashboard.html", struct {
 			commonProps

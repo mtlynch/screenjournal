@@ -38,7 +38,7 @@ func (s Server) logInGet() http.HandlerFunc {
 		if err := renderTemplate(w, "login.html", struct {
 			Title string
 		}{
-			Title: "Log In",
+			Title: "Sign In",
 		}, template.FuncMap{}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -52,6 +52,19 @@ func (s Server) signUpGet() http.HandlerFunc {
 			Title string
 		}{
 			Title: "Sign Up",
+		}, template.FuncMap{}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func (s Server) dashboardGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := renderTemplate(w, "dashboard.html", struct {
+			Title string
+		}{
+			Title: "Dashboard",
 		}, template.FuncMap{}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

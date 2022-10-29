@@ -24,4 +24,4 @@ data/
 .coverage*
 
 # Environment variables, which may contain secrets
-*.env
+.env.*

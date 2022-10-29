@@ -1,4 +1,13 @@
 {{ define "style-tags" }}
+  <style>
+    .card-deck {
+      gap: 1rem;
+    }
+
+    .card {
+      width: 18rem;
+    }
+  </style>
 {{ end }}
 
 {{ define "script-tags" }}
@@ -8,9 +17,45 @@
 {{ end }}
 
 {{ define "content" }}
-  <h1>Dashboard</h1>
+  <h1>Ratings</h1>
 
-  <p>I'm still working on this page. Check back soon!</p>
+  <div class="d-flex card-deck">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">The Little Hours</h5>
+        <h6 class="card-subtitle mb-2 text-muted">5 / 10</h6>
+        <p class="card-text">
+          Great cast. It had a lot of non sequiturs, so I'm wondering if it
+          would have made more sense if I'd read The Decameron. Mostly enjoyed
+          it, but it kind of goes off the rails by the end.
+        </p>
+        <a href="/reviews/16/edit" class="card-link">Edit</a>
+      </div>
+      <div class="card-footer text-muted">Watched two days ago</div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Joshy</h5>
+        <h6 class="card-subtitle mb-2 text-muted">7 / 10</h6>
+        <p class="card-text">
+          It had its ups and downs, but there were a lot of good jokes, good
+          cast, original story.
+        </p>
+        <a href="/reviews/15/edit" class="card-link">Edit</a>
+      </div>
+      <div class="card-footer text-muted">Watched a week ago</div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Hello, My Name is Doris</h5>
+        <h6 class="card-subtitle mb-2 text-muted">5 / 10</h6>
+        <p class="card-text">Great first half. Second half fell apart.</p>
+        <a href="/reviews/14/edit" class="card-link">Edit</a>
+      </div>
+      <div class="card-footer text-muted">Watched three months ago</div>
+    </div>
+  </div>
 {{ end }}
 
 {{ template "base.html" }}

@@ -1,0 +1,114 @@
+#!/bin/bash
+
+# Populate database with test data
+
+sqlite3 data/store.db <<EOF
+INSERT INTO reviews (
+  owner,
+  title,
+  rating,
+  blurb,
+  watched_date,
+  created_time,
+  last_modified_time
+) VALUES (
+  "mike",
+  "Hello, My Name is Doris",
+  5,
+  "Great first half. Second half fell apart.",
+  "2022-08-21T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00"
+),
+(
+  "mike",
+  "Can You Ever Forgive Me",
+  6,
+  "",
+  "2022-09-03T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00"
+),
+(
+  "mike",
+  "Straight Up",
+  8,
+  "Very sweet and original ",
+  "2022-09-11T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00"
+),
+(
+  "mike",
+  "Inside the Mind of a Cat",
+  6,
+  "Not much useful information, but fun to see cute cat videos while you pretend to learn something.",
+  "2022-09-18T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00"
+),
+(
+  "mike",
+  "House of Gucci",
+  5,
+  "Great first half. Second half fell apart.",
+  "2022-09-25T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00"
+),
+(
+  "mike",
+  "The Pink Panther (2006)",
+  8,
+  "Great first half. Second half fell apart.",
+  "2022-10-02T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00"
+),
+(
+  "mike",
+  "The Pink Panther 2",
+  3,
+  "Great first half. Second half fell apart.",
+  "2022-10-08T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00"
+),
+(
+  "mike",
+  "The Little Mermaid (1989)",
+  6,
+  "Great first half. Second half fell apart.",
+  "2022-10-09T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00"
+),
+(
+  "mike",
+  "Spin Me Round",
+  7,
+  "Great first half. Second half fell apart.",
+  "2022-10-16T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00"
+),
+(
+  "mike",
+  "Joshy",
+  7,
+  "It had its ups and downs, but there were a lot of good jokes, good cast, original story.",
+  "2022-10-23T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00"
+),
+(
+  "mike",
+  "The Little Hours",
+  5,
+  "Great cast. It had a lot of non sequiturs, so I'm wondering if it would have made more sense if I'd read The Decameron. Mostly enjoyed it, but it kind of goes off the rails by the end.",
+  "2022-10-27T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00",
+  "2022-10-29T00:00:00-05:00"
+)
+;
+EOF

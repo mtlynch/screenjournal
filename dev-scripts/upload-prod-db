@@ -17,10 +17,10 @@ set +x
 set -x
 
 if [[ -z "${DB_PATH}" ]]; then
-      echo "usage: upload-prod-db [db_path]" && exit 1
+      echo "usage: upload-prod-db db_path" && exit 1
 fi
 
-read -p -r "Really overwrite prod database? (y/N): " choice
+read -r -p "Really overwrite prod database? (y/N): " choice
 
 echo "Choice is ${choice}"
 

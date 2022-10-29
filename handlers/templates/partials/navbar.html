@@ -50,8 +50,7 @@
             </ul>
           </li>
         </ul>
-      {{ end }}
-      {{ if not .IsAuthenticated }}
+      {{ else }}
         <div class="ms-auto">
           <a href="/sign-up" class="btn btn-primary btn-sm px-4 gap-3">
             Sign up

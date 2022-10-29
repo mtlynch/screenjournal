@@ -86,7 +86,7 @@ jobs:
             sqlfluff lint \
               --disable_progress_bar \
               --dialect sqlite \
-              datastore/sqlite/migrations
+              store/sqlite/migrations
   build_docker_images:
     docker:
       - image: cimg/base:stable

@@ -19,6 +19,7 @@ func (s *Server) routes() {
 	views.Use(upgradeToHttps)
 	views.HandleFunc("/about", s.aboutGet()).Methods(http.MethodGet)
 	views.HandleFunc("/login", s.logInGet()).Methods(http.MethodGet)
+	views.HandleFunc("/logout", s.logOutGet()).Methods(http.MethodGet)
 	views.HandleFunc("/sign-up", s.signUpGet()).Methods(http.MethodGet)
 	views.HandleFunc("/", s.indexGet()).Methods(http.MethodGet)
 }

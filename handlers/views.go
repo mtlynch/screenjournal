@@ -1,18 +1,24 @@
 package handlers
 
 import (
+	"context"
 	"embed"
 	"net/http"
 	"path"
 	"text/template"
 )
 
+type commonProps struct {
+	Title           string
+	IsAuthenticated bool
+}
+
 func (s Server) indexGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := renderTemplate(w, "index.html", struct {
-			Title string
+			commonProps
 		}{
-			Title: "ScreenJournal",
+			commonProps: makeCommonProps("ScreenJournal", r.Context()),
 		}, template.FuncMap{}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -23,9 +29,9 @@ func (s Server) indexGet() http.HandlerFunc {
 func (s Server) aboutGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := renderTemplate(w, "about.html", struct {
-			Title string
+			commonProps
 		}{
-			Title: "About ScreenJournal",
+			commonProps: makeCommonProps("About ScreenJournal", r.Context()),
 		}, template.FuncMap{}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -36,9 +42,22 @@ func (s Server) aboutGet() http.HandlerFunc {
 func (s Server) logInGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := renderTemplate(w, "login.html", struct {
-			Title string
+			commonProps
 		}{
-			Title: "Sign In",
+			commonProps: makeCommonProps("Sign In", r.Context()),
+		}, template.FuncMap{}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func (s Server) logOutGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := renderTemplate(w, "logout.html", struct {
+			commonProps
+		}{
+			commonProps: makeCommonProps("Log Out", r.Context()),
 		}, template.FuncMap{}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -49,9 +68,9 @@ func (s Server) logInGet() http.HandlerFunc {
 func (s Server) signUpGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := renderTemplate(w, "sign-up.html", struct {
-			Title string
+			commonProps
 		}{
-			Title: "Sign Up",
+			commonProps: makeCommonProps("Sign Up", r.Context()),
 		}, template.FuncMap{}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -62,13 +81,20 @@ func (s Server) signUpGet() http.HandlerFunc {
 func (s Server) dashboardGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := renderTemplate(w, "dashboard.html", struct {
-			Title string
+			commonProps
 		}{
-			Title: "Dashboard",
+			commonProps: makeCommonProps("Dashboard", r.Context()),
 		}, template.FuncMap{}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+	}
+}
+
+func makeCommonProps(title string, ctx context.Context) commonProps {
+	return commonProps{
+		Title:           title,
+		IsAuthenticated: isAuthenticated(ctx),
 	}
 }
 

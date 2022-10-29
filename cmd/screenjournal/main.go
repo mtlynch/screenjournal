@@ -10,6 +10,7 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/auth/simple"
+	"github.com/mtlynch/screenjournal/v2/store/hardcoded"
 )
 
 func main() {
@@ -20,7 +21,9 @@ func main() {
 		log.Fatalf("invalid shared secret: %v", err)
 	}
 
-	h := gorilla.LoggingHandler(os.Stdout, handlers.New(authenticator).Router())
+	store := hardcoded.New()
+
+	h := gorilla.LoggingHandler(os.Stdout, handlers.New(authenticator, store).Router())
 	if os.Getenv("SJ_BEHIND_PROXY") != "" {
 		h = gorilla.ProxyIPHeadersHandler(h)
 	}

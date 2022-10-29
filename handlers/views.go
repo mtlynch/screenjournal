@@ -3,9 +3,12 @@ package handlers
 import (
 	"context"
 	"embed"
+	"log"
 	"net/http"
 	"path"
 	"text/template"
+
+	"github.com/mtlynch/screenjournal/v2"
 )
 
 type commonProps struct {
@@ -80,11 +83,24 @@ func (s Server) signUpGet() http.HandlerFunc {
 
 func (s Server) dashboardGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		reviews, err := s.store.ReadReviews()
+		if err != nil {
+			log.Printf("failed to read reviews: %v", err)
+			http.Error(w, "Failed to read reviews", http.StatusInternalServerError)
+			return
+		}
+
 		if err := renderTemplate(w, "dashboard.html", struct {
 			commonProps
+			Reviews []screenjournal.Review
 		}{
 			commonProps: makeCommonProps("Dashboard", r.Context()),
-		}, template.FuncMap{}); err != nil {
+			Reviews:     reviews,
+		}, template.FuncMap{
+			"formatWatchDate": func(t screenjournal.WatchDate) string {
+				return t.Time().Format("2006-01-02")
+			},
+		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -102,7 +118,9 @@ func makeCommonProps(title string, ctx context.Context) commonProps {
 var templatesFS embed.FS
 
 func renderTemplate(w http.ResponseWriter, templateFilename string, templateVars interface{}, funcMap template.FuncMap) error {
-	t := template.Must(template.ParseFS(templatesFS, "templates/layouts/*.html", "templates/partials/*.html", path.Join("templates/pages", templateFilename))).Funcs(funcMap)
+	t := template.New(templateFilename).Funcs(funcMap)
+	t = template.Must(t.ParseFS(templatesFS, "templates/layouts/*.html", "templates/partials/*.html", path.Join("templates/pages", templateFilename)))
+
 	if err := t.ExecuteTemplate(w, "base", templateVars); err != nil {
 		return err
 	}

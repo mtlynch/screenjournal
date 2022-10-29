@@ -20,41 +20,22 @@
   <h1>Ratings</h1>
 
   <div class="d-flex card-deck">
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">The Little Hours</h5>
-        <h6 class="card-subtitle mb-2 text-muted">5 / 10</h6>
-        <p class="card-text">
-          Great cast. It had a lot of non sequiturs, so I'm wondering if it
-          would have made more sense if I'd read The Decameron. Mostly enjoyed
-          it, but it kind of goes off the rails by the end.
-        </p>
-        <a href="/reviews/16/edit" class="card-link">Edit</a>
+    {{ range .Reviews }}
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">{{ .Title }}</h5>
+          <h6 class="card-subtitle mb-2 text-muted">{{ .Rating }} / 10</h6>
+          <p class="card-text">
+            {{ .Blurb }}
+          </p>
+          <a href="/reviews/{{ .ID }}/edit" class="card-link">Edit</a>
+        </div>
+        <div class="card-footer text-muted">
+          Watched
+          {{ formatWatchDate .Watched }}
+        </div>
       </div>
-      <div class="card-footer text-muted">Watched two days ago</div>
-    </div>
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">Joshy</h5>
-        <h6 class="card-subtitle mb-2 text-muted">7 / 10</h6>
-        <p class="card-text">
-          It had its ups and downs, but there were a lot of good jokes, good
-          cast, original story.
-        </p>
-        <a href="/reviews/15/edit" class="card-link">Edit</a>
-      </div>
-      <div class="card-footer text-muted">Watched a week ago</div>
-    </div>
-
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">Hello, My Name is Doris</h5>
-        <h6 class="card-subtitle mb-2 text-muted">5 / 10</h6>
-        <p class="card-text">Great first half. Second half fell apart.</p>
-        <a href="/reviews/14/edit" class="card-link">Edit</a>
-      </div>
-      <div class="card-footer text-muted">Watched three months ago</div>
-    </div>
+    {{ end }}
   </div>
 {{ end }}
 

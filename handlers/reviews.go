@@ -19,6 +19,8 @@ func (s Server) reviewsPost() http.HandlerFunc {
 			return
 		}
 
+		// TODO: Prevent user from reviewing the same movie twice
+
 		now := time.Now()
 		rev.Created = now
 		rev.Modified = now

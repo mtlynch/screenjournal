@@ -8,6 +8,7 @@ import (
 	"path"
 	"sort"
 	"text/template"
+	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
 )
@@ -82,7 +83,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 	}
 }
 
-func (s Server) dashboardGet() http.HandlerFunc {
+func (s Server) reviewsGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		reviews, err := s.store.ReadReviews()
 		if err != nil {
@@ -96,15 +97,36 @@ func (s Server) dashboardGet() http.HandlerFunc {
 			return reviews[i].Watched.Time().After(reviews[j].Watched.Time())
 		})
 
-		if err := renderTemplate(w, "dashboard.html", struct {
+		if err := renderTemplate(w, "reviews-index.html", struct {
 			commonProps
 			Reviews []screenjournal.Review
 		}{
-			commonProps: makeCommonProps("Dashboard", r.Context()),
+			commonProps: makeCommonProps("Ratings", r.Context()),
 			Reviews:     reviews,
 		}, template.FuncMap{
 			"formatWatchDate": func(t screenjournal.WatchDate) string {
 				return t.Time().Format("2006-01-02")
+			},
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func (s Server) reviewsNewGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := renderTemplate(w, "reviews-new.html", struct {
+			commonProps
+			RatingOptions []int
+			Today         time.Time
+		}{
+			commonProps:   makeCommonProps("Add Review", r.Context()),
+			RatingOptions: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+			Today:         time.Now(),
+		}, template.FuncMap{
+			"formatDate": func(t time.Time) string {
+				return t.Format("2006-01-02")
 			},
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

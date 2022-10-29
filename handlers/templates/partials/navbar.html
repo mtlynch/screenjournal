@@ -1,6 +1,6 @@
 {{ $homeRoute := "/" }}
 {{ if .IsAuthenticated }}
-  {{ $homeRoute = "/dashboard" }}
+  {{ $homeRoute = "/reviews" }}
 {{ end }}
 
 
@@ -29,7 +29,7 @@
       </ul>
       <div class="ms-auto">
         {{ if .IsAuthenticated }}
-          <a href="/logout" class="btn btn-primary btn-sm px-4 gap-3">
+          <a href="/logout" class="btn btn-outline-secondary btn-sm px-4 gap-3">
             Log out
           </a>
         {{ else }}

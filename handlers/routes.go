@@ -13,13 +13,14 @@ func (s *Server) routes() {
 
 	authenticatedViews := s.router.PathPrefix("/").Subrouter()
 	authenticatedViews.Use(s.requireAuthentication)
-	authenticatedViews.HandleFunc("/dashboard", s.dashboardGet()).Methods(http.MethodGet)
+	authenticatedViews.HandleFunc("/reviews", s.reviewsGet()).Methods(http.MethodGet)
 
 	views := s.router.PathPrefix("/").Subrouter()
 	views.Use(upgradeToHttps)
 	views.HandleFunc("/about", s.aboutGet()).Methods(http.MethodGet)
 	views.HandleFunc("/login", s.logInGet()).Methods(http.MethodGet)
 	views.HandleFunc("/logout", s.logOutGet()).Methods(http.MethodGet)
+	views.HandleFunc("/reviews/new", s.reviewsNewGet()).Methods(http.MethodGet)
 	views.HandleFunc("/sign-up", s.signUpGet()).Methods(http.MethodGet)
 	views.HandleFunc("/", s.indexGet()).Methods(http.MethodGet)
 }

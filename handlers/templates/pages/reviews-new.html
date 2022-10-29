@@ -1,0 +1,50 @@
+{{ define "style-tags" }}
+{{ end }}
+
+{{ define "script-tags" }}
+{{ end }}
+
+{{ define "custom-elements" }}
+{{ end }}
+
+{{ define "content" }}
+  <h1>Add Rating</h1>
+
+  <form class="my-5">
+    <div class="mb-3">
+      <label for="media-title" class="form-label">Title</label>
+      <input type="text" class="form-control" id="media-title" />
+    </div>
+
+    <div class="mb-3">
+      <label for="rating-select" class="form-label">Rating</label>
+      <select id="rating-select" class="form-select" aria-label="Rating">
+        <option selected></option>
+        {{ range .RatingOptions }}
+          <option value="{{ . }}">{{ . }}</option>
+        {{ end }}
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="watched-date" class="form-label">When did you watch?</label>
+      <input
+        id="watched-date"
+        class="form-control"
+        type="date"
+        value="{{ .Today | formatDate }}"
+        min="2000-01-01"
+        max="{{ .Today | formatDate }}"
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="blurb" class="form-label">Other thoughts?</label>
+      <textarea id="blurb" class="form-control"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+{{ end }}
+
+{{ template "base.html" }}

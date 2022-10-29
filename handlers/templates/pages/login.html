@@ -30,7 +30,7 @@
       disableAuthForm();
       authenticate(username, password)
         .then(() => {
-          document.location = "/dashboard";
+          document.location = "/reviews";
         })
         .catch((error) => {
           logOut();

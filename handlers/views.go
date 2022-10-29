@@ -59,6 +59,19 @@ func (s Server) signUpGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) dashboardGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := renderTemplate(w, "dashboard.html", struct {
+			Title string
+		}{
+			Title: "Dashboard",
+		}, template.FuncMap{}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 //go:embed templates
 var templatesFS embed.FS
 

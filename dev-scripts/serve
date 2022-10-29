@@ -22,5 +22,11 @@ if [[ ! -f "${MODD_PATH}" ]]; then
     go install "github.com/cortesi/modd/cmd/modd@${MODD_VERSION}"
 fi
 
+# Load dev environment vars.
+set +x
+# shellcheck disable=SC1091
+. .env.dev
+set -x
+
 # Run modd for hot reloading.
 $MODD_PATH

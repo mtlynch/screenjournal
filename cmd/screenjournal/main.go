@@ -9,12 +9,18 @@ import (
 	gorilla "github.com/mtlynch/gorilla-handlers"
 
 	"github.com/mtlynch/screenjournal/v2/handlers"
+	"github.com/mtlynch/screenjournal/v2/handlers/auth/simple"
 )
 
 func main() {
 	log.Print("Starting screenjournal server")
 
-	h := gorilla.LoggingHandler(os.Stdout, handlers.New().Router())
+	authenticator, err := simple.New(requireEnv("SJ_ADMIN_USERNAME"), requireEnv("SJ_ADMIN_PASSWORD"))
+	if err != nil {
+		log.Fatalf("invalid shared secret: %v", err)
+	}
+
+	h := gorilla.LoggingHandler(os.Stdout, handlers.New(authenticator).Router())
 	if os.Getenv("SJ_BEHIND_PROXY") != "" {
 		h = gorilla.ProxyIPHeadersHandler(h)
 	}
@@ -27,4 +33,12 @@ func main() {
 	log.Printf("Listening on %s", port)
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+}
+
+func requireEnv(key string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		log.Fatalf("missing required environment variable: %s", key)
+	}
+	return val
 }

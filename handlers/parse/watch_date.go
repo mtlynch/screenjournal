@@ -1,7 +1,6 @@
 package parse
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -12,7 +11,7 @@ import (
 const watchDateFormat = time.RFC3339
 
 var ErrWatchDateUnrecognizedFormat = fmt.Errorf("unrecognized format for watch date, must be in %s format", watchDateFormat)
-var ErrWatchDateTooLate = errors.New("expire time must be at least one hour in the future")
+var ErrWatchDateTooLate = fmt.Errorf("watch time must be no later than %s", time.Now().Format("2006-01-02"))
 
 func WatchDate(raw string) (screenjournal.WatchDate, error) {
 	log.Printf("DEBUG: %s", raw)
@@ -21,9 +20,9 @@ func WatchDate(raw string) (screenjournal.WatchDate, error) {
 		return screenjournal.WatchDate{}, ErrWatchDateUnrecognizedFormat
 	}
 
-	now := time.Now().UTC()
-	cutoff := now.AddDate( /*years=*/ 1 /*months=*/, 0 /*days=*/, 1)
-	if t.After(cutoff) {
+	now := time.Now()
+	tomorrow := now.AddDate( /*years=*/ 0 /*months=*/, 0 /*days=*/, 1)
+	if t.After(tomorrow) {
 		return screenjournal.WatchDate{}, ErrWatchDateTooLate
 	}
 

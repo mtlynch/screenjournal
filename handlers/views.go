@@ -33,6 +33,19 @@ func (s Server) aboutGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) logInGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := renderTemplate(w, "login.html", struct {
+			Title string
+		}{
+			Title: "Log In",
+		}, template.FuncMap{}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func (s Server) signUpGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := renderTemplate(w, "sign-up.html", struct {

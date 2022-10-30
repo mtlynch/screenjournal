@@ -5,7 +5,7 @@ import "time"
 type (
 	ReviewID   int
 	MediaTitle string
-	Rating     int8
+	Rating     uint8
 	Blurb      string
 	WatchDate  time.Time
 
@@ -20,6 +20,10 @@ type (
 		Modified time.Time
 	}
 )
+
+func (r Rating) UInt8() uint8 {
+	return uint8(r)
+}
 
 func (wd WatchDate) Time() time.Time {
 	return time.Time(wd)

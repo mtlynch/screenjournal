@@ -16,7 +16,15 @@
         <div class="card h-100">
           <div class="card-body">
             <h5 class="card-title">{{ .Title }}</h5>
-            <h6 class="card-subtitle mb-2 text-muted">{{ .Rating }} / 10</h6>
+            <h6 class="card-subtitle mb-2 text-muted">
+              {{ range iterate .Rating.UInt8 }}
+                <i class="fa-solid fa-star"></i>
+              {{ end }}
+              {{ range iterate (minus 10 .Rating.UInt8) }}
+                <i class="fa-regular fa-star"></i>
+              {{ end }}
+
+            </h6>
             {{ with .Blurb }}
               <p class="card-text">
                 {{ . }}

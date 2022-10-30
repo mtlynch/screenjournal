@@ -19,6 +19,9 @@ var (
 	ErrWatchDateTooLate            = fmt.Errorf("watch time must be no later than %s", time.Now().Format("2006-01-02"))
 	ErrInvalidBlurb                = errors.New("invalid blurb")
 
+	MediaTitleMinLength = 2
+	MediaTitleMaxLength = 160
+
 	scriptTagPattern = regexp.MustCompile(`(?i)<\s*/?script\s*>`)
 	minRating        = 1
 	maxRating        = 10
@@ -30,7 +33,7 @@ func MediaTitle(raw string) (screenjournal.MediaTitle, error) {
 		return screenjournal.MediaTitle(""), ErrInvalidMediaTitle
 	}
 
-	if len(raw) < 5 || len(raw) > 160 {
+	if len(raw) < MediaTitleMinLength || len(raw) > MediaTitleMaxLength {
 		return screenjournal.MediaTitle(""), ErrInvalidMediaTitle
 	}
 

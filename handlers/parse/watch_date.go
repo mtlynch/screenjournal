@@ -2,7 +2,6 @@ package parse
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
@@ -14,7 +13,6 @@ var ErrWatchDateUnrecognizedFormat = fmt.Errorf("unrecognized format for watch d
 var ErrWatchDateTooLate = fmt.Errorf("watch time must be no later than %s", time.Now().Format("2006-01-02"))
 
 func WatchDate(raw string) (screenjournal.WatchDate, error) {
-	log.Printf("DEBUG: %s", raw)
 	t, err := time.Parse(watchDateFormat, raw)
 	if err != nil {
 		return screenjournal.WatchDate{}, ErrWatchDateUnrecognizedFormat

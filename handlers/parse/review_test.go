@@ -152,7 +152,7 @@ func TestRating(t *testing.T) {
 			if got, want := err, tt.err; got != want {
 				t.Fatalf("err=%v, want=%v", got, want)
 			}
-			if got, want := rating.Int8(), tt.rating.Int8(); got != want {
+			if got, want := rating.UInt8(), tt.rating.UInt8(); got != want {
 				t.Errorf("rating=%d, want=%d", got, want)
 			}
 		})

@@ -107,6 +107,17 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			"formatWatchDate": func(t screenjournal.WatchDate) string {
 				return t.Time().Format("2006-01-02")
 			},
+			"iterate": func(n uint8) []uint8 {
+				var arr []uint8
+				var i uint8
+				for i = 0; i < n; i++ {
+					arr = append(arr, i)
+				}
+				return arr
+			},
+			"minus": func(a, b uint8) uint8 {
+				return a - b
+			},
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

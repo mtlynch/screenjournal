@@ -108,7 +108,7 @@ func (db db) ReadReviews() ([]screenjournal.Review, error) {
 }
 
 func (d db) InsertReview(rev screenjournal.Review) error {
-	log.Printf("inserting new review of %s: %v", rev.Title, rev.Rating.Int8())
+	log.Printf("inserting new review of %s: %v", rev.Title, rev.Rating.UInt8())
 
 	now := time.Now()
 

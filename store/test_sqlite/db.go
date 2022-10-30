@@ -8,9 +8,8 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
-const optimizeForLitestream = false
-
 func New() store.Store {
+	const optimizeForLitestream = false
 	return sqlite.New(ephemeralDbURI(), optimizeForLitestream)
 }
 

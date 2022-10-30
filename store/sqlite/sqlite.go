@@ -117,12 +117,12 @@ func (d db) InsertReview(rev screenjournal.Review) error {
 		reviews
 	(
 		review_owner,
-    title,
-    rating,
-    blurb,
-    watched_date,
-    created_time,
-    last_modified_time
+		title,
+		rating,
+		blurb,
+		watched_date,
+		created_time,
+		last_modified_time
 	)
 	VALUES (
 		?, ?, ?, ?, ?, ?, ?

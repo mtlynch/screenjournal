@@ -110,6 +110,8 @@ func (db db) ReadReviews() ([]screenjournal.Review, error) {
 func (d db) InsertReview(rev screenjournal.Review) error {
 	log.Printf("inserting new review of %s: %v", rev.Title, rev.Rating.Int8())
 
+	now := time.Now()
+
 	if _, err := d.ctx.Exec(`
 	INSERT INTO
 		reviews
@@ -131,8 +133,8 @@ func (d db) InsertReview(rev screenjournal.Review) error {
 		rev.Rating,
 		rev.Blurb,
 		formatWatchDate(rev.Watched),
-		formatTime(rev.Created),
-		formatTime(rev.Modified)); err != nil {
+		formatTime(now),
+		formatTime(now)); err != nil {
 		return err
 	}
 

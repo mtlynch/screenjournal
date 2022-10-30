@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
@@ -20,10 +19,6 @@ func (s Server) reviewsPost() http.HandlerFunc {
 		}
 
 		// TODO: Prevent user from reviewing the same movie twice
-
-		now := time.Now()
-		rev.Created = now
-		rev.Modified = now
 
 		if err := s.store.InsertReview(rev); err != nil {
 			log.Printf("failed to save review: %v", err)
@@ -49,7 +44,6 @@ func reviewFromRequest(r *http.Request) (screenjournal.Review, error) {
 	// TODO: Support reviews by other users
 	owner := screenjournal.Username("mike")
 
-	// TODO: Actually parse these
 	title, err := parse.MediaTitle(payload.Title)
 	if err != nil {
 		return screenjournal.Review{}, err

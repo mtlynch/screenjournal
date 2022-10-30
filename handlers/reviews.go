@@ -54,7 +54,7 @@ func reviewFromRequest(r *http.Request) (screenjournal.Review, error) {
 	if err != nil {
 		return screenjournal.Review{}, err
 	}
-	rating, err := screenjournal.Rating(payload.Rating)
+	rating, err := parse.Rating(payload.Rating)
 	if err != nil {
 		return screenjournal.Review{}, err
 	}
@@ -62,7 +62,10 @@ func reviewFromRequest(r *http.Request) (screenjournal.Review, error) {
 	if err != nil {
 		return screenjournal.Review{}, err
 	}
-	blurb := screenjournal.Blurb(payload.Blurb)
+	blurb, err := parse.Blurb(payload.Blurb)
+	if err != nil {
+		return screenjournal.Review{}, err
+	}
 
 	return screenjournal.Review{
 		Owner:   owner,

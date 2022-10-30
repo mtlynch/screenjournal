@@ -34,3 +34,7 @@ func WatchDate(raw string) (screenjournal.WatchDate, error) {
 
 	return screenjournal.WatchDate(t), nil
 }
+
+func Blurb(raw string) (screenjournal.Blurb, error) {
+	return screenjournal.Blurb(raw), nil
+}

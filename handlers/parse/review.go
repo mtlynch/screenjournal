@@ -12,6 +12,14 @@ const watchDateFormat = time.RFC3339
 var ErrWatchDateUnrecognizedFormat = fmt.Errorf("unrecognized format for watch date, must be in %s format", watchDateFormat)
 var ErrWatchDateTooLate = fmt.Errorf("watch time must be no later than %s", time.Now().Format("2006-01-02"))
 
+func MediaTitle(raw string) (screenjournal.MediaTitle, error) {
+	return screenjournal.MediaTitle(raw), nil
+}
+
+func Rating(raw int) (screenjournal.Rating, error) {
+	return screenjournal.Rating(raw), nil
+}
+
 func WatchDate(raw string) (screenjournal.WatchDate, error) {
 	t, err := time.Parse(watchDateFormat, raw)
 	if err != nil {

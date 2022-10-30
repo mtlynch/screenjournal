@@ -42,11 +42,11 @@ func TestWatchDate(t *testing.T) {
 		},
 	} {
 		t.Run(fmt.Sprintf("%s [%s]", tt.description, tt.input), func(t *testing.T) {
-			et, err := parse.WatchDate(tt.input)
+			wd, err := parse.WatchDate(tt.input)
 			if got, want := err, tt.err; got != want {
 				t.Fatalf("err=%v, want=%v", got, want)
 			}
-			if got, want := et, tt.output; got != want {
+			if got, want := wd.Time(), tt.output.Time(); got != want {
 				t.Errorf("watchDate=%v, want=%v", got, want)
 			}
 		})
@@ -54,9 +54,9 @@ func TestWatchDate(t *testing.T) {
 }
 
 func mustParseWatchDate(s string) screenjournal.WatchDate {
-	et, err := time.Parse(time.RFC3339, s)
+	wd, err := time.Parse(time.RFC3339, s)
 	if err != nil {
 		panic(err)
 	}
-	return screenjournal.WatchDate(et)
+	return screenjournal.WatchDate(wd)
 }

@@ -50,8 +50,14 @@ func reviewFromRequest(r *http.Request) (screenjournal.Review, error) {
 	owner := screenjournal.Username("mike")
 
 	// TODO: Actually parse these
-	title := screenjournal.MediaTitle(payload.Title)
-	rating := screenjournal.Rating(payload.Rating)
+	title, err := parse.MediaTitle(payload.Title)
+	if err != nil {
+		return screenjournal.Review{}, err
+	}
+	rating, err := screenjournal.Rating(payload.Rating)
+	if err != nil {
+		return screenjournal.Review{}, err
+	}
 	watchDate, err := parse.WatchDate(payload.Watched)
 	if err != nil {
 		return screenjournal.Review{}, err

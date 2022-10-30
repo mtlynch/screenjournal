@@ -20,7 +20,12 @@ test("adds a new rating and fills in only required fields", async ({
 
   const reviewCard = await page.locator(":nth-match(.card, 1)");
   await expect(reviewCard.locator(".card-title")).toHaveText("Slow Learners");
-  await expect(reviewCard.locator(".card-subtitle")).toHaveText("3 / 10");
+  await expect(
+    reviewCard.locator(".card-subtitle .fa-star.fa-solid")
+  ).toHaveCount(3);
+  await expect(
+    reviewCard.locator(".card-subtitle .fa-star.fa-regular")
+  ).toHaveCount(7);
   await expect(reviewCard.locator(".card-text")).toHaveCount(0);
   await expect(reviewCard.locator(".card-footer")).toHaveText(
     "Watched 2022-10-21"
@@ -50,7 +55,12 @@ test("adds a new rating and fills all fields", async ({ page }) => {
   await expect(reviewCard.locator(".card-title")).toHaveText(
     "Eternal Sunshine of the Spotless Mind"
   );
-  await expect(reviewCard.locator(".card-subtitle")).toHaveText("10 / 10");
+  await expect(
+    reviewCard.locator(".card-subtitle .fa-star.fa-solid")
+  ).toHaveCount(10);
+  await expect(
+    reviewCard.locator(".card-subtitle .fa-star.fa-regular")
+  ).toHaveCount(0);
   await expect(reviewCard.locator(".card-text")).toHaveText(
     "My favorite movie!"
   );

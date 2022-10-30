@@ -10,7 +10,9 @@
 {{ define "content" }}
   <h1>Ratings</h1>
 
-  <a href="/reviews/new" class="btn btn-primary my-3">Add Rating</a>
+  <a href="/reviews/new" class="btn btn-primary my-3" data-test-id="add-rating"
+    >Add Rating</a
+  >
 
   <div class="row row-cols-1 row-cols-md-3 g-4">
     {{ range .Reviews }}

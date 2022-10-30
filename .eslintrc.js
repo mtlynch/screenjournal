@@ -18,5 +18,5 @@ module.exports = {
       { allow: ["error"] },
     ],
   },
-  ignorePatterns: ["static/third-party/**/*.js"],
+  ignorePatterns: ["playwright-report/*", "static/third-party/**/*.js"],
 };

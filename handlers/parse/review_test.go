@@ -37,7 +37,7 @@ func TestMediaTitle(t *testing.T) {
 			parse.ErrInvalidMediaTitle,
 		},
 		{
-			"two-character title is invalid",
+			"two-character title is valid",
 			"It",
 			screenjournal.MediaTitle("It"),
 			nil,

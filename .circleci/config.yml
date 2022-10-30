@@ -67,9 +67,16 @@ jobs:
       - checkout
       - attach_workspace:
           at: ./
+      - restore_cache:
+          keys:
+            - go-mod-v1-{{ checksum "go.sum" }}
       - run:
           name: Compile backend
           command: dev-scripts/build-backend
+      - save_cache:
+          key: go-mod-v1-{{ checksum "go.sum" }}
+          paths:
+            - ~/go/pkg/mod
       - persist_to_workspace:
           root: ./
           paths:

@@ -6,6 +6,12 @@ set -e
 # Echo commands to stdout.
 set -x
 
+REBUILD_BIN=""
+if [[ "$1" = "--rebuild" ]]; then
+  REBUILD_BIN="1"
+fi
+readonly REBUILD_BIN
+
 # Exit on unset variable.
 set -u
 
@@ -15,5 +21,9 @@ readonly SCRIPT_DIR
 cd "${SCRIPT_DIR}/.."
 
 ./dev-scripts/reset-db
+
+if [[ -n "${REBUILD_BIN}" ]]; then
+  ./dev-scripts/build-backend
+fi
 
 npx playwright test

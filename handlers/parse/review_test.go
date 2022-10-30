@@ -105,8 +105,8 @@ func TestWatchDate(t *testing.T) {
 	}{
 		{
 			description: "valid expiration",
-			input:       "2022-10-28T00:00:00.000-04:00",
-			output:      mustParseWatchDate("2022-10-28T00:00:00.000-04:00"),
+			input:       "2022-10-28T00:00:00-04:00",
+			output:      mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 			err:         nil,
 		},
 		{

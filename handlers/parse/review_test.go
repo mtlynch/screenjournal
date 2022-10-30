@@ -2,6 +2,7 @@ package parse_test
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"testing"
 	"time"
@@ -91,6 +92,62 @@ func TestMediaTitle(t *testing.T) {
 			}
 			if got, want := title, tt.title; got != want {
 				t.Errorf("title=%s, want=%s", got, want)
+			}
+		})
+	}
+}
+
+func TestRating(t *testing.T) {
+	for _, tt := range []struct {
+		description string
+		in          int
+		rating      screenjournal.Rating
+		err         error
+	}{
+		{
+			"rating of 1 is valid",
+			1,
+			screenjournal.Rating(1),
+			nil,
+		},
+		{
+			"rating of 10 is valid",
+			10,
+			screenjournal.Rating(10),
+			nil,
+		},
+		{
+			"rating of -1 is invalid",
+			-1,
+			screenjournal.Rating(0),
+			parse.ErrInvalidRating,
+		},
+		{
+			"rating of MaxInt is invalid",
+			math.MaxInt,
+			screenjournal.Rating(0),
+			parse.ErrInvalidRating,
+		},
+		{
+			"rating of MinInt is invalid",
+			math.MinInt,
+			screenjournal.Rating(0),
+			parse.ErrInvalidRating,
+		},
+		{
+			"rating of 0 is invalid",
+			0,
+			screenjournal.Rating(0),
+			parse.ErrInvalidRating,
+		},
+	} {
+		t.Run(fmt.Sprintf("%s [%d]", tt.description, tt.in), func(t *testing.T) {
+			rating, err := parse.Rating(tt.in)
+			if got, want := err, tt.err; got != want {
+				t.Fatalf("err=%v, want=%v", got, want)
+			}
+			if got, want := rating.Int8(), tt.rating.Int8(); got != want {
+				t.Errorf("rating=%d, want=%d", got, want)
 			}
 		})
 	}

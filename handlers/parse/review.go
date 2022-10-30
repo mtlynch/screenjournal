@@ -13,11 +13,14 @@ const watchDateFormat = time.RFC3339
 
 var (
 	ErrInvalidMediaTitle           = errors.New("invalid media title")
+	ErrInvalidRating               = fmt.Errorf("rating must be between %d and %d", minRating, maxRating)
 	ErrWatchDateUnrecognizedFormat = fmt.Errorf("unrecognized format for watch date, must be in %s format", watchDateFormat)
 	ErrWatchDateTooLate            = fmt.Errorf("watch time must be no later than %s", time.Now().Format("2006-01-02"))
 	ErrInvalidBlurb                = errors.New("invalid blurb")
 
 	scriptTagPattern = regexp.MustCompile(`(?i)<\s*/?script\s*>`)
+	minRating        = 1
+	maxRating        = 10
 )
 
 func MediaTitle(raw string) (screenjournal.MediaTitle, error) {
@@ -37,6 +40,10 @@ func MediaTitle(raw string) (screenjournal.MediaTitle, error) {
 }
 
 func Rating(raw int) (screenjournal.Rating, error) {
+	if raw < minRating || raw > maxRating {
+		return screenjournal.Rating(0), ErrInvalidRating
+	}
+
 	return screenjournal.Rating(raw), nil
 }
 

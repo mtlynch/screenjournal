@@ -133,7 +133,7 @@ func TestWatchDate(t *testing.T) {
 			if got, want := err, tt.err; got != want {
 				t.Fatalf("err=%v, want=%v", got, want)
 			}
-			if got, want := wd.Time(), tt.output.Time(); got != want {
+			if got, want := wd.Time(), tt.output.Time(); !got.Equal(want) {
 				t.Errorf("watchDate=%v, want=%v", got, want)
 			}
 		})

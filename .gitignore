@@ -25,3 +25,8 @@ data/
 
 # Environment variables, which may contain secrets
 .env.*
+
+# Playwright output
+/playwright-report/
+/playwright/.cache/
+/e2e-results/

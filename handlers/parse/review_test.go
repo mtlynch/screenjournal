@@ -26,8 +26,8 @@ func TestMediaTitle(t *testing.T) {
 		},
 		{
 			"title with non-alphanumeric characters is valid",
-			"9½ Weeks 2: The Kegend of Curly's Gold",
-			screenjournal.MediaTitle("9½ Weeks 2: The Kegend of Curly's Gold"),
+			"9½ Weeks 2: The Legend of Curly's Gold",
+			screenjournal.MediaTitle("9½ Weeks 2: The Legend of Curly's Gold"),
 			nil,
 		},
 		{
@@ -50,13 +50,13 @@ func TestMediaTitle(t *testing.T) {
 		},
 		{
 			"title with exactly 160 characters is valid",
-			strings.Repeat("A", 160),
-			screenjournal.MediaTitle(strings.Repeat("A", 160)),
+			strings.Repeat("A", parse.MediaTitleMaxLength),
+			screenjournal.MediaTitle(strings.Repeat("A", parse.MediaTitleMaxLength)),
 			nil,
 		},
 		{
 			"title with more than 160 characters is invalid",
-			strings.Repeat("A", 161),
+			strings.Repeat("A", parse.MediaTitleMaxLength+1),
 			screenjournal.MediaTitle(""),
 			parse.ErrInvalidMediaTitle,
 		},

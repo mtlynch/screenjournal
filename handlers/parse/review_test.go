@@ -49,13 +49,13 @@ func TestMediaTitle(t *testing.T) {
 			parse.ErrInvalidMediaTitle,
 		},
 		{
-			"title with exactly 160 characters is valid",
+			"title with exactly MediaTitleMaxLength characters is valid",
 			strings.Repeat("A", parse.MediaTitleMaxLength),
 			screenjournal.MediaTitle(strings.Repeat("A", parse.MediaTitleMaxLength)),
 			nil,
 		},
 		{
-			"title with more than 160 characters is invalid",
+			"title with more than MediaTitleMaxLength characters is invalid",
 			strings.Repeat("A", parse.MediaTitleMaxLength+1),
 			screenjournal.MediaTitle(""),
 			parse.ErrInvalidMediaTitle,

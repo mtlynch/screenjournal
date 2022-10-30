@@ -12,7 +12,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
 
   await page.locator("#rating-select").selectOption({ label: "10" });
 
-  await page.locator("#watched-date").fill("2022-10-30");
+  await page.locator("#watched-date").fill("2022-10-29");
 
   await page.locator("#blurb").fill("My favorite movie!");
 

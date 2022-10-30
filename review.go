@@ -21,6 +21,10 @@ type (
 	}
 )
 
+func (id ReviewID) Int() int {
+	return int(id)
+}
+
 func (r Rating) UInt8() uint8 {
 	return uint8(r)
 }

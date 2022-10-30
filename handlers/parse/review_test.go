@@ -197,6 +197,92 @@ func TestWatchDate(t *testing.T) {
 	}
 }
 
+func TestBlurb(t *testing.T) {
+	for _, tt := range []struct {
+		explanation string
+		in          string
+		blurb       screenjournal.Blurb
+		err         error
+	}{
+		{
+			"short blurb is valid",
+			"I loved it!",
+			screenjournal.Blurb("I loved it!"),
+			nil,
+		},
+		{
+			"blurb with exactly 3000 characters is valid",
+			strings.Repeat("A", 3000),
+			screenjournal.Blurb(strings.Repeat("A", 3000)),
+			nil,
+		},
+		{
+			"empty blurb is valid",
+			"",
+			screenjournal.Blurb(""),
+			nil,
+		},
+		{
+			"blurb with leading spaces is invalid",
+			" I thought it was bad.",
+			screenjournal.Blurb(""),
+			parse.ErrInvalidBlurb,
+		},
+		{
+			"blurb with trailing spaces is invalid",
+			"I thought it was bad.   ",
+			screenjournal.Blurb(""),
+			parse.ErrInvalidBlurb,
+		},
+		{
+			"blurb with more than 3000 characters is invalid",
+			strings.Repeat("A", 3001),
+			screenjournal.Blurb(""),
+			parse.ErrInvalidBlurb,
+		},
+		{
+			"blurb with <script> tag is invalid",
+			"Needed more <script>",
+			screenjournal.Blurb(""),
+			parse.ErrInvalidBlurb,
+		},
+		{
+			"blurb with closing </script> tag is invalid",
+			"Needed more </script>",
+			screenjournal.Blurb(""),
+			parse.ErrInvalidBlurb,
+		},
+		{
+			"blurb with <script> tag with whitespace is invalid",
+			"Needed more <\t\r\n script >",
+			screenjournal.Blurb(""),
+			parse.ErrInvalidBlurb,
+		},
+		{
+			"blurb with <script> tag with strange case is invalid",
+			"Needed more <ScRIpT>",
+			screenjournal.Blurb(""),
+			parse.ErrInvalidBlurb,
+		},
+		{
+			"blurb that's a reserved word is invalid",
+			"undefined",
+			screenjournal.Blurb(""),
+			parse.ErrInvalidBlurb,
+		},
+	} {
+		t.Run(tt.explanation, func(t *testing.T) {
+			blurb, err := parse.Blurb(tt.in)
+			if got, want := err, tt.err; got != want {
+				t.Fatalf("err=%v, want=%v", got, want)
+			}
+			if got, want := blurb, tt.blurb; got != want {
+				t.Errorf("blurb=%s, want=%s", got, want)
+			}
+		})
+	}
+}
+
 func mustParseWatchDate(s string) screenjournal.WatchDate {
 	wd, err := time.Parse(time.RFC3339, s)
 	if err != nil {

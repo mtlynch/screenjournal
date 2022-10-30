@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
@@ -21,6 +22,7 @@ var (
 	scriptTagPattern = regexp.MustCompile(`(?i)<\s*/?script\s*>`)
 	minRating        = 1
 	maxRating        = 10
+	blurbMaxLength   = 3000
 )
 
 func MediaTitle(raw string) (screenjournal.MediaTitle, error) {
@@ -63,11 +65,15 @@ func WatchDate(raw string) (screenjournal.WatchDate, error) {
 }
 
 func Blurb(raw string) (screenjournal.Blurb, error) {
-	if isReservedWord(raw) {
+	if strings.TrimSpace(raw) != raw {
 		return screenjournal.Blurb(""), ErrInvalidBlurb
 	}
 
-	if len(raw) < 5 || len(raw) > 160 {
+	if len(raw) > blurbMaxLength {
+		return screenjournal.Blurb(""), ErrInvalidBlurb
+	}
+
+	if isReservedWord(raw) {
 		return screenjournal.Blurb(""), ErrInvalidBlurb
 	}
 

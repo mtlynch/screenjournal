@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -27,6 +28,15 @@ var (
 	maxRating        = 10
 	blurbMaxLength   = 3000
 )
+
+func ReviewIDFromString(raw string) (screenjournal.ReviewID, error) {
+	id, err := strconv.ParseUint(raw, 10, 64)
+	if err != nil {
+		return screenjournal.ReviewID(0), err
+	}
+
+	return screenjournal.ReviewID(id), nil
+}
 
 func MediaTitle(raw string) (screenjournal.MediaTitle, error) {
 	if isReservedWord(raw) {

@@ -1,0 +1,120 @@
+{{ define "style-tags" }}
+{{ end }}
+
+{{ define "script-tags" }}
+  <script type="module">
+    import { updateReview } from "/js/controllers/reviews.js";
+    import { showElement, hideElement } from "/js/lib/bootstrap.js";
+    import { tzOffsetString } from "/js/lib/time.js";
+
+    function reviewFromForm() {
+      const rating = parseInt(document.getElementById("rating-select").value);
+
+      const dateRaw = document.getElementById("watched-date").value;
+      const watched = `${dateRaw}T00:00:00.000${tzOffsetString()}`;
+
+      const blurb = document.getElementById("blurb").value.trim();
+
+      return {
+        rating,
+        watched,
+        blurb,
+      };
+    }
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      function () {
+        const errorAlert = document.getElementById("error");
+        const submitSpinner = document.getElementById("submit-spinner");
+        const submitBtn = document.querySelector("form .btn-primary");
+
+        document
+          .getElementById("edit-rating")
+          .addEventListener("submit", (evt) => {
+            evt.preventDefault();
+
+            submitBtn.disabled = true;
+            hideElement(errorAlert);
+            showElement(submitSpinner);
+
+            const id = parseInt(document.getElementById("review-id").value);
+
+            updateReview(id, reviewFromForm())
+              .then(() => {
+                window.location.pathname = `/reviews`;
+              })
+              .catch((error) => {
+                errorAlert.innerText = error;
+                showElement(errorAlert);
+              })
+              .finally(() => {
+                hideElement(submitSpinner);
+                submitBtn.disabled = false;
+              });
+          });
+      },
+      false
+    );
+  </script>
+{{ end }}
+
+{{ define "custom-elements" }}
+{{ end }}
+
+{{ define "content" }}
+  <h1>{{ .Review.Title }}</h1>
+
+  <form id="edit-rating" class="my-5">
+    <input id="review-id" type="hidden" value="{{ .Review.ID }}" />
+    <div class="mb-3">
+      <label for="rating-select" class="form-label">Rating</label>
+      <select
+        id="rating-select"
+        class="form-select"
+        aria-label="Rating"
+        required
+      >
+        {{ $selectedRating := .Review.Rating.UInt8 }}
+        {{ range $i := .RatingOptions }}
+          <option
+            value="{{ . }}"
+            {{ if (eq $i $selectedRating) }}selected{{ end }}
+          >
+            {{ . }}
+          </option>
+        {{ end }}
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="watched-date" class="form-label">When did you watch?</label>
+      <input
+        id="watched-date"
+        class="form-control"
+        type="date"
+        value="{{ .Review.Watched.Time | formatDate }}"
+        min="2000-01-01"
+        max="{{ .Today | formatDate }}"
+        required
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="blurb" class="form-label">Other thoughts?</label>
+      <textarea id="blurb" class="form-control">{{ .Review.Blurb }}</textarea>
+    </div>
+
+    <input type="submit" class="btn btn-primary" value="Save" />
+  </form>
+
+  <div id="submit-spinner" class="spinner-border invisible" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+
+  <div id="error" class="alert alert-danger invisible" role="alert">
+    Placeholder error
+  </div>
+{{ end }}
+
+{{ template "base.html" }}

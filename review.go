@@ -3,7 +3,7 @@ package screenjournal
 import "time"
 
 type (
-	ReviewID   int
+	ReviewID   uint64
 	MediaTitle string
 	Rating     uint8
 	Blurb      string
@@ -21,8 +21,8 @@ type (
 	}
 )
 
-func (id ReviewID) Int() int {
-	return int(id)
+func (id ReviewID) UInt64() uint64 {
+	return uint64(id)
 }
 
 func (r Rating) UInt8() uint8 {

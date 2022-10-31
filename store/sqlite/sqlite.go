@@ -59,8 +59,8 @@ func (db db) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, error)
 		rating,
 		blurb,
 		watched_date,
-    created_time,
-    last_modified_time
+		created_time,
+		last_modified_time
 	FROM
 		reviews
 	WHERE

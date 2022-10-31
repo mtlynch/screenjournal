@@ -107,8 +107,8 @@ func (db db) ReadReviews() ([]screenjournal.Review, error) {
 	return reviews, nil
 }
 
-func (d db) InsertReview(rev screenjournal.Review) error {
-	log.Printf("inserting new review of %s: %v", rev.Title, rev.Rating.UInt8())
+func (d db) InsertReview(r screenjournal.Review) error {
+	log.Printf("inserting new review of %s: %v", r.Title, r.Rating.UInt8())
 
 	now := time.Now()
 
@@ -128,11 +128,11 @@ func (d db) InsertReview(rev screenjournal.Review) error {
 		?, ?, ?, ?, ?, ?, ?
 	)
 	`,
-		rev.Owner,
-		rev.Title,
-		rev.Rating,
-		rev.Blurb,
-		formatWatchDate(rev.Watched),
+		r.Owner,
+		r.Title,
+		r.Rating,
+		r.Blurb,
+		formatWatchDate(r.Watched),
 		formatTime(now),
 		formatTime(now)); err != nil {
 		return err

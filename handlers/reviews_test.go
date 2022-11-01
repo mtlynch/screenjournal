@@ -154,6 +154,101 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 	}
 }
 
+func TestReviewsPutAcceptsValidRequest(t *testing.T) {
+	for _, tt := range []struct {
+		description  string
+		priorReviews []screenjournal.Review
+		payload      string
+		expected     screenjournal.Review
+	}{
+		{
+			description: "valid request with all fields populated",
+			priorReviews: []screenjournal.Review{
+				{
+					Title:   "Eternal Sunshine of the Spotless Mind",
+					Rating:  screenjournal.Rating(10),
+					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				},
+			},
+			payload: `{
+					"rating": 8,
+					"watched":"2022-10-30T00:00:00-04:00",
+					"blurb": "It's a pretty good movie!"
+				}`,
+			expected: screenjournal.Review{
+				Title:   "Eternal Sunshine of the Spotless Mind",
+				Rating:  screenjournal.Rating(10),
+				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+			},
+		},
+		{
+			description: "valid request without a blurb",
+			priorReviews: []screenjournal.Review{
+				{
+					Title:   "Dirty Work",
+					Rating:  screenjournal.Rating(9),
+					Watched: mustParseWatchDate("2022-10-21T00:00:00-04:00"),
+					Blurb:   screenjournal.Blurb(""),
+				},
+			},
+			payload: `{
+					"rating": 9,
+					"watched":"2022-10-21T00:00:00-04:00",
+					"blurb": "Love Norm McDonald!"
+				}`,
+			expected: screenjournal.Review{
+				Title:   "Dirty Work",
+				Rating:  screenjournal.Rating(9),
+				Watched: mustParseWatchDate("2022-10-21T00:00:00-04:00"),
+				Blurb:   screenjournal.Blurb("Love Norm McDonald!"),
+			},
+		},
+	} {
+		t.Run(tt.description, func(t *testing.T) {
+			dataStore := test_sqlite.New()
+			for _, r := range tt.priorReviews {
+				dataStore.InsertReview(r)
+			}
+
+			s := handlers.New(mockAuthenticator{}, dataStore)
+
+			req, err := http.NewRequest("POST", "/api/reviews/1", strings.NewReader(tt.payload))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "text/json")
+
+			w := httptest.NewRecorder()
+			s.Router().ServeHTTP(w, req)
+
+			if status := w.Code; status != http.StatusOK {
+				t.Fatalf("%s: handler returned wrong status code: got %v want %v",
+					tt.description, status, http.StatusOK)
+			}
+
+			rr, err := dataStore.ReadReviews()
+			if err != nil {
+				t.Fatalf("%s: failed to retrieve guest link from datastore: %v", tt.description, err)
+			}
+
+			found := false
+			for _, r := range rr {
+				if r.Title == tt.expected.Title &&
+					r.Rating == tt.expected.Rating &&
+					r.Blurb == tt.expected.Blurb &&
+					r.Watched.Time().Equal(tt.expected.Watched.Time()) {
+					found = true
+				}
+			}
+			if !found {
+				t.Fatalf("Did not find expected review: %s", tt.expected.Title)
+			}
+		})
+	}
+}
+
 func mustParseWatchDate(s string) screenjournal.WatchDate {
 	wd, err := parse.WatchDate(s)
 	if err != nil {

@@ -3,6 +3,7 @@ package parse
 import (
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -14,6 +15,7 @@ import (
 const watchDateFormat = time.RFC3339
 
 var (
+	ErrInvalidReviewID             = errors.New("invalid review ID")
 	ErrInvalidMediaTitle           = errors.New("invalid media title")
 	ErrInvalidRating               = fmt.Errorf("rating must be between %d and %d", minRating, maxRating)
 	ErrWatchDateUnrecognizedFormat = fmt.Errorf("unrecognized format for watch date, must be in %s format", watchDateFormat)
@@ -32,7 +34,12 @@ var (
 func ReviewIDFromString(raw string) (screenjournal.ReviewID, error) {
 	id, err := strconv.ParseUint(raw, 10, 64)
 	if err != nil {
-		return screenjournal.ReviewID(0), err
+		log.Printf("failed to parse review ID: %v", err)
+		return screenjournal.ReviewID(0), ErrInvalidReviewID
+	}
+
+	if id == 0 {
+		return screenjournal.ReviewID(0), ErrInvalidReviewID
 	}
 
 	return screenjournal.ReviewID(id), nil

@@ -95,7 +95,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				}
 			}
 			if !found {
-				t.Fatalf("Did not find expected review: %s", tt.expected.Title)
+				t.Fatalf("did not find expected review: %s", tt.expected.Title)
 			}
 		})
 	}
@@ -214,7 +214,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 
 			s := handlers.New(mockAuthenticator{}, dataStore)
 
-			req, err := http.NewRequest("POST", "/api/reviews/1", strings.NewReader(tt.payload))
+			req, err := http.NewRequest("PUT", "/api/reviews/1", strings.NewReader(tt.payload))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -243,7 +243,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				}
 			}
 			if !found {
-				t.Fatalf("Did not find expected review: %s", tt.expected.Title)
+				t.Fatalf("did not find expected review: %s", tt.expected.Title)
 			}
 		})
 	}

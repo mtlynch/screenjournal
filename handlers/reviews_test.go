@@ -7,6 +7,9 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/go-test/deep"
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers"
@@ -177,10 +180,11 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					"blurb": "It's a pretty good movie!"
 				}`,
 			expected: screenjournal.Review{
+				ID:      screenjournal.ReviewID(1),
 				Title:   "Eternal Sunshine of the Spotless Mind",
-				Rating:  screenjournal.Rating(10),
-				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
-				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				Rating:  screenjournal.Rating(8),
+				Watched: mustParseWatchDate("2022-10-30T00:00:00-04:00"),
+				Blurb:   screenjournal.Blurb("It's a pretty good movie!"),
 			},
 		},
 		{
@@ -190,19 +194,20 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					Title:   "Dirty Work",
 					Rating:  screenjournal.Rating(9),
 					Watched: mustParseWatchDate("2022-10-21T00:00:00-04:00"),
-					Blurb:   screenjournal.Blurb(""),
+					Blurb:   screenjournal.Blurb("Love Norm McDonald!"),
 				},
 			},
 			payload: `{
-					"rating": 9,
-					"watched":"2022-10-21T00:00:00-04:00",
-					"blurb": "Love Norm McDonald!"
+					"rating": 5,
+					"watched":"2022-10-28T00:00:00-04:00",
+					"blurb": ""
 				}`,
 			expected: screenjournal.Review{
+				ID:      screenjournal.ReviewID(1),
 				Title:   "Dirty Work",
-				Rating:  screenjournal.Rating(9),
-				Watched: mustParseWatchDate("2022-10-21T00:00:00-04:00"),
-				Blurb:   screenjournal.Blurb("Love Norm McDonald!"),
+				Rating:  screenjournal.Rating(5),
+				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+				Blurb:   screenjournal.Blurb(""),
 			},
 		},
 	} {
@@ -233,17 +238,17 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				t.Fatalf("%s: failed to retrieve guest link from datastore: %v", tt.description, err)
 			}
 
-			found := false
-			for _, r := range rr {
-				if r.Title == tt.expected.Title &&
-					r.Rating == tt.expected.Rating &&
-					r.Blurb == tt.expected.Blurb &&
-					r.Watched.Time().Equal(tt.expected.Watched.Time()) {
-					found = true
-				}
+			if got, want := len(rr), 1; got != want {
+				t.Fatalf("unexpected review count: got %v, want %v", got, want)
 			}
-			if !found {
-				t.Fatalf("did not find expected review: %s", tt.expected.Title)
+
+			// Zero out the times because they're a pain to compare.
+			actual := rr[0]
+			actual.Created = time.Time{}
+			actual.Modified = time.Time{}
+
+			if diff := deep.Equal(actual, tt.expected); diff != nil {
+				t.Error(diff)
 			}
 		})
 	}

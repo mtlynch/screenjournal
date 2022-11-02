@@ -39,7 +39,12 @@
                 {{ . }}
               </p>
             {{ end }}
-            <a href="/reviews/{{ .ID }}/edit" class="card-link">Edit</a>
+            <a
+              href="/reviews/{{ .ID }}/edit"
+              class="card-link"
+              data-test-id="edit-rating"
+              >Edit</a
+            >
           </div>
           <div class="card-footer text-muted text-end">
             Watched

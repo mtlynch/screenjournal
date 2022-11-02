@@ -105,11 +105,13 @@
       <textarea id="blurb" class="form-control">{{ .Review.Blurb }}</textarea>
     </div>
 
-    <button class="btn btn-secondary">Cancel</button>
-    <button class="btn btn-primary" value="Save">
-      <i class="fa-solid fa-floppy-disk"></i>
-      Save
-    </button>
+    <div class="d-flex justify-content-end" style="gap: 1rem">
+      <a class="btn btn-outline-secondary" href="/reviews">Cancel</a>
+      <button class="btn btn-primary" value="Save">
+        <i class="fa-solid fa-floppy-disk"></i>
+        Save
+      </button>
+    </div>
   </form>
 
   <div id="submit-spinner" class="spinner-border invisible" role="status">

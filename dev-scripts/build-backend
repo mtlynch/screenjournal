@@ -17,10 +17,10 @@ set -u
 
 if [[ "${MODE}" == "prod" ]]; then
   BINARY="./bin/screenjournal"
-  EXTRA_FLAGS=""
+  EXTRA_FLAGS=()
 else
   BINARY="./bin/screenjournal-${MODE}"
-  EXTRA_FLAGS="--tags ${MODE}"
+  EXTRA_FLAGS=("--tags" "${MODE}")
 fi
 
-go build $EXTRA_FLAGS -o "${BINARY}" cmd/screenjournal/main.go
+go build "${EXTRA_FLAGS[@]}" -o "${BINARY}" cmd/screenjournal/main.go

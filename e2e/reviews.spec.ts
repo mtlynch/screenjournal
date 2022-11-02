@@ -86,32 +86,33 @@ test("adds a new rating and edits the details", async ({ page }) => {
 
   await expect(page).toHaveURL("/reviews");
 
-  const reviewCard = await page.locator(":nth-match(.card, 1)");
+  const originalReviewCard = await page.locator(":nth-match(.card, 1)");
 
-  await reviewCard.locator("data-test-id=edit-rating").click;
+  await originalReviewCard.locator("data-test-id=edit-rating").click();
 
   await expect(page.locator("h1")).toHaveText("There's Something About Mary");
 
-  await expect(reviewCard.locator(".card-title")).toHaveText(
-    "There's Something About Mary"
-  );
-
   await page.locator("#rating-select").selectOption({ label: "8" });
-
   await page.locator("#watched-date").fill("2022-10-22");
   await page.locator("#blurb").fill("Not as good as I remembered");
 
+  await page.locator("form .btn-primary").click();
+
+  const editedReviewCard = await page.locator(":nth-match(.card, 1)");
+
+  await expect(page).toHaveURL("/reviews");
+
   await expect(
-    reviewCard.locator(".card-subtitle .fa-star.fa-solid")
+    editedReviewCard.locator(".card-subtitle .fa-star.fa-solid")
   ).toHaveCount(8);
   await expect(
-    reviewCard.locator(".card-subtitle .fa-star.fa-regular")
+    editedReviewCard.locator(".card-subtitle .fa-star.fa-regular")
   ).toHaveCount(2);
-  await expect(reviewCard.locator(".card-text")).toHaveText(
+  await expect(editedReviewCard.locator(".card-text")).toHaveText(
     "Not as good as I remembered"
   );
-  await expect(reviewCard.locator(".card-footer")).toHaveText(
-    "Watched 2022-10-29"
+  await expect(editedReviewCard.locator(".card-footer")).toHaveText(
+    "Watched 2022-10-22"
   );
 });
 
@@ -129,14 +130,14 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
 
   const reviewCard = await page.locator(":nth-match(.card, 1)");
 
-  await reviewCard.locator("data-test-id=edit-rating").click;
+  await reviewCard.locator("data-test-id=edit-rating").click();
 
   // Make edits that will be ignored when we cancel the edit.
   await page.locator("#rating-select").selectOption({ label: "1" });
   await page.locator("#watched-date").fill("2022-10-22");
   await page.locator("#blurb").fill("Ignore this edit");
 
-  await reviewCard.locator("data-test-id=cancel-edit").click();
+  await page.locator("data-test-id=cancel-edit").click();
 
   await expect(
     reviewCard.locator(".card-subtitle .fa-star.fa-solid")

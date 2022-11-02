@@ -1,11 +1,15 @@
 import { test, expect } from "@playwright/test";
 import { login } from "./helpers/login.js";
 
+test.beforeEach(async ({ page }, testInfo) => {
+  await page.goto("/api/debug/wipe-db");
+
+  await login(page);
+});
+
 test("adds a new rating and fills in only required fields", async ({
   page,
 }) => {
-  await login(page);
-
   await page.locator("data-test-id=add-rating").click();
 
   await page.locator("#media-title").fill("Slow Learners");
@@ -33,8 +37,6 @@ test("adds a new rating and fills in only required fields", async ({
 });
 
 test("adds a new rating and fills all fields", async ({ page }) => {
-  await login(page);
-
   await page.locator("data-test-id=add-rating").click();
 
   await page
@@ -70,8 +72,6 @@ test("adds a new rating and fills all fields", async ({ page }) => {
 });
 
 test("adds a new rating and edits the details", async ({ page }) => {
-  await login(page);
-
   await page.locator("data-test-id=add-rating").click();
 
   await page.locator("#media-title").fill("There's Something About Mary");
@@ -116,8 +116,6 @@ test("adds a new rating and edits the details", async ({ page }) => {
 });
 
 test("adds a new rating and cancels the edit", async ({ page }) => {
-  await login(page);
-
   await page.locator("data-test-id=add-rating").click();
 
   await page.locator("#media-title").fill("The Matrix");

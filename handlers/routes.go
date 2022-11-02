@@ -29,4 +29,6 @@ func (s *Server) routes() {
 	views.HandleFunc("/reviews/new", s.reviewsNewGet()).Methods(http.MethodGet)
 	views.HandleFunc("/sign-up", s.signUpGet()).Methods(http.MethodGet)
 	views.HandleFunc("/", s.indexGet()).Methods(http.MethodGet)
+
+	s.addDevRoutes()
 }

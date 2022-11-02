@@ -18,7 +18,7 @@ type dbMigration struct {
 //go:embed migrations/*.sql
 var migrationsFs embed.FS
 
-func (d db) applyMigrations() {
+func (d DB) applyMigrations() {
 	var version int
 	if err := d.ctx.QueryRow(`PRAGMA user_version`).Scan(&version); err != nil {
 		log.Fatalf("failed to get user_version: %v", err)

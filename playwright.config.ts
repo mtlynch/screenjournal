@@ -10,7 +10,7 @@ const config: PlaywrightTestConfig = {
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   reporter: "html",
   use: {
     baseURL: "http://localhost:6001",
@@ -32,7 +32,7 @@ const config: PlaywrightTestConfig = {
 
   webServer: {
     command:
-      "SJ_ADMIN_USERNAME=dummyuser SJ_ADMIN_PASSWORD=dummypass PORT=6001 ./bin/screenjournal",
+      "SJ_ADMIN_USERNAME=dummyuser SJ_ADMIN_PASSWORD=dummypass PORT=6001 ./bin/screenjournal-dev",
     port: 6001,
   },
 };

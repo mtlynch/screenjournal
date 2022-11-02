@@ -2,7 +2,7 @@ package sqlite
 
 import "log"
 
-func (d db) optimizeForLitestream() {
+func (d DB) optimizeForLitestream() {
 	if _, err := d.ctx.Exec(`
 		-- Apply Litestream recommendations: https://litestream.io/tips/
 		PRAGMA busy_timeout = 5000;

@@ -32,7 +32,7 @@ const config: PlaywrightTestConfig = {
 
   webServer: {
     command:
-      "SJ_ADMIN_USERNAME=dummyuser SJ_ADMIN_PASSWORD=dummypass PORT=6001 ./bin/screenjournal",
+      "SJ_ADMIN_USERNAME=dummyuser SJ_ADMIN_PASSWORD=dummypass PORT=6001 ./bin/screenjournal-dev",
     port: 6001,
   },
 };

@@ -1,6 +1,11 @@
 import { test, expect } from "@playwright/test";
 import { login } from "./helpers/login.js";
 
+test.beforeEach(async ({ page }, testInfo) => {
+  console.log(`resetting database`);
+  await page.goto("/api/debug/wipe-db");
+});
+
 test("adds a new rating and fills in only required fields", async ({
   page,
 }) => {

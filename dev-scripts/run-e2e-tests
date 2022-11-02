@@ -20,10 +20,9 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 readonly SCRIPT_DIR
 cd "${SCRIPT_DIR}/.."
 
-./dev-scripts/reset-db
-
 if [[ -n "${REBUILD_BIN}" ]]; then
-  ./dev-scripts/build-backend
+  # TODO: use build backend script
+  go build -o ./bin/screenjournal-dev cmd/screenjournal/main.go
 fi
 
 npx playwright test

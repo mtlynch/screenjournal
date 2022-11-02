@@ -1,11 +1,13 @@
 import { test, expect } from "@playwright/test";
 import { login } from "./helpers/login.js";
 
+test.beforeEach(async ({ page }) => {
+  await login(page);
+});
+
 test("adds a new rating and fills in only required fields", async ({
   page,
 }) => {
-  await login(page);
-
   await page.locator("data-test-id=add-rating").click();
 
   await page.locator("#media-title").fill("Slow Learners");
@@ -33,8 +35,6 @@ test("adds a new rating and fills in only required fields", async ({
 });
 
 test("adds a new rating and fills all fields", async ({ page }) => {
-  await login(page);
-
   await page.locator("data-test-id=add-rating").click();
 
   await page

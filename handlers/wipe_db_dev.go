@@ -9,11 +9,13 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
+// addDevRoutes adds debug routes that we only use during development or e2e
+// tests.
 func (s *Server) addDevRoutes() {
-	log.Printf("adding dev routes")
 	s.router.HandleFunc("/api/debug/wipe-db", s.wipeDB()).Methods(http.MethodGet)
 }
 
+// wipeDB wipes the database back to a freshly initialized state.
 func (s Server) wipeDB() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sqlStore, ok := s.store.(*sqlite.DB)

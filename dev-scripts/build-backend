@@ -15,7 +15,7 @@ fi
 # Exit on unset variable.
 set -u
 
-if [[ MODE == "prod" ]]; then
+if [[ "${MODE}" == "prod" ]]; then
   BINARY="./bin/screenjournal"
   EXTRA_FLAGS=""
 else

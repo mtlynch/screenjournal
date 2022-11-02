@@ -21,8 +21,7 @@ readonly SCRIPT_DIR
 cd "${SCRIPT_DIR}/.."
 
 if [[ -n "${REBUILD_BIN}" ]]; then
-  # TODO: use build backend script
-  go build -o ./bin/screenjournal-dev cmd/screenjournal/main.go
+  ./dev-scripts/build-backend dev
 fi
 
 npx playwright test

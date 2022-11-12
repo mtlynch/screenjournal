@@ -11,6 +11,7 @@ type (
 		ID          int
 		Title       string
 		ReleaseDate string
+		PosterURL   string
 	}
 
 	MovieSearchResults struct {

@@ -18,6 +18,7 @@ func (f tmdbFinder) Search(query string) (MovieSearchResults, error) {
 			ID:          match.ID,
 			Title:       match.Title,
 			ReleaseDate: match.ReleaseDate,
+			PosterURL:   "https://image.tmdb.org/t/p/w500" + match.PosterPath,
 		}
 	}
 	return results, nil

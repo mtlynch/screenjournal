@@ -10,6 +10,7 @@ type searchMatch struct {
 	ID          int    `json:"mediaId"`
 	Title       string `json:"title"`
 	ReleaseDate string `json:"releaseDate"`
+	PosterURL   string `json:"posterUrl"`
 }
 
 func (s Server) searchGet() http.HandlerFunc {
@@ -26,6 +27,7 @@ func (s Server) searchGet() http.HandlerFunc {
 			matches[i].ID = m.ID
 			matches[i].Title = m.Title
 			matches[i].ReleaseDate = m.ReleaseDate
+			matches[i].PosterURL = m.PosterURL
 		}
 
 		respondJSON(w, struct {

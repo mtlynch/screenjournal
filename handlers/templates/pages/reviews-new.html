@@ -36,9 +36,17 @@
         }
         for (const m of results.matches) {
           const d = new Date(m.releaseDate);
+
+          const imgEl = document.createElement("img");
+          imgEl.src = m.posterUrl;
+
           const pEl = document.createElement("p");
           pEl.innerText = `${m.title} (${d.getFullYear()})`;
-          resultsDiv.appendChild(pEl);
+
+          const wrapperEl = document.createElement("div");
+          wrapperEl.appendChild(imgEl);
+          wrapperEl.appendChild(pEl);
+          resultsDiv.appendChild(wrapperEl);
         }
       });
     }

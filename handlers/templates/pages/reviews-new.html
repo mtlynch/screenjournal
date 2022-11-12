@@ -4,6 +4,7 @@
 {{ define "script-tags" }}
   <script type="module">
     import { addReview } from "/js/controllers/reviews.js";
+    import { searchGet } from "/js/controllers/search.js";
     import { showElement, hideElement } from "/js/lib/bootstrap.js";
     import { tzOffsetString } from "/js/lib/time.js";
 
@@ -25,12 +26,32 @@
       };
     }
 
+    function onTitleInput(evt) {
+      searchGet(evt.target.value).then((results) => {
+        console.log(results);
+
+        const resultsDiv = document.getElementById("search-results");
+        while (resultsDiv.firstChild) {
+          resultsDiv.removeChild(resultsDiv.firstChild);
+        }
+        for (const m of results.matches) {
+          const d = new Date(m.releaseDate);
+          const pEl = document.createElement("p");
+          pEl.innerText = `${m.title} (${d.getFullYear()})`;
+          resultsDiv.appendChild(pEl);
+        }
+      });
+    }
+
     document.addEventListener(
       "DOMContentLoaded",
       function () {
         const errorAlert = document.getElementById("error");
         const submitSpinner = document.getElementById("submit-spinner");
         const submitBtn = document.querySelector("form .btn-primary");
+        document
+          .getElementById("media-title")
+          .addEventListener("input", onTitleInput);
 
         document
           .getElementById("add-rating")
@@ -69,8 +90,10 @@
   <form id="add-rating" class="my-5">
     <div class="mb-3">
       <label for="media-title" class="form-label">Title</label>
-      <input id="media-title" class="form-control" type="text" required />
+      <input id="media-title" class="form-control" type="search" required />
     </div>
+
+    <div id="search-results"></div>
 
     <div class="mb-3">
       <label for="rating-select" class="form-label">Rating</label>

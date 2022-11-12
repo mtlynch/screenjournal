@@ -8,5 +8,7 @@ github.com/mattn/go-sqlite3 v1.14.16 h1:yOQRA0RpS5PFz/oikGwBEqvAWhWg5ufRz4ETLjwp
 github.com/mattn/go-sqlite3 v1.14.16/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
 github.com/mtlynch/gorilla-handlers v1.5.2 h1:CnOI7baYzjgdumJMc7Dh192JFxqGsNgRewa7NTqq9Pc=
 github.com/mtlynch/gorilla-handlers v1.5.2/go.mod h1:qZmXSCK7pPjN71Pl9ARbQX2ec1t11FI/j8bDS+ZVbmQ=
+github.com/ryanbradynd05/go-tmdb v0.0.0-20220721194547-2ab6191c6273 h1:8Acxd4HoxkbAAGG4Du+f8/ndT5pxLQZzGkx2KUMaN+M=
+github.com/ryanbradynd05/go-tmdb v0.0.0-20220721194547-2ab6191c6273/go.mod h1:k/112WTJ3EoR7wjhtx8kOXO22CKNvJy+rNzGPXnuEsI=
 golang.org/x/crypto v0.1.0 h1:MDRAIl0xIo9Io2xV565hzXHw3zVseKrJKodhohM5CjU=
 golang.org/x/crypto v0.1.0/go.mod h1:RecgLatLF4+eUMCP1PoPZQb+cVrJcOPbHkTkbkB9sbw=

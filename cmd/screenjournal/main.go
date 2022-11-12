@@ -12,6 +12,7 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/auth/simple"
+	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
@@ -30,7 +31,12 @@ func main() {
 	ensureDirExists(filepath.Dir(*dbPath))
 	store := sqlite.New(*dbPath, isLitestreamEnabled())
 
-	h := gorilla.LoggingHandler(os.Stdout, handlers.New(authenticator, store).Router())
+	metadataFinder, err := metadata.New(requireEnv("SJ_TMDB_API"))
+	if err != nil {
+		log.Fatalf("failed to create metadata finder: %v", err)
+	}
+
+	h := gorilla.LoggingHandler(os.Stdout, handlers.New(authenticator, store, metadataFinder).Router())
 	if os.Getenv("SJ_BEHIND_PROXY") != "" {
 		h = gorilla.ProxyIPHeadersHandler(h)
 	}

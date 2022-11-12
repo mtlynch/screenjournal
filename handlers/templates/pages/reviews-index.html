@@ -36,7 +36,9 @@
             </h6>
             {{ with .Blurb }}
               <p class="card-text">
-                {{ . }}
+                {{ range .String | splitByNewline }}
+                  {{ . }}<br />
+                {{ end }}
               </p>
             {{ end }}
           </div>

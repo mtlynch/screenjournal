@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path"
 	"sort"
+	"strings"
 	"text/template"
 	"time"
 
@@ -114,6 +115,9 @@ func (s Server) reviewsGet() http.HandlerFunc {
 					arr = append(arr, i)
 				}
 				return arr
+			},
+			"splitByNewline": func(s string) []string {
+				return strings.Split(s, "\n")
 			},
 			"minus": func(a, b uint8) uint8 {
 				return a - b

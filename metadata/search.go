@@ -1,8 +1,9 @@
 package metadata
 
 func (f tmdbFinder) Search(query string) (MovieSearchResults, error) {
-	options := map[string]string{}
-	tmdbResults, err := f.tmdbAPI.SearchMovie(query, options)
+	tmdbResults, err := f.tmdbAPI.SearchMovie(query, map[string]string{
+		"include_adult": "false",
+	})
 	if err != nil {
 		return MovieSearchResults{}, err
 	}
@@ -18,7 +19,7 @@ func (f tmdbFinder) Search(query string) (MovieSearchResults, error) {
 			ID:          match.ID,
 			Title:       match.Title,
 			ReleaseDate: match.ReleaseDate,
-			PosterURL:   "https://image.tmdb.org/t/p/w500" + match.PosterPath,
+			PosterURL:   "https://image.tmdb.org/t/p/w92" + match.PosterPath,
 		}
 	}
 	return results, nil

@@ -32,3 +32,7 @@ func (r Rating) UInt8() uint8 {
 func (wd WatchDate) Time() time.Time {
 	return time.Time(wd)
 }
+
+func (b Blurb) String() string {
+	return string(b)
+}

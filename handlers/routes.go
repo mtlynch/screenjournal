@@ -10,6 +10,7 @@ func (s *Server) routes() {
 	authenticatedApis := s.router.PathPrefix("/api").Subrouter()
 	authenticatedApis.Use(s.requireAuthentication)
 	authenticatedApis.HandleFunc("/reviews", s.reviewsPost()).Methods(http.MethodPost)
+	authenticatedApis.HandleFunc("/reviews/{reviewID}", s.reviewsPut()).Methods(http.MethodPut)
 
 	static := s.router.PathPrefix("/").Subrouter()
 	static.PathPrefix("/js/").HandlerFunc(serveStaticResource()).Methods(http.MethodGet)
@@ -18,6 +19,7 @@ func (s *Server) routes() {
 	authenticatedViews := s.router.PathPrefix("/").Subrouter()
 	authenticatedViews.Use(s.requireAuthentication)
 	authenticatedViews.HandleFunc("/reviews", s.reviewsGet()).Methods(http.MethodGet)
+	authenticatedViews.HandleFunc("/reviews/{reviewID}/edit", s.reviewsEditGet()).Methods(http.MethodGet)
 
 	views := s.router.PathPrefix("/").Subrouter()
 	views.Use(upgradeToHttps)

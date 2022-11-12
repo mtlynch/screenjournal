@@ -25,6 +25,10 @@ func (id ReviewID) UInt64() uint64 {
 	return uint64(id)
 }
 
+func (id ReviewID) IsZero() bool {
+	return id == ReviewID(0)
+}
+
 func (r Rating) UInt8() uint8 {
 	return uint8(r)
 }

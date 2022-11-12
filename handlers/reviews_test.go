@@ -7,6 +7,9 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/go-test/deep"
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers"
@@ -82,7 +85,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 
 			rr, err := dataStore.ReadReviews()
 			if err != nil {
-				t.Fatalf("%s: failed to retrieve guest link from datastore: %v", tt.description, err)
+				t.Fatalf("%s: failed to retrieve review from datastore: %v", tt.description, err)
 			}
 
 			found := false
@@ -95,7 +98,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				}
 			}
 			if !found {
-				t.Fatalf("Did not find expected review: %s", tt.expected.Title)
+				t.Fatalf("did not find expected review: %s", tt.expected.Title)
 			}
 		})
 	}
@@ -149,6 +152,262 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 
 			if got, want := w.Code, http.StatusBadRequest; got != want {
 				t.Fatalf("/api/reviews POST returned wrong status: got=%v, want=%v", got, want)
+			}
+		})
+	}
+}
+
+func TestReviewsPutAcceptsValidRequest(t *testing.T) {
+	for _, tt := range []struct {
+		description  string
+		priorReviews []screenjournal.Review
+		route        string
+		payload      string
+		expected     screenjournal.Review
+	}{
+		{
+			description: "valid request with all fields populated",
+			priorReviews: []screenjournal.Review{
+				{
+					Title:   "Eternal Sunshine of the Spotless Mind",
+					Rating:  screenjournal.Rating(10),
+					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				},
+			},
+			route: "/api/reviews/1",
+			payload: `{
+					"rating": 8,
+					"watched":"2022-10-30T00:00:00-04:00",
+					"blurb": "It's a pretty good movie!"
+				}`,
+			expected: screenjournal.Review{
+				ID:      screenjournal.ReviewID(1),
+				Title:   "Eternal Sunshine of the Spotless Mind",
+				Rating:  screenjournal.Rating(8),
+				Watched: mustParseWatchDate("2022-10-30T00:00:00-04:00"),
+				Blurb:   screenjournal.Blurb("It's a pretty good movie!"),
+			},
+		},
+		{
+			description: "valid request without a blurb",
+			priorReviews: []screenjournal.Review{
+				{
+					Title:   "Dirty Work",
+					Rating:  screenjournal.Rating(9),
+					Watched: mustParseWatchDate("2022-10-21T00:00:00-04:00"),
+					Blurb:   screenjournal.Blurb("Love Norm McDonald!"),
+				},
+			},
+			route: "/api/reviews/1",
+			payload: `{
+					"rating": 5,
+					"watched":"2022-10-28T00:00:00-04:00",
+					"blurb": ""
+				}`,
+			expected: screenjournal.Review{
+				ID:      screenjournal.ReviewID(1),
+				Title:   "Dirty Work",
+				Rating:  screenjournal.Rating(5),
+				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+				Blurb:   screenjournal.Blurb(""),
+			},
+		},
+	} {
+		t.Run(tt.description, func(t *testing.T) {
+			dataStore := test_sqlite.New()
+			for _, r := range tt.priorReviews {
+				dataStore.InsertReview(r)
+			}
+
+			s := handlers.New(mockAuthenticator{}, dataStore)
+
+			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "text/json")
+
+			w := httptest.NewRecorder()
+			s.Router().ServeHTTP(w, req)
+
+			if status := w.Code; status != http.StatusOK {
+				t.Fatalf("%s: handler returned wrong status code: got %v want %v",
+					tt.description, status, http.StatusOK)
+			}
+
+			rr, err := dataStore.ReadReviews()
+			if err != nil {
+				t.Fatalf("%s: failed to retrieve review from datastore: %v", tt.description, err)
+			}
+
+			if got, want := len(rr), 1; got != want {
+				t.Fatalf("unexpected review count: got %v, want %v", got, want)
+			}
+
+			// Zero out the times because they're a pain to compare.
+			actual := rr[0]
+			actual.Created = time.Time{}
+			actual.Modified = time.Time{}
+
+			if diff := deep.Equal(actual, tt.expected); diff != nil {
+				t.Error(diff)
+			}
+		})
+	}
+}
+
+func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
+	for _, tt := range []struct {
+		description  string
+		priorReviews []screenjournal.Review
+		route        string
+		payload      string
+		status       int
+	}{
+		{
+			description: "rejects request with review ID of zero",
+			priorReviews: []screenjournal.Review{
+				{
+					Title:   "Eternal Sunshine of the Spotless Mind",
+					Rating:  screenjournal.Rating(10),
+					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				},
+			},
+			route: "/api/reviews/0",
+			payload: `{
+					"rating": 8,
+					"watched":"2022-10-30T00:00:00-04:00",
+					"blurb": "It's a pretty good movie!"
+				}`,
+			status: http.StatusBadRequest,
+		},
+		{
+			description: "rejects request with non-existent review ID",
+			priorReviews: []screenjournal.Review{
+				{
+					Title:   "Eternal Sunshine of the Spotless Mind",
+					Rating:  screenjournal.Rating(10),
+					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				},
+			},
+			route: "/api/reviews/9876",
+			payload: `{
+					"rating": 8,
+					"watched":"2022-10-30T00:00:00-04:00",
+					"blurb": "It's a pretty good movie!"
+				}`,
+			status: http.StatusNotFound,
+		},
+		{
+			description: "rejects request with malformed JSON",
+			priorReviews: []screenjournal.Review{
+				{
+					Title:   "Eternal Sunshine of the Spotless Mind",
+					Rating:  screenjournal.Rating(10),
+					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				},
+			},
+			route: "/api/reviews/1",
+			payload: `{
+					"rating": 8,
+					"watched":"2022-10-30T00:00:00-04:00",
+					"blurb": "no JSON ending brace!"`,
+			status: http.StatusBadRequest,
+		},
+		{
+			description: "rejects request with missing rating field",
+			priorReviews: []screenjournal.Review{
+				{
+					Title:   "Eternal Sunshine of the Spotless Mind",
+					Rating:  screenjournal.Rating(10),
+					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				},
+			},
+			route: "/api/reviews/1",
+			payload: `{
+					"watched":"2022-10-30T00:00:00-04:00",
+					"blurb": "It's a pretty good movie!"
+				}`,
+			status: http.StatusBadRequest,
+		},
+		{
+			description: "rejects request with missing watched field",
+			priorReviews: []screenjournal.Review{
+				{
+					Title:   "Eternal Sunshine of the Spotless Mind",
+					Rating:  screenjournal.Rating(10),
+					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				},
+			},
+			route: "/api/reviews/1",
+			payload: `{
+					"rating": 8,
+					"blurb": "It's a pretty good movie!"
+				}`,
+			status: http.StatusBadRequest,
+		},
+		{
+			description: "rejects request with numeric blurb field",
+			priorReviews: []screenjournal.Review{
+				{
+					Title:   "Eternal Sunshine of the Spotless Mind",
+					Rating:  screenjournal.Rating(10),
+					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				},
+			},
+			route: "/api/reviews/1",
+			payload: `{
+					"rating": 8,
+					"watched":"2022-10-30T00:00:00-04:00",
+					"blurb": 6
+				}`,
+			status: http.StatusBadRequest,
+		},
+		{
+			description: "rejects request with script tag in blurb field",
+			priorReviews: []screenjournal.Review{
+				{
+					Title:   "Eternal Sunshine of the Spotless Mind",
+					Rating:  screenjournal.Rating(10),
+					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				},
+			},
+			route: "/api/reviews/1",
+			payload: `{
+					"rating": 8,
+					"watched":"2022-10-30T00:00:00-04:00",
+					"blurb": "Nothing evil going on here...<script>alert(1)</script>"
+				}`,
+			status: http.StatusBadRequest,
+		},
+	} {
+		t.Run(tt.description, func(t *testing.T) {
+			dataStore := test_sqlite.New()
+			for _, r := range tt.priorReviews {
+				dataStore.InsertReview(r)
+			}
+
+			s := handlers.New(mockAuthenticator{}, dataStore)
+
+			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "text/json")
+
+			w := httptest.NewRecorder()
+			s.Router().ServeHTTP(w, req)
+
+			if got, want := w.Code, tt.status; got != want {
+				t.Fatalf("%s PUT returned wrong status: got=%v, want=%v", tt.route, got, want)
 			}
 		})
 	}

@@ -11,6 +11,56 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 )
 
+func TestReviewIDFromString(t *testing.T) {
+	for _, tt := range []struct {
+		description string
+		in          string
+		id          screenjournal.ReviewID
+		err         error
+	}{
+		{
+			"ID of 1 is valid",
+			"1",
+			screenjournal.ReviewID(1),
+			nil,
+		},
+		{
+			"ID of MaxUint64 is valid",
+			fmt.Sprintf("%d", uint64(math.MaxUint64)),
+			screenjournal.ReviewID(math.MaxUint64),
+			nil,
+		},
+		{
+			"ID of -1 is invalid",
+			"-1",
+			screenjournal.ReviewID(0),
+			parse.ErrInvalidReviewID,
+		},
+		{
+			"ID of 0 is invalid",
+			"0",
+			screenjournal.ReviewID(0),
+			parse.ErrInvalidReviewID,
+		},
+		{
+			"non-numeric ID is invalid",
+			"banana",
+			screenjournal.ReviewID(0),
+			parse.ErrInvalidReviewID,
+		},
+	} {
+		t.Run(fmt.Sprintf("%s [%s]", tt.description, tt.in), func(t *testing.T) {
+			id, err := parse.ReviewIDFromString(tt.in)
+			if got, want := err, tt.err; got != want {
+				t.Fatalf("err=%v, want=%v", got, want)
+			}
+			if got, want := id.UInt64(), tt.id.UInt64(); got != want {
+				t.Errorf("id=%d, want=%d", got, want)
+			}
+		})
+	}
+}
+
 func TestMediaTitle(t *testing.T) {
 	for _, tt := range []struct {
 		description string

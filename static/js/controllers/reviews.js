@@ -10,3 +10,14 @@ export function addReview(review) {
     body: JSON.stringify(review),
   }).then(processPlaintextResponse);
 }
+
+export function updateReview(id, review) {
+  return fetch(`/api/reviews/${id}`, {
+    method: "PUT",
+    credentials: "include",
+    headers: {
+      Accept: "application/json",
+    },
+    body: JSON.stringify(review),
+  }).then(processPlaintextResponse);
+}

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/store"
 )
 
 type commonProps struct {
@@ -121,6 +122,59 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			},
 			"minus": func(a, b uint8) uint8 {
 				return a - b
+			},
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func (s Server) reviewsEditGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := reviewIDFromRequestPath(r)
+		if err != nil {
+			http.Error(w, "Invalid review ID", http.StatusBadRequest)
+			return
+		}
+
+		review, err := s.store.ReadReview(id)
+		if err == store.ErrReviewNotFound {
+			http.Error(w, "Invalid review ID", http.StatusNotFound)
+			return
+		} else if err != nil {
+			log.Printf("failed to read review: %v", err)
+			http.Error(w, "Failed to read review", http.StatusInternalServerError)
+			return
+		}
+
+		if err := renderTemplate(w, "reviews-edit.html", struct {
+			commonProps
+			RatingOptions []int
+			Review        screenjournal.Review
+			Today         time.Time
+		}{
+			commonProps:   makeCommonProps("Edit Review", r.Context()),
+			RatingOptions: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+			Review:        review,
+			Today:         time.Now(),
+		}, template.FuncMap{
+			"formatWatchDate": func(t screenjournal.WatchDate) string {
+				return t.Time().Format("2006-01-02")
+			},
+			"iterate": func(n uint8) []uint8 {
+				var arr []uint8
+				var i uint8
+				for i = 0; i < n; i++ {
+					arr = append(arr, i)
+				}
+				return arr
+			},
+			"minus": func(a, b uint8) uint8 {
+				return a - b
+			},
+			"formatDate": func(t time.Time) string {
+				return t.Format("2006-01-02")
 			},
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -16,7 +16,7 @@ const (
 )
 
 type (
-	db struct {
+	DB struct {
 		ctx *sql.DB
 	}
 )
@@ -35,7 +35,7 @@ func New(path string, optimizeForLitestream bool) store.Store {
 		log.Fatalf("failed to set pragmas: %v", err)
 	}
 
-	d := &db{ctx: ctx}
+	d := &DB{ctx: ctx}
 	if optimizeForLitestream {
 		d.optimizeForLitestream()
 	}
@@ -45,7 +45,7 @@ func New(path string, optimizeForLitestream bool) store.Store {
 	return d
 }
 
-func (db db) ReadReviews() ([]screenjournal.Review, error) {
+func (db DB) ReadReviews() ([]screenjournal.Review, error) {
 	rows, err := db.ctx.Query(`
 	SELECT
 		id,
@@ -107,7 +107,7 @@ func (db db) ReadReviews() ([]screenjournal.Review, error) {
 	return reviews, nil
 }
 
-func (d db) InsertReview(r screenjournal.Review) error {
+func (d DB) InsertReview(r screenjournal.Review) error {
 	log.Printf("inserting new review of %s: %v", r.Title, r.Rating.UInt8())
 
 	now := time.Now()

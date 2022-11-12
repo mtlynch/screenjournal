@@ -1,7 +1,9 @@
 import { test, expect } from "@playwright/test";
 import { login } from "./helpers/login.js";
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page }, testInfo) => {
+  await page.goto("/api/debug/wipe-db");
+
   await login(page);
 });
 

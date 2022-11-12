@@ -353,7 +353,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			status: http.StatusBadRequest,
 		},
 		{
-			description: "rejects request with invalid blurb field",
+			description: "rejects request with numeric blurb field",
 			priorReviews: []screenjournal.Review{
 				{
 					Title:   "Eternal Sunshine of the Spotless Mind",
@@ -367,6 +367,24 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					"rating": 8,
 					"watched":"2022-10-30T00:00:00-04:00",
 					"blurb": 6
+				}`,
+			status: http.StatusBadRequest,
+		},
+		{
+			description: "rejects request with script tag in blurb field",
+			priorReviews: []screenjournal.Review{
+				{
+					Title:   "Eternal Sunshine of the Spotless Mind",
+					Rating:  screenjournal.Rating(10),
+					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				},
+			},
+			route: "/api/reviews/1",
+			payload: `{
+					"rating": 8,
+					"watched":"2022-10-30T00:00:00-04:00",
+					"blurb": "Nothing evil going on here...<script>alert(1)</script>"
 				}`,
 			status: http.StatusBadRequest,
 		},

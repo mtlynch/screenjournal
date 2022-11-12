@@ -238,6 +238,7 @@ workflows:
             - check_frontend
             - test_go
             - build_backend
+            - e2e
           filters:
             branches:
               only: master

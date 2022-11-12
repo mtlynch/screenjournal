@@ -6,7 +6,21 @@ set -e
 # Echo commands to stdout.
 set -x
 
+if [[ -z $1 ]]; then
+  MODE="prod"
+else
+  MODE="$1"
+fi
+
 # Exit on unset variable.
 set -u
 
-go build -o ./bin/screenjournal cmd/screenjournal/main.go
+if [[ "${MODE}" == "prod" ]]; then
+  BINARY="./bin/screenjournal"
+  EXTRA_FLAGS=()
+else
+  BINARY="./bin/screenjournal-${MODE}"
+  EXTRA_FLAGS=("--tags" "${MODE}")
+fi
+
+go build "${EXTRA_FLAGS[@]}" -o "${BINARY}" cmd/screenjournal/main.go

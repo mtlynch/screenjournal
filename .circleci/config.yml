@@ -71,8 +71,11 @@ jobs:
           keys:
             - go-mod-v1-{{ checksum "go.sum" }}
       - run:
-          name: Compile backend
+          name: Compile backend (prod)
           command: dev-scripts/build-backend
+      - run:
+          name: Compile backend (dev)
+          command: dev-scripts/build-backend dev
       - save_cache:
           key: go-mod-v1-{{ checksum "go.sum" }}
           paths:
@@ -80,7 +83,7 @@ jobs:
       - persist_to_workspace:
           root: ./
           paths:
-            - ./bin/screenjournal
+            - ./bin/screenjournal-dev
   lint_sql:
     docker:
       - image: sqlfluff/sqlfluff:1.2.1

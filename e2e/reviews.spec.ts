@@ -92,11 +92,13 @@ test("adds a new rating and edits the details", async ({ page }) => {
 
   await expect(page.locator("h1")).toHaveText("There's Something About Mary");
 
-  // TODO: Verify these start in the right state.
-
+  await expect(page.locator("#rating-select")).toHaveValue("10");
   await page.locator("#rating-select").selectOption({ label: "8" });
 
+  await expect(page.locator("#watched-date")).toHaveValue("2022-10-29");
   await page.locator("#watched-date").fill("2022-10-22");
+
+  await expect(page.locator("#blurb")).toHaveValue("My favorite movie!");
   await page.locator("#blurb").fill("Not as good as I remembered");
 
   await page.locator("form .btn-primary").click();

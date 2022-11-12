@@ -31,7 +31,7 @@ func (s Server) reviewsPut() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := reviewIDFromRequestPath(r)
 		if err != nil {
-			http.Error(w, "Invalid performer ID", http.StatusBadRequest)
+			http.Error(w, "Invalid review ID", http.StatusBadRequest)
 			return
 		}
 
@@ -40,7 +40,7 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			http.Error(w, "Review not found", http.StatusNotFound)
 			return
 		} else if err != nil {
-			http.Error(w, "Invalid guest link ID", http.StatusNotFound)
+			http.Error(w, "Invalid review ID", http.StatusNotFound)
 			return
 		}
 

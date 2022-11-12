@@ -1,9 +1,9 @@
 import { test, expect } from "@playwright/test";
 import { login } from "./helpers/login.js";
+import { wipeDB } from "./helpers/wipe.js";
 
-test.beforeEach(async ({ page }, testInfo) => {
-  await page.goto("/api/debug/wipe-db");
-
+test.beforeEach(async ({ page }) => {
+  await wipeDB(page);
   await login(page);
 });
 
@@ -72,8 +72,6 @@ test("adds a new rating and fills all fields", async ({ page }) => {
 });
 
 test("adds a new rating and edits the details", async ({ page }) => {
-  await login(page);
-
   await page.locator("data-test-id=add-rating").click();
 
   await page.locator("#media-title").fill("There's Something About Mary");
@@ -90,18 +88,20 @@ test("adds a new rating and edits the details", async ({ page }) => {
 
   const reviewCard = await page.locator(":nth-match(.card, 1)");
 
-  await reviewCard.locator("data-test-id=edit-rating").click;
+  await reviewCard.locator("data-test-id=edit-rating").click();
 
   await expect(page.locator("h1")).toHaveText("There's Something About Mary");
 
-  await expect(reviewCard.locator(".card-title")).toHaveText(
-    "There's Something About Mary"
-  );
+  // TODO: Verify these start in the right state.
 
   await page.locator("#rating-select").selectOption({ label: "8" });
 
   await page.locator("#watched-date").fill("2022-10-22");
   await page.locator("#blurb").fill("Not as good as I remembered");
+
+  await page.locator("form .btn-primary").click();
+
+  await expect(page).toHaveURL("/reviews");
 
   await expect(
     reviewCard.locator(".card-subtitle .fa-star.fa-solid")
@@ -113,13 +113,11 @@ test("adds a new rating and edits the details", async ({ page }) => {
     "Not as good as I remembered"
   );
   await expect(reviewCard.locator(".card-footer")).toHaveText(
-    "Watched 2022-10-29"
+    "Watched 2022-10-22"
   );
 });
 
 test("adds a new rating and cancels the edit", async ({ page }) => {
-  await login(page);
-
   await page.locator("data-test-id=add-rating").click();
 
   await page.locator("#media-title").fill("The Matrix");
@@ -133,14 +131,16 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
 
   const reviewCard = await page.locator(":nth-match(.card, 1)");
 
-  await reviewCard.locator("data-test-id=edit-rating").click;
+  await reviewCard.locator("data-test-id=edit-rating").click();
 
   // Make edits that will be ignored when we cancel the edit.
   await page.locator("#rating-select").selectOption({ label: "1" });
   await page.locator("#watched-date").fill("2022-10-22");
   await page.locator("#blurb").fill("Ignore this edit");
 
-  await reviewCard.locator("data-test-id=cancel-edit").click();
+  await page.locator("data-test-id=cancel-edit").click();
+
+  await expect(page).toHaveURL("/reviews");
 
   await expect(
     reviewCard.locator(".card-subtitle .fa-star.fa-solid")

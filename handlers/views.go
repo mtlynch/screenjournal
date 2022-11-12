@@ -130,13 +130,13 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := reviewIDFromRequestPath(r)
 		if err != nil {
-			http.Error(w, "Invalid performer ID", http.StatusBadRequest)
+			http.Error(w, "Invalid review ID", http.StatusBadRequest)
 			return
 		}
 
 		review, err := s.store.ReadReview(id)
 		if err == store.ErrReviewNotFound {
-			http.Error(w, "Invalid guest link ID", http.StatusNotFound)
+			http.Error(w, "Invalid review ID", http.StatusNotFound)
 			return
 		} else if err != nil {
 			log.Printf("failed to read review: %v", err)

@@ -42,6 +42,12 @@ func TestReviewIDFromString(t *testing.T) {
 			screenjournal.ReviewID(0),
 			parse.ErrInvalidReviewID,
 		},
+		{
+			"non-numeric ID is invalid",
+			"banana",
+			screenjournal.ReviewID(0),
+			parse.ErrInvalidReviewID,
+		},
 	} {
 		t.Run(fmt.Sprintf("%s [%s]", tt.description, tt.in), func(t *testing.T) {
 			id, err := parse.ReviewIDFromString(tt.in)

@@ -40,7 +40,7 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			http.Error(w, "Review not found", http.StatusNotFound)
 			return
 		} else if err != nil {
-			http.Error(w, "Invalid review ID", http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Failed to read review: %v", err), http.StatusInternalServerError)
 			return
 		}
 

@@ -161,6 +161,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 	for _, tt := range []struct {
 		description  string
 		priorReviews []screenjournal.Review
+		route        string
 		payload      string
 		expected     screenjournal.Review
 	}{
@@ -174,6 +175,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 				},
 			},
+			route: "/api/reviews/1",
 			payload: `{
 					"rating": 8,
 					"watched":"2022-10-30T00:00:00-04:00",
@@ -197,6 +199,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					Blurb:   screenjournal.Blurb("Love Norm McDonald!"),
 				},
 			},
+			route: "/api/reviews/1",
 			payload: `{
 					"rating": 5,
 					"watched":"2022-10-28T00:00:00-04:00",
@@ -219,7 +222,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 
 			s := handlers.New(mockAuthenticator{}, dataStore)
 
-			req, err := http.NewRequest("PUT", "/api/reviews/1", strings.NewReader(tt.payload))
+			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -249,6 +252,109 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 
 			if diff := deep.Equal(actual, tt.expected); diff != nil {
 				t.Error(diff)
+			}
+		})
+	}
+}
+
+func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
+	for _, tt := range []struct {
+		description  string
+		priorReviews []screenjournal.Review
+		route        string
+		payload      string
+		status       int
+	}{
+		{
+			description: "rejects request with review ID of zero",
+			priorReviews: []screenjournal.Review{
+				{
+					Title:   "Eternal Sunshine of the Spotless Mind",
+					Rating:  screenjournal.Rating(10),
+					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				},
+			},
+			route: "/api/reviews/0",
+			payload: `{
+					"rating": 8,
+					"watched":"2022-10-30T00:00:00-04:00",
+					"blurb": "It's a pretty good movie!"
+				}`,
+			status: http.StatusBadRequest,
+		},
+		{
+			description: "rejects request with non-existent review ID",
+			priorReviews: []screenjournal.Review{
+				{
+					Title:   "Eternal Sunshine of the Spotless Mind",
+					Rating:  screenjournal.Rating(10),
+					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				},
+			},
+			route: "/api/reviews/9876",
+			payload: `{
+					"rating": 8,
+					"watched":"2022-10-30T00:00:00-04:00",
+					"blurb": "It's a pretty good movie!"
+				}`,
+			status: http.StatusNotFound,
+		},
+		{
+			description: "rejects request with malformed JSON",
+			priorReviews: []screenjournal.Review{
+				{
+					Title:   "Eternal Sunshine of the Spotless Mind",
+					Rating:  screenjournal.Rating(10),
+					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				},
+			},
+			route: "/api/reviews/1",
+			payload: `{
+					"rating": 8,
+					"watched":"2022-10-30T00:00:00-04:00",
+					"blurb": "no JSON ending brace!"`,
+			status: http.StatusBadRequest,
+		},
+		{
+			description: "rejects request with missing fields",
+			priorReviews: []screenjournal.Review{
+				{
+					Title:   "Eternal Sunshine of the Spotless Mind",
+					Rating:  screenjournal.Rating(10),
+					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				},
+			},
+			route: "/api/reviews/1",
+			payload: `{
+					"rating": 8,
+					"blurb": "It's a pretty good movie!"
+				}`,
+			status: http.StatusBadRequest,
+		},
+	} {
+		t.Run(tt.description, func(t *testing.T) {
+			dataStore := test_sqlite.New()
+			for _, r := range tt.priorReviews {
+				dataStore.InsertReview(r)
+			}
+
+			s := handlers.New(mockAuthenticator{}, dataStore)
+
+			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "text/json")
+
+			w := httptest.NewRecorder()
+			s.Router().ServeHTTP(w, req)
+
+			if got, want := w.Code, tt.status; got != want {
+				t.Fatalf("%s PUT returned wrong status: got=%v, want=%v", tt.route, got, want)
 			}
 		})
 	}

@@ -318,6 +318,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			description: "rejects request with review ID of zero",
 			priorReviews: []screenjournal.Review{
 				{
+					MediaID: screenjournal.MediaID(1),
 					Title:   "Eternal Sunshine of the Spotless Mind",
 					Rating:  screenjournal.Rating(10),
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
@@ -336,6 +337,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			description: "rejects request with non-existent review ID",
 			priorReviews: []screenjournal.Review{
 				{
+					MediaID: screenjournal.MediaID(1),
 					Title:   "Eternal Sunshine of the Spotless Mind",
 					Rating:  screenjournal.Rating(10),
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
@@ -354,6 +356,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			description: "rejects request with malformed JSON",
 			priorReviews: []screenjournal.Review{
 				{
+					MediaID: screenjournal.MediaID(1),
 					Title:   "Eternal Sunshine of the Spotless Mind",
 					Rating:  screenjournal.Rating(10),
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
@@ -371,6 +374,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			description: "rejects request with missing rating field",
 			priorReviews: []screenjournal.Review{
 				{
+					MediaID: screenjournal.MediaID(1),
 					Title:   "Eternal Sunshine of the Spotless Mind",
 					Rating:  screenjournal.Rating(10),
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
@@ -388,6 +392,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			description: "rejects request with missing watched field",
 			priorReviews: []screenjournal.Review{
 				{
+					MediaID: screenjournal.MediaID(1),
 					Title:   "Eternal Sunshine of the Spotless Mind",
 					Rating:  screenjournal.Rating(10),
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
@@ -405,6 +410,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			description: "rejects request with numeric blurb field",
 			priorReviews: []screenjournal.Review{
 				{
+					MediaID: screenjournal.MediaID(1),
 					Title:   "Eternal Sunshine of the Spotless Mind",
 					Rating:  screenjournal.Rating(10),
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
@@ -423,6 +429,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			description: "rejects request with script tag in blurb field",
 			priorReviews: []screenjournal.Review{
 				{
+					MediaID: screenjournal.MediaID(1),
 					Title:   "Eternal Sunshine of the Spotless Mind",
 					Rating:  screenjournal.Rating(10),
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),

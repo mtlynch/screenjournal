@@ -10,7 +10,7 @@ func (f tmdbFinder) Search(query string) (MovieSearchResults, error) {
 		return MovieSearchResults{}, err
 	}
 	results := MovieSearchResults{
-		Matches:      make([]MovieStub, len(tmdbResults.Results)),
+		Matches:      make([]MovieSearchResult, len(tmdbResults.Results)),
 		Page:         tmdbResults.Page,
 		TotalPages:   tmdbResults.TotalPages,
 		TotalResults: tmdbResults.TotalResults,
@@ -21,7 +21,7 @@ func (f tmdbFinder) Search(query string) (MovieSearchResults, error) {
 		if err != nil {
 			return MovieSearchResults{}, err
 		}
-		results.Matches[i] = MovieStub{
+		results.Matches[i] = MovieSearchResult{
 			ID:          tmdbID,
 			Title:       match.Title,
 			ReleaseDate: match.ReleaseDate,

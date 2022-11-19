@@ -11,7 +11,7 @@ type (
 		GetMovieInfo(id screenjournal.TmdbID) (Movie, error)
 	}
 
-	MovieStub struct {
+	MovieSearchResult struct {
 		ID          screenjournal.TmdbID
 		Title       string
 		ReleaseDate string
@@ -19,7 +19,7 @@ type (
 	}
 
 	MovieSearchResults struct {
-		Matches      []MovieStub
+		Matches      []MovieSearchResult
 		Page         int
 		TotalPages   int
 		TotalResults int

@@ -6,7 +6,7 @@ import (
 )
 
 type searchMatch struct {
-	ID          int    `json:"tmdbId"`
+	TmdbID      int    `json:"tmdbId"`
 	Title       string `json:"title"`
 	ReleaseDate string `json:"releaseDate"`
 	PosterURL   string `json:"posterUrl"`
@@ -22,7 +22,7 @@ func (s Server) searchGet() http.HandlerFunc {
 
 		matches := make([]searchMatch, len(res.Matches))
 		for i, m := range res.Matches {
-			matches[i].ID = m.ID.Int()
+			matches[i].TmdbID = m.TmdbID.Int()
 			matches[i].Title = m.Title
 			matches[i].ReleaseDate = m.ReleaseDate
 			matches[i].PosterURL = m.PosterURL

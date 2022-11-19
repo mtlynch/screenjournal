@@ -22,7 +22,7 @@ func (f tmdbFinder) Search(query string) (MovieSearchResults, error) {
 			return MovieSearchResults{}, err
 		}
 		results.Matches[i] = MovieSearchResult{
-			ID:          tmdbID,
+			TmdbID:      tmdbID,
 			Title:       match.Title,
 			ReleaseDate: match.ReleaseDate,
 		}

@@ -12,7 +12,7 @@ type (
 	}
 
 	MovieSearchResult struct {
-		ID          screenjournal.TmdbID
+		TmdbID      screenjournal.TmdbID
 		Title       string
 		ReleaseDate string
 		PosterURL   string

@@ -2,13 +2,14 @@ package metadata
 
 import (
 	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/ryanbradynd05/go-tmdb"
 )
 
 type (
 	Finder interface {
 		Search(query string) (MovieSearchResults, error)
-		GetMovieInfo(id screenjournal.TmdbID) (Movie, error)
+		GetMovieInfo(id screenjournal.TmdbID) (screenjournal.Movie, error)
 	}
 
 	MovieSearchResult struct {
@@ -25,11 +26,6 @@ type (
 		TotalResults int
 	}
 
-	Movie struct {
-		Title     string
-		PosterURL string
-	}
-
 	tmdbFinder struct {
 		tmdbAPI *tmdb.TMDb
 	}
@@ -44,13 +40,22 @@ func New(apiKey string) (Finder, error) {
 	}, nil
 }
 
-func (f tmdbFinder) GetMovieInfo(id screenjournal.TmdbID) (Movie, error) {
+func (f tmdbFinder) GetMovieInfo(id screenjournal.TmdbID) (screenjournal.Movie, error) {
 	m, err := f.tmdbAPI.GetMovieInfo(id.Int(), map[string]string{})
 	if err != nil {
-		return Movie{}, err
+		return screenjournal.Movie{}, err
 	}
 
-	return Movie{
-		Title: m.Title,
+	title, err := parse.MediaTitle(m.Title)
+	if err != nil {
+		return screenjournal.Movie{}, err
+	}
+
+	// TODO: Return a TMDB-specific type.
+	return screenjournal.Movie{
+		TmdbID:     id,
+		ImdbID:     screenjournal.ImdbID(m.ImdbID), // TODO: Actually parse this
+		Title:      title,
+		PosterPath: m.PosterPath, // TODO: Actually parse this
 	}, nil
 }

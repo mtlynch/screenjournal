@@ -29,29 +29,29 @@ func (ma mockAuthenticator) Authenticate(r *http.Request) bool {
 }
 
 type mockMetadataFinder struct {
-	db map[screenjournal.TmdbID]metadata.Movie
+	db map[screenjournal.TmdbID]screenjournal.Movie
 }
 
 func (mf mockMetadataFinder) Search(query string) (metadata.MovieSearchResults, error) {
 	return metadata.MovieSearchResults{}, nil
 }
 
-func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.Movie, error) {
-	var m metadata.Movie
+func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (screenjournal.Movie, error) {
+	var m screenjournal.Movie
 	var ok bool
 	if m, ok = mf.db[id]; !ok {
-		return metadata.Movie{}, fmt.Errorf("could not find movie with id %d in mock DB", id.Int())
+		return screenjournal.Movie{}, fmt.Errorf("could not find movie with id %d in mock DB", id.Int())
 	}
 	return m, nil
 }
 
 func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 	metadataFinder := mockMetadataFinder{
-		db: map[screenjournal.TmdbID]metadata.Movie{
-			screenjournal.TmdbID(38): metadata.Movie{
+		db: map[screenjournal.TmdbID]screenjournal.Movie{
+			screenjournal.TmdbID(38): screenjournal.Movie{
 				Title: "Eternal Sunshine of the Spotless Mind",
 			},
-			screenjournal.TmdbID(14577): metadata.Movie{
+			screenjournal.TmdbID(14577): screenjournal.Movie{
 				Title: "Dirty Work",
 			},
 		},

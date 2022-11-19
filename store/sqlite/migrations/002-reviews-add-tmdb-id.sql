@@ -1,7 +1,12 @@
-ALTER TABLE reviews
-ADD COLUMN tmdb_id
-INTEGER;
+CREATE TABLE movies (
+    id INTEGER PRIMARY KEY,
+    tmdb_id INTEGER,
+    imdb_id TEXT,
+    title TEXT,
+    release_date TEXT, -- Unpopulated for now
+    poster_path TEXT
+);
 
 ALTER TABLE reviews
-ADD COLUMN imdb_id
-INTEGER;
+ADD COLUMN movie_id
+INTEGER; -- TODO: Add foreign key?

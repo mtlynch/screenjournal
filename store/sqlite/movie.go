@@ -22,7 +22,11 @@ func (d DB) InsertMovie(m screenjournal.Movie) (screenjournal.MediaID, error) {
 		?, ?, ?, ?
 	)
 	`,
-		m.TmdbID)
+		m.TmdbID,
+		m.ImdbID,
+		m.Title,
+		m.PosterPath,
+	)
 	if err != nil {
 		return screenjournal.MediaID(0), err
 	}
@@ -31,6 +35,8 @@ func (d DB) InsertMovie(m screenjournal.Movie) (screenjournal.MediaID, error) {
 	if err != nil {
 		return screenjournal.MediaID(0), err
 	}
+
+	log.Printf("inserted! movie ID=%v", lastID) // DEBUG
 
 	return screenjournal.MediaID(lastID), nil
 }

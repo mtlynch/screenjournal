@@ -49,12 +49,10 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 	metadataFinder := mockMetadataFinder{
 		db: map[screenjournal.TmdbID]screenjournal.Movie{
 			screenjournal.TmdbID(38): {
-				MediaID: screenjournal.MediaID(1),
-				Title:   "Eternal Sunshine of the Spotless Mind",
+				Title: "Eternal Sunshine of the Spotless Mind",
 			},
 			screenjournal.TmdbID(14577): {
-				MediaID: screenjournal.MediaID(2),
-				Title:   "Dirty Work",
+				Title: "Dirty Work",
 			},
 		},
 	}
@@ -96,6 +94,14 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
+
+			for tmdbID, movie := range metadataFinder.db {
+				movie.TmdbID = tmdbID
+				_, err := dataStore.InsertMovie(movie)
+				if err != nil {
+					panic(err)
+				}
+			}
 
 			s := handlers.New(mockAuthenticator{}, dataStore, metadataFinder)
 

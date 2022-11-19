@@ -2,6 +2,7 @@ package parse
 
 import (
 	"errors"
+	"math"
 
 	"github.com/mtlynch/screenjournal/v2"
 )
@@ -9,7 +10,7 @@ import (
 var ErrInvalidTmdbID = errors.New("invalid TMDB ID")
 
 func TmdbID(raw int) (screenjournal.TmdbID, error) {
-	if raw <= 0 {
+	if raw <= 0 || raw > math.MaxInt32 {
 		return screenjournal.TmdbID(0), ErrInvalidTmdbID
 	}
 

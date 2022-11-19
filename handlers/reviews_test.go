@@ -40,7 +40,7 @@ func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (screenjourna
 	var m screenjournal.Movie
 	var ok bool
 	if m, ok = mf.db[id]; !ok {
-		return screenjournal.Movie{}, fmt.Errorf("could not find movie with id %d in mock DB", id.Int())
+		return screenjournal.Movie{}, fmt.Errorf("could not find movie with id %d in mock DB", id.Int32())
 	}
 	return m, nil
 }
@@ -48,10 +48,10 @@ func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (screenjourna
 func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 	metadataFinder := mockMetadataFinder{
 		db: map[screenjournal.TmdbID]screenjournal.Movie{
-			screenjournal.TmdbID(38): screenjournal.Movie{
+			screenjournal.TmdbID(38): {
 				Title: "Eternal Sunshine of the Spotless Mind",
 			},
-			screenjournal.TmdbID(14577): screenjournal.Movie{
+			screenjournal.TmdbID(14577): {
 				Title: "Dirty Work",
 			},
 		},

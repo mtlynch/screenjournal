@@ -41,7 +41,7 @@ func New(apiKey string) (Finder, error) {
 }
 
 func (f tmdbFinder) GetMovieInfo(id screenjournal.TmdbID) (screenjournal.Movie, error) {
-	m, err := f.tmdbAPI.GetMovieInfo(id.Int(), map[string]string{})
+	m, err := f.tmdbAPI.GetMovieInfo(int(id.Int32()), map[string]string{})
 	if err != nil {
 		return screenjournal.Movie{}, err
 	}

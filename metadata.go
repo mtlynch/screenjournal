@@ -4,10 +4,10 @@ type (
 	// MediaID represents the ID for a TV/movie in the local datastore.
 	MediaID int64
 
-	TmdbID int
+	TmdbID int32
 	ImdbID string
 )
 
-func (m TmdbID) Int() int {
-	return int(m)
+func (m TmdbID) Int32() int32 {
+	return int32(m)
 }

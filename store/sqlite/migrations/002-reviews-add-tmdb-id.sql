@@ -1,0 +1,7 @@
+ALTER TABLE reviews
+ADD COLUMN tmdb_id
+INTEGER;
+
+ALTER TABLE reviews
+ADD COLUMN imdb_id
+INTEGER;

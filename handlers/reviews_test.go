@@ -28,13 +28,34 @@ func (ma mockAuthenticator) Authenticate(r *http.Request) bool {
 	return true
 }
 
-type mockMetadataFinder struct{}
+type mockMetadataFinder struct {
+	db map[screenjournal.TmdbID]metadata.Movie
+}
 
 func (mf mockMetadataFinder) Search(query string) (metadata.MovieSearchResults, error) {
 	return metadata.MovieSearchResults{}, nil
 }
 
+func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.Movie, error) {
+	var m metadata.Movie
+	var ok bool
+	if m, ok = mf.db[id]; !ok {
+		return metadata.Movie{}, fmt.Errorf("could not find movie with id %d in mock DB", id.Int())
+	}
+	return m, nil
+}
+
 func TestReviewsPostAcceptsValidRequest(t *testing.T) {
+	metadataFinder := mockMetadataFinder{
+		db: map[screenjournal.TmdbID]metadata.Movie{
+			screenjournal.TmdbID(38): metadata.Movie{
+				Title: "Eternal Sunshine of the Spotless Mind",
+			},
+			screenjournal.TmdbID(14577): metadata.Movie{
+				Title: "Dirty Work",
+			},
+		},
+	}
 	for _, tt := range []struct {
 		description string
 		payload     string
@@ -43,7 +64,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 		{
 			description: "valid request with all fields populated",
 			payload: `{
-					"title": "Eternal Sunshine of the Spotless Mind",
+					"tmdbId": 38,
 					"rating": 10,
 					"watched":"2022-10-28T00:00:00-04:00",
 					"blurb": "It's my favorite movie!"
@@ -58,7 +79,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 		{
 			description: "valid request without a blurb",
 			payload: `{
-					"title": "Dirty Work",
+					"tmdbId": 14577,
 					"rating": 9,
 					"watched":"2022-10-21T00:00:00-04:00",
 					"blurb": ""
@@ -74,7 +95,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			s := handlers.New(mockAuthenticator{}, dataStore, mockMetadataFinder{})
+			s := handlers.New(mockAuthenticator{}, dataStore, metadataFinder)
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
 			if err != nil {

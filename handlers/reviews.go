@@ -19,6 +19,20 @@ func (s Server) reviewsPost() http.HandlerFunc {
 			return
 		}
 
+		m, err := s.metadataFinder.GetMovieInfo(rev.TmdbID)
+		if err != nil {
+			log.Printf("failed to get metadata for ID (%v): %v", rev.TmdbID, err)
+			http.Error(w, fmt.Sprintf("Failed to retrieve metadata information for ID: %v", rev.TmdbID), http.StatusFailedDependency)
+			return
+		}
+
+		rev.Title, err = parse.MediaTitle(m.Title)
+		if err != nil {
+			log.Printf("failed to parse media title (%s) from metadata: %v", m.Title, err)
+			http.Error(w, fmt.Sprintf("Failed to retrieve metadata information for ID: %v", rev.TmdbID), http.StatusFailedDependency)
+			return
+		}
+
 		if err := s.store.InsertReview(rev); err != nil {
 			log.Printf("failed to save review: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to save review: %v", err), http.StatusInternalServerError)
@@ -59,7 +73,7 @@ func (s Server) reviewsPut() http.HandlerFunc {
 
 func newReviewFromRequest(r *http.Request) (screenjournal.Review, error) {
 	var payload struct {
-		Title   string `json:"title"`
+		TmdbID  int    `json:"tmdbId"`
 		Rating  int    `json:"rating"`
 		Watched string `json:"watched"`
 		Blurb   string `json:"blurb"`
@@ -73,7 +87,7 @@ func newReviewFromRequest(r *http.Request) (screenjournal.Review, error) {
 	// TODO: Support reviews by other users
 	owner := screenjournal.Username("mike")
 
-	title, err := parse.MediaTitle(payload.Title)
+	tmdbID, err := parse.TmdbID(payload.TmdbID)
 	if err != nil {
 		return screenjournal.Review{}, err
 	}
@@ -92,7 +106,7 @@ func newReviewFromRequest(r *http.Request) (screenjournal.Review, error) {
 
 	return screenjournal.Review{
 		Owner:   owner,
-		Title:   title,
+		TmdbID:  tmdbID,
 		Rating:  rating,
 		Blurb:   blurb,
 		Watched: watchDate,

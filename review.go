@@ -12,6 +12,7 @@ type (
 	Review struct {
 		ID       ReviewID
 		Owner    Username
+		TmdbID   TmdbID
 		Title    MediaTitle
 		Rating   Rating
 		Blurb    Blurb

@@ -9,7 +9,7 @@
     import { tzOffsetString } from "/js/lib/time.js";
 
     function reviewFromForm() {
-      const title = document.getElementById("media-title").value.trim();
+      const tmdbId = parseInt(document.getElementById("tmdb-id").value);
 
       const rating = parseInt(document.getElementById("rating-select").value);
 
@@ -19,7 +19,7 @@
       const blurb = document.getElementById("blurb").value.trim();
 
       return {
-        title,
+        tmdbId,
         rating,
         watched,
         blurb,
@@ -27,13 +27,13 @@
     }
 
     function onTitleInput(evt) {
-      searchGet(evt.target.value).then((results) => {
-        console.log(results);
-
+      const query = evt.target.value;
+      if (query.length < 2) {
+        return;
+      }
+      searchGet(query).then((results) => {
         const resultsDiv = document.getElementById("search-results");
-        while (resultsDiv.firstChild) {
-          resultsDiv.removeChild(resultsDiv.firstChild);
-        }
+        clearSearchResults();
         for (const m of results.matches) {
           const d = new Date(m.releaseDate);
 
@@ -46,9 +46,23 @@
           const wrapperEl = document.createElement("div");
           wrapperEl.appendChild(imgEl);
           wrapperEl.appendChild(pEl);
+
+          wrapperEl.addEventListener("click", (evt) => {
+            document.getElementById("media-title").value = m.title;
+            document.getElementById("tmdb-id").value = m.tmdbId;
+            clearSearchResults();
+          });
+
           resultsDiv.appendChild(wrapperEl);
         }
       });
+    }
+
+    function clearSearchResults() {
+      const resultsDiv = document.getElementById("search-results");
+      while (resultsDiv.firstChild) {
+        resultsDiv.removeChild(resultsDiv.firstChild);
+      }
     }
 
     document.addEventListener(
@@ -96,6 +110,8 @@
   <h1>Add Rating</h1>
 
   <form id="add-rating" class="my-5">
+    <input type="hidden" id="tmdb-id" />
+
     <div class="mb-3">
       <label for="media-title" class="form-label">Title</label>
       <input id="media-title" class="form-control" type="search" required />

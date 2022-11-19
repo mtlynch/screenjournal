@@ -205,6 +205,8 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			description: "valid request with all fields populated",
 			priorReviews: []screenjournal.Review{
 				{
+					ID:      screenjournal.ReviewID(1),
+					MediaID: screenjournal.MediaID(25),
 					Title:   "Eternal Sunshine of the Spotless Mind",
 					Rating:  screenjournal.Rating(10),
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
@@ -229,6 +231,8 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			description: "valid request without a blurb",
 			priorReviews: []screenjournal.Review{
 				{
+					ID:      screenjournal.ReviewID(1),
+					MediaID: screenjournal.MediaID(25),
 					Title:   "Dirty Work",
 					Rating:  screenjournal.Rating(9),
 					Watched: mustParseWatchDate("2022-10-21T00:00:00-04:00"),
@@ -253,7 +257,9 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 			for _, r := range tt.priorReviews {
-				dataStore.InsertReview(r)
+				if err := dataStore.InsertReview(r); err != nil {
+					panic(err)
+				}
 			}
 
 			s := handlers.New(mockAuthenticator{}, dataStore, mockMetadataFinder{})
@@ -294,6 +300,13 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 }
 
 func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
+	dataStore := test_sqlite.New()
+	if _, err := dataStore.InsertMovie(screenjournal.Movie{
+		TmdbID: screenjournal.TmdbID(38),
+		Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+	}); err != nil {
+		panic(err)
+	}
 	for _, tt := range []struct {
 		description  string
 		priorReviews []screenjournal.Review
@@ -426,7 +439,6 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
 			for _, r := range tt.priorReviews {
 				dataStore.InsertReview(r)
 			}

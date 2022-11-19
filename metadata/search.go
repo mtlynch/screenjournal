@@ -28,7 +28,7 @@ func (f tmdbFinder) Search(query string) (MovieSearchResults, error) {
 		}
 
 		if match.PosterPath != "" {
-			results.Matches[i].PosterURL = "https://image.tmdb.org/t/p/w92" + match.PosterPath
+			results.Matches[i].PosterPath = match.PosterPath
 		}
 
 	}

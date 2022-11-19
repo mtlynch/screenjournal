@@ -15,7 +15,7 @@ type (
 		TmdbID      screenjournal.TmdbID
 		Title       string
 		ReleaseDate string
-		PosterURL   string
+		PosterPath  string
 	}
 
 	MovieSearchResults struct {

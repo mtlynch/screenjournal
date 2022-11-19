@@ -25,7 +25,7 @@ func (s Server) searchGet() http.HandlerFunc {
 			matches[i].TmdbID = m.TmdbID.Int()
 			matches[i].Title = m.Title
 			matches[i].ReleaseDate = m.ReleaseDate
-			matches[i].PosterURL = m.PosterURL
+			matches[i].PosterURL = "https://image.tmdb.org/t/p/w92" + m.PosterPath
 		}
 
 		respondJSON(w, struct {

@@ -49,10 +49,12 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 	metadataFinder := mockMetadataFinder{
 		db: map[screenjournal.TmdbID]screenjournal.Movie{
 			screenjournal.TmdbID(38): {
-				Title: "Eternal Sunshine of the Spotless Mind",
+				MediaID: screenjournal.MediaID(1),
+				Title:   "Eternal Sunshine of the Spotless Mind",
 			},
 			screenjournal.TmdbID(14577): {
-				Title: "Dirty Work",
+				MediaID: screenjournal.MediaID(2),
+				Title:   "Dirty Work",
 			},
 		},
 	}

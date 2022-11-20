@@ -25,12 +25,8 @@ func (f tmdbFinder) Search(query string) (MovieSearchResults, error) {
 			TmdbID:      tmdbID,
 			Title:       match.Title,
 			ReleaseDate: match.ReleaseDate,
+			PosterPath:  match.PosterPath,
 		}
-
-		if match.PosterPath != "" {
-			results.Matches[i].PosterPath = match.PosterPath
-		}
-
 	}
 	return results, nil
 }

@@ -26,8 +26,6 @@ ScreenJournal is in pre-alpha state and is not yet documented for other people t
 
 ### Environment variables
 
-You can adjust behavior of the Docker container by passing these parameters with `docker run -e`:
-
 | Environment Variable | Meaning                                                                                                         |
 | -------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `PORT`               | TCP port on which to listen for HTTP connections (defaults to 3001).                                            |

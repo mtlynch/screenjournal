@@ -1,48 +1,14 @@
 {{ define "style-tags" }}
-  <style>
-    #search-results-list {
-      padding: 0;
-      background-color: #c5c5bf;
-    }
-
-    #search-results-list li:nth-child(odd) {
-      background-color: #f3ffe8;
-    }
-
-    #search-results-list li:nth-child(even) {
-      background-color: #e6fbff;
-    }
-
-    #search-results-list li + li {
-      margin-top: 1px;
-    }
-
-    #search-results-list img {
-      max-height: 100px;
-    }
-
-    @media screen and (min-width: 1024px) {
-      #search-results-list img {
-        max-height: 80px;
-      }
-    }
-
-    #search-results-list .title {
-      padding-left: 1rem;
-      padding-right: 1rem;
-    }
-  </style>
 {{ end }}
 
 {{ define "script-tags" }}
   <script type="module">
     import { addReview } from "/js/controllers/reviews.js";
-    import { searchGet } from "/js/controllers/search.js";
     import { showElement, hideElement } from "/js/lib/bootstrap.js";
     import { tzOffsetString } from "/js/lib/time.js";
 
     function reviewFromForm() {
-      const title = document.getElementById("media-title").value.trim();
+      const title = document.querySelector("title-search").value.trim();
 
       const rating = parseInt(document.getElementById("rating-select").value);
 
@@ -59,75 +25,12 @@
       };
     }
 
-    function onTitleInput(evt) {
-      const query = evt.target.value;
-      if (query.length < 2) {
-        return;
-      }
-      searchGet(query).then((results) => {
-        const resultsList = document.getElementById("search-results-list");
-        clearSearchResults();
-        resultsList.classList.add("show");
-
-        if (results.matches.length === 0) {
-          const liEl = document.createElement("li");
-          liEl.innerText = "No matches";
-          resultsList.appendChild(liEl);
-          return;
-        }
-
-        for (const m of results.matches.slice(0, 10)) {
-          const d = new Date(m.releaseDate);
-
-          const imgEl = document.createElement("img");
-          imgEl.src = m.posterUrl;
-
-          const spanEl = document.createElement("span");
-          spanEl.classList.add("title");
-          spanEl.innerText = `${m.title} (${d.getFullYear()})`;
-
-          const anchorEl = document.createElement("a");
-          anchorEl.appendChild(imgEl);
-          anchorEl.appendChild(spanEl);
-
-          anchorEl.addEventListener("click", (evt) => {
-            document.getElementById("media-title").value = m.title;
-            clearSearchResults();
-          });
-
-          const liEl = document.createElement("li");
-          liEl.appendChild(anchorEl);
-
-          resultsList.appendChild(liEl);
-        }
-      });
-    }
-
-    function clearSearchResults() {
-      const resultsList = document.getElementById("search-results-list");
-      resultsList.classList.remove("show");
-      while (resultsList.firstChild) {
-        resultsList.removeChild(resultsList.firstChild);
-      }
-    }
-
     document.addEventListener(
       "DOMContentLoaded",
       function () {
         const errorAlert = document.getElementById("error");
         const submitSpinner = document.getElementById("submit-spinner");
         const submitBtn = document.querySelector("form .btn-primary");
-        document
-          .getElementById("media-title")
-          .addEventListener("input", onTitleInput);
-        document
-          .getElementById("media-title")
-          .addEventListener("click", (evt) => {
-            const query = evt.target.value;
-            if (query.length < 2) {
-              clearSearchResults();
-            }
-          });
 
         document
           .getElementById("add-rating")
@@ -158,6 +61,7 @@
 {{ end }}
 
 {{ define "custom-elements" }}
+  {{ template "title-search.html" . }}
 {{ end }}
 
 {{ define "content" }}
@@ -165,25 +69,8 @@
 
   <form id="add-rating" class="my-5">
     <div class="mb-3">
-      <label for="media-title" class="form-label">Title</label>
-      <input
-        id="media-title"
-        class="form-control"
-        type="search"
-        placeholder="Search"
-        aria-label="Search"
-        aria-expanded="false"
-        data-bs-toggle="dropdown"
-        required
-      />
-      <ul
-        id="search-results-list"
-        class="dropdown-menu"
-        aria-labelledby="search-box"
-      ></ul>
+      <title-search></title-search>
     </div>
-
-    <div id="search-results"></div>
 
     <div class="mb-3">
       <label for="rating-select" class="form-label">Rating</label>

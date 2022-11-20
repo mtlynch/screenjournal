@@ -1,0 +1,148 @@
+<template id="title-search-template">
+  <link
+    rel="stylesheet"
+    type="text/css"
+    href="/third-party/bootstrap@5.2.2/css/bootstrap.min.css"
+  />
+  <style>
+    #search-results-list {
+      padding: 0;
+      background-color: #c5c5bf;
+    }
+
+    #search-results-list li:nth-child(odd) {
+      background-color: #f3ffe8;
+    }
+
+    #search-results-list li:nth-child(even) {
+      background-color: #e6fbff;
+    }
+
+    #search-results-list li + li {
+      margin-top: 1px;
+    }
+
+    #search-results-list img {
+      max-height: 100px;
+    }
+
+    @media screen and (min-width: 1024px) {
+      #search-results-list img {
+        max-height: 80px;
+      }
+    }
+
+    #search-results-list .title {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  </style>
+  <label for="media-title" class="form-label">Title</label>
+  <input
+    id="media-title"
+    class="form-control"
+    type="search"
+    placeholder="Search"
+    aria-label="Search"
+    aria-expanded="false"
+    data-bs-toggle="dropdown"
+    required
+  />
+  <ul
+    id="search-results-list"
+    class="dropdown-menu"
+    aria-labelledby="search-box"
+  ></ul>
+</template>
+
+<script type="module">
+  import { searchGet } from "/js/controllers/search.js";
+
+  (function () {
+    const template = document.querySelector("#title-search-template");
+
+    customElements.define(
+      "title-search",
+      class extends HTMLElement {
+        connectedCallback() {
+          this.attachShadow({ mode: "open" }).appendChild(
+            template.content.cloneNode(true)
+          );
+          this._elements = {
+            title: this.shadowRoot.getElementById("media-title"),
+            resultsList: this.shadowRoot.getElementById("search-results-list"),
+          };
+
+          this._elements.title.addEventListener("input", (evt) => {
+            this._onTitleInput(evt);
+          });
+          this._elements.title.addEventListener("click", (evt) => {
+            const query = evt.target.value;
+            if (query.length < 2) {
+              this._clearSearchResults();
+            }
+          });
+        }
+
+        get value() {
+          return this._elements.title.value;
+        }
+
+        _clearSearchResults() {
+          const resultsList = this.shadowRoot.getElementById(
+            "search-results-list"
+          );
+          this._elements.resultsList.classList.remove("show");
+          while (this._elements.resultsList.firstChild) {
+            this._elements.resultsList.removeChild(
+              this._elements.resultsList.firstChild
+            );
+          }
+        }
+
+        _onTitleInput(evt) {
+          const query = evt.target.value;
+          if (query.length < 2) {
+            return;
+          }
+          searchGet(query).then((results) => {
+            this._clearSearchResults();
+            this._elements.resultsList.classList.add("show");
+
+            if (results.matches.length === 0) {
+              const liEl = document.createElement("li");
+              liEl.innerText = "No matches";
+              this._elements.resultsList.appendChild(liEl);
+              return;
+            }
+
+            for (const m of results.matches.slice(0, 10)) {
+              const d = new Date(m.releaseDate);
+
+              const imgEl = document.createElement("img");
+              imgEl.src = m.posterUrl;
+
+              const spanEl = document.createElement("span");
+              spanEl.classList.add("title");
+              spanEl.innerText = `${m.title} (${d.getFullYear()})`;
+
+              const anchorEl = document.createElement("a");
+              anchorEl.appendChild(imgEl);
+              anchorEl.appendChild(spanEl);
+
+              anchorEl.addEventListener("click", (evt) => {
+                this._elements.title.value = m.title;
+                this._clearSearchResults();
+              });
+
+              const liEl = document.createElement("li");
+              liEl.appendChild(anchorEl);
+
+              this._elements.resultsList.appendChild(liEl);
+            }
+          });
+        }
+      }
+    );
+  })();
+</script>

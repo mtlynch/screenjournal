@@ -13,29 +13,9 @@ import (
 
 func (s Server) reviewsPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		rev, tmdbID, err := newReviewFromRequest(r)
+		rev, err := newReviewFromRequest(r)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
-			return
-		}
-
-		rev.MediaID, err = s.store.TmdbIDToLocalID(tmdbID)
-		if err == store.ErrTmdbIDNotFound {
-			movie, err := s.metadataFinder.GetMovieInfo(tmdbID)
-			if err != nil {
-				log.Printf("failed to get metadata for ID (%v): %v", tmdbID, err)
-				http.Error(w, fmt.Sprintf("Failed to retrieve metadata information for ID: %v", tmdbID), http.StatusFailedDependency)
-				return
-			}
-			rev.MediaID, err = s.store.InsertMovie(movie)
-			if err != nil {
-				log.Printf("failed to save metadata for movie %s: %v", movie.Title, err)
-				http.Error(w, fmt.Sprintf("Failed to retrieve metadata information for ID: %v", tmdbID), http.StatusFailedDependency)
-				return
-			}
-		} else if err != nil {
-			log.Printf("failed to translate TMDB ID to local ID for ID %v: %v", tmdbID, err)
-			http.Error(w, fmt.Sprintf("Failed to find movie: %v", err), http.StatusInternalServerError)
 			return
 		}
 
@@ -77,9 +57,9 @@ func (s Server) reviewsPut() http.HandlerFunc {
 	}
 }
 
-func newReviewFromRequest(r *http.Request) (screenjournal.Review, screenjournal.TmdbID, error) {
+func newReviewFromRequest(r *http.Request) (screenjournal.Review, error) {
 	var payload struct {
-		TmdbID  int    `json:"tmdbId"`
+		Title   string `json:"title"`
 		Rating  int    `json:"rating"`
 		Watched string `json:"watched"`
 		Blurb   string `json:"blurb"`
@@ -87,35 +67,36 @@ func newReviewFromRequest(r *http.Request) (screenjournal.Review, screenjournal.
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		log.Printf("failed to decode JSON request: %v", err)
-		return screenjournal.Review{}, screenjournal.TmdbID(0), err
+		return screenjournal.Review{}, err
 	}
 
 	// TODO: Support reviews by other users
 	owner := screenjournal.Username("mike")
 
-	tmdbID, err := parse.TmdbID(payload.TmdbID)
+	title, err := parse.MediaTitle(payload.Title)
 	if err != nil {
-		return screenjournal.Review{}, screenjournal.TmdbID(0), err
+		return screenjournal.Review{}, err
 	}
 	rating, err := parse.Rating(payload.Rating)
 	if err != nil {
-		return screenjournal.Review{}, screenjournal.TmdbID(0), err
+		return screenjournal.Review{}, err
 	}
 	watchDate, err := parse.WatchDate(payload.Watched)
 	if err != nil {
-		return screenjournal.Review{}, screenjournal.TmdbID(0), err
+		return screenjournal.Review{}, err
 	}
 	blurb, err := parse.Blurb(payload.Blurb)
 	if err != nil {
-		return screenjournal.Review{}, screenjournal.TmdbID(0), err
+		return screenjournal.Review{}, err
 	}
 
 	return screenjournal.Review{
 		Owner:   owner,
+		Title:   title,
 		Rating:  rating,
 		Blurb:   blurb,
 		Watched: watchDate,
-	}, tmdbID, nil
+	}, nil
 }
 
 func updateReviewFromRequest(r *http.Request, review *screenjournal.Review) error {

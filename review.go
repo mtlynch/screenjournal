@@ -12,7 +12,6 @@ type (
 	Review struct {
 		ID       ReviewID
 		Owner    Username
-		MediaID  MediaID
 		Title    MediaTitle
 		Rating   Rating
 		Blurb    Blurb

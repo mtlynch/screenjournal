@@ -1,4 +1,37 @@
 {{ define "style-tags" }}
+  <style>
+    #search-results-list {
+      padding: 0;
+      background-color: #c5c5bf;
+    }
+
+    #search-results-list li:nth-child(odd) {
+      background-color: #f3ffe8;
+    }
+
+    #search-results-list li:nth-child(even) {
+      background-color: #e6fbff;
+    }
+
+    #search-results-list li + li {
+      margin-top: 1px;
+    }
+
+    #search-results-list img {
+      max-height: 100px;
+    }
+
+    @media screen and (min-width: 1024px) {
+      #search-results-list img {
+        max-height: 80px;
+      }
+    }
+
+    #search-results-list .title {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  </style>
 {{ end }}
 
 {{ define "script-tags" }}
@@ -32,35 +65,49 @@
         return;
       }
       searchGet(query).then((results) => {
-        const resultsDiv = document.getElementById("search-results");
+        const resultsList = document.getElementById("search-results-list");
         clearSearchResults();
-        for (const m of results.matches) {
+        resultsList.classList.add("show");
+
+        if (results.matches.length === 0) {
+          const liEl = document.createElement("li");
+          liEl.innerText = "No matches";
+          resultsList.appendChild(liEl);
+          return;
+        }
+
+        for (const m of results.matches.slice(0, 10)) {
           const d = new Date(m.releaseDate);
 
           const imgEl = document.createElement("img");
           imgEl.src = m.posterUrl;
 
-          const pEl = document.createElement("p");
-          pEl.innerText = `${m.title} (${d.getFullYear()})`;
+          const spanEl = document.createElement("span");
+          spanEl.classList.add("title");
+          spanEl.innerText = `${m.title} (${d.getFullYear()})`;
 
-          const wrapperEl = document.createElement("div");
-          wrapperEl.appendChild(imgEl);
-          wrapperEl.appendChild(pEl);
+          const anchorEl = document.createElement("a");
+          anchorEl.appendChild(imgEl);
+          anchorEl.appendChild(spanEl);
 
-          wrapperEl.addEventListener("click", (evt) => {
+          anchorEl.addEventListener("click", (evt) => {
             document.getElementById("media-title").value = m.title;
             clearSearchResults();
           });
 
-          resultsDiv.appendChild(wrapperEl);
+          const liEl = document.createElement("li");
+          liEl.appendChild(anchorEl);
+
+          resultsList.appendChild(liEl);
         }
       });
     }
 
     function clearSearchResults() {
-      const resultsDiv = document.getElementById("search-results");
-      while (resultsDiv.firstChild) {
-        resultsDiv.removeChild(resultsDiv.firstChild);
+      const resultsList = document.getElementById("search-results-list");
+      resultsList.classList.remove("show");
+      while (resultsList.firstChild) {
+        resultsList.removeChild(resultsList.firstChild);
       }
     }
 
@@ -73,6 +120,14 @@
         document
           .getElementById("media-title")
           .addEventListener("input", onTitleInput);
+        document
+          .getElementById("media-title")
+          .addEventListener("click", (evt) => {
+            const query = evt.target.value;
+            if (query.length < 2) {
+              clearSearchResults();
+            }
+          });
 
         document
           .getElementById("add-rating")
@@ -111,7 +166,21 @@
   <form id="add-rating" class="my-5">
     <div class="mb-3">
       <label for="media-title" class="form-label">Title</label>
-      <input id="media-title" class="form-control" type="search" required />
+      <input
+        id="media-title"
+        class="form-control"
+        type="search"
+        placeholder="Search"
+        aria-label="Search"
+        aria-expanded="false"
+        data-bs-toggle="dropdown"
+        required
+      />
+      <ul
+        id="search-results-list"
+        class="dropdown-menu"
+        aria-labelledby="search-box"
+      ></ul>
     </div>
 
     <div id="search-results"></div>

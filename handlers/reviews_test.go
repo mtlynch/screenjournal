@@ -14,6 +14,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
@@ -25,6 +26,13 @@ func (ma mockAuthenticator) ClearSession(w http.ResponseWriter) {}
 
 func (ma mockAuthenticator) Authenticate(r *http.Request) bool {
 	return true
+}
+
+type mockMetadataFinder struct {
+}
+
+func (mf mockMetadataFinder) Search(query string) (metadata.MovieSearchResults, error) {
+	return metadata.MovieSearchResults{}, nil
 }
 
 func TestReviewsPostAcceptsValidRequest(t *testing.T) {
@@ -67,7 +75,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			s := handlers.New(mockAuthenticator{}, dataStore)
+			s := handlers.New(mockAuthenticator{}, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
 			if err != nil {
@@ -139,7 +147,7 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			s := handlers.New(mockAuthenticator{}, dataStore)
+			s := handlers.New(mockAuthenticator{}, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
 			if err != nil {
@@ -220,7 +228,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				dataStore.InsertReview(r)
 			}
 
-			s := handlers.New(mockAuthenticator{}, dataStore)
+			s := handlers.New(mockAuthenticator{}, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {
@@ -395,7 +403,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 				dataStore.InsertReview(r)
 			}
 
-			s := handlers.New(mockAuthenticator{}, dataStore)
+			s := handlers.New(mockAuthenticator{}, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {

@@ -8,7 +8,7 @@
     import { tzOffsetString } from "/js/lib/time.js";
 
     function reviewFromForm() {
-      const title = document.getElementById("media-title").value.trim();
+      const title = document.querySelector("title-search").value.trim();
 
       const rating = parseInt(document.getElementById("rating-select").value);
 
@@ -61,6 +61,7 @@
 {{ end }}
 
 {{ define "custom-elements" }}
+  {{ template "title-search.html" . }}
 {{ end }}
 
 {{ define "content" }}
@@ -68,8 +69,7 @@
 
   <form id="add-rating" class="my-5">
     <div class="mb-3">
-      <label for="media-title" class="form-label">Title</label>
-      <input id="media-title" class="form-control" type="text" required />
+      <title-search></title-search>
     </div>
 
     <div class="mb-3">

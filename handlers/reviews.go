@@ -19,23 +19,10 @@ func (s Server) reviewsPost() http.HandlerFunc {
 			return
 		}
 
-		rev.MediaID, err = s.store.TmdbIDToLocalID(tmdbID)
-		if err == store.ErrTmdbIDNotFound {
-			movie, err := s.metadataFinder.GetMovieInfo(tmdbID)
-			if err != nil {
-				log.Printf("failed to get metadata for ID (%v): %v", tmdbID, err)
-				http.Error(w, fmt.Sprintf("Failed to retrieve metadata information for ID: %v", tmdbID), http.StatusFailedDependency)
-				return
-			}
-			rev.MediaID, err = s.store.InsertMovie(movie)
-			if err != nil {
-				log.Printf("failed to save metadata for movie %s: %v", movie.Title, err)
-				http.Error(w, fmt.Sprintf("Failed to retrieve metadata information for ID: %v", tmdbID), http.StatusFailedDependency)
-				return
-			}
-		} else if err != nil {
-			log.Printf("failed to translate TMDB ID to local ID for ID %v: %v", tmdbID, err)
-			http.Error(w, fmt.Sprintf("Failed to find movie: %v", err), http.StatusInternalServerError)
+		rev.MediaID, err = s.localIDfromTmdbID(tmdbID)
+		if err != nil {
+			log.Printf("failed to get local media ID for %v: %v", tmdbID, err)
+			http.Error(w, fmt.Sprintf("Failed to get local media ID: %v", err), http.StatusInternalServerError)
 			return
 		}
 
@@ -149,4 +136,20 @@ func updateReviewFromRequest(r *http.Request, review *screenjournal.Review) erro
 	review.Blurb = blurb
 
 	return nil
+}
+
+func (s Server) localIDfromTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.MediaID, error) {
+	mediaID, err := s.store.TmdbIDToLocalID(tmdbID)
+	if err != nil && err != store.ErrTmdbIDNotFound {
+		return screenjournal.MediaID(0), err
+	} else if err == nil {
+		return mediaID, nil
+	}
+
+	movie, err := s.metadataFinder.GetMovieInfo(tmdbID)
+	if err != nil {
+		return screenjournal.MediaID(0), err
+	}
+
+	return s.store.InsertMovie(movie)
 }

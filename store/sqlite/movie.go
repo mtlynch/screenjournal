@@ -14,14 +14,13 @@ func (d DB) InsertMovie(m screenjournal.Movie) (screenjournal.MediaID, error) {
 		movies
 	(
 		tmdb_id,
-    imdb_id,
-    title,
-    poster_path
+		imdb_id,
+		title,
+		poster_path
 	)
 	VALUES (
 		?, ?, ?, ?
-	)
-	`,
+	)`,
 		m.TmdbID,
 		m.ImdbID,
 		m.Title,

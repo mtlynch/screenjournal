@@ -8,7 +8,7 @@
     import { tzOffsetString } from "/js/lib/time.js";
 
     function reviewFromForm() {
-      const tmdbId = parseInt(document.getElementById("tmdb-id").value);
+      const tmdbId = parseInt(document.querySelector("title-search").value);
 
       const rating = parseInt(document.getElementById("rating-select").value);
 
@@ -71,8 +71,6 @@
     <div class="mb-3">
       <title-search></title-search>
     </div>
-
-    <input type="hidden" id="tmdb-id" />
 
     <div class="mb-3">
       <label for="rating-select" class="form-label">Rating</label>

@@ -32,6 +32,7 @@ type (
 		TmdbID       screenjournal.TmdbID
 		ImdbID       screenjournal.ImdbID
 		Title        screenjournal.MediaTitle
+		ReleaseDate  screenjournal.ReleaseDate
 		PosterPath   screenjournal.ImagePath
 		BackdropPath screenjournal.ImagePath
 	}
@@ -61,6 +62,11 @@ func (f tmdbFinder) GetMovieInfo(id screenjournal.TmdbID) (MovieInfo, error) {
 	}
 
 	info.Title, err = parse.MediaTitle(m.Title)
+	if err != nil {
+		return MovieInfo{}, err
+	}
+
+	info.ReleaseDate, err = parse.ReleaseDate(m.ReleaseDate)
 	if err != nil {
 		return MovieInfo{}, err
 	}

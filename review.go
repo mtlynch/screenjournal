@@ -10,15 +10,16 @@ type (
 	WatchDate  time.Time
 
 	Review struct {
-		ID       ReviewID
-		Owner    Username
-		MediaID  MediaID
-		Title    MediaTitle
-		Rating   Rating
-		Blurb    Blurb
-		Watched  WatchDate
-		Created  time.Time
-		Modified time.Time
+		ID          ReviewID
+		Owner       Username
+		MediaID     MediaID
+		Title       MediaTitle
+		ReleaseDate ReleaseDate
+		Rating      Rating
+		Blurb       Blurb
+		Watched     WatchDate
+		Created     time.Time
+		Modified    time.Time
 	}
 )
 

@@ -164,6 +164,7 @@ func (s Server) localIDfromTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Me
 		TmdbID:       mi.TmdbID,
 		ImdbID:       mi.ImdbID,
 		Title:        mi.Title,
+		ReleaseDate:  mi.ReleaseDate,
 		PosterPath:   mi.PosterPath,
 		BackdropPath: mi.BackdropPath,
 	})

@@ -3,7 +3,7 @@ CREATE TABLE movies (
     tmdb_id INTEGER UNIQUE,
     imdb_id TEXT,
     title TEXT,
-    release_date TEXT, -- Unpopulated for now
+    release_date TEXT,
     poster_path TEXT,
     backdrop_path TEXT
 );

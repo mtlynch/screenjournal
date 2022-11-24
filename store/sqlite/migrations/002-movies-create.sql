@@ -11,5 +11,6 @@ ALTER TABLE reviews
 ADD COLUMN movie_id
 INTEGER; -- TODO: Add foreign key?
 
+-- Don't need title since we're now storing it in the movies table.
 ALTER TABLE reviews
 DROP title;

@@ -97,8 +97,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 
 			for tmdbID, movie := range metadataFinder.db {
 				movie.TmdbID = tmdbID
-				_, err := dataStore.InsertMovie(movie)
-				if err != nil {
+				if _, err := dataStore.InsertMovie(movie); err != nil {
 					panic(err)
 				}
 			}

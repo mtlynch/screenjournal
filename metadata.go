@@ -11,3 +11,7 @@ type (
 func (m TmdbID) Int32() int32 {
 	return int32(m)
 }
+
+func (id ImdbID) String() string {
+	return string(id)
+}

@@ -51,10 +51,15 @@ func (f tmdbFinder) GetMovieInfo(id screenjournal.TmdbID) (screenjournal.Movie, 
 		return screenjournal.Movie{}, err
 	}
 
+	imdbID, err := parse.ImdbID(m.ImdbID)
+	if err != nil {
+		return screenjournal.Movie{}, err
+	}
+
 	// TODO: Return a TMDB-specific type.
 	return screenjournal.Movie{
 		TmdbID:     id,
-		ImdbID:     screenjournal.ImdbID(m.ImdbID), // TODO: Actually parse this
+		ImdbID:     imdbID,
 		Title:      title,
 		PosterPath: m.PosterPath, // TODO: Actually parse this
 	}, nil

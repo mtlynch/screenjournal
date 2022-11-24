@@ -35,7 +35,5 @@ func (d DB) InsertMovie(m screenjournal.Movie) (screenjournal.MediaID, error) {
 		return screenjournal.MediaID(0), err
 	}
 
-	log.Printf("inserted! movie ID=%v", lastID) // DEBUG
-
 	return screenjournal.MediaID(lastID), nil
 }

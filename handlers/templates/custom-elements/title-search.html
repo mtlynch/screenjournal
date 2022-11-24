@@ -134,6 +134,7 @@
 
               anchorEl.addEventListener("click", (evt) => {
                 this._elements.title.value = m.title;
+                this._tmdbId = m.tmdbId;
                 this._clearSearchResults();
               });
 

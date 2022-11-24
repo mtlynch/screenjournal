@@ -1,6 +1,6 @@
 CREATE TABLE movies (
     id INTEGER PRIMARY KEY,
-    tmdb_id INTEGER,
+    tmdb_id INTEGER UNIQUE,
     imdb_id TEXT,
     title TEXT,
     release_date TEXT, -- Unpopulated for now

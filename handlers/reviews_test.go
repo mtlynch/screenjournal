@@ -114,6 +114,8 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				Blurb:       screenjournal.Blurb(""),
 			},
 		},
+		// TODO: Test when movie isn't local but it's in metadata finder
+		// TODO: Test when movie isn't in local or metadata finder
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()

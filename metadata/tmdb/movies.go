@@ -23,13 +23,13 @@ func (f tmdbFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, e
 		return metadata.MovieInfo{}, err
 	}
 
-	info.ReleaseDate, err = parse.ReleaseDate(m.ReleaseDate)
+	info.ReleaseDate, err = ParseReleaseDate(m.ReleaseDate)
 	if err != nil {
 		return metadata.MovieInfo{}, err
 	}
 
 	if len(m.ImdbID) > 0 {
-		imdbID, err := parse.ImdbID(m.ImdbID)
+		imdbID, err := ParseImdbID(m.ImdbID)
 		if err != nil {
 			log.Printf("failed to parse IMDB ID (%s) from TMDB ID %v: %v", m.ImdbID, id, err)
 		} else {

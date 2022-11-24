@@ -22,9 +22,9 @@ func TestImdbID(t *testing.T) {
 			nil,
 		},
 		{
-			"ID with alternate prefix is valid",
-			"nm0079367",
-			screenjournal.ImdbID("nm0079367"),
+			"ID of Carl Reiner valid",
+			"nm0005348",
+			screenjournal.ImdbID("nm0005348"),
 			nil,
 		},
 		{

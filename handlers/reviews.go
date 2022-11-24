@@ -154,10 +154,16 @@ func (s Server) localIDfromTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Me
 		return mediaID, nil
 	}
 
-	movie, err := s.metadataFinder.GetMovieInfo(tmdbID)
+	mi, err := s.metadataFinder.GetMovieInfo(tmdbID)
 	if err != nil {
 		return screenjournal.MediaID(0), err
 	}
 
-	return s.store.InsertMovie(movie)
+	return s.store.InsertMovie(screenjournal.Movie{
+		MediaID:    mediaID,
+		TmdbID:     mi.TmdbID,
+		ImdbID:     mi.ImdbID,
+		Title:      mi.Title,
+		PosterPath: mi.PosterPath,
+	})
 }

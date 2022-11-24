@@ -1,6 +1,8 @@
 package metadata
 
 import (
+	"log"
+
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/ryanbradynd05/go-tmdb"
@@ -9,7 +11,7 @@ import (
 type (
 	Finder interface {
 		Search(query string) (MovieSearchResults, error)
-		GetMovieInfo(id screenjournal.TmdbID) (screenjournal.Movie, error)
+		GetMovieInfo(id screenjournal.TmdbID) (MovieInfo, error)
 	}
 
 	MovieSearchResult struct {
@@ -26,6 +28,13 @@ type (
 		TotalResults int
 	}
 
+	MovieInfo struct {
+		TmdbID     screenjournal.TmdbID
+		ImdbID     screenjournal.ImdbID
+		Title      screenjournal.MediaTitle
+		PosterPath string
+	}
+
 	tmdbFinder struct {
 		tmdbAPI *tmdb.TMDb
 	}
@@ -40,27 +49,30 @@ func New(apiKey string) (Finder, error) {
 	}, nil
 }
 
-func (f tmdbFinder) GetMovieInfo(id screenjournal.TmdbID) (screenjournal.Movie, error) {
+func (f tmdbFinder) GetMovieInfo(id screenjournal.TmdbID) (MovieInfo, error) {
 	m, err := f.tmdbAPI.GetMovieInfo(int(id.Int32()), map[string]string{})
 	if err != nil {
-		return screenjournal.Movie{}, err
+		return MovieInfo{}, err
 	}
 
-	title, err := parse.MediaTitle(m.Title)
+	info := MovieInfo{
+		TmdbID: id,
+	}
+
+	info.Title, err = parse.MediaTitle(m.Title)
 	if err != nil {
-		return screenjournal.Movie{}, err
+		return MovieInfo{}, err
 	}
 
 	imdbID, err := parse.ImdbID(m.ImdbID)
 	if err != nil {
-		return screenjournal.Movie{}, err
+		log.Printf("failed to parse IMDB ID (%s) from TMDB ID (%v): %v", m.ImdbID, id, err)
+	} else {
+		info.ImdbID = imdbID
 	}
 
-	// TODO: Return a TMDB-specific type.
-	return screenjournal.Movie{
-		TmdbID:     id,
-		ImdbID:     imdbID,
-		Title:      title,
-		PosterPath: m.PosterPath, // TODO: Actually parse this
-	}, nil
+	// TODO: Actually parse this
+	info.PosterPath = m.PosterPath
+
+	return info, nil
 }

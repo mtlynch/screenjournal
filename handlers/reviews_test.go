@@ -29,25 +29,25 @@ func (ma mockAuthenticator) Authenticate(r *http.Request) bool {
 }
 
 type mockMetadataFinder struct {
-	db map[screenjournal.TmdbID]screenjournal.Movie
+	db map[screenjournal.TmdbID]metadata.MovieInfo
 }
 
 func (mf mockMetadataFinder) Search(query string) (metadata.MovieSearchResults, error) {
 	return metadata.MovieSearchResults{}, nil
 }
 
-func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (screenjournal.Movie, error) {
-	var m screenjournal.Movie
+func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, error) {
+	var m metadata.MovieInfo
 	var ok bool
 	if m, ok = mf.db[id]; !ok {
-		return screenjournal.Movie{}, fmt.Errorf("could not find movie with id %d in mock DB", id.Int32())
+		return metadata.MovieInfo{}, fmt.Errorf("could not find movie with id %d in mock DB", id.Int32())
 	}
 	return m, nil
 }
 
 func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 	metadataFinder := mockMetadataFinder{
-		db: map[screenjournal.TmdbID]screenjournal.Movie{
+		db: map[screenjournal.TmdbID]metadata.MovieInfo{
 			screenjournal.TmdbID(38): {
 				Title: "Eternal Sunshine of the Spotless Mind",
 			},
@@ -94,13 +94,6 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
-
-			for tmdbID, movie := range metadataFinder.db {
-				movie.TmdbID = tmdbID
-				if _, err := dataStore.InsertMovie(movie); err != nil {
-					panic(err)
-				}
-			}
 
 			s := handlers.New(mockAuthenticator{}, dataStore, metadataFinder)
 

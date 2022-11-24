@@ -56,7 +56,6 @@ func (db DB) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, error)
 		reviews.id AS id,
 		reviews.review_owner AS review_owner,
 		movies.title AS title,
-		movies.release_date AS release_date,
 		reviews.rating AS rating,
 		reviews.blurb AS blurb,
 		reviews.watched_date AS watched_date,
@@ -80,7 +79,6 @@ func (db DB) ReadReviews() ([]screenjournal.Review, error) {
 		reviews.id AS id,
 		reviews.review_owner AS review_owner,
 		movies.title AS title,
-		movies.release_date AS release_date,
 		reviews.rating AS rating,
 		reviews.blurb AS blurb,
 		reviews.watched_date AS watched_date,
@@ -176,14 +174,13 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 	var id int
 	var owner string
 	var title string
-	var releaseDate string
 	var rating screenjournal.Rating
 	var blurb string
 	var watchedDateRaw string
 	var createdTimeRaw string
 	var lastModifiedTimeRaw string
 
-	err := row.Scan(&id, &owner, &title, &releaseDate, &rating, &blurb, &watchedDateRaw, &createdTimeRaw, &lastModifiedTimeRaw)
+	err := row.Scan(&id, &owner, &title, &rating, &blurb, &watchedDateRaw, &createdTimeRaw, &lastModifiedTimeRaw)
 	if err == sql.ErrNoRows {
 		return screenjournal.Review{}, store.ErrReviewNotFound
 	} else if err != nil {

@@ -27,6 +27,18 @@ func TestImagePath(t *testing.T) {
 			screenjournal.ImagePath(""),
 			parse.ErrInvalidImagePath,
 		},
+		{
+			"path without leading slash is invalid",
+			"6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg",
+			screenjournal.ImagePath(""),
+			parse.ErrInvalidImagePath,
+		},
+		{
+			"path with directory traversal is invalid",
+			"/../6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg",
+			screenjournal.ImagePath(""),
+			parse.ErrInvalidImagePath,
+		},
 	} {
 		t.Run(fmt.Sprintf("%s [%s]", tt.description, tt.in), func(t *testing.T) {
 			id, err := parse.ImagePath(tt.in)

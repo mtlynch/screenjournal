@@ -1,9 +1,15 @@
 package screenjournal
 
+type ImagePath string
+
 type Movie struct {
 	MediaID    MediaID
 	TmdbID     TmdbID
 	ImdbID     ImdbID
 	Title      MediaTitle
-	PosterPath string
+	PosterPath ImagePath
+}
+
+func (p ImagePath) String() string {
+	return string(p)
 }

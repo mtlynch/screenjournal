@@ -32,7 +32,7 @@ type (
 		TmdbID     screenjournal.TmdbID
 		ImdbID     screenjournal.ImdbID
 		Title      screenjournal.MediaTitle
-		PosterPath string
+		PosterPath screenjournal.ImagePath
 	}
 
 	tmdbFinder struct {
@@ -64,15 +64,23 @@ func (f tmdbFinder) GetMovieInfo(id screenjournal.TmdbID) (MovieInfo, error) {
 		return MovieInfo{}, err
 	}
 
-	imdbID, err := parse.ImdbID(m.ImdbID)
-	if err != nil {
-		log.Printf("failed to parse IMDB ID (%s) from TMDB ID (%v): %v", m.ImdbID, id, err)
-	} else {
-		info.ImdbID = imdbID
+	if len(m.ImdbID) > 0 {
+		imdbID, err := parse.ImdbID(m.ImdbID)
+		if err != nil {
+			log.Printf("failed to parse IMDB ID (%s) from TMDB ID %v: %v", m.ImdbID, id, err)
+		} else {
+			info.ImdbID = imdbID
+		}
 	}
 
-	// TODO: Actually parse this
-	info.PosterPath = m.PosterPath
+	if len(m.PosterPath) > 0 {
+		posterPath, err := parse.ImagePath(m.PosterPath)
+		if err != nil {
+			log.Printf("failed to parse poster path (%s) from TMDB ID %v: %v", m.PosterPath, id, err)
+		} else {
+			info.PosterPath = posterPath
+		}
+	}
 
 	return info, nil
 }

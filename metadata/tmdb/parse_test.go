@@ -1,11 +1,11 @@
-package parse_test
+package tmdb_test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/mtlynch/screenjournal/v2"
-	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 )
 
 func TestImagePath(t *testing.T) {
@@ -25,23 +25,23 @@ func TestImagePath(t *testing.T) {
 			"empty string is invalid",
 			"",
 			screenjournal.ImagePath(""),
-			parse.ErrInvalidImagePath,
+			tmdb.ErrInvalidImagePath,
 		},
 		{
 			"path without leading slash is invalid",
 			"6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg",
 			screenjournal.ImagePath(""),
-			parse.ErrInvalidImagePath,
+			tmdb.ErrInvalidImagePath,
 		},
 		{
 			"path with directory traversal is invalid",
 			"/../6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg",
 			screenjournal.ImagePath(""),
-			parse.ErrInvalidImagePath,
+			tmdb.ErrInvalidImagePath,
 		},
 	} {
 		t.Run(fmt.Sprintf("%s [%s]", tt.description, tt.in), func(t *testing.T) {
-			id, err := parse.ImagePath(tt.in)
+			id, err := tmdb.ParseImagePath(tt.in)
 			if got, want := err, tt.err; got != want {
 				t.Fatalf("err=%v, want=%v", got, want)
 			}

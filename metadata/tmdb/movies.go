@@ -38,7 +38,7 @@ func (f tmdbFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, e
 	}
 
 	if len(m.PosterPath) > 0 {
-		posterPath, err := parse.ImagePath(m.PosterPath)
+		posterPath, err := ParseImagePath(m.PosterPath)
 		if err != nil {
 			log.Printf("failed to parse poster path (%s) from TMDB ID %v: %v", m.PosterPath, id, err)
 		} else {
@@ -47,7 +47,7 @@ func (f tmdbFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, e
 	}
 
 	if len(m.BackdropPath) > 0 {
-		backdropPath, err := parse.ImagePath(m.BackdropPath)
+		backdropPath, err := ParseImagePath(m.BackdropPath)
 		if err != nil {
 			log.Printf("failed to parse backdrop path (%s) from TMDB ID %v: %v", m.BackdropPath, id, err)
 		} else {

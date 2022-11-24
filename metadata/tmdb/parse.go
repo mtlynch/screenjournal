@@ -1,4 +1,4 @@
-package parse
+package tmdb
 
 import (
 	"errors"
@@ -13,7 +13,7 @@ var (
 	imagePathPattern = regexp.MustCompile(`^/[0-9A-Za-z]{27}\.[a-z]{3}`)
 )
 
-func ImagePath(raw string) (screenjournal.ImagePath, error) {
+func ParseImagePath(raw string) (screenjournal.ImagePath, error) {
 	if !imagePathPattern.MatchString(raw) {
 		return screenjournal.ImagePath(""), ErrInvalidImagePath
 	}

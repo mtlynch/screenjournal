@@ -10,16 +10,17 @@ type (
 	WatchDate  time.Time
 
 	Review struct {
-		ID          ReviewID
-		Owner       Username
-		MediaID     MediaID
+		ID       ReviewID
+		Owner    Username
+		MediaID  MediaID
+		Rating   Rating
+		Blurb    Blurb
+		Watched  WatchDate
+		Created  time.Time
+		Modified time.Time
+		// TODO: Replace these with a reference to a Movie struct
 		Title       MediaTitle
 		ReleaseDate ReleaseDate
-		Rating      Rating
-		Blurb       Blurb
-		Watched     WatchDate
-		Created     time.Time
-		Modified    time.Time
 	}
 )
 

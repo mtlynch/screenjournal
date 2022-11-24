@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -15,6 +16,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata"
+	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
@@ -46,34 +48,40 @@ func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.Mov
 }
 
 func TestReviewsPostAcceptsValidRequest(t *testing.T) {
-	metadataFinder := mockMetadataFinder{
-		db: map[screenjournal.TmdbID]metadata.MovieInfo{
-			screenjournal.TmdbID(38): {
-				Title: "Eternal Sunshine of the Spotless Mind",
-			},
-			screenjournal.TmdbID(14577): {
-				Title: "Dirty Work",
-			},
-		},
-	}
 	for _, tt := range []struct {
-		description string
-		payload     string
-		expected    screenjournal.Review
+		description     string
+		payload         string
+		localMovies     []screenjournal.Movie
+		remoteMovieInfo []metadata.MovieInfo
+		expected        screenjournal.Review
 	}{
 		{
-			description: "valid request with all fields populated",
+			description: "valid request with all fields populated and movie information is in local DB",
 			payload: `{
 					"tmdbId": 38,
 					"rating": 10,
 					"watched":"2022-10-28T00:00:00-04:00",
 					"blurb": "It's my favorite movie!"
 				}`,
+			localMovies: []screenjournal.Movie{
+				{
+					MediaID:      screenjournal.MediaID(123),
+					TmdbID:       screenjournal.TmdbID(38),
+					ImdbID:       screenjournal.ImdbID("tt0338013"),
+					Title:        screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate:  screenjournal.ReleaseDate(mustParseReleaseDate("2004-03-19")),
+					PosterPath:   screenjournal.ImagePath("/5MwkWH9tYHv3mV9OdYTMR5qreIz.jpg"),
+					BackdropPath: screenjournal.ImagePath("/W1ffLQGHoxfAOq0ZYdPtJlvAdb.jpg"),
+				},
+			},
 			expected: screenjournal.Review{
-				Title:   "Eternal Sunshine of the Spotless Mind",
-				Rating:  screenjournal.Rating(10),
-				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
-				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				MediaID:     screenjournal.MediaID(123),
+				Owner:       screenjournal.Username("mike"),
+				Title:       "Eternal Sunshine of the Spotless Mind",
+				ReleaseDate: screenjournal.ReleaseDate(mustParseReleaseDate("2004-03-19")),
+				Rating:      screenjournal.Rating(10),
+				Watched:     mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+				Blurb:       screenjournal.Blurb("It's my favorite movie!"),
 			},
 		},
 		{
@@ -84,18 +92,39 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 					"watched":"2022-10-21T00:00:00-04:00",
 					"blurb": ""
 				}`,
+
+			localMovies: []screenjournal.Movie{
+				{
+					MediaID:      screenjournal.MediaID(456),
+					TmdbID:       screenjournal.TmdbID(14577),
+					ImdbID:       screenjournal.ImdbID("tt0120654"),
+					Title:        screenjournal.MediaTitle("Dirty Work"),
+					ReleaseDate:  screenjournal.ReleaseDate(mustParseReleaseDate("1998-06-12")),
+					PosterPath:   screenjournal.ImagePath("/btYKWL9SP12nhkcw8EkMG3aFtga.jpg"),
+					BackdropPath: screenjournal.ImagePath("/hKPpoZnDMYyyZwfztY1EcFWEJVI.jpg"),
+				},
+			},
 			expected: screenjournal.Review{
-				Title:   "Dirty Work",
-				Rating:  screenjournal.Rating(9),
-				Watched: mustParseWatchDate("2022-10-21T00:00:00-04:00"),
-				Blurb:   screenjournal.Blurb(""),
+				MediaID:     screenjournal.MediaID(456),
+				Owner:       screenjournal.Username("mike"),
+				Title:       "Dirty Work",
+				ReleaseDate: screenjournal.ReleaseDate(mustParseReleaseDate("1998-06-12")),
+				Rating:      screenjournal.Rating(9),
+				Watched:     mustParseWatchDate("2022-10-21T00:00:00-04:00"),
+				Blurb:       screenjournal.Blurb(""),
 			},
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			s := handlers.New(mockAuthenticator{}, dataStore, metadataFinder)
+			for _, movie := range tt.localMovies {
+				if _, err := dataStore.InsertMovie(movie); err != nil {
+					panic(err)
+				}
+			}
+
+			s := handlers.New(mockAuthenticator{}, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
 			if err != nil {
@@ -118,10 +147,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 
 			found := false
 			for _, r := range rr {
-				if r.Title == tt.expected.Title &&
-					r.Rating == tt.expected.Rating &&
-					r.Blurb == tt.expected.Blurb &&
-					r.Watched.Time().Equal(tt.expected.Watched.Time()) {
+				if reviewContentsEqual(r, tt.expected) {
 					found = true
 				}
 			}
@@ -489,10 +515,29 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 	}
 }
 
+func reviewContentsEqual(a, b screenjournal.Review) bool {
+	a.ID, b.ID = screenjournal.ReviewID(0), screenjournal.ReviewID(0)
+	// TODO: Compare media ID also
+	a.MediaID, b.MediaID = screenjournal.MediaID(0), screenjournal.MediaID(0)
+	a.Created, b.Created = time.Time{}, time.Time{}
+	a.Modified, b.Modified = time.Time{}, time.Time{}
+
+	return reflect.DeepEqual(a, b)
+
+}
+
 func mustParseWatchDate(s string) screenjournal.WatchDate {
 	wd, err := parse.WatchDate(s)
 	if err != nil {
 		log.Fatalf("failed to parse watch date: %s", s)
 	}
 	return wd
+}
+
+func mustParseReleaseDate(s string) screenjournal.ReleaseDate {
+	rd, err := tmdb.ParseReleaseDate(s)
+	if err != nil {
+		log.Fatalf("failed to parse release date: %s", s)
+	}
+	return rd
 }

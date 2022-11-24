@@ -160,10 +160,11 @@ func (s Server) localIDfromTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Me
 	}
 
 	return s.store.InsertMovie(screenjournal.Movie{
-		MediaID:    mediaID,
-		TmdbID:     mi.TmdbID,
-		ImdbID:     mi.ImdbID,
-		Title:      mi.Title,
-		PosterPath: mi.PosterPath,
+		MediaID:      mediaID,
+		TmdbID:       mi.TmdbID,
+		ImdbID:       mi.ImdbID,
+		Title:        mi.Title,
+		PosterPath:   mi.PosterPath,
+		BackdropPath: mi.BackdropPath,
 	})
 }

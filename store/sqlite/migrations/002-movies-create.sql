@@ -4,7 +4,8 @@ CREATE TABLE movies (
     imdb_id TEXT,
     title TEXT,
     release_date TEXT, -- Unpopulated for now
-    poster_path TEXT
+    poster_path TEXT,
+    backdrop_path TEXT
 );
 
 ALTER TABLE reviews

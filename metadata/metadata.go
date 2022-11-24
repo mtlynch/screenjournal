@@ -25,11 +25,7 @@ type (
 	}
 
 	MovieInfo struct {
-		TmdbID       screenjournal.TmdbID
-		ImdbID       screenjournal.ImdbID
-		Title        screenjournal.MediaTitle
-		ReleaseDate  screenjournal.ReleaseDate
-		PosterPath   screenjournal.ImagePath
-		BackdropPath screenjournal.ImagePath
+		TmdbID screenjournal.TmdbID
+		Title  screenjournal.MediaTitle
 	}
 )

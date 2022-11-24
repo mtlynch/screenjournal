@@ -1,7 +1,6 @@
 package tmdb
 
 import (
-	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 )
 
@@ -28,7 +27,7 @@ func (f tmdbFinder) Search(query string) (metadata.MovieSearchResults, error) {
 			continue
 		}
 
-		tmdbID, err := parse.TmdbID(match.ID)
+		tmdbID, err := ParseTmdbID(match.ID)
 		if err != nil {
 			return metadata.MovieSearchResults{}, err
 		}

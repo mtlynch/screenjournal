@@ -190,11 +190,6 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 		return screenjournal.Review{}, err
 	}
 
-	rd, err := parseDatetime(releaseDate)
-	if err != nil {
-		return screenjournal.Review{}, err
-	}
-
 	wd, err := parseDatetime(watchedDateRaw)
 	if err != nil {
 		return screenjournal.Review{}, err
@@ -211,15 +206,14 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 	}
 
 	return screenjournal.Review{
-		ID:          screenjournal.ReviewID(id),
-		Owner:       screenjournal.Username(owner),
-		Title:       screenjournal.MediaTitle(title),
-		ReleaseDate: screenjournal.ReleaseDate(rd),
-		Rating:      rating,
-		Blurb:       screenjournal.Blurb(blurb),
-		Watched:     screenjournal.WatchDate(wd),
-		Created:     ct,
-		Modified:    lmt,
+		ID:       screenjournal.ReviewID(id),
+		Owner:    screenjournal.Username(owner),
+		Title:    screenjournal.MediaTitle(title),
+		Rating:   rating,
+		Blurb:    screenjournal.Blurb(blurb),
+		Watched:  screenjournal.WatchDate(wd),
+		Created:  ct,
+		Modified: lmt,
 	}, nil
 }
 

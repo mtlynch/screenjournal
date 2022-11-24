@@ -16,7 +16,6 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata"
-	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
@@ -65,23 +64,18 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				}`,
 			localMovies: []screenjournal.Movie{
 				{
-					MediaID:      screenjournal.MediaID(123),
-					TmdbID:       screenjournal.TmdbID(38),
-					ImdbID:       screenjournal.ImdbID("tt0338013"),
-					Title:        screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
-					ReleaseDate:  screenjournal.ReleaseDate(mustParseReleaseDate("2004-03-19")),
-					PosterPath:   screenjournal.ImagePath("/5MwkWH9tYHv3mV9OdYTMR5qreIz.jpg"),
-					BackdropPath: screenjournal.ImagePath("/W1ffLQGHoxfAOq0ZYdPtJlvAdb.jpg"),
+					MediaID: screenjournal.MediaID(123),
+					TmdbID:  screenjournal.TmdbID(38),
+					Title:   screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 				},
 			},
 			expected: screenjournal.Review{
-				MediaID:     screenjournal.MediaID(123),
-				Owner:       screenjournal.Username("mike"),
-				Title:       "Eternal Sunshine of the Spotless Mind",
-				ReleaseDate: screenjournal.ReleaseDate(mustParseReleaseDate("2004-03-19")),
-				Rating:      screenjournal.Rating(10),
-				Watched:     mustParseWatchDate("2022-10-28T00:00:00-04:00"),
-				Blurb:       screenjournal.Blurb("It's my favorite movie!"),
+				MediaID: screenjournal.MediaID(123),
+				Owner:   screenjournal.Username("mike"),
+				Title:   "Eternal Sunshine of the Spotless Mind",
+				Rating:  screenjournal.Rating(10),
+				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 			},
 		},
 		{
@@ -95,23 +89,18 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 
 			localMovies: []screenjournal.Movie{
 				{
-					MediaID:      screenjournal.MediaID(456),
-					TmdbID:       screenjournal.TmdbID(14577),
-					ImdbID:       screenjournal.ImdbID("tt0120654"),
-					Title:        screenjournal.MediaTitle("Dirty Work"),
-					ReleaseDate:  screenjournal.ReleaseDate(mustParseReleaseDate("1998-06-12")),
-					PosterPath:   screenjournal.ImagePath("/btYKWL9SP12nhkcw8EkMG3aFtga.jpg"),
-					BackdropPath: screenjournal.ImagePath("/hKPpoZnDMYyyZwfztY1EcFWEJVI.jpg"),
+					MediaID: screenjournal.MediaID(456),
+					TmdbID:  screenjournal.TmdbID(14577),
+					Title:   screenjournal.MediaTitle("Dirty Work"),
 				},
 			},
 			expected: screenjournal.Review{
-				MediaID:     screenjournal.MediaID(456),
-				Owner:       screenjournal.Username("mike"),
-				Title:       "Dirty Work",
-				ReleaseDate: screenjournal.ReleaseDate(mustParseReleaseDate("1998-06-12")),
-				Rating:      screenjournal.Rating(9),
-				Watched:     mustParseWatchDate("2022-10-21T00:00:00-04:00"),
-				Blurb:       screenjournal.Blurb(""),
+				MediaID: screenjournal.MediaID(456),
+				Owner:   screenjournal.Username("mike"),
+				Title:   "Dirty Work",
+				Rating:  screenjournal.Rating(9),
+				Watched: mustParseWatchDate("2022-10-21T00:00:00-04:00"),
+				Blurb:   screenjournal.Blurb(""),
 			},
 		},
 		// TODO: Test when movie isn't local but it's in metadata finder
@@ -534,12 +523,4 @@ func mustParseWatchDate(s string) screenjournal.WatchDate {
 		log.Fatalf("failed to parse watch date: %s", s)
 	}
 	return wd
-}
-
-func mustParseReleaseDate(s string) screenjournal.ReleaseDate {
-	rd, err := tmdb.ParseReleaseDate(s)
-	if err != nil {
-		log.Fatalf("failed to parse release date: %s", s)
-	}
-	return rd
 }

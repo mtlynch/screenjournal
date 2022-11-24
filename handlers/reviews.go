@@ -8,6 +8,7 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/store"
 )
 
@@ -85,7 +86,7 @@ func newReviewFromRequest(r *http.Request) (reviewPostRequest, error) {
 	// TODO: Support reviews by other users
 	owner := screenjournal.Username("mike")
 
-	tmdbID, err := parse.TmdbID(payload.TmdbID)
+	tmdbID, err := tmdb.ParseTmdbID(payload.TmdbID)
 	if err != nil {
 		return reviewPostRequest{}, err
 	}
@@ -160,12 +161,8 @@ func (s Server) localIDfromTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Me
 	}
 
 	return s.store.InsertMovie(screenjournal.Movie{
-		MediaID:      mediaID,
-		TmdbID:       mi.TmdbID,
-		ImdbID:       mi.ImdbID,
-		Title:        mi.Title,
-		ReleaseDate:  mi.ReleaseDate,
-		PosterPath:   mi.PosterPath,
-		BackdropPath: mi.BackdropPath,
+		MediaID: mediaID,
+		TmdbID:  mi.TmdbID,
+		Title:   mi.Title,
 	})
 }

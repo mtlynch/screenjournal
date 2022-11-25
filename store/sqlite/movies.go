@@ -33,12 +33,7 @@ func (db DB) ReadMovieByTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movie
 	WHERE
 		tmdb_id = ?`, tmdbID.Int32())
 
-	movie, err := movieFromRow(row)
-	if err == sql.ErrNoRows {
-		return screenjournal.Movie{}, store.ErrTmdbIDNotFound
-	}
-
-	return movie, nil
+	return movieFromRow(row)
 }
 
 func (d DB) InsertMovie(m screenjournal.Movie) (screenjournal.MovieID, error) {

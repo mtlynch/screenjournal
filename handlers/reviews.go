@@ -156,7 +156,7 @@ func updateReviewFromRequest(r *http.Request, review *screenjournal.Review) erro
 
 func (s Server) moviefromTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movie, error) {
 	movie, err := s.store.ReadMovieByTmdbID(tmdbID)
-	if err != nil && err != store.ErrTmdbIDNotFound {
+	if err != nil && err != store.ErrMovieNotFound {
 		return screenjournal.Movie{}, err
 	} else if err == nil {
 		return movie, nil

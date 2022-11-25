@@ -200,18 +200,9 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 }
 
 func TestReviewsPutAcceptsValidRequest(t *testing.T) {
-	knownMovies := []screenjournal.Movie{
-		{
-			TmdbID: screenjournal.TmdbID(38),
-			Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
-		},
-		{
-			TmdbID: screenjournal.TmdbID(14577),
-			Title:  screenjournal.MediaTitle("Dirty Work"),
-		},
-	}
 	for _, tt := range []struct {
 		description  string
+		localMovies  []screenjournal.Movie
 		priorReviews []screenjournal.Review
 		route        string
 		payload      string
@@ -219,6 +210,16 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 	}{
 		{
 			description: "valid request with all fields populated",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID: screenjournal.TmdbID(38),
+					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+				},
+				{
+					TmdbID: screenjournal.TmdbID(14577),
+					Title:  screenjournal.MediaTitle("Dirty Work"),
+				},
+			},
 			priorReviews: []screenjournal.Review{
 				{
 					ID:      screenjournal.ReviewID(1),
@@ -236,7 +237,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					"blurb": "It's a pretty good movie!"
 				}`,
 			expected: screenjournal.Review{
-				ID:      screenjournal.ReviewID(1),
+				MovieID: screenjournal.MovieID(1),
 				Title:   "Eternal Sunshine of the Spotless Mind",
 				Rating:  screenjournal.Rating(8),
 				Watched: mustParseWatchDate("2022-10-30T00:00:00-04:00"),
@@ -245,6 +246,16 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 		},
 		{
 			description: "valid request without a blurb",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID: screenjournal.TmdbID(38),
+					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+				},
+				{
+					TmdbID: screenjournal.TmdbID(14577),
+					Title:  screenjournal.MediaTitle("Dirty Work"),
+				},
+			},
 			priorReviews: []screenjournal.Review{
 				{
 					ID:      screenjournal.ReviewID(1),
@@ -262,7 +273,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					"blurb": ""
 				}`,
 			expected: screenjournal.Review{
-				ID:      screenjournal.ReviewID(1),
+				MovieID: screenjournal.MovieID(2),
 				Title:   "Dirty Work",
 				Rating:  screenjournal.Rating(5),
 				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
@@ -272,7 +283,8 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
-			for _, movie := range knownMovies {
+
+			for _, movie := range tt.localMovies {
 				if _, err := dataStore.InsertMovie(movie); err != nil {
 					panic(err)
 				}
@@ -309,31 +321,17 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				t.Fatalf("unexpected review count: got %v, want %v", got, want)
 			}
 
-			// Zero out the times because they're a pain to compare.
-			actual := rr[0]
-			actual.Created = time.Time{}
-			actual.Modified = time.Time{}
-
-			if diff := deep.Equal(actual, tt.expected); diff != nil {
-				t.Error(diff)
+			if !reviewContentsEqual(rr[0], tt.expected) {
+				t.Error(deep.Equal(rr[0], tt.expected))
 			}
 		})
 	}
 }
 
 func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
-	knownMovies := []screenjournal.Movie{
-		{
-			TmdbID: screenjournal.TmdbID(38),
-			Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
-		},
-		{
-			TmdbID: screenjournal.TmdbID(14577),
-			Title:  screenjournal.MediaTitle("Dirty Work"),
-		},
-	}
 	for _, tt := range []struct {
 		description  string
+		localMovies  []screenjournal.Movie
 		priorReviews []screenjournal.Review
 		route        string
 		payload      string
@@ -341,6 +339,12 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 	}{
 		{
 			description: "rejects request with review ID of zero",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID: screenjournal.TmdbID(38),
+					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+				},
+			},
 			priorReviews: []screenjournal.Review{
 				{
 					MovieID: screenjournal.MovieID(1),
@@ -360,6 +364,12 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 		},
 		{
 			description: "rejects request with non-existent review ID",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID: screenjournal.TmdbID(38),
+					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+				},
+			},
 			priorReviews: []screenjournal.Review{
 				{
 					MovieID: screenjournal.MovieID(1),
@@ -379,6 +389,12 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 		},
 		{
 			description: "rejects request with malformed JSON",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID: screenjournal.TmdbID(38),
+					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+				},
+			},
 			priorReviews: []screenjournal.Review{
 				{
 					MovieID: screenjournal.MovieID(1),
@@ -397,6 +413,12 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 		},
 		{
 			description: "rejects request with missing rating field",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID: screenjournal.TmdbID(38),
+					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+				},
+			},
 			priorReviews: []screenjournal.Review{
 				{
 					MovieID: screenjournal.MovieID(1),
@@ -415,6 +437,12 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 		},
 		{
 			description: "rejects request with missing watched field",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID: screenjournal.TmdbID(38),
+					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+				},
+			},
 			priorReviews: []screenjournal.Review{
 				{
 					MovieID: screenjournal.MovieID(1),
@@ -433,6 +461,12 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 		},
 		{
 			description: "rejects request with numeric blurb field",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID: screenjournal.TmdbID(38),
+					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+				},
+			},
 			priorReviews: []screenjournal.Review{
 				{
 					MovieID: screenjournal.MovieID(1),
@@ -452,6 +486,12 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 		},
 		{
 			description: "rejects request with script tag in blurb field",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID: screenjournal.TmdbID(38),
+					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+				},
+			},
 			priorReviews: []screenjournal.Review{
 				{
 					MovieID: screenjournal.MovieID(1),
@@ -473,7 +513,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			for _, movie := range knownMovies {
+			for _, movie := range tt.localMovies {
 				if _, err := dataStore.InsertMovie(movie); err != nil {
 					panic(err)
 				}

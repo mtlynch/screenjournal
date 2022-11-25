@@ -12,7 +12,6 @@ type (
 	Review struct {
 		ID       ReviewID
 		Owner    Username
-		MovieID  MovieID
 		Rating   Rating
 		Blurb    Blurb
 		Watched  WatchDate

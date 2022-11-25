@@ -3,13 +3,15 @@ package handlers
 import (
 	"context"
 	"net/http"
+
+	"github.com/mtlynch/screenjournal/v2"
 )
 
 type contextKey struct {
 	name string
 }
 
-var contextKeyIsAuthenticated = &contextKey{"is-authenticated"}
+var contextKeyUser = &contextKey{"user"}
 
 func (s Server) authPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -25,7 +27,13 @@ func (s Server) authDelete() http.HandlerFunc {
 
 func (s Server) checkAuthentication(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), contextKeyIsAuthenticated, s.authenticator.Authenticate((r)))
+		user, err := s.authenticator.Authenticate(r)
+		if err != nil {
+			s.authenticator.ClearSession(w)
+			http.Error(w, "Invalid username", http.StatusBadRequest)
+			return
+		}
+		ctx := context.WithValue(r.Context(), contextKeyUser, user)
 		h.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -42,9 +50,17 @@ func (s Server) requireAuthentication(h http.Handler) http.Handler {
 }
 
 func isAuthenticated(ctx context.Context) bool {
-	val, ok := ctx.Value(contextKeyIsAuthenticated).(bool)
+	user, ok := userFromContext(ctx)
 	if !ok {
 		return false
 	}
-	return val
+	return !user.IsEmpty()
+}
+
+func userFromContext(ctx context.Context) (screenjournal.UserAuth, bool) {
+	user, ok := ctx.Value(contextKeyUser).(screenjournal.UserAuth)
+	if !ok {
+		return screenjournal.UserAuth{}, false
+	}
+	return user, true
 }

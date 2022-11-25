@@ -19,11 +19,19 @@ type reviewPostRequest struct {
 
 func (s Server) reviewsPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		owner, ok := userFromContext(r.Context())
+		if !ok {
+			http.Error(w, "Must be logged in to add a review", http.StatusForbidden)
+			return
+		}
+
 		req, err := newReviewFromRequest(r)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			return
 		}
+
+		req.Review.Owner = owner.Username
 
 		req.Review.MovieID, err = s.localIDfromTmdbID(req.TmdbID)
 		if err != nil {
@@ -83,9 +91,6 @@ func newReviewFromRequest(r *http.Request) (reviewPostRequest, error) {
 		return reviewPostRequest{}, err
 	}
 
-	// TODO: Support reviews by other users
-	owner := screenjournal.Username("mike")
-
 	tmdbID, err := tmdb.ParseTmdbID(payload.TmdbID)
 	if err != nil {
 		return reviewPostRequest{}, err
@@ -105,7 +110,6 @@ func newReviewFromRequest(r *http.Request) (reviewPostRequest, error) {
 
 	return reviewPostRequest{
 		Review: screenjournal.Review{
-			Owner:   owner,
 			Rating:  rating,
 			Blurb:   blurb,
 			Watched: watchDate,

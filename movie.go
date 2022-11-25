@@ -1,7 +1,7 @@
 package screenjournal
 
 type Movie struct {
-	MediaID MediaID
+	MovieID MovieID
 	TmdbID  TmdbID
 	Title   MediaTitle
 }

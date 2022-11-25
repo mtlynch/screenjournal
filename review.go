@@ -12,7 +12,7 @@ type (
 	Review struct {
 		ID       ReviewID
 		Owner    Username
-		MediaID  MediaID
+		MovieID  MovieID
 		Rating   Rating
 		Blurb    Blurb
 		Watched  WatchDate

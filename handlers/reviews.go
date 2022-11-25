@@ -25,7 +25,7 @@ func (s Server) reviewsPost() http.HandlerFunc {
 			return
 		}
 
-		req.Review.MediaID, err = s.localIDfromTmdbID(req.TmdbID)
+		req.Review.MovieID, err = s.localIDfromTmdbID(req.TmdbID)
 		if err != nil {
 			log.Printf("failed to get local media ID for %v: %v", req.TmdbID, err)
 			http.Error(w, fmt.Sprintf("Failed to get local media ID: %v", err), http.StatusInternalServerError)
@@ -147,21 +147,21 @@ func updateReviewFromRequest(r *http.Request, review *screenjournal.Review) erro
 	return nil
 }
 
-func (s Server) localIDfromTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.MediaID, error) {
+func (s Server) localIDfromTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.MovieID, error) {
 	mediaID, err := s.store.TmdbIDToLocalID(tmdbID)
 	if err != nil && err != store.ErrTmdbIDNotFound {
-		return screenjournal.MediaID(0), err
+		return screenjournal.MovieID(0), err
 	} else if err == nil {
 		return mediaID, nil
 	}
 
 	mi, err := s.metadataFinder.GetMovieInfo(tmdbID)
 	if err != nil {
-		return screenjournal.MediaID(0), err
+		return screenjournal.MovieID(0), err
 	}
 
 	return s.store.InsertMovie(screenjournal.Movie{
-		MediaID: mediaID,
+		MovieID: mediaID,
 		TmdbID:  mi.TmdbID,
 		Title:   mi.Title,
 	})

@@ -6,7 +6,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2"
 )
 
-func (d DB) InsertMovie(m screenjournal.Movie) (screenjournal.MediaID, error) {
+func (d DB) InsertMovie(m screenjournal.Movie) (screenjournal.MovieID, error) {
 	log.Printf("inserting new movie %s", m.Title)
 
 	res, err := d.ctx.Exec(`
@@ -23,13 +23,13 @@ func (d DB) InsertMovie(m screenjournal.Movie) (screenjournal.MediaID, error) {
 		m.Title,
 	)
 	if err != nil {
-		return screenjournal.MediaID(0), err
+		return screenjournal.MovieID(0), err
 	}
 
 	lastID, err := res.LastInsertId()
 	if err != nil {
-		return screenjournal.MediaID(0), err
+		return screenjournal.MovieID(0), err
 	}
 
-	return screenjournal.MediaID(lastID), nil
+	return screenjournal.MovieID(lastID), nil
 }

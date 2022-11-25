@@ -11,6 +11,11 @@ type Store interface {
 	ReadReviews() ([]screenjournal.Review, error)
 	InsertReview(screenjournal.Review) error
 	UpdateReview(screenjournal.Review) error
+	InsertMovie(screenjournal.Movie) (screenjournal.MovieID, error)
+	TmdbIDToLocalID(screenjournal.TmdbID) (screenjournal.MovieID, error)
 }
 
-var ErrReviewNotFound = errors.New("could not find review")
+var (
+	ErrReviewNotFound = errors.New("could not find review")
+	ErrTmdbIDNotFound = errors.New("could not find media with matching TMDB ID")
+)

@@ -53,18 +53,23 @@ func New(path string, optimizeForLitestream bool) store.Store {
 func (db DB) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, error) {
 	row := db.ctx.QueryRow(`
 	SELECT
-		id,
-		review_owner,
-		title,
-		rating,
-		blurb,
-		watched_date,
-		created_time,
-		last_modified_time
+		reviews.id AS id,
+		reviews.review_owner AS review_owner,
+		reviews.movie_id AS movie_id,
+		movies.title AS title,
+		reviews.rating AS rating,
+		reviews.blurb AS blurb,
+		reviews.watched_date AS watched_date,
+		reviews.created_time AS created_time,
+		reviews.last_modified_time AS last_modified_time
 	FROM
 		reviews
+	INNER JOIN
+		movies
+	ON
+		reviews.movie_id = movies.id
 	WHERE
-		id = ?`, id)
+		reviews.id = ?`, id)
 
 	return reviewFromRow(row)
 }
@@ -72,16 +77,21 @@ func (db DB) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, error)
 func (db DB) ReadReviews() ([]screenjournal.Review, error) {
 	rows, err := db.ctx.Query(`
 	SELECT
-		id,
-		review_owner,
-		title,
-		rating,
-		blurb,
-		watched_date,
-    created_time,
-    last_modified_time
+		reviews.id AS id,
+		reviews.review_owner AS review_owner,
+		reviews.movie_id AS movie_id,
+		movies.title AS title,
+		reviews.rating AS rating,
+		reviews.blurb AS blurb,
+		reviews.watched_date AS watched_date,
+		reviews.created_time AS created_time,
+		reviews.last_modified_time AS last_modified_time
 	FROM
-		reviews`)
+		reviews
+	INNER JOIN
+		movies
+	ON
+		reviews.movie_id = movies.id`)
 	if err != nil {
 		return []screenjournal.Review{}, err
 	}
@@ -100,7 +110,7 @@ func (db DB) ReadReviews() ([]screenjournal.Review, error) {
 }
 
 func (d DB) InsertReview(r screenjournal.Review) error {
-	log.Printf("inserting new review of %s: %v", r.Title, r.Rating.UInt8())
+	log.Printf("inserting new review of media ID %v: %v", r.MovieID, r.Rating.UInt8())
 
 	now := time.Now()
 
@@ -109,7 +119,7 @@ func (d DB) InsertReview(r screenjournal.Review) error {
 		reviews
 	(
 		review_owner,
-		title,
+		movie_id,
 		rating,
 		blurb,
 		watched_date,
@@ -121,7 +131,7 @@ func (d DB) InsertReview(r screenjournal.Review) error {
 	)
 	`,
 		r.Owner,
-		r.Title,
+		r.MovieID,
 		r.Rating,
 		r.Blurb,
 		formatWatchDate(r.Watched),
@@ -134,7 +144,7 @@ func (d DB) InsertReview(r screenjournal.Review) error {
 }
 
 func (d DB) UpdateReview(r screenjournal.Review) error {
-	log.Printf("updating review of %s: %v", r.Title, r.Rating.UInt8())
+	log.Printf("updating review of media ID %v: %v", r.MovieID, r.Rating.UInt8())
 
 	if r.ID.IsZero() {
 		return errors.New("invalid review ID")
@@ -165,6 +175,7 @@ func (d DB) UpdateReview(r screenjournal.Review) error {
 func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 	var id int
 	var owner string
+	var movie_id int
 	var title string
 	var rating screenjournal.Rating
 	var blurb string
@@ -172,7 +183,7 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 	var createdTimeRaw string
 	var lastModifiedTimeRaw string
 
-	err := row.Scan(&id, &owner, &title, &rating, &blurb, &watchedDateRaw, &createdTimeRaw, &lastModifiedTimeRaw)
+	err := row.Scan(&id, &owner, &movie_id, &title, &rating, &blurb, &watchedDateRaw, &createdTimeRaw, &lastModifiedTimeRaw)
 	if err == sql.ErrNoRows {
 		return screenjournal.Review{}, store.ErrReviewNotFound
 	} else if err != nil {
@@ -197,6 +208,7 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 	return screenjournal.Review{
 		ID:       screenjournal.ReviewID(id),
 		Owner:    screenjournal.Username(owner),
+		MovieID:  screenjournal.MovieID(movie_id),
 		Title:    screenjournal.MediaTitle(title),
 		Rating:   rating,
 		Blurb:    screenjournal.Blurb(blurb),

@@ -82,10 +82,11 @@
               this._clearSearchResults();
             }
           });
+          this._tmdbId = null;
         }
 
         get value() {
-          return this._elements.title.value;
+          return this._tmdbId;
         }
 
         _clearSearchResults() {
@@ -101,6 +102,7 @@
         }
 
         _onTitleInput(evt) {
+          this._tmdbId = null;
           const query = evt.target.value;
           if (query.length < 2) {
             return;
@@ -132,6 +134,7 @@
 
               anchorEl.addEventListener("click", (evt) => {
                 this._elements.title.value = m.title;
+                this._tmdbId = m.tmdbId;
                 this._clearSearchResults();
               });
 

@@ -12,7 +12,7 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/auth/simple"
-	"github.com/mtlynch/screenjournal/v2/metadata"
+	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
@@ -31,7 +31,7 @@ func main() {
 	ensureDirExists(filepath.Dir(*dbPath))
 	store := sqlite.New(*dbPath, isLitestreamEnabled())
 
-	metadataFinder, err := metadata.New(requireEnv("SJ_TMDB_API"))
+	metadataFinder, err := tmdb.New(requireEnv("SJ_TMDB_API"))
 	if err != nil {
 		log.Fatalf("failed to create metadata finder: %v", err)
 	}

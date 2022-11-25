@@ -1,4 +1,4 @@
-package parse
+package tmdb
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 
 var ErrInvalidTmdbID = errors.New("invalid TMDB ID")
 
-func TmdbID(raw int) (screenjournal.TmdbID, error) {
+func ParseTmdbID(raw int) (screenjournal.TmdbID, error) {
 	if raw <= 0 || raw > math.MaxInt32 {
 		return screenjournal.TmdbID(0), ErrInvalidTmdbID
 	}

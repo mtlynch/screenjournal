@@ -2,12 +2,12 @@ package metadata
 
 import (
 	"github.com/mtlynch/screenjournal/v2"
-	"github.com/ryanbradynd05/go-tmdb"
 )
 
 type (
 	Finder interface {
 		Search(query string) (MovieSearchResults, error)
+		GetMovieInfo(id screenjournal.TmdbID) (MovieInfo, error)
 	}
 
 	MovieSearchResult struct {
@@ -24,16 +24,8 @@ type (
 		TotalResults int
 	}
 
-	tmdbFinder struct {
-		tmdbAPI *tmdb.TMDb
+	MovieInfo struct {
+		TmdbID screenjournal.TmdbID
+		Title  screenjournal.MediaTitle
 	}
 )
-
-func New(apiKey string) (Finder, error) {
-	tmbdAPI := tmdb.Init(tmdb.Config{
-		APIKey: apiKey,
-	})
-	return tmdbFinder{
-		tmdbAPI: tmbdAPI,
-	}, nil
-}

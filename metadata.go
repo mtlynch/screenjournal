@@ -1,6 +1,9 @@
 package screenjournal
 
 type (
+	// MovieID represents the ID for a movie in the local datastore.
+	MovieID int64
+
 	TmdbID int32
 )
 

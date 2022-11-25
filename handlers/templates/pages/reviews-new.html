@@ -8,7 +8,7 @@
     import { tzOffsetString } from "/js/lib/time.js";
 
     function reviewFromForm() {
-      const title = document.querySelector("title-search").value.trim();
+      const tmdbId = parseInt(document.querySelector("title-search").value);
 
       const rating = parseInt(document.getElementById("rating-select").value);
 
@@ -18,7 +18,7 @@
       const blurb = document.getElementById("blurb").value.trim();
 
       return {
-        title,
+        tmdbId,
         rating,
         watched,
         blurb,

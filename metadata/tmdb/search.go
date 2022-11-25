@@ -1,18 +1,18 @@
-package metadata
+package tmdb
 
 import (
-	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/metadata"
 )
 
-func (f tmdbFinder) Search(query string) (MovieSearchResults, error) {
+func (f tmdbFinder) Search(query string) (metadata.MovieSearchResults, error) {
 	tmdbResults, err := f.tmdbAPI.SearchMovie(query, map[string]string{
 		"include_adult": "false",
 	})
 	if err != nil {
-		return MovieSearchResults{}, err
+		return metadata.MovieSearchResults{}, err
 	}
-	results := MovieSearchResults{
-		Matches:      []MovieSearchResult{},
+	results := metadata.MovieSearchResults{
+		Matches:      []metadata.MovieSearchResult{},
 		Page:         tmdbResults.Page,
 		TotalPages:   tmdbResults.TotalPages,
 		TotalResults: tmdbResults.TotalResults,
@@ -27,11 +27,11 @@ func (f tmdbFinder) Search(query string) (MovieSearchResults, error) {
 			continue
 		}
 
-		tmdbID, err := parse.TmdbID(match.ID)
+		tmdbID, err := ParseTmdbID(match.ID)
 		if err != nil {
-			return MovieSearchResults{}, err
+			return metadata.MovieSearchResults{}, err
 		}
-		results.Matches = append(results.Matches, MovieSearchResult{
+		results.Matches = append(results.Matches, metadata.MovieSearchResult{
 			TmdbID:      tmdbID,
 			Title:       match.Title,
 			ReleaseDate: match.ReleaseDate,

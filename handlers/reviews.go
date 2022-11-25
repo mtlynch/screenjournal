@@ -33,10 +33,13 @@ func (s Server) reviewsPost() http.HandlerFunc {
 
 		req.Review.Owner = owner.Username
 
-		req.Review.MovieID, err = s.localIDfromTmdbID(req.TmdbID)
-		if err != nil {
-			log.Printf("failed to get local media ID for %v: %v", req.TmdbID, err)
-			http.Error(w, fmt.Sprintf("Failed to get local media ID: %v", err), http.StatusInternalServerError)
+		req.Review.Movie, err = s.moviefromTmdbID(req.TmdbID)
+		if err == store.ErrMovieNotFound {
+			http.Error(w, fmt.Sprintf("Could not find movie with TMDB ID: %v", req.TmdbID), http.StatusNotFound)
+			return
+		} else if err != nil {
+			log.Printf("failed to get local media ID for TMDB ID %v: %v", req.TmdbID, err)
+			http.Error(w, fmt.Sprintf("Failed to look up TMDB ID: %v: %v", req.TmdbID, err), http.StatusInternalServerError)
 			return
 		}
 
@@ -151,22 +154,28 @@ func updateReviewFromRequest(r *http.Request, review *screenjournal.Review) erro
 	return nil
 }
 
-func (s Server) localIDfromTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.MovieID, error) {
-	mediaID, err := s.store.TmdbIDToLocalID(tmdbID)
-	if err != nil && err != store.ErrTmdbIDNotFound {
-		return screenjournal.MovieID(0), err
+func (s Server) moviefromTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movie, error) {
+	movie, err := s.store.ReadMovieByTmdbID(tmdbID)
+	if err != nil && err != store.ErrMovieNotFound {
+		return screenjournal.Movie{}, err
 	} else if err == nil {
-		return mediaID, nil
+		return movie, nil
 	}
 
 	mi, err := s.metadataFinder.GetMovieInfo(tmdbID)
 	if err != nil {
-		return screenjournal.MovieID(0), err
+		return screenjournal.Movie{}, err
 	}
 
-	return s.store.InsertMovie(screenjournal.Movie{
-		MovieID: mediaID,
-		TmdbID:  mi.TmdbID,
-		Title:   mi.Title,
-	})
+	movie = screenjournal.Movie{
+		TmdbID: mi.TmdbID,
+		Title:  mi.Title,
+	}
+
+	movie.ID, err = s.store.InsertMovie(movie)
+	if err != nil {
+		return screenjournal.Movie{}, err
+	}
+
+	return movie, nil
 }

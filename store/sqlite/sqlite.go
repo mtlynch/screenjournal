@@ -175,7 +175,7 @@ func (d DB) UpdateReview(r screenjournal.Review) error {
 func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 	var id int
 	var owner string
-	var media_id int
+	var movie_id int
 	var title string
 	var rating screenjournal.Rating
 	var blurb string
@@ -183,7 +183,7 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 	var createdTimeRaw string
 	var lastModifiedTimeRaw string
 
-	err := row.Scan(&id, &owner, &media_id, &title, &rating, &blurb, &watchedDateRaw, &createdTimeRaw, &lastModifiedTimeRaw)
+	err := row.Scan(&id, &owner, &movie_id, &title, &rating, &blurb, &watchedDateRaw, &createdTimeRaw, &lastModifiedTimeRaw)
 	if err == sql.ErrNoRows {
 		return screenjournal.Review{}, store.ErrReviewNotFound
 	} else if err != nil {
@@ -208,7 +208,7 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 	return screenjournal.Review{
 		ID:       screenjournal.ReviewID(id),
 		Owner:    screenjournal.Username(owner),
-		MovieID:  screenjournal.MovieID(media_id),
+		MovieID:  screenjournal.MovieID(movie_id),
 		Title:    screenjournal.MediaTitle(title),
 		Rating:   rating,
 		Blurb:    screenjournal.Blurb(blurb),

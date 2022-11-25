@@ -8,9 +8,6 @@ func (s *Server) routes() {
 	// Populate auth information in request context.
 	s.router.Use(s.checkAuthentication)
 
-	adminApis := s.router.PathPrefix("/api").Subrouter()
-	adminApis.Use(s.requireAuthentication)
-
 	authenticatedApis := s.router.PathPrefix("/api").Subrouter()
 	authenticatedApis.Use(s.requireAuthentication)
 	authenticatedApis.HandleFunc("/search", s.searchGet()).Methods(http.MethodGet)

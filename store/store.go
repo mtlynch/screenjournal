@@ -19,5 +19,4 @@ type Store interface {
 var (
 	ErrMovieNotFound  = errors.New("could not find movie")
 	ErrReviewNotFound = errors.New("could not find review")
-	ErrTmdbIDNotFound = errors.New("could not find media with matching TMDB ID")
 )

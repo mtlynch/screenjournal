@@ -1,0 +1,16 @@
+UPDATE movies SET tmdb_id = 320588 WHERE title = 'Hello, My Name is Doris';
+UPDATE movies SET tmdb_id = 401847 WHERE title = 'Can You Ever Forgive Me';
+UPDATE movies SET tmdb_id = 604031 WHERE title = 'Straight Up';
+UPDATE movies SET tmdb_id = 1003180 WHERE title = 'Inside the Mind of a Cat';
+UPDATE movies SET tmdb_id = 644495 WHERE title = 'House of Gucci';
+UPDATE movies SET tmdb_id = 12096 WHERE title = 'The Pink Panther (2006)';
+UPDATE movies SET tmdb_id = 15159 WHERE title = 'The Pink Panther 2';
+UPDATE movies SET tmdb_id = 10144 WHERE title = 'The Little Mermaid (1989)';
+UPDATE movies SET tmdb_id = 826942 WHERE title = 'Spin Me Round';
+UPDATE movies SET tmdb_id = 352695 WHERE title = 'Joshy';
+UPDATE movies SET tmdb_id = 411873 WHERE title = 'The Little Hours';
+UPDATE movies SET tmdb_id = 331313 WHERE title = 'Keeping Up with the Joneses';
+UPDATE movies SET tmdb_id = 10442 WHERE title = 'So I Married an Axe Murderer';
+UPDATE movies SET tmdb_id = 928344 WHERE title = 'Weird: The Al Yankovic Story';
+UPDATE movies SET tmdb_id = 724665 WHERE title = 'Confess, Fletch';
+UPDATE movies SET tmdb_id = 541305 WHERE title = 'Kajillionaire';

@@ -21,9 +21,16 @@ ADD COLUMN movie_id
 INTEGER;
 
 -- Make reviews table reference movies table by ID.
-UPDATE reviews SET movie_id=(
-  SELECT id FROM movies WHERE movies.title=reviews.title
-  );
+UPDATE reviews SET movie_id = (
+    SELECT
+        movies.id
+    FROM
+        movies
+    JOIN
+        reviews
+    ON
+        movies.title = reviews.title
+    );
 
 -- Re-do reviews table to add foreign key constraint to movie_id and drop title
 -- column.

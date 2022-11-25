@@ -13,21 +13,16 @@ import (
 func (db DB) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, error) {
 	row := db.ctx.QueryRow(`
 	SELECT
-		reviews.id AS id,
-		reviews.review_owner AS review_owner,
-		reviews.movie_id AS movie_id,
-		movies.title AS title,
-		reviews.rating AS rating,
-		reviews.blurb AS blurb,
-		reviews.watched_date AS watched_date,
-		reviews.created_time AS created_time,
-		reviews.last_modified_time AS last_modified_time
+		id,
+		review_owner,
+		movie_id,
+		rating,
+		blurb,
+		watched_date,
+		created_time,
+		last_modified_time
 	FROM
 		reviews
-	INNER JOIN
-		movies
-	ON
-		reviews.movie_id = movies.id
 	WHERE
 		reviews.id = ?`, id)
 
@@ -37,21 +32,16 @@ func (db DB) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, error)
 func (db DB) ReadReviews() ([]screenjournal.Review, error) {
 	rows, err := db.ctx.Query(`
 	SELECT
-		reviews.id AS id,
-		reviews.review_owner AS review_owner,
-		reviews.movie_id AS movie_id,
-		movies.title AS title,
-		reviews.rating AS rating,
-		reviews.blurb AS blurb,
-		reviews.watched_date AS watched_date,
-		reviews.created_time AS created_time,
-		reviews.last_modified_time AS last_modified_time
+		id,
+		review_owner,
+		movie_id,
+		rating,
+		blurb,
+		watched_date,
+		created_time,
+		last_modified_time
 	FROM
-		reviews
-	INNER JOIN
-		movies
-	ON
-		reviews.movie_id = movies.id`)
+		reviews`)
 	if err != nil {
 		return []screenjournal.Review{}, err
 	}
@@ -169,7 +159,6 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 		ID:       screenjournal.ReviewID(id),
 		Owner:    screenjournal.Username(owner),
 		MovieID:  screenjournal.MovieID(movie_id),
-		Title:    screenjournal.MediaTitle(title),
 		Rating:   rating,
 		Blurb:    screenjournal.Blurb(blurb),
 		Watched:  screenjournal.WatchDate(wd),

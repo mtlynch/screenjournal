@@ -18,8 +18,7 @@ type (
 		Watched  WatchDate
 		Created  time.Time
 		Modified time.Time
-		// TODO: Replace with a reference to a Movie struct
-		Title MediaTitle
+		Movie    Movie
 	}
 )
 

@@ -35,7 +35,7 @@ func (db DB) ReadMovieByTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movie
 
 	movie, err := movieFromRow(row)
 	if err == sql.ErrNoRows {
-		return screenjournal.Movie{}, ErrTmdbIDNotFound
+		return screenjournal.Movie{}, store.ErrTmdbIDNotFound
 	}
 
 	return movie, nil

@@ -46,6 +46,14 @@ func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.Mov
 	return m, nil
 }
 
+func NewMockMetadataFinder(movies []metadata.MovieInfo) mockMetadataFinder {
+	db := map[screenjournal.TmdbID]metadata.MovieInfo{}
+	for _, m := range movies {
+		db[m.TmdbID] = m
+	}
+	return mockMetadataFinder{db}
+}
+
 func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 	for _, tt := range []struct {
 		description     string
@@ -100,8 +108,29 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				Blurb:   screenjournal.Blurb(""),
 			},
 		},
-		// TODO: Test when movie isn't local but it's in metadata finder
-		// TODO: Test when movie isn't in local or metadata finder
+		{
+			description: "valid request but we have to query metadata finder for movie info",
+			payload: `{
+					"tmdbId": 38,
+					"rating": 10,
+					"watched":"2022-10-28T00:00:00-04:00",
+					"blurb": "It's my favorite movie!"
+				}`,
+			remoteMovieInfo: []metadata.MovieInfo{
+				{
+					TmdbID: screenjournal.TmdbID(38),
+					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+				},
+			},
+			expected: screenjournal.Review{
+				MovieID: screenjournal.MovieID(1),
+				Owner:   screenjournal.Username("mike"),
+				Title:   "Eternal Sunshine of the Spotless Mind",
+				Rating:  screenjournal.Rating(10),
+				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+			},
+		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
@@ -112,7 +141,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				}
 			}
 
-			s := handlers.New(mockAuthenticator{}, dataStore, mockMetadataFinder{})
+			s := handlers.New(mockAuthenticator{}, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo))
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
 			if err != nil {

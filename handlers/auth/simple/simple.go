@@ -90,6 +90,8 @@ func (sa SimpleAuthenticator) Authenticate(r *http.Request) (screenjournal.UserA
 	}
 
 	return screenjournal.UserAuth{
+		// SimpleAuthenticator only has a single, admin user.
+		IsAdmin:  true,
 		Username: sa.username,
 	}, nil
 }

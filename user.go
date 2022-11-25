@@ -4,6 +4,7 @@ type (
 	Username string
 
 	UserAuth struct {
+		IsAdmin  bool
 		Username Username
 	}
 )

@@ -25,8 +25,10 @@ func (ma mockAuthenticator) StartSession(w http.ResponseWriter, r *http.Request)
 
 func (ma mockAuthenticator) ClearSession(w http.ResponseWriter) {}
 
-func (ma mockAuthenticator) Authenticate(r *http.Request) bool {
-	return true
+func (ma mockAuthenticator) Authenticate(r *http.Request) (screenjournal.UserAuth, error) {
+	return screenjournal.UserAuth{
+		Username: screenjournal.Username("dummy user"),
+	}, nil
 }
 
 type mockMetadataFinder struct {
@@ -78,7 +80,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			},
 			expected: screenjournal.Review{
 				MovieID: screenjournal.MovieID(1),
-				Owner:   screenjournal.Username("mike"),
+				Owner:   screenjournal.Username("dummy user"),
 				Title:   "Eternal Sunshine of the Spotless Mind",
 				Rating:  screenjournal.Rating(10),
 				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
@@ -101,7 +103,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			},
 			expected: screenjournal.Review{
 				MovieID: screenjournal.MovieID(1),
-				Owner:   screenjournal.Username("mike"),
+				Owner:   screenjournal.Username("dummy user"),
 				Title:   "Dirty Work",
 				Rating:  screenjournal.Rating(9),
 				Watched: mustParseWatchDate("2022-10-21T00:00:00-04:00"),
@@ -124,7 +126,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			},
 			expected: screenjournal.Review{
 				MovieID: screenjournal.MovieID(1),
-				Owner:   screenjournal.Username("mike"),
+				Owner:   screenjournal.Username("dummy user"),
 				Title:   "Eternal Sunshine of the Spotless Mind",
 				Rating:  screenjournal.Rating(10),
 				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),

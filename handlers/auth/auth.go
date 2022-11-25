@@ -2,10 +2,12 @@ package auth
 
 import (
 	"net/http"
+
+	"github.com/mtlynch/screenjournal/v2"
 )
 
 type Authenticator interface {
 	StartSession(w http.ResponseWriter, r *http.Request)
 	ClearSession(w http.ResponseWriter)
-	Authenticate(r *http.Request) bool
+	Authenticate(r *http.Request) (screenjournal.UserAuth, error)
 }

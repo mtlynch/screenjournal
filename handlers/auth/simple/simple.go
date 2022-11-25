@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"golang.org/x/crypto/pbkdf2"
 )
 
@@ -18,20 +20,27 @@ type (
 	sharedSecret []byte
 
 	SimpleAuthenticator struct {
+		username     screenjournal.Username
 		sharedSecret sharedSecret
 	}
 )
 
 func New(username, password string) (SimpleAuthenticator, error) {
+	u, err := parse.Username(username)
+	if err != nil {
+		return SimpleAuthenticator{}, err
+	}
+
 	// Simply concatenating the username and password together for a shared secret
 	// is not very secure, but this is just a temporary, placeholder
 	// implementation.
-	ss, err := sharedSecretFromBytes([]byte(username + password))
+	ss, err := sharedSecretFromBytes([]byte(u.String() + password))
 	if err != nil {
 		return SimpleAuthenticator{}, err
 	}
 
 	return SimpleAuthenticator{
+		username:     u,
 		sharedSecret: ss,
 	}, nil
 }
@@ -65,18 +74,24 @@ func sharedSecretFromRequest(r *http.Request) (sharedSecret, error) {
 	return sharedSecretFromBytes([]byte(body.Username + body.Password))
 }
 
-func (sa SimpleAuthenticator) Authenticate(r *http.Request) bool {
+func (sa SimpleAuthenticator) Authenticate(r *http.Request) (screenjournal.UserAuth, error) {
 	authCookie, err := r.Cookie(authCookieName)
 	if err != nil {
-		return false
+		return screenjournal.UserAuth{}, errors.New("no auth cookie")
 	}
 
 	ss, err := sharedSecretFromBase64(authCookie.Value)
 	if err != nil {
-		return false
+		return screenjournal.UserAuth{}, errors.New("invalid shared secret")
 	}
 
-	return sharedSecretsEqual(ss, sa.sharedSecret)
+	if !sharedSecretsEqual(ss, sa.sharedSecret) {
+		return screenjournal.UserAuth{}, errors.New("invalid shared secret")
+	}
+
+	return screenjournal.UserAuth{
+		Username: sa.username,
+	}, nil
 }
 
 func (sa SimpleAuthenticator) createCookie(w http.ResponseWriter) {

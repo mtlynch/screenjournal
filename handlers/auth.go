@@ -25,7 +25,7 @@ func (s Server) authDelete() http.HandlerFunc {
 	}
 }
 
-func (s Server) checkAuthentication(h http.Handler) http.Handler {
+func (s Server) requireAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, err := s.authenticator.Authenticate(r)
 		if err != nil {
@@ -33,19 +33,16 @@ func (s Server) checkAuthentication(h http.Handler) http.Handler {
 			http.Error(w, "Invalid username", http.StatusBadRequest)
 			return
 		}
-		ctx := context.WithValue(r.Context(), contextKeyUser, user)
-		h.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
 
-func (s Server) requireAuthentication(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !isAuthenticated((r.Context())) {
+		if user.IsEmpty() {
 			s.authenticator.ClearSession(w)
 			http.Error(w, "Authentication required", http.StatusUnauthorized)
 			return
 		}
-		h.ServeHTTP(w, r)
+
+		ctx := context.WithValue(r.Context(), contextKeyUser, user)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 

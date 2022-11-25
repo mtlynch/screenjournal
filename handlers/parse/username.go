@@ -24,15 +24,3 @@ func Username(username string) (screenjournal.Username, error) {
 
 	return screenjournal.Username(username), nil
 }
-
-func Usernames(usernames []string) ([]screenjournal.Username, error) {
-	parsed := []screenjournal.Username{}
-	for _, id := range usernames {
-		p, err := Username(id)
-		if err != nil {
-			return []screenjournal.Username{}, err
-		}
-		parsed = append(parsed, p)
-	}
-	return parsed, nil
-}

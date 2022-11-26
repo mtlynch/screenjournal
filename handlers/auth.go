@@ -47,8 +47,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 
 func (s Server) requireAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, ok := userFromContext(r.Context())
-		if !ok {
+		if _, ok := userFromContext(r.Context()); !ok {
 			s.authenticator.ClearSession(w)
 			http.Error(w, "Authentication required", http.StatusUnauthorized)
 			return

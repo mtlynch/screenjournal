@@ -79,7 +79,6 @@ func (db DB) ReadReviews(filters store.ReviewFilters) ([]screenjournal.Review, e
 	}
 
 	return reviews, nil
-
 }
 
 func (d DB) InsertReview(r screenjournal.Review) error {

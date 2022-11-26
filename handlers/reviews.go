@@ -169,6 +169,7 @@ func (s Server) moviefromTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movi
 
 	movie = screenjournal.Movie{
 		TmdbID: mi.TmdbID,
+		ImdbID: mi.ImdbID,
 		Title:  mi.Title,
 	}
 

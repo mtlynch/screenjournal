@@ -13,6 +13,7 @@ func (db DB) ReadMovie(id screenjournal.MovieID) (screenjournal.Movie, error) {
 	SELECT
 		id,
 		tmdb_id,
+		imdb_id,
 		title
 	FROM
 		movies
@@ -27,6 +28,7 @@ func (db DB) ReadMovieByTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movie
 	SELECT
 		id,
 		tmdb_id,
+		imdb_id,
 		title
 	FROM
 		movies
@@ -44,12 +46,14 @@ func (d DB) InsertMovie(m screenjournal.Movie) (screenjournal.MovieID, error) {
 		movies
 	(
 		tmdb_id,
+		imdb_id,
 		title
 	)
 	VALUES (
-		?, ?
+		?, ?, ?
 	)`,
 		m.TmdbID,
+		m.ImdbID,
 		m.Title,
 	)
 	if err != nil {
@@ -70,10 +74,12 @@ func (db DB) UpdateMovie(m screenjournal.Movie) error {
 	if _, err := db.ctx.Exec(`
 	UPDATE movies
 	SET
-		title = ?
+		title = ?,
+		imdb_id = ?
 	WHERE
 		id = ?`,
 		m.Title,
+		m.ImdbID,
 		m.ID.Int64()); err != nil {
 		return err
 	}
@@ -83,19 +89,26 @@ func (db DB) UpdateMovie(m screenjournal.Movie) error {
 
 func movieFromRow(row rowScanner) (screenjournal.Movie, error) {
 	var id int
-	var tmdb_id int
+	var tmdbID int
+	var imdbIDRaw *string
 	var title string
 
-	err := row.Scan(&id, &tmdb_id, &title)
+	err := row.Scan(&id, &tmdbID, &imdbIDRaw, &title)
 	if err == sql.ErrNoRows {
 		return screenjournal.Movie{}, store.ErrMovieNotFound
 	} else if err != nil {
 		return screenjournal.Movie{}, err
 	}
 
+	var imdbID screenjournal.ImdbID
+	if imdbIDRaw != nil {
+		imdbID = screenjournal.ImdbID(*imdbIDRaw)
+	}
+
 	return screenjournal.Movie{
 		ID:     screenjournal.MovieID(id),
-		TmdbID: screenjournal.TmdbID(tmdb_id),
+		TmdbID: screenjournal.TmdbID(tmdbID),
+		ImdbID: imdbID,
 		Title:  screenjournal.MediaTitle(title),
 	}, nil
 }

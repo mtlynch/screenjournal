@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/mtlynch/screenjournal/v2/metadata"
 )
 
 func (s Server) repopulateMoviesGet() http.HandlerFunc {
@@ -30,10 +32,11 @@ func (s Server) repopulateMoviesGet() http.HandlerFunc {
 			}
 
 			// Update movie with latest metadata.
-			rev.Movie.Title = movieInfo.Title
+			newMovie := metadata.MovieFromMovieInfo(movieInfo)
+			newMovie.ID = rev.Movie.ID
 
-			if err := s.store.UpdateMovie(rev.Movie); err != nil {
-				log.Printf("failed to get metadata for %s (tmdb ID=%v): %v", rev.Movie.Title, rev.Movie.TmdbID, err)
+			if err := s.store.UpdateMovie(newMovie); err != nil {
+				log.Printf("failed to get metadata for %s (tmdb ID=%v): %v", newMovie.Title, newMovie.TmdbID, err)
 				http.Error(w, fmt.Sprintf("Failed to save updated movie metadata: %v", err), http.StatusInternalServerError)
 				return
 			}

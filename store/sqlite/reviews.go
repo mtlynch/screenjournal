@@ -75,7 +75,7 @@ func (db DB) ReadReviews() ([]screenjournal.Review, error) {
 }
 
 func (d DB) InsertReview(r screenjournal.Review) error {
-	log.Printf("inserting new review of media ID %v: %v", r.Movie.ID, r.Rating.UInt8())
+	log.Printf("inserting new review of movie ID %v: %v", r.Movie.ID, r.Rating.UInt8())
 
 	now := time.Now()
 
@@ -109,7 +109,7 @@ func (d DB) InsertReview(r screenjournal.Review) error {
 }
 
 func (d DB) UpdateReview(r screenjournal.Review) error {
-	log.Printf("updating review of media ID %v: %v", r.Movie.ID, r.Rating.UInt8())
+	log.Printf("updating review of movie ID %v: %v", r.Movie.ID, r.Rating.UInt8())
 
 	if r.ID.IsZero() {
 		return errors.New("invalid review ID")

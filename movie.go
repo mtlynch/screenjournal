@@ -15,6 +15,9 @@ type (
 )
 
 func (rd ReleaseDate) Year() int {
+	if rd.Time().IsZero() {
+		return 0
+	}
 	return rd.Time().Year()
 }
 

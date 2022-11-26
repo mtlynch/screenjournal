@@ -24,7 +24,9 @@
       <div class="col">
         <div class="card h-100">
           <div class="card-body">
-            <h5 class="card-title">{{ .Movie.Title }}</h5>
+            <h5 class="card-title">
+              {{ .Movie.Title }} ({{ .Movie.ReleaseDate.Year }})
+            </h5>
             <h6 class="card-subtitle mb-2 text-muted">
               {{ range iterate .Rating.UInt8 }}
                 <i class="fa-solid fa-star"></i>

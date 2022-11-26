@@ -74,9 +74,10 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				}`,
 			localMovies: []screenjournal.Movie{
 				{
-					TmdbID: screenjournal.TmdbID(38),
-					ImdbID: screenjournal.ImdbID("tt0338013"),
-					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 			},
 			expected: screenjournal.Review{
@@ -85,10 +86,11 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 				Movie: screenjournal.Movie{
-					ID:     screenjournal.MovieID(1),
-					TmdbID: screenjournal.TmdbID(38),
-					ImdbID: screenjournal.ImdbID("tt0338013"),
-					Title:  "Eternal Sunshine of the Spotless Mind",
+					ID:          screenjournal.MovieID(1),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 			},
 		},
@@ -660,4 +662,12 @@ func mustParseWatchDate(s string) screenjournal.WatchDate {
 		log.Fatalf("failed to parse watch date: %s", s)
 	}
 	return wd
+}
+
+func mustParseDate(s string) time.Time {
+	d, err := time.Parse("2006-01-02", s)
+	if err != nil {
+		log.Fatalf("failed to parse watch date: %s", s)
+	}
+	return d
 }

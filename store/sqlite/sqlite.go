@@ -58,5 +58,9 @@ func formatTime(t time.Time) string {
 }
 
 func formatWatchDate(w screenjournal.WatchDate) string {
-	return formatTime(time.Time(w))
+	return formatTime(w.Time())
+}
+
+func formatReleaseDate(rd screenjournal.ReleaseDate) string {
+	return formatTime(rd.Time())
 }

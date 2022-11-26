@@ -63,7 +63,7 @@
 {{ end }}
 
 {{ define "content" }}
-  <h1>{{ .Review.Movie.Title }}</h1>
+  <h1>{{ .Review.Movie.Title }} ({{ .Movie.ReleaseDate.Year }})</h1>
 
   <form id="edit-rating" class="my-5">
     <input id="review-id" type="hidden" value="{{ .Review.ID }}" />

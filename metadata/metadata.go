@@ -25,16 +25,18 @@ type (
 	}
 
 	MovieInfo struct {
-		TmdbID screenjournal.TmdbID
-		ImdbID screenjournal.ImdbID
-		Title  screenjournal.MediaTitle
+		TmdbID      screenjournal.TmdbID
+		ImdbID      screenjournal.ImdbID
+		Title       screenjournal.MediaTitle
+		ReleaseDate screenjournal.ReleaseDate
 	}
 )
 
 func MovieFromMovieInfo(mi MovieInfo) screenjournal.Movie {
 	return screenjournal.Movie{
-		TmdbID: mi.TmdbID,
-		ImdbID: mi.ImdbID,
-		Title:  mi.Title,
+		TmdbID:      mi.TmdbID,
+		ImdbID:      mi.ImdbID,
+		Title:       mi.Title,
+		ReleaseDate: mi.ReleaseDate,
 	}
 }

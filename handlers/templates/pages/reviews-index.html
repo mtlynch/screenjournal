@@ -25,17 +25,24 @@
         <div class="card h-100">
           <div class="card-body">
             <h5 class="card-title">
-              {{ .Movie.Title }} ({{ .Movie.ReleaseDate.Year }})
+              {{ .Movie.Title }}
             </h5>
             <h6 class="card-subtitle mb-2 text-muted">
+              <b>{{ .Owner }}</b> watched this
+              <span
+                data-test-id="watch-date"
+                title="{{ formatWatchDate .Watched }}"
+                >{{ relativeWatchDate .Watched }}</span
+              >
+            </h6>
+            <div data-test-id="rating">
               {{ range iterate .Rating.UInt8 }}
                 <i class="fa-solid fa-star"></i>
               {{ end }}
               {{ range iterate (minus 10 .Rating.UInt8) }}
                 <i class="fa-regular fa-star"></i>
               {{ end }}
-
-            </h6>
+            </div>
             {{ with .Blurb }}
               <p class="card-text">
                 {{ range .String | splitByNewline }}
@@ -43,16 +50,14 @@
                 {{ end }}
               </p>
             {{ end }}
-            <a
-              href="/reviews/{{ .ID }}/edit"
-              class="card-link"
-              data-test-id="edit-rating"
-              >Edit</a
-            >
-          </div>
-          <div class="card-footer text-muted text-end">
-            Watched
-            {{ formatWatchDate .Watched }}
+            <p>
+              <a
+                href="/reviews/{{ .ID }}/edit"
+                class="card-link"
+                data-test-id="edit-rating"
+                >Edit</a
+              >
+            </p>
           </div>
         </div>
       </div>

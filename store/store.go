@@ -9,6 +9,7 @@ import (
 type Store interface {
 	ReadReview(screenjournal.ReviewID) (screenjournal.Review, error)
 	ReadReviews() ([]screenjournal.Review, error)
+	ReadReviewsByUsername(screenjournal.Username) ([]screenjournal.Review, error)
 	InsertReview(screenjournal.Review) error
 	UpdateReview(screenjournal.Review) error
 	ReadMovie(screenjournal.MovieID) (screenjournal.Movie, error)

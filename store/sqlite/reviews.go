@@ -40,7 +40,11 @@ func (db DB) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, error)
 }
 
 func (db DB) ReadReviews() ([]screenjournal.Review, error) {
-	rows, err := db.ctx.Query(`
+	return db.ReadReviewsByUsername(screenjournal.Username(""))
+}
+
+func (db DB) ReadReviewsByUsername(username screenjournal.Username) ([]screenjournal.Review, error) {
+	query := `
 	SELECT
 		id,
 		review_owner,
@@ -51,7 +55,14 @@ func (db DB) ReadReviews() ([]screenjournal.Review, error) {
 		created_time,
 		last_modified_time
 	FROM
-		reviews`)
+		reviews`
+	if !username.IsEmpty() {
+		query += `
+	WHERE
+		review_owner = ?
+		`
+	}
+	rows, err := db.ctx.Query(query, username)
 	if err != nil {
 		return []screenjournal.Review{}, err
 	}
@@ -72,6 +83,7 @@ func (db DB) ReadReviews() ([]screenjournal.Review, error) {
 	}
 
 	return reviews, nil
+
 }
 
 func (d DB) InsertReview(r screenjournal.Review) error {

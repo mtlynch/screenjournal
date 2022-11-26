@@ -104,6 +104,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				{
 					ID:     screenjournal.MovieID(1),
 					TmdbID: screenjournal.TmdbID(14577),
+					ImdbID: screenjournal.ImdbID("tt0120654"),
 					Title:  screenjournal.MediaTitle("Dirty Work"),
 				},
 			},
@@ -115,6 +116,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				Movie: screenjournal.Movie{
 					ID:     screenjournal.MovieID(1),
 					TmdbID: screenjournal.TmdbID(14577),
+					ImdbID: screenjournal.ImdbID("tt0120654"),
 					Title:  "Dirty Work",
 				},
 			},
@@ -263,6 +265,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				},
 				{
 					TmdbID: screenjournal.TmdbID(14577),
+					ImdbID: screenjournal.ImdbID("tt0120654"),
 					Title:  screenjournal.MediaTitle("Dirty Work"),
 				},
 			},
@@ -308,6 +311,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				},
 				{
 					TmdbID: screenjournal.TmdbID(14577),
+					ImdbID: screenjournal.ImdbID("tt0120654"),
 					Title:  screenjournal.MediaTitle("Dirty Work"),
 				},
 			},
@@ -320,6 +324,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					Movie: screenjournal.Movie{
 						ID:     screenjournal.MovieID(2),
 						TmdbID: screenjournal.TmdbID(14577),
+						ImdbID: screenjournal.ImdbID("tt0120654"),
 						Title:  "Dirty Work",
 					},
 				},
@@ -337,6 +342,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				Movie: screenjournal.Movie{
 					ID:     screenjournal.MovieID(2),
 					TmdbID: screenjournal.TmdbID(14577),
+					ImdbID: screenjournal.ImdbID("tt0120654"),
 					Title:  "Dirty Work",
 				},
 			},

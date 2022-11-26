@@ -17,11 +17,11 @@ func (s Server) repopulateMoviesGet() http.HandlerFunc {
 			return
 		}
 
-		log.Printf("read data from %d reviews", len(rr))
+		log.Printf("read movie data from %d reviews", len(rr))
 
+		// We could parallelize this, but it's a maintenance function we use rarely,
+		// so we're keeping it simple for now.
 		for _, rev := range rr {
-			log.Printf("updating movie %s with latest metadata", rev.Movie.Title)
-
 			movieInfo, err := s.metadataFinder.GetMovieInfo(rev.Movie.TmdbID)
 			if err != nil {
 				log.Printf("failed to get metadata for %s (tmdb ID=%v): %v", movieInfo.Title, movieInfo.TmdbID, err)
@@ -29,6 +29,7 @@ func (s Server) repopulateMoviesGet() http.HandlerFunc {
 				return
 			}
 
+			// Update movie with latest metadata.
 			rev.Movie.Title = movieInfo.Title
 
 			if err := s.store.UpdateMovie(rev.Movie); err != nil {

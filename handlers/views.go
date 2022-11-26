@@ -88,17 +88,12 @@ func (s Server) signUpGet() http.HandlerFunc {
 
 func (s Server) reviewsGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var readReviews func() ([]screenjournal.Review, error)
-
 		owner, err := usernameFromRequestPath(r)
 		if err != nil {
 			owner = screenjournal.Username("")
-			readReviews = func() ([]screenjournal.Review, error) { return s.store.ReadReviews() }
-		} else {
-			readReviews = func() ([]screenjournal.Review, error) { return s.store.ReadReviewsByUsername(owner) }
-
 		}
-		reviews, err := readReviews()
+
+		reviews, err := s.store.ReadReviews(store.ReviewFilters{Username: owner})
 		if err != nil {
 			log.Printf("failed to read reviews: %v", err)
 			http.Error(w, "Failed to read reviews", http.StatusInternalServerError)

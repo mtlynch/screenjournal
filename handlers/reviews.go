@@ -8,6 +8,7 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/store"
 )
@@ -167,11 +168,7 @@ func (s Server) moviefromTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movi
 		return screenjournal.Movie{}, err
 	}
 
-	movie = screenjournal.Movie{
-		TmdbID: mi.TmdbID,
-		ImdbID: mi.ImdbID,
-		Title:  mi.Title,
-	}
+	movie = metadata.MovieFromMovieInfo(mi)
 
 	movie.ID, err = s.store.InsertMovie(movie)
 	if err != nil {

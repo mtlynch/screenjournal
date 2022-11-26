@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/mtlynch/screenjournal/v2"
@@ -46,6 +47,32 @@ func (s Server) requireAuthentication(next http.Handler) http.Handler {
 	})
 }
 
+func (s Server) requireAdmin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Don't require admin on HTTP OPTIONS requests
+		if r.Method == http.MethodOptions {
+			next.ServeHTTP(w, r)
+			return
+		}
+		if !isAdmin(r.Context()) {
+			log.Printf("attempt to perform admin action by non-admin user: %v", usernameFromContext(r.Context()))
+			http.Error(w, "You must be an administrative user to perform this action", http.StatusForbidden)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func isAdmin(ctx context.Context) bool {
+	user, ok := userFromContext(ctx)
+	if !ok {
+		return false
+	}
+
+	return user.IsAdmin
+}
+
 func isAuthenticated(ctx context.Context) bool {
 	user, ok := userFromContext(ctx)
 	if !ok {
@@ -60,4 +87,12 @@ func userFromContext(ctx context.Context) (screenjournal.UserAuth, bool) {
 		return screenjournal.UserAuth{}, false
 	}
 	return user, true
+}
+
+func usernameFromContext(ctx context.Context) screenjournal.Username {
+	user, ok := userFromContext(ctx)
+	if !ok {
+		return screenjournal.Username("")
+	}
+	return user.Username
 }

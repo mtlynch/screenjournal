@@ -64,6 +64,23 @@ func (d DB) InsertMovie(m screenjournal.Movie) (screenjournal.MovieID, error) {
 	return screenjournal.MovieID(lastID), nil
 }
 
+func (db DB) UpdateMovie(m screenjournal.Movie) error {
+	log.Printf("updating movie information for %s (id=%v)", m.Title, m.ID)
+
+	if _, err := db.ctx.Exec(`
+	UPDATE movies
+	SET
+		title = ?
+	WHERE
+		id = ?`,
+		m.Title,
+		m.ID.Int64()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func movieFromRow(row rowScanner) (screenjournal.Movie, error) {
 	var id int
 	var tmdb_id int

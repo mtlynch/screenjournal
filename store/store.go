@@ -14,6 +14,7 @@ type Store interface {
 	ReadMovie(screenjournal.MovieID) (screenjournal.Movie, error)
 	ReadMovieByTmdbID(screenjournal.TmdbID) (screenjournal.Movie, error)
 	InsertMovie(screenjournal.Movie) (screenjournal.MovieID, error)
+	UpdateMovie(screenjournal.Movie) error
 }
 
 var (

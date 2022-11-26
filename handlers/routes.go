@@ -6,6 +6,11 @@ func (s *Server) routes() {
 	s.router.HandleFunc("/api/auth", s.authPost()).Methods(http.MethodPost)
 	s.router.HandleFunc("/api/auth", s.authDelete()).Methods(http.MethodDelete)
 
+	adminApis := s.router.PathPrefix("/api/admin").Subrouter()
+	adminApis.Use(s.requireAuthentication)
+	adminApis.Use(s.requireAdmin)
+	adminApis.HandleFunc("/repopulate-movies", s.repopulateMoviesGet()).Methods(http.MethodGet)
+
 	authenticatedApis := s.router.PathPrefix("/api").Subrouter()
 	authenticatedApis.Use(s.requireAuthentication)
 	authenticatedApis.HandleFunc("/search", s.searchGet()).Methods(http.MethodGet)

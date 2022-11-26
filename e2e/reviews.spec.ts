@@ -31,7 +31,9 @@ test("adds a new rating and fills in only required fields", async ({
   await expect(page).toHaveURL("/reviews");
 
   const reviewCard = await page.locator(":nth-match(.card, 1)");
-  await expect(reviewCard.locator(".card-title")).toHaveText("Slow Learners");
+  await expect(reviewCard.locator(".card-title")).toHaveText(
+    "Slow Learners (2015)"
+  );
   await expect(
     reviewCard.locator(".card-subtitle .fa-star.fa-solid")
   ).toHaveCount(3);
@@ -71,7 +73,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
 
   const reviewCard = await page.locator(":nth-match(.card, 1)");
   await expect(reviewCard.locator(".card-title")).toHaveText(
-    "Eternal Sunshine of the Spotless Mind"
+    "Eternal Sunshine of the Spotless Mind (2004)"
   );
   await expect(
     reviewCard.locator(".card-subtitle .fa-star.fa-solid")
@@ -114,7 +116,9 @@ test("adds a new rating and edits the details", async ({ page }) => {
 
   await reviewCard.locator("data-test-id=edit-rating").click();
 
-  await expect(page.locator("h1")).toHaveText("There's Something About Mary");
+  await expect(page.locator("h1")).toHaveText(
+    "There's Something About Mary (1998)"
+  );
 
   await expect(page.locator("#rating-select")).toHaveValue("10");
   await page.locator("#rating-select").selectOption({ label: "8" });

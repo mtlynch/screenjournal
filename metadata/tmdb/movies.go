@@ -32,5 +32,14 @@ func (f tmdbFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, e
 		}
 	}
 
+	if len(m.ReleaseDate) > 0 {
+		rd, err := ParseReleaseDate(m.ReleaseDate)
+		if err != nil {
+			log.Printf("failed to release date (%s) from TMDB ID %v: %v", m.ReleaseDate, id, err)
+		} else {
+			info.ReleaseDate = rd
+		}
+	}
+
 	return info, nil
 }

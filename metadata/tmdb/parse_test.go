@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"testing"
+	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
@@ -110,6 +111,38 @@ func TestParseImdbID(t *testing.T) {
 			}
 			if got, want := id.String(), tt.id.String(); got != want {
 				t.Errorf("id=%s, want=%s", got, want)
+			}
+		})
+	}
+}
+
+func TestParseReleaseDate(t *testing.T) {
+	for _, tt := range []struct {
+		description string
+		in          string
+		releaseDate screenjournal.ReleaseDate
+		err         error
+	}{
+		{
+			"standard release date is valid",
+			"2022-07-15",
+			screenjournal.ReleaseDate(time.Date(2022, time.July, 15, 0, 0, 0, 0, time.UTC)),
+			nil,
+		},
+		{
+			"empty string is invalid",
+			"",
+			screenjournal.ReleaseDate{},
+			tmdb.ErrInvalidReleaseDate,
+		},
+	} {
+		t.Run(fmt.Sprintf("%s [%s]", tt.description, tt.in), func(t *testing.T) {
+			rd, err := tmdb.ParseReleaseDate(tt.in)
+			if got, want := err, tt.err; got != want {
+				t.Fatalf("err=%v, want=%v", got, want)
+			}
+			if got, want := rd.Time(), tt.releaseDate.Time(); got != want {
+				t.Errorf("releaseDate=%v, want=%v", got, want)
 			}
 		})
 	}

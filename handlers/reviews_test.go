@@ -74,9 +74,10 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				}`,
 			localMovies: []screenjournal.Movie{
 				{
-					TmdbID: screenjournal.TmdbID(38),
-					ImdbID: screenjournal.ImdbID("tt0338013"),
-					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 			},
 			expected: screenjournal.Review{
@@ -85,10 +86,11 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 				Movie: screenjournal.Movie{
-					ID:     screenjournal.MovieID(1),
-					TmdbID: screenjournal.TmdbID(38),
-					ImdbID: screenjournal.ImdbID("tt0338013"),
-					Title:  "Eternal Sunshine of the Spotless Mind",
+					ID:          screenjournal.MovieID(1),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 			},
 		},
@@ -102,10 +104,11 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				}`,
 			localMovies: []screenjournal.Movie{
 				{
-					ID:     screenjournal.MovieID(1),
-					TmdbID: screenjournal.TmdbID(14577),
-					ImdbID: screenjournal.ImdbID("tt0120654"),
-					Title:  screenjournal.MediaTitle("Dirty Work"),
+					ID:          screenjournal.MovieID(1),
+					TmdbID:      screenjournal.TmdbID(14577),
+					ImdbID:      screenjournal.ImdbID("tt0120654"),
+					Title:       screenjournal.MediaTitle("Dirty Work"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
 				},
 			},
 			expected: screenjournal.Review{
@@ -114,10 +117,11 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				Watched: mustParseWatchDate("2022-10-21T00:00:00-04:00"),
 				Blurb:   screenjournal.Blurb(""),
 				Movie: screenjournal.Movie{
-					ID:     screenjournal.MovieID(1),
-					TmdbID: screenjournal.TmdbID(14577),
-					ImdbID: screenjournal.ImdbID("tt0120654"),
-					Title:  "Dirty Work",
+					ID:          screenjournal.MovieID(1),
+					TmdbID:      screenjournal.TmdbID(14577),
+					ImdbID:      screenjournal.ImdbID("tt0120654"),
+					Title:       "Dirty Work",
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
 				},
 			},
 		},
@@ -131,9 +135,10 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				}`,
 			remoteMovieInfo: []metadata.MovieInfo{
 				{
-					TmdbID: screenjournal.TmdbID(38),
-					ImdbID: screenjournal.ImdbID("tt0338013"),
-					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 			},
 			expected: screenjournal.Review{
@@ -142,10 +147,11 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 				Movie: screenjournal.Movie{
-					ID:     screenjournal.MovieID(1),
-					TmdbID: screenjournal.TmdbID(38),
-					ImdbID: screenjournal.ImdbID("tt0338013"),
-					Title:  "Eternal Sunshine of the Spotless Mind",
+					ID:          screenjournal.MovieID(1),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       "Eternal Sunshine of the Spotless Mind",
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 			},
 		},
@@ -259,14 +265,16 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			description: "valid request with all fields populated",
 			localMovies: []screenjournal.Movie{
 				{
-					TmdbID: screenjournal.TmdbID(38),
-					ImdbID: screenjournal.ImdbID("tt0338013"),
-					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 				{
-					TmdbID: screenjournal.TmdbID(14577),
-					ImdbID: screenjournal.ImdbID("tt0120654"),
-					Title:  screenjournal.MediaTitle("Dirty Work"),
+					TmdbID:      screenjournal.TmdbID(14577),
+					ImdbID:      screenjournal.ImdbID("tt0120654"),
+					Title:       screenjournal.MediaTitle("Dirty Work"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
 				},
 			},
 			priorReviews: []screenjournal.Review{
@@ -276,10 +284,11 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
-						ID:     screenjournal.MovieID(1),
-						TmdbID: screenjournal.TmdbID(38),
-						ImdbID: screenjournal.ImdbID("tt0338013"),
-						Title:  "Eternal Sunshine of the Spotless Mind",
+						ID:          screenjournal.MovieID(1),
+						TmdbID:      screenjournal.TmdbID(38),
+						ImdbID:      screenjournal.ImdbID("tt0338013"),
+						Title:       "Eternal Sunshine of the Spotless Mind",
+						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 					},
 				},
 			},
@@ -294,10 +303,11 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				Watched: mustParseWatchDate("2022-10-30T00:00:00-04:00"),
 				Blurb:   screenjournal.Blurb("It's a pretty good movie!"),
 				Movie: screenjournal.Movie{
-					ID:     screenjournal.MovieID(1),
-					TmdbID: screenjournal.TmdbID(38),
-					ImdbID: screenjournal.ImdbID("tt0338013"),
-					Title:  "Eternal Sunshine of the Spotless Mind",
+					ID:          screenjournal.MovieID(1),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       "Eternal Sunshine of the Spotless Mind",
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 			},
 		},
@@ -305,14 +315,16 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			description: "valid request without a blurb",
 			localMovies: []screenjournal.Movie{
 				{
-					TmdbID: screenjournal.TmdbID(38),
-					ImdbID: screenjournal.ImdbID("tt0338013"),
-					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 				{
-					TmdbID: screenjournal.TmdbID(14577),
-					ImdbID: screenjournal.ImdbID("tt0120654"),
-					Title:  screenjournal.MediaTitle("Dirty Work"),
+					TmdbID:      screenjournal.TmdbID(14577),
+					ImdbID:      screenjournal.ImdbID("tt0120654"),
+					Title:       screenjournal.MediaTitle("Dirty Work"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
 				},
 			},
 			priorReviews: []screenjournal.Review{
@@ -322,10 +334,11 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					Watched: mustParseWatchDate("2022-10-21T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("Love Norm McDonald!"),
 					Movie: screenjournal.Movie{
-						ID:     screenjournal.MovieID(2),
-						TmdbID: screenjournal.TmdbID(14577),
-						ImdbID: screenjournal.ImdbID("tt0120654"),
-						Title:  "Dirty Work",
+						ID:          screenjournal.MovieID(2),
+						TmdbID:      screenjournal.TmdbID(14577),
+						ImdbID:      screenjournal.ImdbID("tt0120654"),
+						Title:       "Dirty Work",
+						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
 					},
 				},
 			},
@@ -340,10 +353,11 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 				Blurb:   screenjournal.Blurb(""),
 				Movie: screenjournal.Movie{
-					ID:     screenjournal.MovieID(2),
-					TmdbID: screenjournal.TmdbID(14577),
-					ImdbID: screenjournal.ImdbID("tt0120654"),
-					Title:  "Dirty Work",
+					ID:          screenjournal.MovieID(2),
+					TmdbID:      screenjournal.TmdbID(14577),
+					ImdbID:      screenjournal.ImdbID("tt0120654"),
+					Title:       "Dirty Work",
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
 				},
 			},
 		},
@@ -408,9 +422,10 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			description: "rejects request with review ID of zero",
 			localMovies: []screenjournal.Movie{
 				{
-					TmdbID: screenjournal.TmdbID(38),
-					ImdbID: screenjournal.ImdbID("tt0338013"),
-					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 			},
 			priorReviews: []screenjournal.Review{
@@ -419,10 +434,11 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
-						ID:     screenjournal.MovieID(1),
-						TmdbID: screenjournal.TmdbID(38),
-						ImdbID: screenjournal.ImdbID("tt0338013"),
-						Title:  "Eternal Sunshine of the Spotless Mind",
+						ID:          screenjournal.MovieID(1),
+						TmdbID:      screenjournal.TmdbID(38),
+						ImdbID:      screenjournal.ImdbID("tt0338013"),
+						Title:       "Eternal Sunshine of the Spotless Mind",
+						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 					},
 				},
 			},
@@ -438,9 +454,10 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			description: "rejects request with non-existent review ID",
 			localMovies: []screenjournal.Movie{
 				{
-					TmdbID: screenjournal.TmdbID(38),
-					ImdbID: screenjournal.ImdbID("tt0338013"),
-					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 			},
 			priorReviews: []screenjournal.Review{
@@ -449,10 +466,11 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
-						ID:     screenjournal.MovieID(1),
-						TmdbID: screenjournal.TmdbID(38),
-						ImdbID: screenjournal.ImdbID("tt0338013"),
-						Title:  "Eternal Sunshine of the Spotless Mind",
+						ID:          screenjournal.MovieID(1),
+						TmdbID:      screenjournal.TmdbID(38),
+						ImdbID:      screenjournal.ImdbID("tt0338013"),
+						Title:       "Eternal Sunshine of the Spotless Mind",
+						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 					},
 				},
 			},
@@ -468,9 +486,10 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			description: "rejects request with malformed JSON",
 			localMovies: []screenjournal.Movie{
 				{
-					TmdbID: screenjournal.TmdbID(38),
-					ImdbID: screenjournal.ImdbID("tt0338013"),
-					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 			},
 			priorReviews: []screenjournal.Review{
@@ -479,10 +498,11 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
-						ID:     screenjournal.MovieID(1),
-						TmdbID: screenjournal.TmdbID(38),
-						ImdbID: screenjournal.ImdbID("tt0338013"),
-						Title:  "Eternal Sunshine of the Spotless Mind",
+						ID:          screenjournal.MovieID(1),
+						TmdbID:      screenjournal.TmdbID(38),
+						ImdbID:      screenjournal.ImdbID("tt0338013"),
+						Title:       "Eternal Sunshine of the Spotless Mind",
+						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 					},
 				},
 			},
@@ -497,9 +517,10 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			description: "rejects request with missing rating field",
 			localMovies: []screenjournal.Movie{
 				{
-					TmdbID: screenjournal.TmdbID(38),
-					ImdbID: screenjournal.ImdbID("tt0338013"),
-					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 			},
 			priorReviews: []screenjournal.Review{
@@ -508,10 +529,11 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
-						ID:     screenjournal.MovieID(1),
-						TmdbID: screenjournal.TmdbID(38),
-						ImdbID: screenjournal.ImdbID("tt0338013"),
-						Title:  "Eternal Sunshine of the Spotless Mind",
+						ID:          screenjournal.MovieID(1),
+						TmdbID:      screenjournal.TmdbID(38),
+						ImdbID:      screenjournal.ImdbID("tt0338013"),
+						Title:       "Eternal Sunshine of the Spotless Mind",
+						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 					},
 				},
 			},
@@ -526,9 +548,10 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			description: "rejects request with missing watched field",
 			localMovies: []screenjournal.Movie{
 				{
-					TmdbID: screenjournal.TmdbID(38),
-					ImdbID: screenjournal.ImdbID("tt0338013"),
-					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 			},
 			priorReviews: []screenjournal.Review{
@@ -537,10 +560,11 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
-						ID:     screenjournal.MovieID(1),
-						TmdbID: screenjournal.TmdbID(38),
-						ImdbID: screenjournal.ImdbID("tt0338013"),
-						Title:  "Eternal Sunshine of the Spotless Mind",
+						ID:          screenjournal.MovieID(1),
+						TmdbID:      screenjournal.TmdbID(38),
+						ImdbID:      screenjournal.ImdbID("tt0338013"),
+						Title:       "Eternal Sunshine of the Spotless Mind",
+						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 					},
 				},
 			},
@@ -555,9 +579,10 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			description: "rejects request with numeric blurb field",
 			localMovies: []screenjournal.Movie{
 				{
-					TmdbID: screenjournal.TmdbID(38),
-					ImdbID: screenjournal.ImdbID("tt0338013"),
-					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 			},
 			priorReviews: []screenjournal.Review{
@@ -566,10 +591,11 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
-						ID:     screenjournal.MovieID(1),
-						TmdbID: screenjournal.TmdbID(38),
-						ImdbID: screenjournal.ImdbID("tt0338013"),
-						Title:  "Eternal Sunshine of the Spotless Mind",
+						ID:          screenjournal.MovieID(1),
+						TmdbID:      screenjournal.TmdbID(38),
+						ImdbID:      screenjournal.ImdbID("tt0338013"),
+						Title:       "Eternal Sunshine of the Spotless Mind",
+						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 					},
 				},
 			},
@@ -585,9 +611,10 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			description: "rejects request with script tag in blurb field",
 			localMovies: []screenjournal.Movie{
 				{
-					TmdbID: screenjournal.TmdbID(38),
-					ImdbID: screenjournal.ImdbID("tt0338013"),
-					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 			},
 			priorReviews: []screenjournal.Review{
@@ -596,10 +623,11 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
-						ID:     screenjournal.MovieID(1),
-						TmdbID: screenjournal.TmdbID(38),
-						ImdbID: screenjournal.ImdbID("tt0338013"),
-						Title:  "Eternal Sunshine of the Spotless Mind",
+						ID:          screenjournal.MovieID(1),
+						TmdbID:      screenjournal.TmdbID(38),
+						ImdbID:      screenjournal.ImdbID("tt0338013"),
+						Title:       "Eternal Sunshine of the Spotless Mind",
+						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 					},
 				},
 			},
@@ -660,4 +688,12 @@ func mustParseWatchDate(s string) screenjournal.WatchDate {
 		log.Fatalf("failed to parse watch date: %s", s)
 	}
 	return wd
+}
+
+func mustParseDate(s string) time.Time {
+	d, err := time.Parse("2006-01-02", s)
+	if err != nil {
+		log.Fatalf("failed to parse watch date: %s", s)
+	}
+	return d
 }

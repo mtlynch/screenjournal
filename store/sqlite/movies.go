@@ -14,7 +14,8 @@ func (db DB) ReadMovie(id screenjournal.MovieID) (screenjournal.Movie, error) {
 		id,
 		tmdb_id,
 		imdb_id,
-		title
+		title,
+		release_date
 	FROM
 		movies
 	WHERE
@@ -29,7 +30,8 @@ func (db DB) ReadMovieByTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movie
 		id,
 		tmdb_id,
 		imdb_id,
-		title
+		title,
+		release_date
 	FROM
 		movies
 	WHERE
@@ -47,14 +49,16 @@ func (d DB) InsertMovie(m screenjournal.Movie) (screenjournal.MovieID, error) {
 	(
 		tmdb_id,
 		imdb_id,
-		title
+		title,
+		release_date
 	)
 	VALUES (
-		?, ?, ?
+		?, ?, ?, ?
 	)`,
 		m.TmdbID,
 		m.ImdbID,
 		m.Title,
+		formatReleaseDate(m.ReleaseDate),
 	)
 	if err != nil {
 		return screenjournal.MovieID(0), err
@@ -75,11 +79,13 @@ func (db DB) UpdateMovie(m screenjournal.Movie) error {
 	UPDATE movies
 	SET
 		title = ?,
-		imdb_id = ?
+		imdb_id = ?,
+		release_date = ?
 	WHERE
 		id = ?`,
 		m.Title,
 		m.ImdbID,
+		formatReleaseDate(m.ReleaseDate),
 		m.ID.Int64()); err != nil {
 		return err
 	}
@@ -92,8 +98,9 @@ func movieFromRow(row rowScanner) (screenjournal.Movie, error) {
 	var tmdbID int
 	var imdbIDRaw *string
 	var title string
+	var releaseDateRaw *string
 
-	err := row.Scan(&id, &tmdbID, &imdbIDRaw, &title)
+	err := row.Scan(&id, &tmdbID, &imdbIDRaw, &title, &releaseDateRaw)
 	if err == sql.ErrNoRows {
 		return screenjournal.Movie{}, store.ErrMovieNotFound
 	} else if err != nil {
@@ -105,10 +112,21 @@ func movieFromRow(row rowScanner) (screenjournal.Movie, error) {
 		imdbID = screenjournal.ImdbID(*imdbIDRaw)
 	}
 
+	var releaseDate screenjournal.ReleaseDate
+	if releaseDateRaw != nil {
+		rd, err := parseDatetime(*releaseDateRaw)
+		if err != nil {
+			log.Printf("failed to parse release date %s: %v", *releaseDateRaw, err)
+		} else {
+			releaseDate = screenjournal.ReleaseDate(rd)
+		}
+	}
+
 	return screenjournal.Movie{
-		ID:     screenjournal.MovieID(id),
-		TmdbID: screenjournal.TmdbID(tmdbID),
-		ImdbID: imdbID,
-		Title:  screenjournal.MediaTitle(title),
+		ID:          screenjournal.MovieID(id),
+		TmdbID:      screenjournal.TmdbID(tmdbID),
+		ImdbID:      imdbID,
+		Title:       screenjournal.MediaTitle(title),
+		ReleaseDate: releaseDate,
 	}, nil
 }

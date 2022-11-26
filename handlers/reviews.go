@@ -168,9 +168,7 @@ func (s Server) moviefromTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movi
 		return screenjournal.Movie{}, err
 	}
 
-	movie = metadata.MovieFromMovieInfo(mi)
-
-	movie.ID, err = s.store.InsertMovie(movie)
+	movie.ID, err = s.store.InsertMovie(metadata.MovieFromMovieInfo(mi))
 	if err != nil {
 		return screenjournal.Movie{}, err
 	}

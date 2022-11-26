@@ -5,6 +5,7 @@ type (
 	MovieID int64
 
 	TmdbID int32
+	ImdbID string
 )
 
 func (mid MovieID) Int64() int64 {
@@ -13,4 +14,8 @@ func (mid MovieID) Int64() int64 {
 
 func (m TmdbID) Int32() int32 {
 	return int32(m)
+}
+
+func (id ImdbID) String() string {
+	return string(id)
 }

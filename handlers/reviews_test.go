@@ -75,6 +75,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			localMovies: []screenjournal.Movie{
 				{
 					TmdbID: screenjournal.TmdbID(38),
+					ImdbID: screenjournal.ImdbID("tt0338013"),
 					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 				},
 			},
@@ -86,6 +87,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				Movie: screenjournal.Movie{
 					ID:     screenjournal.MovieID(1),
 					TmdbID: screenjournal.TmdbID(38),
+					ImdbID: screenjournal.ImdbID("tt0338013"),
 					Title:  "Eternal Sunshine of the Spotless Mind",
 				},
 			},
@@ -102,6 +104,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				{
 					ID:     screenjournal.MovieID(1),
 					TmdbID: screenjournal.TmdbID(14577),
+					ImdbID: screenjournal.ImdbID("tt0120654"),
 					Title:  screenjournal.MediaTitle("Dirty Work"),
 				},
 			},
@@ -113,6 +116,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				Movie: screenjournal.Movie{
 					ID:     screenjournal.MovieID(1),
 					TmdbID: screenjournal.TmdbID(14577),
+					ImdbID: screenjournal.ImdbID("tt0120654"),
 					Title:  "Dirty Work",
 				},
 			},
@@ -128,6 +132,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			remoteMovieInfo: []metadata.MovieInfo{
 				{
 					TmdbID: screenjournal.TmdbID(38),
+					ImdbID: screenjournal.ImdbID("tt0338013"),
 					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 				},
 			},
@@ -139,6 +144,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				Movie: screenjournal.Movie{
 					ID:     screenjournal.MovieID(1),
 					TmdbID: screenjournal.TmdbID(38),
+					ImdbID: screenjournal.ImdbID("tt0338013"),
 					Title:  "Eternal Sunshine of the Spotless Mind",
 				},
 			},
@@ -254,10 +260,12 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			localMovies: []screenjournal.Movie{
 				{
 					TmdbID: screenjournal.TmdbID(38),
+					ImdbID: screenjournal.ImdbID("tt0338013"),
 					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 				},
 				{
 					TmdbID: screenjournal.TmdbID(14577),
+					ImdbID: screenjournal.ImdbID("tt0120654"),
 					Title:  screenjournal.MediaTitle("Dirty Work"),
 				},
 			},
@@ -270,6 +278,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					Movie: screenjournal.Movie{
 						ID:     screenjournal.MovieID(1),
 						TmdbID: screenjournal.TmdbID(38),
+						ImdbID: screenjournal.ImdbID("tt0338013"),
 						Title:  "Eternal Sunshine of the Spotless Mind",
 					},
 				},
@@ -287,6 +296,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				Movie: screenjournal.Movie{
 					ID:     screenjournal.MovieID(1),
 					TmdbID: screenjournal.TmdbID(38),
+					ImdbID: screenjournal.ImdbID("tt0338013"),
 					Title:  "Eternal Sunshine of the Spotless Mind",
 				},
 			},
@@ -296,10 +306,12 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			localMovies: []screenjournal.Movie{
 				{
 					TmdbID: screenjournal.TmdbID(38),
+					ImdbID: screenjournal.ImdbID("tt0338013"),
 					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 				},
 				{
 					TmdbID: screenjournal.TmdbID(14577),
+					ImdbID: screenjournal.ImdbID("tt0120654"),
 					Title:  screenjournal.MediaTitle("Dirty Work"),
 				},
 			},
@@ -312,6 +324,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					Movie: screenjournal.Movie{
 						ID:     screenjournal.MovieID(2),
 						TmdbID: screenjournal.TmdbID(14577),
+						ImdbID: screenjournal.ImdbID("tt0120654"),
 						Title:  "Dirty Work",
 					},
 				},
@@ -329,6 +342,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				Movie: screenjournal.Movie{
 					ID:     screenjournal.MovieID(2),
 					TmdbID: screenjournal.TmdbID(14577),
+					ImdbID: screenjournal.ImdbID("tt0120654"),
 					Title:  "Dirty Work",
 				},
 			},
@@ -395,6 +409,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			localMovies: []screenjournal.Movie{
 				{
 					TmdbID: screenjournal.TmdbID(38),
+					ImdbID: screenjournal.ImdbID("tt0338013"),
 					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 				},
 			},
@@ -406,6 +421,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					Movie: screenjournal.Movie{
 						ID:     screenjournal.MovieID(1),
 						TmdbID: screenjournal.TmdbID(38),
+						ImdbID: screenjournal.ImdbID("tt0338013"),
 						Title:  "Eternal Sunshine of the Spotless Mind",
 					},
 				},
@@ -423,6 +439,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			localMovies: []screenjournal.Movie{
 				{
 					TmdbID: screenjournal.TmdbID(38),
+					ImdbID: screenjournal.ImdbID("tt0338013"),
 					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 				},
 			},
@@ -434,6 +451,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					Movie: screenjournal.Movie{
 						ID:     screenjournal.MovieID(1),
 						TmdbID: screenjournal.TmdbID(38),
+						ImdbID: screenjournal.ImdbID("tt0338013"),
 						Title:  "Eternal Sunshine of the Spotless Mind",
 					},
 				},
@@ -451,6 +469,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			localMovies: []screenjournal.Movie{
 				{
 					TmdbID: screenjournal.TmdbID(38),
+					ImdbID: screenjournal.ImdbID("tt0338013"),
 					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 				},
 			},
@@ -462,6 +481,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					Movie: screenjournal.Movie{
 						ID:     screenjournal.MovieID(1),
 						TmdbID: screenjournal.TmdbID(38),
+						ImdbID: screenjournal.ImdbID("tt0338013"),
 						Title:  "Eternal Sunshine of the Spotless Mind",
 					},
 				},
@@ -478,6 +498,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			localMovies: []screenjournal.Movie{
 				{
 					TmdbID: screenjournal.TmdbID(38),
+					ImdbID: screenjournal.ImdbID("tt0338013"),
 					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 				},
 			},
@@ -489,6 +510,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					Movie: screenjournal.Movie{
 						ID:     screenjournal.MovieID(1),
 						TmdbID: screenjournal.TmdbID(38),
+						ImdbID: screenjournal.ImdbID("tt0338013"),
 						Title:  "Eternal Sunshine of the Spotless Mind",
 					},
 				},
@@ -505,6 +527,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			localMovies: []screenjournal.Movie{
 				{
 					TmdbID: screenjournal.TmdbID(38),
+					ImdbID: screenjournal.ImdbID("tt0338013"),
 					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 				},
 			},
@@ -516,6 +539,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					Movie: screenjournal.Movie{
 						ID:     screenjournal.MovieID(1),
 						TmdbID: screenjournal.TmdbID(38),
+						ImdbID: screenjournal.ImdbID("tt0338013"),
 						Title:  "Eternal Sunshine of the Spotless Mind",
 					},
 				},
@@ -532,6 +556,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			localMovies: []screenjournal.Movie{
 				{
 					TmdbID: screenjournal.TmdbID(38),
+					ImdbID: screenjournal.ImdbID("tt0338013"),
 					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 				},
 			},
@@ -543,6 +568,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					Movie: screenjournal.Movie{
 						ID:     screenjournal.MovieID(1),
 						TmdbID: screenjournal.TmdbID(38),
+						ImdbID: screenjournal.ImdbID("tt0338013"),
 						Title:  "Eternal Sunshine of the Spotless Mind",
 					},
 				},
@@ -560,6 +586,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			localMovies: []screenjournal.Movie{
 				{
 					TmdbID: screenjournal.TmdbID(38),
+					ImdbID: screenjournal.ImdbID("tt0338013"),
 					Title:  screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 				},
 			},
@@ -571,6 +598,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					Movie: screenjournal.Movie{
 						ID:     screenjournal.MovieID(1),
 						TmdbID: screenjournal.TmdbID(38),
+						ImdbID: screenjournal.ImdbID("tt0338013"),
 						Title:  "Eternal Sunshine of the Spotless Mind",
 					},
 				},

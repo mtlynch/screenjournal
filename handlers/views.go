@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"embed"
+	"fmt"
 	"log"
 	"net/http"
 	"path"
@@ -106,6 +107,21 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			commonProps: makeCommonProps("Ratings", r.Context()),
 			Reviews:     reviews,
 		}, template.FuncMap{
+			"relativeWatchDate": func(t screenjournal.WatchDate) string {
+				daysAgo := int(time.Since(t.Time()).Hours() / 24)
+				weeksAgo := int(daysAgo / 7)
+				if daysAgo < 1 {
+					return "today"
+				} else if daysAgo == 1 {
+					return "yesterday"
+				} else if daysAgo <= 14 {
+					return fmt.Sprintf("%d days ago", daysAgo)
+				} else if weeksAgo < 8 {
+					return fmt.Sprintf("%d weeks ago", weeksAgo)
+				}
+				monthsAgo := int(daysAgo / 30)
+				return fmt.Sprintf("%d months ago", monthsAgo)
+			},
 			"formatWatchDate": func(t screenjournal.WatchDate) string {
 				return t.Time().Format("2006-01-02")
 			},

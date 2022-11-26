@@ -5,6 +5,7 @@ import "net/http"
 func (s *Server) routes() {
 	s.router.HandleFunc("/api/auth", s.authPost()).Methods(http.MethodPost)
 	s.router.HandleFunc("/api/auth", s.authDelete()).Methods(http.MethodDelete)
+	s.router.Use(s.populateAuthenticationContext)
 
 	adminApis := s.router.PathPrefix("/api/admin").Subrouter()
 	adminApis.Use(s.requireAuthentication)

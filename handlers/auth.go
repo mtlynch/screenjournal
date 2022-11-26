@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/handlers/auth"
 )
 
 type contextKey struct {
@@ -26,24 +27,33 @@ func (s Server) authDelete() http.HandlerFunc {
 	}
 }
 
-func (s Server) requireAuthentication(next http.Handler) http.Handler {
+func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, err := s.authenticator.Authenticate(r)
-		if err != nil {
+		if err == auth.ErrNotAuthenticated {
+			next.ServeHTTP(w, r)
+			return
+		} else if err != nil {
 			s.authenticator.ClearSession(w)
 			http.Error(w, "Invalid username", http.StatusBadRequest)
-			return
-		}
-
-		if user.IsEmpty() {
-			s.authenticator.ClearSession(w)
-			http.Error(w, "Authentication required", http.StatusUnauthorized)
 			return
 		}
 
 		ctx := context.WithValue(r.Context(), contextKeyUser, user)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (s Server) requireAuthentication(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, ok := userFromContext(r.Context()); !ok {
+			s.authenticator.ClearSession(w)
+			http.Error(w, "Authentication required", http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }
 

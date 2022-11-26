@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/handlers/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"golang.org/x/crypto/pbkdf2"
 )
@@ -77,7 +78,7 @@ func sharedSecretFromRequest(r *http.Request) (sharedSecret, error) {
 func (sa SimpleAuthenticator) Authenticate(r *http.Request) (screenjournal.UserAuth, error) {
 	authCookie, err := r.Cookie(authCookieName)
 	if err != nil {
-		return screenjournal.UserAuth{}, errors.New("no auth cookie")
+		return screenjournal.UserAuth{}, auth.ErrNotAuthenticated
 	}
 
 	ss, err := sharedSecretFromBase64(authCookie.Value)

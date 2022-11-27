@@ -1,6 +1,7 @@
 package handlers_test
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,21 +17,28 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata"
+	"github.com/mtlynch/screenjournal/v2/sessions"
 	"github.com/mtlynch/screenjournal/v2/store"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
 type mockAuthenticator struct{}
 
-func (ma mockAuthenticator) StartSession(w http.ResponseWriter, r *http.Request) {}
-
-func (ma mockAuthenticator) ClearSession(w http.ResponseWriter) {}
-
-func (ma mockAuthenticator) Authenticate(r *http.Request) (screenjournal.UserAuth, error) {
-	return screenjournal.UserAuth{
-		Username: screenjournal.Username("dummy user"),
-	}, nil
+func (a mockAuthenticator) Authenticate(screenjournal.Username, screenjournal.Password) error {
+	return nil
 }
+
+type mockSessionManager struct{}
+
+func (sm mockSessionManager) Create(http.ResponseWriter, *http.Request, screenjournal.Username) error {
+	return nil
+}
+
+func (sm mockSessionManager) FromRequest(*http.Request) (sessions.Session, error) {
+	return sessions.Session{}, nil
+}
+
+func (sm mockSessionManager) End(context.Context, http.ResponseWriter) {}
 
 type mockMetadataFinder struct {
 	db map[screenjournal.TmdbID]metadata.MovieInfo
@@ -166,7 +174,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				}
 			}
 
-			s := handlers.New(mockAuthenticator{}, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo))
+			s := handlers.New(mockAuthenticator{}, mockSessionManager{}, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo))
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
 			if err != nil {
@@ -235,7 +243,7 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			s := handlers.New(mockAuthenticator{}, dataStore, mockMetadataFinder{})
+			s := handlers.New(mockAuthenticator{}, mockSessionManager{}, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
 			if err != nil {
@@ -378,7 +386,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				}
 			}
 
-			s := handlers.New(mockAuthenticator{}, dataStore, mockMetadataFinder{})
+			s := handlers.New(mockAuthenticator{}, mockSessionManager{}, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {
@@ -656,7 +664,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 				}
 			}
 
-			s := handlers.New(mockAuthenticator{}, dataStore, mockMetadataFinder{})
+			s := handlers.New(mockAuthenticator{}, mockSessionManager{}, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {

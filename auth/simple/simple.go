@@ -1,81 +1,33 @@
 package simple
 
 import (
-	"encoding/json"
-	"errors"
-	"net/http"
+	"crypto/subtle"
 
 	"github.com/mtlynch/screenjournal/v2"
-	"github.com/mtlynch/screenjournal/v2/handlers/auth"
-	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/auth"
 )
 
 type (
-	SimpleAuthenticator struct {
+	authenticator struct {
 		username screenjournal.Username
-		password string
+		password screenjournal.Password
 	}
 )
 
-func New(username, password string) (SimpleAuthenticator, error) {
-	u, err := parse.Username(username)
-	if err != nil {
-		return SimpleAuthenticator{}, err
-	}
-
-	return SimpleAuthenticator{
-		username: u,
+func New(username screenjournal.Username, password screenjournal.Password) (authenticator, error) {
+	return authenticator{
+		username: username,
 		password: password,
 	}, nil
 }
 
-func (sa SimpleAuthenticator) StartSession(w http.ResponseWriter, r *http.Request) {
-	ss, err := sharedSecretFromRequest(r)
-	if err != nil {
-		http.Error(w, "Invalid shared secret", http.StatusBadRequest)
-		return
+func (a authenticator) Authenticate(username screenjournal.Username, password screenjournal.Password) error {
+	// This is an insecure, placeholder implementation for authentication until we
+	// switch to bcrypt.
+	valid := []byte(a.username.String() + a.password.String())
+	attempt := []byte(username.String() + password.String())
+	if subtle.ConstantTimeCompare(valid, attempt) != 1 {
+		return auth.ErrInvalidCredentials
 	}
-
-	if !sharedSecretsEqual(ss, sa.sharedSecret) {
-		http.Error(w, "Incorrect shared secret", http.StatusUnauthorized)
-		return
-	}
-
-	sa.createCookie(w)
-}
-
-func sharedSecretFromRequest(r *http.Request) (sharedSecret, error) {
-	body := struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}{}
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&body)
-	if err != nil {
-		return sharedSecret{}, err
-	}
-
-	return sharedSecretFromBytes([]byte(body.Username + body.Password))
-}
-
-func (sa SimpleAuthenticator) Authenticate(r *http.Request) (screenjournal.UserAuth, error) {
-	authCookie, err := r.Cookie(authCookieName)
-	if err != nil {
-		return screenjournal.UserAuth{}, auth.ErrNotAuthenticated
-	}
-
-	ss, err := sharedSecretFromBase64(authCookie.Value)
-	if err != nil {
-		return screenjournal.UserAuth{}, errors.New("invalid shared secret")
-	}
-
-	if !sharedSecretsEqual(ss, sa.sharedSecret) {
-		return screenjournal.UserAuth{}, errors.New("invalid shared secret")
-	}
-
-	return screenjournal.UserAuth{
-		// SimpleAuthenticator only has a single, admin user.
-		IsAdmin:  true,
-		Username: sa.username,
-	}, nil
+	return nil
 }

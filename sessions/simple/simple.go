@@ -14,7 +14,7 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 )
 
-const authCookieName = "sharedSecret"
+const sessionTokenCookieName = "sharedSecret"
 
 type (
 	sharedSecret []byte
@@ -25,11 +25,17 @@ type (
 	}
 )
 
-func New(username screenjournal.Username, password string) (sessions.Manager, error) {
+func FromContext(ctx context.Context) (sessions.Session, bool) {
+	return sessions.Session{
+		Username: screenjournal.Username("foo"),
+	}, true
+}
+
+func New(username screenjournal.Username, password screenjournal.Password) (sessions.Manager, error) {
 	// Simply concatenating the username and password together for a shared secret
 	// is not very secure, but this is just a temporary, placeholder
 	// implementation.
-	ss, err := sharedSecretFromBytes([]byte(username.String() + password))
+	ss, err := sharedSecretFromBytes([]byte(username.String() + password.String()))
 	if err != nil {
 		return manager{}, err
 	}
@@ -42,7 +48,7 @@ func New(username screenjournal.Username, password string) (sessions.Manager, er
 
 func (m manager) Create(w http.ResponseWriter, r *http.Request, _ screenjournal.Username) error {
 	http.SetCookie(w, &http.Cookie{
-		Name:     authCookieName,
+		Name:     sessionTokenCookieName,
 		Value:    base64.StdEncoding.EncodeToString(m.sharedSecret),
 		Path:     "/",
 		HttpOnly: true,
@@ -52,12 +58,32 @@ func (m manager) Create(w http.ResponseWriter, r *http.Request, _ screenjournal.
 	return nil
 }
 
+func (m manager) FromRequest(r *http.Request) (sessions.Session, error) {
+	sessionToken, err := r.Cookie(sessionTokenCookieName)
+	if err != nil {
+		return sessions.Session{}, sessions.ErrNotAuthenticated
+	}
+
+	ss, err := sharedSecretFromBase64(sessionToken.Value)
+	if err != nil {
+		return sessions.Session{}, errors.New("invalid shared secret")
+	}
+
+	if !sharedSecretsEqual(ss, m.sharedSecret) {
+		return sessions.Session{}, errors.New("invalid shared secret")
+	}
+
+	return sessions.Session{
+		Username: m.username,
+	}, nil
+}
+
 func (m manager) End(ctx context.Context, w http.ResponseWriter) {
 	// The simple manager can't really invalidate sessions because the credentials
 	// are hard-coded and the session token is static, so all we can do is ask the
 	// client to delete their cookie.
 	http.SetCookie(w, &http.Cookie{
-		Name:     authCookieName,
+		Name:     sessionTokenCookieName,
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,

@@ -32,10 +32,15 @@ func New(username, password string) (SimpleAuthenticator, error) {
 		return SimpleAuthenticator{}, err
 	}
 
+	pw, err := parse.Password(password)
+	if err != nil {
+		return SimpleAuthenticator{}, err
+	}
+
 	// Simply concatenating the username and password together for a shared secret
 	// is not very secure, but this is just a temporary, placeholder
 	// implementation.
-	ss, err := sharedSecretFromBytes([]byte(u.String() + password))
+	ss, err := sharedSecretFromBytes([]byte(u.String() + pw.String()))
 	if err != nil {
 		return SimpleAuthenticator{}, err
 	}

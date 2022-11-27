@@ -16,6 +16,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata"
+	"github.com/mtlynch/screenjournal/v2/store"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
@@ -181,7 +182,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 					tt.description, status, http.StatusOK)
 			}
 
-			rr, err := dataStore.ReadReviews()
+			rr, err := dataStore.ReadReviews(store.ReviewFilters{})
 			if err != nil {
 				t.Fatalf("%s: failed to retrieve review from datastore: %v", tt.description, err)
 			}
@@ -393,7 +394,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					tt.description, status, http.StatusOK)
 			}
 
-			rr, err := dataStore.ReadReviews()
+			rr, err := dataStore.ReadReviews(store.ReviewFilters{})
 			if err != nil {
 				t.Fatalf("%s: failed to retrieve review from datastore: %v", tt.description, err)
 			}

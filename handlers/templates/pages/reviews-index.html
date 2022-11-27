@@ -13,11 +13,17 @@
 {{ end }}
 
 {{ define "content" }}
-  <h1>Ratings</h1>
+  <h1>{{ .Title }}</h1>
 
-  <a href="/reviews/new" class="btn btn-primary my-3" data-test-id="add-rating"
-    >Add Rating</a
-  >
+  {{ if (or (not .Owner) .LoggedInUserIsOwner) }}
+    <a
+      href="/reviews/new"
+      class="btn btn-primary my-3"
+      data-test-id="add-rating"
+      >Add Rating</a
+    >
+  {{ end }}
+
 
   <div class="row row-cols-1 row-cols-md-3 g-4">
     {{ range .Reviews }}
@@ -28,7 +34,8 @@
               {{ .Movie.Title }}
             </h5>
             <h6 class="card-subtitle mb-2 text-muted">
-              <b>{{ .Owner }}</b> watched this
+              <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> watched
+              this
               <span
                 data-test-id="watch-date"
                 title="{{ formatWatchDate .Watched }}"

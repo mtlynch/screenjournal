@@ -1,7 +1,5 @@
 package screenjournal
 
-import "crypto/subtle"
-
 type (
 	Username string
 	Password string
@@ -28,8 +26,10 @@ func (pw Password) String() string {
 	return string(pw)
 }
 
+// Equal returns true if two passwords match. Only use this in testing, never as
+// a way of authenticating actual user passwords.
 func (pw Password) Equal(o Password) bool {
-	return subtle.ConstantTimeCompare([]byte(pw.String()), []byte(o.String())) == 1
+	return pw.String() == o.String()
 }
 
 func (ua UserAuth) IsEmpty() bool {

@@ -4,8 +4,8 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/mtlynch/screenjournal/v2/auth"
+	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
-	"github.com/mtlynch/screenjournal/v2/sessions"
 	"github.com/mtlynch/screenjournal/v2/store"
 )
 

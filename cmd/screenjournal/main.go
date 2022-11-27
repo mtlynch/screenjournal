@@ -13,8 +13,8 @@ import (
 	"github.com/mtlynch/screenjournal/v2"
 	simple_auth "github.com/mtlynch/screenjournal/v2/auth/simple"
 	"github.com/mtlynch/screenjournal/v2/handlers"
+	simple_sessions "github.com/mtlynch/screenjournal/v2/handlers/sessions/simple"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
-	simple_sessions "github.com/mtlynch/screenjournal/v2/sessions/simple"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
-	"github.com/mtlynch/screenjournal/v2/sessions"
+	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"golang.org/x/crypto/pbkdf2"
 )
 

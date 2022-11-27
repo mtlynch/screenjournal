@@ -9,7 +9,7 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
-	"github.com/mtlynch/screenjournal/v2/sessions"
+	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 )
 
 type contextKey struct {

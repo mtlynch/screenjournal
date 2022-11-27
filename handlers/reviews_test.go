@@ -35,7 +35,9 @@ func (sm mockSessionManager) CreateSession(http.ResponseWriter, *http.Request, s
 }
 
 func (sm mockSessionManager) SessionFromRequest(*http.Request) (sessions.Session, error) {
-	return sessions.Session{}, nil
+	return sessions.Session{
+		Username: screenjournal.Username("dummyuser"),
+	}, nil
 }
 
 func (sm mockSessionManager) EndSession(context.Context, http.ResponseWriter) {}
@@ -90,7 +92,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				},
 			},
 			expected: screenjournal.Review{
-				Owner:   screenjournal.Username("dummy user"),
+				Owner:   screenjournal.Username("dummyuser"),
 				Rating:  screenjournal.Rating(10),
 				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
@@ -121,7 +123,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				},
 			},
 			expected: screenjournal.Review{
-				Owner:   screenjournal.Username("dummy user"),
+				Owner:   screenjournal.Username("dummyuser"),
 				Rating:  screenjournal.Rating(9),
 				Watched: mustParseWatchDate("2022-10-21T00:00:00-04:00"),
 				Blurb:   screenjournal.Blurb(""),
@@ -151,7 +153,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				},
 			},
 			expected: screenjournal.Review{
-				Owner:   screenjournal.Username("dummy user"),
+				Owner:   screenjournal.Username("dummyuser"),
 				Rating:  screenjournal.Rating(10),
 				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 				Blurb:   screenjournal.Blurb("It's my favorite movie!"),

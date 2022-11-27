@@ -10,9 +10,9 @@ import (
 
 type (
 	Manager interface {
-		Create(http.ResponseWriter, *http.Request, screenjournal.Username) error
-		FromRequest(*http.Request) (Session, error)
-		End(context.Context, http.ResponseWriter)
+		CreateSession(http.ResponseWriter, *http.Request, screenjournal.Username) error
+		SessionFromRequest(*http.Request) (Session, error)
+		EndSession(context.Context, http.ResponseWriter)
 	}
 
 	Session struct {

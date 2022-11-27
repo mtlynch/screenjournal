@@ -16,8 +16,8 @@ import (
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
-	"github.com/mtlynch/screenjournal/v2/sessions"
 	"github.com/mtlynch/screenjournal/v2/store"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -30,15 +30,15 @@ func (a mockAuthenticator) Authenticate(screenjournal.Username, screenjournal.Pa
 
 type mockSessionManager struct{}
 
-func (sm mockSessionManager) Create(http.ResponseWriter, *http.Request, screenjournal.Username) error {
+func (sm mockSessionManager) CreateSession(http.ResponseWriter, *http.Request, screenjournal.Username) error {
 	return nil
 }
 
-func (sm mockSessionManager) FromRequest(*http.Request) (sessions.Session, error) {
+func (sm mockSessionManager) SessionFromRequest(*http.Request) (sessions.Session, error) {
 	return sessions.Session{}, nil
 }
 
-func (sm mockSessionManager) End(context.Context, http.ResponseWriter) {}
+func (sm mockSessionManager) EndSession(context.Context, http.ResponseWriter) {}
 
 type mockMetadataFinder struct {
 	db map[screenjournal.TmdbID]metadata.MovieInfo

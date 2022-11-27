@@ -25,7 +25,7 @@ type (
 	}
 )
 
-func FromContext(ctx context.Context) (sessions.Session, bool) {
+func SessionFromContext(ctx context.Context) (sessions.Session, bool) {
 	return sessions.Session{
 		Username: screenjournal.Username("foo"),
 	}, true
@@ -46,7 +46,7 @@ func New(username screenjournal.Username, password screenjournal.Password) (sess
 	}, nil
 }
 
-func (m manager) Create(w http.ResponseWriter, r *http.Request, _ screenjournal.Username) error {
+func (m manager) CreateSession(w http.ResponseWriter, r *http.Request, _ screenjournal.Username) error {
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionTokenCookieName,
 		Value:    base64.StdEncoding.EncodeToString(m.sharedSecret),
@@ -58,7 +58,7 @@ func (m manager) Create(w http.ResponseWriter, r *http.Request, _ screenjournal.
 	return nil
 }
 
-func (m manager) FromRequest(r *http.Request) (sessions.Session, error) {
+func (m manager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
 	sessionToken, err := r.Cookie(sessionTokenCookieName)
 	if err != nil {
 		return sessions.Session{}, sessions.ErrNotAuthenticated
@@ -78,7 +78,7 @@ func (m manager) FromRequest(r *http.Request) (sessions.Session, error) {
 	}, nil
 }
 
-func (m manager) End(ctx context.Context, w http.ResponseWriter) {
+func (m manager) EndSession(ctx context.Context, w http.ResponseWriter) {
 	// The simple manager can't really invalidate sessions because the credentials
 	// are hard-coded and the session token is static, so all we can do is ask the
 	// client to delete their cookie.

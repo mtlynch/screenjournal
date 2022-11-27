@@ -16,7 +16,7 @@ type (
 	}
 
 	Session struct {
-		Username screenjournal.Username
+		UserAuth screenjournal.UserAuth
 	}
 )
 

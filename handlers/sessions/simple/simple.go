@@ -25,12 +25,6 @@ type (
 	}
 )
 
-func SessionFromContext(ctx context.Context) (sessions.Session, bool) {
-	return sessions.Session{
-		Username: screenjournal.Username("foo"),
-	}, true
-}
-
 func New(username screenjournal.Username, password screenjournal.Password) (sessions.Manager, error) {
 	// Simply concatenating the username and password together for a shared secret
 	// is not very secure, but this is just a temporary, placeholder
@@ -74,7 +68,9 @@ func (m manager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
 	}
 
 	return sessions.Session{
-		Username: m.username,
+		UserAuth: screenjournal.UserAuth{
+			Username: m.username,
+		},
 	}, nil
 }
 

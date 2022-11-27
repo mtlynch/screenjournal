@@ -31,7 +31,10 @@ func (s Server) authPost() http.HandlerFunc {
 			return
 		}
 
-		s.sessionManager.CreateSession(w, r, username)
+		if err := s.sessionManager.CreateSession(w, r, username); err != nil {
+			http.Error(w, fmt.Sprintf("Failed to create session: %v", err), http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
@@ -43,7 +46,7 @@ func (s Server) authDelete() http.HandlerFunc {
 
 func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user, err := s.sessionManager.SessionFromRequest(r)
+		session, err := s.sessionManager.SessionFromRequest(r)
 		if err == sessions.ErrNotAuthenticated {
 			next.ServeHTTP(w, r)
 			return
@@ -53,7 +56,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), contextKeyUser, user)
+		ctx := context.WithValue(r.Context(), contextKeyUser, session.UserAuth)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

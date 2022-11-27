@@ -2,6 +2,7 @@ package screenjournal
 
 type (
 	Username string
+	Password string
 
 	UserAuth struct {
 		IsAdmin  bool
@@ -19,6 +20,16 @@ func (u Username) IsEmpty() bool {
 
 func (u Username) Equal(o Username) bool {
 	return u.String() == o.String()
+}
+
+func (pw Password) String() string {
+	return string(pw)
+}
+
+// Equal returns true if two passwords match. Only use this in testing, never as
+// a way of authenticating actual user passwords.
+func (pw Password) Equal(o Password) bool {
+	return pw.String() == o.String()
 }
 
 func (ua UserAuth) IsEmpty() bool {

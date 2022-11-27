@@ -97,8 +97,8 @@ func credentialsFromRequest(r *http.Request) (screenjournal.Username, screenjour
 		Password string `json:"password"`
 	}{}
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&body)
-	if err != nil {
+
+	if err := decoder.Decode(&body); err != nil {
 		return screenjournal.Username(""), screenjournal.Password(""), err
 	}
 

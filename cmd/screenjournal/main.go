@@ -10,8 +10,10 @@ import (
 
 	gorilla "github.com/mtlynch/gorilla-handlers"
 
+	"github.com/mtlynch/screenjournal/v2"
+	simple_auth "github.com/mtlynch/screenjournal/v2/auth/simple"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/handlers/auth/simple"
+	simple_sessions "github.com/mtlynch/screenjournal/v2/handlers/sessions/simple"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
@@ -23,9 +25,17 @@ func main() {
 	dbPath := flag.String("db", "data/store.db", "path to database")
 	flag.Parse()
 
-	authenticator, err := simple.New(requireEnv("SJ_ADMIN_USERNAME"), requireEnv("SJ_ADMIN_PASSWORD"))
+	adminUsername := screenjournal.Username(requireEnv("SJ_ADMIN_USERNAME"))
+	adminPassword := screenjournal.Password(requireEnv("SJ_ADMIN_PASSWORD"))
+
+	authenticator, err := simple_auth.New(adminUsername, adminPassword)
 	if err != nil {
 		log.Fatalf("invalid shared secret: %v", err)
+	}
+
+	sessionManager, err := simple_sessions.New(adminUsername, adminPassword)
+	if err != nil {
+		log.Fatalf("failed to create session manager: %v", err)
 	}
 
 	ensureDirExists(filepath.Dir(*dbPath))
@@ -36,7 +46,7 @@ func main() {
 		log.Fatalf("failed to create metadata finder: %v", err)
 	}
 
-	h := gorilla.LoggingHandler(os.Stdout, handlers.New(authenticator, store, metadataFinder).Router())
+	h := gorilla.LoggingHandler(os.Stdout, handlers.New(authenticator, sessionManager, store, metadataFinder).Router())
 	if os.Getenv("SJ_BEHIND_PROXY") != "" {
 		h = gorilla.ProxyIPHeadersHandler(h)
 	}

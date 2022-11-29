@@ -2,6 +2,7 @@ FROM golang:1.19.1 AS builder
 
 ARG TARGETPLATFORM
 
+COPY ./auth /app/auth
 COPY ./cmd /app/cmd
 COPY ./handlers /app/handlers
 COPY ./metadata /app/metadata

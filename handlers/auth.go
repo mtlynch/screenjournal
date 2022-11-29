@@ -2,11 +2,14 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/mtlynch/screenjournal/v2"
-	"github.com/mtlynch/screenjournal/v2/handlers/auth"
+	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 )
 
 type contextKey struct {
@@ -17,29 +20,43 @@ var contextKeyUser = &contextKey{"user"}
 
 func (s Server) authPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		s.authenticator.StartSession(w, r)
+		username, password, err := credentialsFromRequest(r)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Invalid credentials: %v", err), http.StatusBadRequest)
+			return
+		}
+
+		if err := s.authenticator.Authenticate(username, password); err != nil {
+			http.Error(w, fmt.Sprintf("Invalid credentials: %v", err), http.StatusUnauthorized)
+			return
+		}
+
+		if err := s.sessionManager.CreateSession(w, r, username); err != nil {
+			http.Error(w, fmt.Sprintf("Failed to create session: %v", err), http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
 func (s Server) authDelete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		s.authenticator.ClearSession(w)
+		s.sessionManager.EndSession(r.Context(), w)
 	}
 }
 
 func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user, err := s.authenticator.Authenticate(r)
-		if err == auth.ErrNotAuthenticated {
+		session, err := s.sessionManager.SessionFromRequest(r)
+		if err == sessions.ErrNotAuthenticated {
 			next.ServeHTTP(w, r)
 			return
 		} else if err != nil {
-			s.authenticator.ClearSession(w)
-			http.Error(w, "Invalid username", http.StatusBadRequest)
+			s.sessionManager.EndSession(r.Context(), w)
+			http.Error(w, fmt.Sprintf("Invalid session token: %v", err), http.StatusBadRequest)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), contextKeyUser, user)
+		ctx := context.WithValue(r.Context(), contextKeyUser, session.UserAuth)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -48,7 +65,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 func (s Server) requireAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if _, ok := userFromContext(r.Context()); !ok {
-			s.authenticator.ClearSession(w)
+			s.sessionManager.EndSession(r.Context(), w)
 			http.Error(w, "Authentication required", http.StatusUnauthorized)
 			return
 		}
@@ -72,6 +89,30 @@ func (s Server) requireAdmin(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func credentialsFromRequest(r *http.Request) (screenjournal.Username, screenjournal.Password, error) {
+	body := struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}{}
+	decoder := json.NewDecoder(r.Body)
+
+	if err := decoder.Decode(&body); err != nil {
+		return screenjournal.Username(""), screenjournal.Password(""), err
+	}
+
+	username, err := parse.Username(body.Username)
+	if err != nil {
+		return screenjournal.Username(""), screenjournal.Password(""), err
+	}
+
+	password, err := parse.Password(body.Password)
+	if err != nil {
+		return screenjournal.Username(""), screenjournal.Password(""), err
+	}
+
+	return username, password, nil
 }
 
 func isAdmin(ctx context.Context) bool {

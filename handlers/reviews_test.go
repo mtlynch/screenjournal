@@ -42,7 +42,9 @@ func (sm mockSessionManager) SessionFromRequest(*http.Request) (sessions.Session
 	}, nil
 }
 
-func (sm mockSessionManager) EndSession(context.Context, http.ResponseWriter) {}
+func (sm mockSessionManager) EndSession(context.Context, http.ResponseWriter) error {
+	return nil
+}
 
 type mockMetadataFinder struct {
 	db map[screenjournal.TmdbID]metadata.MovieInfo

@@ -12,7 +12,7 @@ type (
 	Manager interface {
 		CreateSession(http.ResponseWriter, *http.Request, screenjournal.Username) error
 		SessionFromRequest(*http.Request) (Session, error)
-		EndSession(context.Context, http.ResponseWriter)
+		EndSession(context.Context, http.ResponseWriter) error
 	}
 
 	Session struct {

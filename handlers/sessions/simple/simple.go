@@ -74,7 +74,7 @@ func (m manager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
 	}, nil
 }
 
-func (m manager) EndSession(ctx context.Context, w http.ResponseWriter) {
+func (m manager) EndSession(ctx context.Context, w http.ResponseWriter) error {
 	// The simple manager can't really invalidate sessions because the credentials
 	// are hard-coded and the session token is static, so all we can do is ask the
 	// client to delete their cookie.
@@ -86,6 +86,7 @@ func (m manager) EndSession(ctx context.Context, w http.ResponseWriter) {
 		SameSite: http.SameSiteStrictMode,
 		Expires:  time.Unix(0, 0),
 	})
+	return nil
 }
 
 func sharedSecretFromBytes(b []byte) (sharedSecret, error) {

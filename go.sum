@@ -1,3 +1,7 @@
+github.com/blang/semver v3.5.1+incompatible h1:cQNTCjp13qL8KC3Nbxr/y2Bqb63oX6wdnnjpJbkM4JQ=
+github.com/blang/semver v3.5.1+incompatible/go.mod h1:kRBLl5iJ+tD4TcOOxsy/0fnwebNt5EWlYSAyrTnjyyk=
+github.com/dchest/uniuri v0.0.0-20160212164326-8902c56451e9 h1:74lLNRzvsdIlkTgfDSMuaPjBr4cf6k7pwQQANm/yLKU=
+github.com/dchest/uniuri v0.0.0-20160212164326-8902c56451e9/go.mod h1:GgB8SF9nRG+GqaDtLcwJZsQFhcogVCJ79j4EdT0c2V4=
 github.com/felixge/httpsnoop v1.0.1 h1:lvB5Jl89CsZtGIWuTcDM1E/vkVs49/Ml7JJe07l8SPQ=
 github.com/felixge/httpsnoop v1.0.1/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
 github.com/go-test/deep v1.0.8 h1:TDsG77qcSprGbC6vTN8OuXp5g+J+b5Pcguhf7Zt61VM=
@@ -10,5 +14,9 @@ github.com/mtlynch/gorilla-handlers v1.5.2 h1:CnOI7baYzjgdumJMc7Dh192JFxqGsNgRew
 github.com/mtlynch/gorilla-handlers v1.5.2/go.mod h1:qZmXSCK7pPjN71Pl9ARbQX2ec1t11FI/j8bDS+ZVbmQ=
 github.com/ryanbradynd05/go-tmdb v0.0.0-20220721194547-2ab6191c6273 h1:8Acxd4HoxkbAAGG4Du+f8/ndT5pxLQZzGkx2KUMaN+M=
 github.com/ryanbradynd05/go-tmdb v0.0.0-20220721194547-2ab6191c6273/go.mod h1:k/112WTJ3EoR7wjhtx8kOXO22CKNvJy+rNzGPXnuEsI=
+github.com/swithek/sessionup v1.4.1 h1:/XUR/qtIQ+BZ62Ci3ckA+gEOCRCAGclmBTkqxnjQzsc=
+github.com/swithek/sessionup v1.4.1/go.mod h1:2Hw9qm+mH/p/6dEwqYeQl9pee8rqjrYDTJ2XhET9Oyg=
 golang.org/x/crypto v0.1.0 h1:MDRAIl0xIo9Io2xV565hzXHw3zVseKrJKodhohM5CjU=
 golang.org/x/crypto v0.1.0/go.mod h1:RecgLatLF4+eUMCP1PoPZQb+cVrJcOPbHkTkbkB9sbw=
+xojoc.pw/useragent v0.0.0-20170215185434-52903803fc66 h1:j5PlwzvW29USBoG/MvJPT5kDvX+0+lVLlOdnujOlN94=
+xojoc.pw/useragent v0.0.0-20170215185434-52903803fc66/go.mod h1:71om/Qz9HbIEjbUrkrzmJiF26FSh6tcwqSFdBBkLtJQ=

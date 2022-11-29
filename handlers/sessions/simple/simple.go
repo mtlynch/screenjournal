@@ -1,7 +1,6 @@
 package simple
 
 import (
-	"context"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
@@ -74,7 +73,7 @@ func (m manager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
 	}, nil
 }
 
-func (m manager) EndSession(ctx context.Context, w http.ResponseWriter) error {
+func (m manager) EndSession(_ *http.Request, w http.ResponseWriter) error {
 	// The simple manager can't really invalidate sessions because the credentials
 	// are hard-coded and the session token is static, so all we can do is ask the
 	// client to delete their cookie.

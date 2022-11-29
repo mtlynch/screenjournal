@@ -1,7 +1,6 @@
 package sessions
 
 import (
-	"context"
 	"errors"
 	"net/http"
 
@@ -12,7 +11,7 @@ type (
 	Manager interface {
 		CreateSession(http.ResponseWriter, *http.Request, screenjournal.Username) error
 		SessionFromRequest(*http.Request) (Session, error)
-		EndSession(context.Context, http.ResponseWriter) error
+		EndSession(*http.Request, http.ResponseWriter) error
 	}
 
 	Session struct {

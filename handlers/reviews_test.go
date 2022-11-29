@@ -1,7 +1,6 @@
 package handlers_test
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -42,7 +41,7 @@ func (sm mockSessionManager) SessionFromRequest(*http.Request) (sessions.Session
 	}, nil
 }
 
-func (sm mockSessionManager) EndSession(context.Context, http.ResponseWriter) error {
+func (sm mockSessionManager) EndSession(*http.Request, http.ResponseWriter) error {
 	return nil
 }
 

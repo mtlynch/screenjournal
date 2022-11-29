@@ -13,7 +13,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2"
 	simple_auth "github.com/mtlynch/screenjournal/v2/auth/simple"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	simple_sessions "github.com/mtlynch/screenjournal/v2/handlers/sessions/simple"
+	sessions "github.com/mtlynch/screenjournal/v2/handlers/sessions/gorilla"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
@@ -33,7 +33,7 @@ func main() {
 		log.Fatalf("invalid shared secret: %v", err)
 	}
 
-	sessionManager, err := simple_sessions.New(adminUsername, adminPassword)
+	sessionManager, err := sessions.New()
 	if err != nil {
 		log.Fatalf("failed to create session manager: %v", err)
 	}

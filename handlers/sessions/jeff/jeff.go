@@ -12,17 +12,19 @@ import (
 
 type (
 	manager struct {
-		j *jeff.Jeff
+		j             *jeff.Jeff
+		adminUsername screenjournal.Username
 	}
 )
 
-func New() (sessions.Manager, error) {
+func New(adminUsername screenjournal.Username) (sessions.Manager, error) {
 	store := memory.New()
 	options := []func(*jeff.Jeff){jeff.CookieName("token")}
 	options = append(options, extraOptions()...)
 	j := jeff.New(store, options...)
 	return manager{
-		j: j,
+		j:             j,
+		adminUsername: adminUsername,
 	}, nil
 }
 
@@ -36,10 +38,12 @@ func (m manager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
 		return sessions.Session{}, sessions.ErrNotAuthenticated
 	}
 
+	username := screenjournal.Username(string(sess.Key))
+
 	return sessions.Session{
 		UserAuth: screenjournal.UserAuth{
-			Username: screenjournal.Username(string(sess.Key)),
-			IsAdmin:  true, // TODO: Determine this dynamicaly
+			Username: username,
+			IsAdmin:  username.Equal(m.adminUsername),
 		},
 	}, nil
 }

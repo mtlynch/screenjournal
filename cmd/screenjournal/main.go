@@ -33,7 +33,7 @@ func main() {
 		log.Fatalf("invalid shared secret: %v", err)
 	}
 
-	sessionManager, err := jeff_sessions.New()
+	sessionManager, err := jeff_sessions.New(adminUsername)
 	if err != nil {
 		log.Fatalf("failed to create session manager: %v", err)
 	}

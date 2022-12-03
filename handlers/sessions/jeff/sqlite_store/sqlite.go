@@ -8,36 +8,53 @@ import (
 	"time"
 )
 
-// Store satisfies the jeff.Storage interface
-type Store struct {
-	db *sql.DB
-}
+type (
+	Option func(*Store)
+
+	// Store satisfies the jeff.Storage interface
+	Store struct {
+		db              *sql.DB
+		cleanupInterval time.Duration
+		tableName       string
+	}
+)
 
 const sqliteDatetimeFormat = "2006-01-02 15:04:05"
 
-// New initializes a new sqlite Storage for jeff
-func New(db *sql.DB) (*Store, error) {
-	return NewWithCleanupInterval(db, 5*time.Minute)
+// CleanupInterval specifies the interval with which to remove expired sessions
+// from the SQLite database.
+func CleanupInterval(d time.Duration) func(*Store) {
+	return func(s *Store) {
+		s.cleanupInterval = d
+	}
 }
 
-// NewWithCleanupInterval returns a new SQLite3Store instance. The cleanupInterval
-// parameter controls how frequently expired session data is removed by the
-// background cleanup goroutine. Setting it to 0 prevents the cleanup goroutine
-// from running (i.e. expired sessions will not be removed).
-func NewWithCleanupInterval(db *sql.DB, cleanupInterval time.Duration) (*Store, error) {
-	tableName := "sessions" // TODO: Make this an option to New
+// TableName specifies the name to use for the SQLite table to store sessions.
+func TableName(name string) func(*Store) {
+	return func(s *Store) {
+		s.tableName = name
+	}
+}
+
+// New initializes a new sqlite Storage for jeff
+func New(db *sql.DB, opts ...Option) (*Store, error) {
+	s := &Store{db: db}
+
+	s.defaults()
+	for _, o := range opts {
+		o(s)
+	}
+
 	if _, err := db.Exec(fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS %s (
 			key TEXT PRIMARY KEY,
 			value BLOB,
 			expires_at TEXT NOT NULL
-		)`, tableName)); err != nil {
+		)`, s.tableName)); err != nil {
 		return nil, err
 	}
-
-	s := &Store{db: db}
-	if cleanupInterval > 0 {
-		go s.startCleanup(cleanupInterval)
+	if s.cleanupInterval > 0 {
+		go s.startCleanup(s.cleanupInterval)
 	}
 	return s, nil
 }
@@ -66,7 +83,7 @@ func (s *Store) Store(_ context.Context, key, value []byte, exp time.Time) error
 }
 
 // Fetch satisfies the jeff.Store.Fetch method
-func (s *Store) Fetch(ctx context.Context, key []byte) ([]byte, error) {
+func (s *Store) Fetch(_ context.Context, key []byte) ([]byte, error) {
 	var value []byte
 	if err := s.db.QueryRow(`
 	SELECT
@@ -86,22 +103,27 @@ func (s *Store) Fetch(ctx context.Context, key []byte) ([]byte, error) {
 }
 
 // Delete satisfies the jeff.Store.Delete method
-func (s *Store) Delete(ctx context.Context, key []byte) error {
+func (s *Store) Delete(_ context.Context, key []byte) error {
 	_, err := s.db.Exec(`DELETE FROM sessions WHERE key = ?`, string(key))
 	return err
 }
 
-func (p *Store) startCleanup(interval time.Duration) {
+func (s *Store) defaults() {
+	s.cleanupInterval = 5 * time.Minute
+	s.tableName = "sessions"
+}
+
+func (s *Store) startCleanup(interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	for range ticker.C {
-		if err := p.deleteExpired(); err != nil {
+		if err := s.deleteExpired(); err != nil {
 			log.Printf("failed to delete expired sessions from SQLite: %v", err)
 		}
 	}
 }
 
-func (p *Store) deleteExpired() error {
-	_, err := p.db.Exec(`
+func (s *Store) deleteExpired() error {
+	_, err := s.db.Exec(`
 		DELETE FROM
 			sessions
 		WHERE

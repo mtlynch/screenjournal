@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("logs in", async ({ page }) => {
+test("logs in and logs out", async ({ page }) => {
   await page.goto("/");
 
   await page.locator("data-test-id=sign-in-btn").click();
@@ -11,4 +11,10 @@ test("logs in", async ({ page }) => {
   await page.locator("form input[type='submit']").click();
 
   await expect(page).toHaveURL("/reviews");
+
+  await page.locator("#account-dropdown").click();
+  await page.locator("#navbar-log-out").click();
+
+  await expect(page).toHaveURL("/");
+  await expect(page.locator("data-test-id=sign-in-btn")).toBeVisible();
 });

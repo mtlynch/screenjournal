@@ -48,7 +48,7 @@ func (s Server) authDelete() http.HandlerFunc {
 
 func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sess, err := s.sessionManager.SessionFromRequest(r)
+		session, err := s.sessionManager.SessionFromRequest(r)
 		if err == sessions.ErrNotAuthenticated {
 			next.ServeHTTP(w, r)
 			return
@@ -57,7 +57,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), contextKeyUser, sess.UserAuth)
+		ctx := context.WithValue(r.Context(), contextKeyUser, session.UserAuth)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 	return s.sessionManager.WrapRequest(fn)

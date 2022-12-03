@@ -45,6 +45,10 @@ func (sm mockSessionManager) EndSession(*http.Request, http.ResponseWriter) erro
 	return nil
 }
 
+func (sm mockSessionManager) WrapRequest(next http.Handler) http.Handler {
+	return next
+}
+
 type mockMetadataFinder struct {
 	db map[screenjournal.TmdbID]metadata.MovieInfo
 }

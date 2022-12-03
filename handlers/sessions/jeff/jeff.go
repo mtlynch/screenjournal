@@ -48,8 +48,8 @@ func (m manager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
 	}, nil
 }
 
-func (m manager) EndSession(_ *http.Request, w http.ResponseWriter) error {
-	return nil
+func (m manager) EndSession(r *http.Request, w http.ResponseWriter) error {
+	return m.j.Clear(r.Context(), w)
 }
 
 func (m manager) WrapRequest(next http.Handler) http.Handler {

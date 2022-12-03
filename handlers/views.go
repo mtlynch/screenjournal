@@ -60,19 +60,6 @@ func (s Server) logInGet() http.HandlerFunc {
 	}
 }
 
-func (s Server) logOutGet() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := renderTemplate(w, "logout.html", struct {
-			commonProps
-		}{
-			commonProps: makeCommonProps("Log Out", r.Context()),
-		}, template.FuncMap{}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-}
-
 func (s Server) signUpGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := renderTemplate(w, "sign-up.html", struct {

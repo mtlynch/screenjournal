@@ -9,9 +9,10 @@ import (
 )
 
 type (
+	// Option specifies an option to alter the behavior of Store.
 	Option func(*Store)
 
-	// Store satisfies the jeff.Storage interface
+	// Store satisfies the jeff.Storage interface.
 	Store struct {
 		db              *sql.DB
 		cleanupInterval time.Duration
@@ -37,7 +38,7 @@ func TableName(name string) func(*Store) {
 	}
 }
 
-// New initializes a new sqlite Storage for jeff
+// New initializes a new sqlite Storage for jeff.
 func New(db *sql.DB, opts ...Option) (*Store, error) {
 	s := &Store{db: db}
 
@@ -60,7 +61,7 @@ func New(db *sql.DB, opts ...Option) (*Store, error) {
 	return s, nil
 }
 
-// Store satisfies the jeff.Store.Store method
+// Store satisfies the jeff.Store.Store method.
 func (s *Store) Store(_ context.Context, key, value []byte, exp time.Time) error {
 	_, err := s.db.Exec(fmt.Sprintf(`
 		INSERT OR REPLACE INTO
@@ -83,7 +84,7 @@ func (s *Store) Store(_ context.Context, key, value []byte, exp time.Time) error
 	return nil
 }
 
-// Fetch satisfies the jeff.Store.Fetch method
+// Fetch satisfies the jeff.Store.Fetch method.
 func (s *Store) Fetch(_ context.Context, key []byte) ([]byte, error) {
 	var value []byte
 	if err := s.db.QueryRow(fmt.Sprintf(`
@@ -94,7 +95,7 @@ func (s *Store) Fetch(_ context.Context, key []byte) ([]byte, error) {
 	WHERE
 		key = ? AND
 		expires_at > datetime('now', 'localtime')`, s.tableName), string(key)).Scan(&value); err != nil {
-		// Not found sessions must return nil value, nil error
+		// Not found sessions must return nil value, nil error.
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -103,7 +104,7 @@ func (s *Store) Fetch(_ context.Context, key []byte) ([]byte, error) {
 	return value, nil
 }
 
-// Delete satisfies the jeff.Store.Delete method
+// Delete satisfies the jeff.Store.Delete method.
 func (s *Store) Delete(_ context.Context, key []byte) error {
 	_, err := s.db.Exec(`DELETE FROM sessions WHERE key = ?`, string(key))
 	return err

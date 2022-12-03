@@ -33,13 +33,13 @@ func main() {
 		log.Fatalf("invalid shared secret: %v", err)
 	}
 
-	sessionManager, err := jeff_sessions.New(adminUsername)
+	ensureDirExists(filepath.Dir(*dbPath))
+	store := sqlite.New(*dbPath, isLitestreamEnabled())
+
+	sessionManager, err := jeff_sessions.New(adminUsername, *dbPath)
 	if err != nil {
 		log.Fatalf("failed to create session manager: %v", err)
 	}
-
-	ensureDirExists(filepath.Dir(*dbPath))
-	store := sqlite.New(*dbPath, isLitestreamEnabled())
 
 	metadataFinder, err := tmdb.New(requireEnv("SJ_TMDB_API"))
 	if err != nil {

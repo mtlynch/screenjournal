@@ -22,7 +22,7 @@ type (
 const sqliteDatetimeFormat = "2006-01-02 15:04:05"
 
 // CleanupInterval specifies the interval with which to remove expired sessions
-// from the SQLite database.
+// from the SQLite database. Defaults to five minutes.
 func CleanupInterval(d time.Duration) func(*Store) {
 	return func(s *Store) {
 		s.cleanupInterval = d
@@ -30,6 +30,7 @@ func CleanupInterval(d time.Duration) func(*Store) {
 }
 
 // TableName specifies the name to use for the SQLite table to store sessions.
+// Defaults to "sessions".
 func TableName(name string) func(*Store) {
 	return func(s *Store) {
 		s.tableName = name

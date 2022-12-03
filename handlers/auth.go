@@ -47,23 +47,25 @@ func (s Server) authDelete() http.HandlerFunc {
 }
 
 func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, err := s.sessionManager.SessionFromRequest(r)
-		if err == sessions.ErrNotAuthenticated {
-			next.ServeHTTP(w, r)
-			return
-		} else if err != nil {
+	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sess, err := s.sessionManager.SessionFromRequest(r)
+		if err != nil {
 			if err := s.sessionManager.EndSession(r, w); err != nil {
 				log.Printf("error terminating user session: %v", err)
 			}
-			http.Error(w, fmt.Sprintf("Invalid session token: %v", err), http.StatusBadRequest)
-			return
+			if err == sessions.ErrNotAuthenticated {
+				next.ServeHTTP(w, r)
+				return
+			} else {
+				http.Error(w, fmt.Sprintf("Invalid session token: %v", err), http.StatusBadRequest)
+				return
+			}
 		}
 
-		ctx := context.WithValue(r.Context(), contextKeyUser, session.UserAuth)
-
+		ctx := context.WithValue(r.Context(), contextKeyUser, sess.UserAuth)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+	return s.sessionManager.WrapRequest(fn)
 }
 
 func (s Server) requireAuthentication(next http.Handler) http.Handler {

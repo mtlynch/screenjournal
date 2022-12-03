@@ -12,6 +12,7 @@ type (
 		CreateSession(http.ResponseWriter, *http.Request, screenjournal.Username) error
 		SessionFromRequest(*http.Request) (Session, error)
 		EndSession(*http.Request, http.ResponseWriter) error
+		WrapRequest(http.Handler) http.Handler
 	}
 
 	Session struct {

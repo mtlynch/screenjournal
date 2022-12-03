@@ -61,9 +61,9 @@ func New(db *sql.DB, opts ...Option) (*Store, error) {
 
 // Store satisfies the jeff.Store.Store method
 func (s *Store) Store(_ context.Context, key, value []byte, exp time.Time) error {
-	_, err := s.db.Exec(`
+	_, err := s.db.Exec(fmt.Sprintf(`
 		INSERT OR REPLACE INTO
-				sessions
+				%s
 		(
 				key,
 				value,
@@ -74,7 +74,7 @@ func (s *Store) Store(_ context.Context, key, value []byte, exp time.Time) error
 				?,
 				?,
 				?
-		)`,
+		)`, s.tableName),
 		string(key), value, exp.Format(sqliteDatetimeFormat))
 	if err != nil {
 		return err
@@ -85,14 +85,14 @@ func (s *Store) Store(_ context.Context, key, value []byte, exp time.Time) error
 // Fetch satisfies the jeff.Store.Fetch method
 func (s *Store) Fetch(_ context.Context, key []byte) ([]byte, error) {
 	var value []byte
-	if err := s.db.QueryRow(`
+	if err := s.db.QueryRow(fmt.Sprintf(`
 	SELECT
 		value
 	FROM
-		sessions
+		%s
 	WHERE
 		key = ? AND
-		expires_at > datetime('now', 'localtime')`, string(key)).Scan(&value); err != nil {
+		expires_at > datetime('now', 'localtime')`, s.tableName), string(key)).Scan(&value); err != nil {
 		// Not found sessions must return nil value, nil error
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -123,10 +123,10 @@ func (s *Store) startCleanup(interval time.Duration) {
 }
 
 func (s *Store) deleteExpired() error {
-	_, err := s.db.Exec(`
+	_, err := s.db.Exec(fmt.Sprintf(`
 		DELETE FROM
-			sessions
+			%s
 		WHERE
-			expires_at < datetime('now', 'localtime')`)
+			expires_at < datetime('now', 'localtime')`, s.tableName))
 	return err
 }

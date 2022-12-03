@@ -3,6 +3,7 @@ package sqlite_store
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 )
@@ -24,12 +25,13 @@ func New(db *sql.DB) (*Store, error) {
 // background cleanup goroutine. Setting it to 0 prevents the cleanup goroutine
 // from running (i.e. expired sessions will not be removed).
 func NewWithCleanupInterval(db *sql.DB, cleanupInterval time.Duration) (*Store, error) {
-	if _, err := db.Exec(`
-		CREATE TABLE IF NOT EXISTS sessions (
+	tableName := "sessions" // TODO: Make this an option to New
+	if _, err := db.Exec(fmt.Sprintf(`
+		CREATE TABLE IF NOT EXISTS %s (
 			key TEXT PRIMARY KEY,
 			value BLOB,
 			expires_at TEXT NOT NULL
-		)`); err != nil {
+		)`, tableName)); err != nil {
 		return nil, err
 	}
 

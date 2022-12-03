@@ -50,9 +50,6 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sess, err := s.sessionManager.SessionFromRequest(r)
 		if err != nil {
-			if err := s.sessionManager.EndSession(r, w); err != nil {
-				log.Printf("error terminating user session: %v", err)
-			}
 			if err == sessions.ErrNotAuthenticated {
 				next.ServeHTTP(w, r)
 				return

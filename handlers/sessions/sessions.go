@@ -20,4 +20,4 @@ type (
 	}
 )
 
-var ErrNotAuthenticated = errors.New("no auth cookie")
+var ErrNotAuthenticated = errors.New("user has no active screenjournal session")

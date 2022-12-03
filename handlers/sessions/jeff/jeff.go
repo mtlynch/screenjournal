@@ -3,7 +3,6 @@ package jeff
 import (
 	"database/sql"
 	"net/http"
-	"time"
 
 	"github.com/abraithwaite/jeff"
 
@@ -28,7 +27,7 @@ func New(adminUsername screenjournal.Username, dbPath string) (sessions.Manager,
 	if err != nil {
 		return manager{}, err
 	}
-	options := []func(*jeff.Jeff){jeff.CookieName("token"), jeff.Expires(time.Hour * 24 * 90)}
+	options := []func(*jeff.Jeff){jeff.CookieName("token")}
 	options = append(options, extraOptions()...)
 	j := jeff.New(store, options...)
 	return manager{

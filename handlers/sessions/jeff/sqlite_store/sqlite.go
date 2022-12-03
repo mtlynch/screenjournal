@@ -87,7 +87,6 @@ func (s *Store) Fetch(ctx context.Context, key []byte) ([]byte, error) {
 
 // Delete satisfies the jeff.Store.Delete method
 func (s *Store) Delete(ctx context.Context, key []byte) error {
-	log.Printf("deleting session key %v from SQLite store", string(key))
 	_, err := s.db.Exec(`DELETE FROM sessions WHERE key = ?`, string(key))
 	return err
 }
@@ -95,9 +94,8 @@ func (s *Store) Delete(ctx context.Context, key []byte) error {
 func (p *Store) startCleanup(interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	for range ticker.C {
-		err := p.deleteExpired()
-		if err != nil {
-			log.Println(err)
+		if err := p.deleteExpired(); err != nil {
+			log.Printf("failed to delete expired sessions from SQLite: %v", err)
 		}
 	}
 }

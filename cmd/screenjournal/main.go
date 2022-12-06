@@ -13,7 +13,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2"
 	simple_auth "github.com/mtlynch/screenjournal/v2/auth/simple"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	simple_sessions "github.com/mtlynch/screenjournal/v2/handlers/sessions/simple"
+	jeff_sessions "github.com/mtlynch/screenjournal/v2/handlers/sessions/jeff"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
@@ -33,13 +33,13 @@ func main() {
 		log.Fatalf("invalid shared secret: %v", err)
 	}
 
-	sessionManager, err := simple_sessions.New(adminUsername, adminPassword)
+	ensureDirExists(filepath.Dir(*dbPath))
+	store := sqlite.New(*dbPath, isLitestreamEnabled())
+
+	sessionManager, err := jeff_sessions.New(adminUsername, *dbPath)
 	if err != nil {
 		log.Fatalf("failed to create session manager: %v", err)
 	}
-
-	ensureDirExists(filepath.Dir(*dbPath))
-	store := sqlite.New(*dbPath, isLitestreamEnabled())
 
 	metadataFinder, err := tmdb.New(requireEnv("SJ_TMDB_API"))
 	if err != nil {

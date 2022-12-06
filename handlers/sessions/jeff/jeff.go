@@ -49,7 +49,7 @@ func (m manager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
 	username := screenjournal.Username(string(sess.Key))
 
 	return sessions.Session{
-		UserAuth: screenjournal.UserAuth{
+		User: screenjournal.User{
 			Username: username,
 			IsAdmin:  username.Equal(m.adminUsername),
 		},

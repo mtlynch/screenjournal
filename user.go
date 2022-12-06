@@ -4,7 +4,7 @@ type (
 	Username string
 	Password string
 
-	UserAuth struct {
+	User struct {
 		IsAdmin  bool
 		Username Username
 	}
@@ -32,6 +32,6 @@ func (pw Password) Equal(o Password) bool {
 	return pw.String() == o.String()
 }
 
-func (ua UserAuth) IsEmpty() bool {
-	return ua.Username == ""
+func (u User) IsEmpty() bool {
+	return u.Username == ""
 }

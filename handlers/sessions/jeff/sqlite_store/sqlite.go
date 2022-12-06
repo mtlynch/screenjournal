@@ -129,6 +129,6 @@ func (s *Store) deleteExpired() error {
 		DELETE FROM
 			%s
 		WHERE
-			expires_at < datetime('now', 'localtime')`, s.tableName))
+			expires_at <= datetime('now', 'localtime')`, s.tableName))
 	return err
 }

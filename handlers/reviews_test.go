@@ -35,7 +35,7 @@ func (sm mockSessionManager) CreateSession(http.ResponseWriter, *http.Request, s
 
 func (sm mockSessionManager) SessionFromRequest(*http.Request) (sessions.Session, error) {
 	return sessions.Session{
-		UserAuth: screenjournal.UserAuth{
+		User: screenjournal.User{
 			Username: screenjournal.Username("dummyuser"),
 		},
 	}, nil

@@ -57,7 +57,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), contextKeyUser, session.UserAuth)
+		ctx := context.WithValue(r.Context(), contextKeyUser, session.User)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}))
 }
@@ -134,10 +134,10 @@ func isAuthenticated(ctx context.Context) bool {
 	return !user.IsEmpty()
 }
 
-func userFromContext(ctx context.Context) (screenjournal.UserAuth, bool) {
-	user, ok := ctx.Value(contextKeyUser).(screenjournal.UserAuth)
+func userFromContext(ctx context.Context) (screenjournal.User, bool) {
+	user, ok := ctx.Value(contextKeyUser).(screenjournal.User)
 	if !ok {
-		return screenjournal.UserAuth{}, false
+		return screenjournal.User{}, false
 	}
 	return user, true
 }

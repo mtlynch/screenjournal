@@ -36,7 +36,7 @@ func main() {
 	ensureDirExists(filepath.Dir(*dbPath))
 	store := sqlite.New(*dbPath, isLitestreamEnabled())
 
-	sessionManager, err := jeff_sessions.New(adminUsername, *dbPath)
+	sessionManager, err := jeff_sessions.New(*dbPath)
 	if err != nil {
 		log.Fatalf("failed to create session manager: %v", err)
 	}

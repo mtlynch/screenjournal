@@ -23,13 +23,13 @@ import (
 
 type mockAuthenticator struct{}
 
-func (a mockAuthenticator) Authenticate(screenjournal.Username, screenjournal.Password) error {
-	return nil
+func (a mockAuthenticator) Authenticate(screenjournal.Username, screenjournal.Password) (screenjournal.User, error) {
+	return screenjournal.User{}, nil
 }
 
 type mockSessionManager struct{}
 
-func (sm mockSessionManager) CreateSession(http.ResponseWriter, *http.Request, screenjournal.Username) error {
+func (sm mockSessionManager) CreateSession(http.ResponseWriter, *http.Request, screenjournal.User) error {
 	return nil
 }
 

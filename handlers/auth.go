@@ -26,12 +26,13 @@ func (s Server) authPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.authenticator.Authenticate(username, password); err != nil {
+		user, err := s.authenticator.Authenticate(username, password)
+		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid credentials: %v", err), http.StatusUnauthorized)
 			return
 		}
 
-		if err := s.sessionManager.CreateSession(w, r, username); err != nil {
+		if err := s.sessionManager.CreateSession(w, r, user); err != nil {
 			http.Error(w, fmt.Sprintf("Failed to create session: %v", err), http.StatusInternalServerError)
 			return
 		}

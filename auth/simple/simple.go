@@ -9,25 +9,28 @@ import (
 
 type (
 	authenticator struct {
-		username screenjournal.Username
-		password screenjournal.Password
+		adminUsername screenjournal.Username
+		adminPassword screenjournal.Password
 	}
 )
 
-func New(username screenjournal.Username, password screenjournal.Password) (authenticator, error) {
+func New(adminUsername screenjournal.Username, adminPassword screenjournal.Password) (authenticator, error) {
 	return authenticator{
-		username: username,
-		password: password,
+		adminUsername: adminUsername,
+		adminPassword: adminPassword,
 	}, nil
 }
 
-func (a authenticator) Authenticate(username screenjournal.Username, password screenjournal.Password) error {
+func (a authenticator) Authenticate(username screenjournal.Username, password screenjournal.Password) (screenjournal.User, error) {
 	// This is an insecure, placeholder implementation for authentication until we
 	// switch to bcrypt.
-	valid := []byte(a.username.String() + a.password.String())
+	valid := []byte(a.adminUsername.String() + a.adminPassword.String())
 	attempt := []byte(username.String() + password.String())
 	if subtle.ConstantTimeCompare(valid, attempt) != 1 {
-		return auth.ErrInvalidCredentials
+		return screenjournal.User{}, auth.ErrInvalidCredentials
 	}
-	return nil
+	return screenjournal.User{
+		Username: username,
+		IsAdmin:  username.Equal(a.adminUsername),
+	}, nil
 }

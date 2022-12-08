@@ -7,21 +7,27 @@ import (
 
 type (
 	authenticator struct {
-		username     screenjournal.Username
-		passwordHash screenjournal.PasswordHash
+		adminUsername     screenjournal.Username
+		adminPasswordHash screenjournal.PasswordHash
 	}
 )
 
-func New(username screenjournal.Username, password screenjournal.Password) (auth.Authenticator, error) {
+func New(adminUsername screenjournal.Username, adminPassword screenjournal.Password) (auth.Authenticator, error) {
 	return authenticator{
-		username:     username,
-		passwordHash: screenjournal.NewPasswordHash(password),
+		adminUsername:     adminUsername,
+		adminPasswordHash: screenjournal.NewPasswordHash(adminPassword),
 	}, nil
 }
 
-func (a authenticator) Authenticate(username screenjournal.Username, password screenjournal.Password) error {
-	if !a.username.Equal(username) {
-		return auth.ErrInvalidCredentials
+func (a authenticator) Authenticate(username screenjournal.Username, password screenjournal.Password) (screenjournal.User, error) {
+	if !a.adminUsername.Equal(username) {
+		return screenjournal.User{}, auth.ErrInvalidCredentials
 	}
-	return a.passwordHash.MatchesPlaintext(password)
+	if err := a.adminPasswordHash.MatchesPlaintext(password); err != nil {
+		return screenjournal.User{}, err
+	}
+	return screenjournal.User{
+		Username: username,
+		IsAdmin:  username.Equal(a.adminUsername),
+	}, nil
 }

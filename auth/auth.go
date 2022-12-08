@@ -7,7 +7,7 @@ import (
 )
 
 type Authenticator interface {
-	Authenticate(screenjournal.Username, screenjournal.Password) error
+	Authenticate(screenjournal.Username, screenjournal.Password) (screenjournal.User, error)
 }
 
 var ErrInvalidCredentials = errors.New("invalid credentials")

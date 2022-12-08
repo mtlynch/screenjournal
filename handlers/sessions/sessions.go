@@ -9,7 +9,7 @@ import (
 
 type (
 	Manager interface {
-		CreateSession(http.ResponseWriter, *http.Request, screenjournal.Username) error
+		CreateSession(http.ResponseWriter, *http.Request, screenjournal.User) error
 		SessionFromRequest(*http.Request) (Session, error)
 		EndSession(*http.Request, http.ResponseWriter) error
 		WrapRequest(http.Handler) http.Handler

@@ -1,8 +1,16 @@
 package screenjournal
 
+import (
+	"golang.org/x/crypto/bcrypt"
+)
+
 type (
 	Username string
 	Password string
+
+	PasswordHash struct {
+		bytes []byte
+	}
 
 	User struct {
 		IsAdmin  bool
@@ -34,4 +42,22 @@ func (pw Password) Equal(o Password) bool {
 
 func (u User) IsEmpty() bool {
 	return u.Username == ""
+}
+
+func NewPasswordHash(plaintext Password) PasswordHash {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(plaintext.String()), bcrypt.DefaultCost)
+	if err != nil {
+		panic(err)
+	}
+	return PasswordHash{
+		bytes: bytes,
+	}
+}
+
+func (h PasswordHash) MatchesPlaintext(plaintext Password) error {
+	return bcrypt.CompareHashAndPassword(h.bytes, []byte(plaintext.String()))
+}
+
+func (h PasswordHash) String() string {
+	return string(h.bytes)
 }

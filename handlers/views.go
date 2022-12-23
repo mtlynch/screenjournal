@@ -62,6 +62,7 @@ func (s Server) logInGet() http.HandlerFunc {
 
 func (s Server) signUpGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// TODO: Restrict signup to invitations.
 		if err := renderTemplate(w, "sign-up.html", struct {
 			commonProps
 		}{

@@ -14,6 +14,5 @@ func reviewIDFromRequestPath(r *http.Request) (screenjournal.ReviewID, error) {
 }
 
 func usernameFromRequestPath(r *http.Request) (screenjournal.Username, error) {
-	// TODO: Verify this is a real user that exists in the DB.
 	return parse.Username(mux.Vars(r)["username"])
 }

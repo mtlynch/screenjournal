@@ -1,16 +1,99 @@
 {{ define "style-tags" }}
+  <style>
+    @media screen and (min-width: 768px) {
+      #content {
+        max-width: 25%;
+      }
+    }
+  </style>
 {{ end }}
 
 {{ define "script-tags" }}
+  <script type="module">
+    import { register } from "/js/controllers/register.js";
+
+    function setRegisterFormState(isEnabled) {
+      document.querySelectorAll("#register-form input").forEach((el) => {
+        el.disabled = !isEnabled;
+      });
+    }
+
+    function disableRegisterForm() {
+      setRegisterFormState(/* isEnabled= */ false);
+    }
+
+    function enableRegisterForm() {
+      setRegisterFormState(/* isEnabled= */ true);
+    }
+
+    const errorContainer = document.getElementById("error");
+    const registerForm = document.getElementById("register-form");
+
+    registerForm.addEventListener("submit", (evt) => {
+      evt.preventDefault();
+      const username = document.getElementById("username").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const passwordConfirm = document.getElementById("password-confirm").value;
+      errorContainer.classList.add("invisible");
+      disableRegisterForm();
+      register(email, username, password)
+        .then(() => {
+          document.location = "/reviews";
+        })
+        .catch((error) => {
+          errorContainer.innerText = error;
+          errorContainer.classList.remove("invisible");
+          enableRegisterForm();
+        });
+    });
+  </script>
 {{ end }}
 
 {{ define "custom-elements" }}
 {{ end }}
 
 {{ define "content" }}
-  <h1>Not ready yet</h1>
+  <div id="content" class="container p-4 justify-content-center pb-4">
+    <h1>Sign Up</h1>
+    <form id="register-form" class="my-5">
+      <div class="form-outline mb-4">
+        <input type="text" id="username" class="form-control" required />
+        <label class="form-label" for="username">Username</label>
+      </div>
+      <div class="form-outline mb-4">
+        <input type="email" id="email" class="form-control" required />
+        <label class="form-label" for="email">Email Address</label>
+      </div>
+      <div class="form-outline mb-4">
+        <input type="password" id="password" class="form-control" required />
+        <label class="form-label" for="password">Password</label>
+      </div>
+      <div class="form-outline mb-4">
+        <input
+          type="password"
+          id="password-confirm"
+          class="form-control"
+          required
+        />
+        <label class="form-label" for="password-confirm"
+          >Confirm password</label
+        >
+      </div>
 
-  <p>I'm still working on this page. Check back soon!</p>
+      <div class="d-flex justify-content-end">
+        <input
+          type="submit"
+          class="btn btn-primary btn-block mb-4"
+          value="Sign up"
+        />
+      </div>
+    </form>
+
+    <div id="error" class="alert alert-danger invisible" role="alert">
+      Placeholder error
+    </div>
+  </div>
 {{ end }}
 
 {{ template "base.html" }}

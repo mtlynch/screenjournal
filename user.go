@@ -14,9 +14,10 @@ type (
 	}
 
 	User struct {
-		IsAdmin  bool
-		Username Username
-		Email    Email
+		IsAdmin      bool
+		Username     Username
+		Email        Email
+		PasswordHash PasswordHash
 	}
 )
 

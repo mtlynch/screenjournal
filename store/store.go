@@ -21,7 +21,7 @@ type (
 		InsertMovie(screenjournal.Movie) (screenjournal.MovieID, error)
 		UpdateMovie(screenjournal.Movie) error
 		CountUsers() (uint, error)
-		InsertUser(screenjournal.User, screenjournal.PasswordHash) error
+		InsertUser(screenjournal.User) error
 	}
 )
 

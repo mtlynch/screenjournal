@@ -15,7 +15,7 @@ func (db DB) CountUsers() (uint, error) {
 	return c, nil
 }
 
-func (db DB) InsertUser(user screenjournal.User, passwordHash screenjournal.PasswordHash) error {
+func (db DB) InsertUser(user screenjournal.User) error {
 	log.Printf("inserting new user %s, isAdmin=%v", user.Username.String(), user.IsAdmin)
 
 	now := time.Now()
@@ -36,7 +36,7 @@ func (db DB) InsertUser(user screenjournal.User, passwordHash screenjournal.Pass
 	`,
 		user.Username.String(),
 		user.Email.String(),
-		passwordHash.String(),
+		user.PasswordHash.String(),
 		formatTime(now),
 		formatTime(now)); err != nil {
 		return err

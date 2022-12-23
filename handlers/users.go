@@ -32,12 +32,13 @@ func (s Server) usersPut() http.HandlerFunc {
 		}
 
 		user := screenjournal.User{
-			IsAdmin:  c == 0, // First user is automatically admin
-			Username: req.Username,
-			Email:    req.Email,
+			IsAdmin:      c == 0, // First user is automatically admin
+			Email:        req.Email,
+			Username:     req.Username,
+			PasswordHash: req.PasswordHash,
 		}
 
-		if err := s.store.InsertUser(user, req.PasswordHash); err != nil {
+		if err := s.store.InsertUser(user); err != nil {
 			log.Printf("failed to add new user: %v", err)
 			http.Error(w, "Failed to add new user", http.StatusInternalServerError)
 			return

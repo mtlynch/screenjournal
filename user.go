@@ -61,10 +61,20 @@ func NewPasswordHash(plaintext Password) PasswordHash {
 	}
 }
 
+func NewPasswordHashFromBytes(bytes []byte) PasswordHash {
+	return PasswordHash{
+		bytes: bytes,
+	}
+}
+
 func (h PasswordHash) MatchesPlaintext(plaintext Password) error {
 	return bcrypt.CompareHashAndPassword(h.bytes, []byte(plaintext.String()))
 }
 
 func (h PasswordHash) String() string {
 	return string(h.bytes)
+}
+
+func (h PasswordHash) Bytes() []byte {
+	return h.bytes
 }

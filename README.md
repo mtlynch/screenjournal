@@ -30,5 +30,3 @@ ScreenJournal is in pre-alpha state and is not yet documented for other people t
 | -------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `PORT`               | TCP port on which to listen for HTTP connections (defaults to 3001).                                            |
 | `SJ_TMDB_API`        | (required) API key for TMDB. You can obtain a free key at [TMDB](https://www.themoviedb.org/documentation/api). |
-| `SJ_ADMIN_USERNAME`  | (required) Username for admin user. (soon to be removed)                                                        |
-| `SJ_ADMIN_PASSWORD`  | (required) Password for admin user. (soon to be removed)                                                        |

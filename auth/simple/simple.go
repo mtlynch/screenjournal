@@ -1,33 +1,30 @@
 package simple
 
 import (
-	"crypto/subtle"
-
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/auth"
 )
 
 type (
 	authenticator struct {
-		adminUsername screenjournal.Username
-		adminPassword screenjournal.Password
+		adminUsername     screenjournal.Username
+		adminPasswordHash screenjournal.PasswordHash
 	}
 )
 
-func New(adminUsername screenjournal.Username, adminPassword screenjournal.Password) (authenticator, error) {
+func New(adminUsername screenjournal.Username, adminPassword screenjournal.Password) (auth.Authenticator, error) {
 	return authenticator{
-		adminUsername: adminUsername,
-		adminPassword: adminPassword,
+		adminUsername:     adminUsername,
+		adminPasswordHash: screenjournal.NewPasswordHash(adminPassword),
 	}, nil
 }
 
 func (a authenticator) Authenticate(username screenjournal.Username, password screenjournal.Password) (screenjournal.User, error) {
-	// This is an insecure, placeholder implementation for authentication until we
-	// switch to bcrypt.
-	valid := []byte(a.adminUsername.String() + a.adminPassword.String())
-	attempt := []byte(username.String() + password.String())
-	if subtle.ConstantTimeCompare(valid, attempt) != 1 {
+	if !a.adminUsername.Equal(username) {
 		return screenjournal.User{}, auth.ErrInvalidCredentials
+	}
+	if err := a.adminPasswordHash.MatchesPlaintext(password); err != nil {
+		return screenjournal.User{}, err
 	}
 	return screenjournal.User{
 		Username: username,

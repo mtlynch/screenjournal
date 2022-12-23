@@ -41,9 +41,7 @@ func (sm mockSessionManager) SessionFromRequest(*http.Request) (sessions.Session
 	}, nil
 }
 
-func (sm mockSessionManager) EndSession(*http.Request, http.ResponseWriter) error {
-	return nil
-}
+func (sm mockSessionManager) EndSession(*http.Request, http.ResponseWriter) {}
 
 func (sm mockSessionManager) WrapRequest(next http.Handler) http.Handler {
 	return next

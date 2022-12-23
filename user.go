@@ -5,6 +5,7 @@ import (
 )
 
 type (
+	Email    string
 	Username string
 	Password string
 
@@ -15,8 +16,13 @@ type (
 	User struct {
 		IsAdmin  bool
 		Username Username
+		Email    Email
 	}
 )
+
+func (e Email) String() string {
+	return string(e)
+}
 
 func (u Username) String() string {
 	return string(u)

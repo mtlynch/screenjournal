@@ -20,6 +20,8 @@ type (
 		ReadMovieByTmdbID(screenjournal.TmdbID) (screenjournal.Movie, error)
 		InsertMovie(screenjournal.Movie) (screenjournal.MovieID, error)
 		UpdateMovie(screenjournal.Movie) error
+		CountUsers() (uint, error)
+		InsertUser(screenjournal.User, screenjournal.PasswordHash) error
 	}
 )
 

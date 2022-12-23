@@ -66,13 +66,17 @@ func (m manager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
 	}, nil
 }
 
-func (m manager) EndSession(r *http.Request, w http.ResponseWriter) error {
+func (m manager) EndSession(r *http.Request, w http.ResponseWriter) {
 	sess := jeff.ActiveSession(r.Context())
-	if len(sess.Key) == 0 {
-		return nil
+	if len(sess.Key) > 0 {
+		if err := m.j.Delete(r.Context(), sess.Key); err != nil {
+			log.Printf("failed to delete session: %v", err)
+		}
 	}
 
-	return m.j.Delete(r.Context(), sess.Key)
+	if err := m.j.Clear(r.Context(), w); err != nil {
+		log.Printf("failed to clear session: %v", err)
+	}
 }
 
 func (m manager) WrapRequest(next http.Handler) http.Handler {

@@ -35,6 +35,11 @@
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
       const passwordConfirm = document.getElementById("password-confirm").value;
+      if (password !== passwordConfirm) {
+        errorContainer.innerText = "Passwords don't match";
+        errorContainer.classList.remove("invisible");
+        return;
+      }
       errorContainer.classList.add("invisible");
       disableRegisterForm();
       register(email, username, password)

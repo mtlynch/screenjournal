@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { login } from "./helpers/login.js";
+import { registerAsAdmin } from "./helpers/auth.js";
 import { wipeDB } from "./helpers/wipe.js";
 
 test.beforeEach(async ({ page }) => {
   await wipeDB(page);
-  await login(page);
+  await registerAsAdmin(page);
 });
 
 test("adds a new rating and fills in only required fields", async ({
@@ -33,7 +33,7 @@ test("adds a new rating and fills in only required fields", async ({
   const reviewCard = await page.locator(":nth-match(.card, 1)");
   await expect(reviewCard.locator(".card-title")).toHaveText("Slow Learners");
   await expect(reviewCard.locator(".card-subtitle")).toHaveText(
-    /dummyuser watched this .+ ago/,
+    /dummyadmin watched this .+ ago/,
     { useInnerText: true }
   );
   await expect(
@@ -78,7 +78,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
     "Eternal Sunshine of the Spotless Mind"
   );
   await expect(reviewCard.locator(".card-subtitle")).toHaveText(
-    /dummyuser watched this .+ ago/,
+    /dummyadmin watched this .+ ago/,
     { useInnerText: true }
   );
   await expect(
@@ -140,7 +140,7 @@ test("adds a new rating and edits the details", async ({ page }) => {
   await expect(page).toHaveURL("/reviews");
 
   await expect(reviewCard.locator(".card-subtitle")).toHaveText(
-    /dummyuser watched this .+ ago/,
+    /dummyadmin watched this .+ ago/,
     { useInnerText: true }
   );
   await expect(
@@ -192,7 +192,7 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   await expect(page).toHaveURL("/reviews");
 
   await expect(reviewCard.locator(".card-subtitle")).toHaveText(
-    /dummyuser watched this .+ ago/,
+    /dummyadmin watched this .+ ago/,
     { useInnerText: true }
   );
   await expect(

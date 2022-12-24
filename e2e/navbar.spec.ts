@@ -16,7 +16,7 @@ test("navbar updates links based on auth state", async ({ page }) => {
 
   await page.goto("/login");
 
-  await page.locator("id=username").fill("dummyuser");
+  await page.locator("id=username").fill("dummyadmin");
   await page.locator("id=password").fill("dummypass");
   await page.locator("form input[type='submit']").click();
 

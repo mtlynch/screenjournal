@@ -31,8 +31,7 @@ const config: PlaywrightTestConfig = {
   outputDir: "e2e-results/",
 
   webServer: {
-    command:
-      "SJ_ADMIN_USERNAME=dummyuser SJ_ADMIN_PASSWORD=dummypass PORT=6001 ./bin/screenjournal-dev",
+    command: "PORT=6001 ./bin/screenjournal-dev",
     port: 6001,
   },
 };

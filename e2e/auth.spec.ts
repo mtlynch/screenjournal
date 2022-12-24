@@ -50,10 +50,11 @@ test("sign up fails if passwords are different", async ({ page }) => {
   await page.locator("id=email").fill("admin@example.com");
   await page.locator("id=password").fill("dummypass");
   await page.locator("id=password-confirm").fill("otherpass");
+
+  await expect(page.locator("#password-confirm:invalid")).toBeFocused();
+
+  // Submitting form should fail.
   await page.locator("form input[type='submit']").click();
-
-  await expect(page.locator("id=error")).toBeVisible();
-
   await expect(page).toHaveURL("/sign-up");
 });
 
@@ -86,7 +87,9 @@ test("sign up fails if password is too short", async ({ page }) => {
   await page.locator("id=password-confirm").fill("pass");
   await page.locator("form input[type='submit']").click();
 
-  await expect(page.locator("id=error")).toBeVisible();
+  await expect(page.locator("#password:invalid")).toBeFocused();
 
+  // Submitting form should fail.
+  await page.locator("form input[type='submit']").click();
   await expect(page).toHaveURL("/sign-up");
 });

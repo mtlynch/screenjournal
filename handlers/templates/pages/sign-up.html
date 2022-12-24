@@ -29,17 +29,25 @@
     const errorContainer = document.getElementById("error");
     const registerForm = document.getElementById("register-form");
 
+    document
+      .getElementById("password-confirm")
+      .addEventListener("input", (evt) => {
+        const password = document.getElementById("password").value;
+        const passwordConfirm =
+          document.getElementById("password-confirm").value;
+        if (password !== passwordConfirm) {
+          evt.target.setCustomValidity("Passwords don't match");
+        } else {
+          evt.target.setCustomValidity("");
+        }
+      });
+
     registerForm.addEventListener("submit", (evt) => {
       evt.preventDefault();
       const username = document.getElementById("username").value;
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
       const passwordConfirm = document.getElementById("password-confirm").value;
-      if (password !== passwordConfirm) {
-        errorContainer.innerText = "Passwords don't match";
-        errorContainer.classList.remove("invisible");
-        return;
-      }
       errorContainer.classList.add("invisible");
       disableRegisterForm();
       register(email, username, password)
@@ -71,7 +79,13 @@
         <label class="form-label" for="email">Email Address</label>
       </div>
       <div class="form-outline mb-4">
-        <input type="password" id="password" class="form-control" required />
+        <input
+          type="password"
+          id="password"
+          class="form-control"
+          required
+          minlength="8"
+        />
         <label class="form-label" for="password">Password</label>
       </div>
       <div class="form-outline mb-4">
@@ -80,6 +94,7 @@
           id="password-confirm"
           class="form-control"
           required
+          minlength="8"
         />
         <label class="form-label" for="password-confirm"
           >Confirm password</label

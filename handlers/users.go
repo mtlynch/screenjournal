@@ -21,7 +21,7 @@ func (s Server) usersPut() http.HandlerFunc {
 		req, err := newUserFromRequest(r)
 		if err != nil {
 			log.Printf("invalid new user form: %v", err)
-			http.Error(w, fmt.Sprintf("Invalid new user submission: %v", err), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("Signup failed: %v", err), http.StatusBadRequest)
 			return
 		}
 
@@ -46,7 +46,8 @@ func (s Server) usersPut() http.HandlerFunc {
 		}
 
 		if err := s.sessionManager.CreateSession(w, r, user); err != nil {
-			http.Error(w, fmt.Sprintf("Failed to create session: %v", err), http.StatusInternalServerError)
+			log.Printf("failed to create session for new user %+v: %v", user, err)
+			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
 		}
 	}

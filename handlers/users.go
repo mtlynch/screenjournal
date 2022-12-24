@@ -67,8 +67,10 @@ func newUserFromRequest(r *http.Request) (userPutRequest, error) {
 		return userPutRequest{}, err
 	}
 
-	// TODO: Parse email.
-	email := screenjournal.Email(payload.Email)
+	email, err := parse.Email(payload.Email)
+	if err != nil {
+		return userPutRequest{}, err
+	}
 
 	plaintextPassword, err := parse.Password(payload.Password)
 	if err != nil {

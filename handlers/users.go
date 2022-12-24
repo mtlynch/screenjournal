@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 )
 
 type userPutRequest struct {
@@ -69,8 +70,10 @@ func newUserFromRequest(r *http.Request) (userPutRequest, error) {
 	// TODO: Parse email.
 	email := screenjournal.Email(payload.Email)
 
-	// TODO: Enforce password rules.
-	plaintextPassword := screenjournal.Password(payload.Password)
+	plaintextPassword, err := parse.Password(payload.Password)
+	if err != nil {
+		return userPutRequest{}, err
+	}
 
 	return userPutRequest{
 		Email:        email,

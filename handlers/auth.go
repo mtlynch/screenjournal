@@ -22,18 +22,21 @@ func (s Server) authPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		username, password, err := credentialsFromRequest(r)
 		if err != nil {
+			log.Printf("invalid auth request: %v", err)
 			http.Error(w, fmt.Sprintf("Invalid credentials: %v", err), http.StatusBadRequest)
 			return
 		}
 
 		user, err := s.authenticator.Authenticate(username, password)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Invalid credentials: %v", err), http.StatusUnauthorized)
+			log.Printf("auth failed for user %s: %v", username, err)
+			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 			return
 		}
 
 		if err := s.sessionManager.CreateSession(w, r, user); err != nil {
-			http.Error(w, fmt.Sprintf("Failed to create session: %v", err), http.StatusInternalServerError)
+			log.Printf("failed to create session for user %s: %v", user.Username.String(), err)
+			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
 		}
 	}

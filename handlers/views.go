@@ -62,7 +62,6 @@ func (s Server) logInGet() http.HandlerFunc {
 
 func (s Server) signUpGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// TODO: Restrict signup to invitations.
 		templateFilename := "sign-up.html"
 		uc, err := s.store.CountUsers()
 		if err != nil {

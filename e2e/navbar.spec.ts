@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { registerAsAdmin } from "./helpers/auth.js";
+import { wipeDB } from "./helpers/wipe.js";
+
+test.beforeEach(async ({ page }) => {
+  await wipeDB(page);
+});
 
 test("navbar updates links based on auth state", async ({ page }) => {
   await page.goto("/");

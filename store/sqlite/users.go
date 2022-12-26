@@ -2,10 +2,14 @@ package sqlite
 
 import (
 	"database/sql"
+	"errors"
 	"log"
+	"strings"
 	"time"
 
+	"github.com/mattn/go-sqlite3"
 	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/store"
 )
 
 func (db DB) CountUsers() (uint, error) {
@@ -69,6 +73,17 @@ func (db DB) InsertUser(user screenjournal.User) error {
 		encodePasswordHash(user.PasswordHash),
 		formatTime(now),
 		formatTime(now)); err != nil {
+		var sqliteErr sqlite3.Error
+		if errors.As(err, &sqliteErr) {
+			if errors.Is(sqliteErr.Code, sqlite3.ErrConstraint) {
+				if strings.HasSuffix(err.Error(), "users.email") {
+					return store.ErrEmailAssociatedWithAnotherAccount
+				}
+				if strings.HasSuffix(err.Error(), "users.username") {
+					return store.ErrUsernameNotAvailable
+				}
+			}
+		}
 		return err
 	}
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/store"
 )
 
 type userPutRequest struct {
@@ -40,6 +41,11 @@ func (s Server) usersPut() http.HandlerFunc {
 		}
 
 		if err := s.store.InsertUser(user); err != nil {
+			if err == store.ErrEmailAssociatedWithAnotherAccount {
+				http.Error(w, "Failed to add new user", http.StatusConflict)
+			} else if err == store.ErrUsernameNotAvailable {
+				http.Error(w, "Username is not avilable", http.StatusConflict)
+			}
 			log.Printf("failed to add new user: %v", err)
 			http.Error(w, "Failed to add new user", http.StatusInternalServerError)
 			return

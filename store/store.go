@@ -27,6 +27,8 @@ type (
 )
 
 var (
-	ErrMovieNotFound  = errors.New("could not find movie")
-	ErrReviewNotFound = errors.New("could not find review")
+	ErrMovieNotFound                     = errors.New("could not find movie")
+	ErrReviewNotFound                    = errors.New("could not find review")
+	ErrUsernameNotAvailable              = errors.New("username is not available")
+	ErrEmailAssociatedWithAnotherAccount = errors.New("email address is associated with another account")
 )

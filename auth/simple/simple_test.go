@@ -48,7 +48,7 @@ func TestAuthenticate(t *testing.T) {
 			nil,
 		},
 		{
-			"returns ErrInvalidCredentials when password is invalid",
+			"returns ErrIncorrectPassword when password is invalid",
 			mockUserStore{
 				users: []screenjournal.User{
 					{
@@ -60,10 +60,10 @@ func TestAuthenticate(t *testing.T) {
 			screenjournal.Username("dummyuser"),
 			screenjournal.Password("wrongpass"),
 			screenjournal.User{},
-			screenjournal.ErrInvalidCredentials,
+			screenjournal.ErrIncorrectPassword,
 		},
 		{
-			"returns ErrInvalidCredentials when user is not found",
+			"returns ErrUserNotFound when user is not found",
 			mockUserStore{
 				users: []screenjournal.User{
 					{
@@ -75,7 +75,7 @@ func TestAuthenticate(t *testing.T) {
 			screenjournal.Username("madeupuser"),
 			screenjournal.Password("dummy-p@ssword"),
 			screenjournal.User{},
-			screenjournal.ErrInvalidCredentials,
+			screenjournal.ErrUserNotFound,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {

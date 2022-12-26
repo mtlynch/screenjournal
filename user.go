@@ -24,9 +24,8 @@ type (
 )
 
 var (
-	ErrIncorrectPassword  = errors.New("password does not match stored hash")
-	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrUserNotFound       = errors.New("user not found")
+	ErrUserNotFound      = errors.New("user not found")
+	ErrIncorrectPassword = errors.New("password does not match stored hash")
 )
 
 func (e Email) String() string {

@@ -24,16 +24,10 @@ func New(store UserStore) auth.Authenticator {
 func (a authenticator) Authenticate(username screenjournal.Username, password screenjournal.Password) (screenjournal.User, error) {
 	u, err := a.store.ReadUser(username)
 	if err != nil {
-		if err == screenjournal.ErrUserNotFound {
-			return screenjournal.User{}, screenjournal.ErrInvalidCredentials
-		}
 		return screenjournal.User{}, err
 	}
 
 	if err := u.PasswordHash.MatchesPlaintext(password); err != nil {
-		if err == screenjournal.ErrIncorrectPassword {
-			return screenjournal.User{}, screenjournal.ErrInvalidCredentials
-		}
 		return screenjournal.User{}, err
 	}
 

@@ -62,7 +62,18 @@ func (s Server) logInGet() http.HandlerFunc {
 
 func (s Server) signUpGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := renderTemplate(w, "sign-up.html", struct {
+		templateFilename := "sign-up.html"
+		uc, err := s.store.CountUsers()
+		if err != nil {
+			log.Printf("failed to count users: %v", err)
+			http.Error(w, "Failed to load signup template", http.StatusInternalServerError)
+			return
+		}
+
+		if uc > 0 {
+			templateFilename = "sign-up-by-invitation.html"
+		}
+		if err := renderTemplate(w, templateFilename, struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps("Sign Up", r.Context()),

@@ -20,10 +20,15 @@ type (
 		ReadMovieByTmdbID(screenjournal.TmdbID) (screenjournal.Movie, error)
 		InsertMovie(screenjournal.Movie) (screenjournal.MovieID, error)
 		UpdateMovie(screenjournal.Movie) error
+		CountUsers() (uint, error)
+		ReadUser(screenjournal.Username) (screenjournal.User, error)
+		InsertUser(screenjournal.User) error
 	}
 )
 
 var (
-	ErrMovieNotFound  = errors.New("could not find movie")
-	ErrReviewNotFound = errors.New("could not find review")
+	ErrMovieNotFound                     = errors.New("could not find movie")
+	ErrReviewNotFound                    = errors.New("could not find review")
+	ErrUsernameNotAvailable              = errors.New("username is not available")
+	ErrEmailAssociatedWithAnotherAccount = errors.New("email address is associated with another account")
 )

@@ -10,7 +10,6 @@ import (
 
 	gorilla "github.com/mtlynch/gorilla-handlers"
 
-	"github.com/mtlynch/screenjournal/v2"
 	simple_auth "github.com/mtlynch/screenjournal/v2/auth/simple"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	jeff_sessions "github.com/mtlynch/screenjournal/v2/handlers/sessions/jeff"
@@ -25,16 +24,10 @@ func main() {
 	dbPath := flag.String("db", "data/store.db", "path to database")
 	flag.Parse()
 
-	adminUsername := screenjournal.Username(requireEnv("SJ_ADMIN_USERNAME"))
-	adminPassword := screenjournal.Password(requireEnv("SJ_ADMIN_PASSWORD"))
-
-	authenticator, err := simple_auth.New(adminUsername, adminPassword)
-	if err != nil {
-		log.Fatalf("invalid shared secret: %v", err)
-	}
-
 	ensureDirExists(filepath.Dir(*dbPath))
 	store := sqlite.New(*dbPath, isLitestreamEnabled())
+
+	authenticator := simple_auth.New(store)
 
 	sessionManager, err := jeff_sessions.New(*dbPath)
 	if err != nil {

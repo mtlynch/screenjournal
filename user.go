@@ -1,10 +1,13 @@
 package screenjournal
 
 import (
+	"errors"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
 type (
+	Email    string
 	Username string
 	Password string
 
@@ -13,10 +16,21 @@ type (
 	}
 
 	User struct {
-		IsAdmin  bool
-		Username Username
+		IsAdmin      bool
+		Username     Username
+		Email        Email
+		PasswordHash PasswordHash
 	}
 )
+
+var (
+	ErrUserNotFound      = errors.New("user not found")
+	ErrIncorrectPassword = errors.New("password does not match stored hash")
+)
+
+func (e Email) String() string {
+	return string(e)
+}
 
 func (u Username) String() string {
 	return string(u)
@@ -54,10 +68,24 @@ func NewPasswordHash(plaintext Password) PasswordHash {
 	}
 }
 
+func NewPasswordHashFromBytes(bytes []byte) PasswordHash {
+	return PasswordHash{
+		bytes: bytes,
+	}
+}
+
 func (h PasswordHash) MatchesPlaintext(plaintext Password) error {
-	return bcrypt.CompareHashAndPassword(h.bytes, []byte(plaintext.String()))
+	err := bcrypt.CompareHashAndPassword(h.bytes, []byte(plaintext.String()))
+	if err == bcrypt.ErrMismatchedHashAndPassword {
+		return ErrIncorrectPassword
+	}
+	return err
 }
 
 func (h PasswordHash) String() string {
 	return string(h.bytes)
+}
+
+func (h PasswordHash) Bytes() []byte {
+	return h.bytes
 }

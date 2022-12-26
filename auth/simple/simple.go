@@ -6,28 +6,30 @@ import (
 )
 
 type (
+	UserStore interface {
+		ReadUser(screenjournal.Username) (screenjournal.User, error)
+	}
+
 	authenticator struct {
-		adminUsername     screenjournal.Username
-		adminPasswordHash screenjournal.PasswordHash
+		store UserStore
 	}
 )
 
-func New(adminUsername screenjournal.Username, adminPassword screenjournal.Password) (auth.Authenticator, error) {
+func New(store UserStore) auth.Authenticator {
 	return authenticator{
-		adminUsername:     adminUsername,
-		adminPasswordHash: screenjournal.NewPasswordHash(adminPassword),
-	}, nil
+		store: store,
+	}
 }
 
 func (a authenticator) Authenticate(username screenjournal.Username, password screenjournal.Password) (screenjournal.User, error) {
-	if !a.adminUsername.Equal(username) {
-		return screenjournal.User{}, auth.ErrInvalidCredentials
-	}
-	if err := a.adminPasswordHash.MatchesPlaintext(password); err != nil {
+	u, err := a.store.ReadUser(username)
+	if err != nil {
 		return screenjournal.User{}, err
 	}
-	return screenjournal.User{
-		Username: username,
-		IsAdmin:  username.Equal(a.adminUsername),
-	}, nil
+
+	if err := u.PasswordHash.MatchesPlaintext(password); err != nil {
+		return screenjournal.User{}, err
+	}
+
+	return u, nil
 }

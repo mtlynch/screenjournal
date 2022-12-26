@@ -3,6 +3,22 @@
 # Populate database with test data
 
 sqlite3 data/store.db <<EOF
+INSERT INTO users (
+    username,
+    is_admin,
+    email,
+    password_hash,
+    created_time,
+    last_modified_time
+) VALUES (
+    "mike",
+    1,
+    "mike@example.com",
+    "\$2a\$10\$J5zqqeQgH80ScyOSeCNCD.1V3ApJ1ULYMwMEhOjG6j4SM1mqL84YO", -- Hash of "password"
+    "2022-09-25T00:00:00-05:00",
+    "2022-10-29T00:00:00-05:00"
+);
+
 INSERT INTO movies (
     tmdb_id,
     imdb_id,

@@ -1,4 +1,10 @@
 import { test, expect } from "@playwright/test";
+import { registerAsAdmin } from "./helpers/auth.js";
+import { wipeDB } from "./helpers/wipe.js";
+
+test.beforeEach(async ({ page }) => {
+  await wipeDB(page);
+});
 
 test("navbar updates links based on auth state", async ({ page }) => {
   await page.goto("/");
@@ -14,13 +20,7 @@ test("navbar updates links based on auth state", async ({ page }) => {
 
   await expect(page.locator(".navbar").getByText("Account")).toHaveCount(0);
 
-  await page.goto("/login");
-
-  await page.locator("id=username").fill("dummyuser");
-  await page.locator("id=password").fill("dummypass");
-  await page.locator("form input[type='submit']").click();
-
-  await expect(page).toHaveURL("/reviews");
+  await registerAsAdmin(page);
 
   await page.locator(".navbar-brand").click();
   await expect(page).toHaveURL("/reviews");

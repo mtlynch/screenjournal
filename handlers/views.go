@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -84,6 +85,34 @@ func (s Server) signUpGet() http.HandlerFunc {
 
 		// TODO: Check for an invite code
 
+		inviteCode, err := inviteCodeFromQueryParams(r)
+		if err != nil {
+			log.Printf("invalid invite code: %v", err)
+			http.Error(w, "Invalid invite code", http.StatusBadRequest)
+			return
+		}
+
+		var invite screenjournal.SignupInvitation
+
+		if inviteCode != "" {
+			// TODO: Check invite code in data store
+			findInvite := func(code screenjournal.InviteCode) (screenjournal.SignupInvitation, error) {
+				for _, invite := range devInvites {
+					if invite.InviteCode == code {
+						return invite, nil
+					}
+				}
+				return screenjournal.SignupInvitation{}, errors.New("invite code does not exist")
+			}
+
+			invite, err = findInvite(inviteCode)
+			if err != nil {
+				log.Printf("invalid invite code: %v", err)
+				http.Error(w, "Invalid invite code", http.StatusUnauthorized)
+				return
+			}
+		}
+
 		uc, err := s.store.CountUsers()
 		if err != nil {
 			log.Printf("failed to count users: %v", err)
@@ -91,13 +120,15 @@ func (s Server) signUpGet() http.HandlerFunc {
 			return
 		}
 
-		if uc > 0 {
+		if uc > 0 && invite.Empty() {
 			templateFilename = "sign-up-by-invitation.html"
 		}
 		if err := renderTemplate(w, templateFilename, struct {
 			commonProps
+			Invitee screenjournal.Invitee
 		}{
 			commonProps: makeCommonProps("Sign Up", r.Context()),
+			Invitee:     invite.Invitee,
 		}, template.FuncMap{}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

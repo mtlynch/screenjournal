@@ -16,3 +16,8 @@ func reviewIDFromRequestPath(r *http.Request) (screenjournal.ReviewID, error) {
 func usernameFromRequestPath(r *http.Request) (screenjournal.Username, error) {
 	return parse.Username(mux.Vars(r)["username"])
 }
+
+func inviteCodeFromQueryParams(r *http.Request) (screenjournal.InviteCode, error) {
+	// TODO: Parse for real
+	return screenjournal.InviteCode(r.URL.Query().Get("invite")), nil
+}

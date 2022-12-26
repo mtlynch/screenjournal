@@ -210,7 +210,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				}
 			}
 			if !found {
-				t.Fatalf("did not find expected review: %s", tt.expected.Movie.Title)
+				t.Fatalf("did not find expected review: %s, datastore reviews=%+v", tt.expected.Movie.Title, rr)
 			}
 		})
 	}

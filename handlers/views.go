@@ -22,6 +22,23 @@ type commonProps struct {
 	IsAdmin         bool
 }
 
+// devInvites are temporary, hardcoded invites until I implement SQLite handlers
+// for invites.
+var devInvites []screenjournal.SignupInvitation
+
+func init() {
+	devInvites = []screenjournal.SignupInvitation{
+		{
+			Invitee:    screenjournal.Invitee("Alice"),
+			InviteCode: screenjournal.InviteCode("abc123"),
+		},
+		{
+			Invitee:    screenjournal.Invitee("Bob"),
+			InviteCode: screenjournal.InviteCode("def456"),
+		},
+	}
+}
+
 func (s Server) indexGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := renderTemplate(w, "index.html", struct {
@@ -64,6 +81,9 @@ func (s Server) logInGet() http.HandlerFunc {
 func (s Server) signUpGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		templateFilename := "sign-up.html"
+
+		// TODO: Check for an invite code
+
 		uc, err := s.store.CountUsers()
 		if err != nil {
 			log.Printf("failed to count users: %v", err)
@@ -240,10 +260,13 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 
 func (s Server) invitesGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		if err := renderTemplate(w, "invites.html", struct {
 			commonProps
+			Invites []screenjournal.SignupInvitation
 		}{
 			commonProps: makeCommonProps("Invites", r.Context()),
+			Invites:     devInvites,
 		}, template.FuncMap{}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

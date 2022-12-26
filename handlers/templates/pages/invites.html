@@ -16,6 +16,32 @@
     data-test-id="create-invite"
     >Create Invite Link</a
   >
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Invitee</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range .Invites }}
+        <tr>
+          <td>
+            <a href="/sign-up?invite={{ .InviteCode }}">{{ .Invitee }}</a>
+          </td>
+
+          <td>
+            <a href="/admin/invites/{{ .InviteCode }}/edit">
+              <i class="fas fa-edit"></i>
+            </a>
+            <button>
+              <i class="fas fa-copy"></i>
+            </button>
+          </td>
+        </tr>
+      {{ end }}
+    </tbody>
+  </table>
 {{ end }}
 
 {{ template "base.html" }}

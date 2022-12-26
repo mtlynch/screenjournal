@@ -27,9 +27,12 @@ func (a mockAuthenticator) Authenticate(screenjournal.Username, screenjournal.Pa
 	return screenjournal.User{}, nil
 }
 
-type mockSessionManager struct{}
+type mockSessionManager struct {
+	lastSession screenjournal.User
+}
 
-func (sm mockSessionManager) CreateSession(http.ResponseWriter, *http.Request, screenjournal.User) error {
+func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, r *http.Request, user screenjournal.User) error {
+	sm.lastSession = user
 	return nil
 }
 
@@ -181,7 +184,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				}
 			}
 
-			s := handlers.New(mockAuthenticator{}, mockSessionManager{}, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo))
+			s := handlers.New(mockAuthenticator{}, &mockSessionManager{}, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo))
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
 			if err != nil {
@@ -250,7 +253,7 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			s := handlers.New(mockAuthenticator{}, mockSessionManager{}, dataStore, mockMetadataFinder{})
+			s := handlers.New(mockAuthenticator{}, &mockSessionManager{}, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
 			if err != nil {
@@ -393,7 +396,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				}
 			}
 
-			s := handlers.New(mockAuthenticator{}, mockSessionManager{}, dataStore, mockMetadataFinder{})
+			s := handlers.New(mockAuthenticator{}, &mockSessionManager{}, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {
@@ -671,7 +674,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 				}
 			}
 
-			s := handlers.New(mockAuthenticator{}, mockSessionManager{}, dataStore, mockMetadataFinder{})
+			s := handlers.New(mockAuthenticator{}, &mockSessionManager{}, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {

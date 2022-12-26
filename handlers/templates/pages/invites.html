@@ -1,0 +1,21 @@
+{{ define "style-tags" }}
+{{ end }}
+
+{{ define "script-tags" }}
+{{ end }}
+
+{{ define "custom-elements" }}
+{{ end }}
+
+{{ define "content" }}
+  <h1>{{ .Title }}</h1>
+
+  <a
+    href="/admin/invites/new"
+    class="btn btn-primary my-3"
+    data-test-id="create-invite"
+    >Create Invite Link</a
+  >
+{{ end }}
+
+{{ template "base.html" }}

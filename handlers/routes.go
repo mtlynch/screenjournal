@@ -12,6 +12,7 @@ func (s *Server) routes() {
 	adminApis.Use(s.requireAuthentication)
 	adminApis.Use(s.requireAdmin)
 	adminApis.HandleFunc("/repopulate-movies", s.repopulateMoviesGet()).Methods(http.MethodGet)
+	adminApis.HandleFunc("/invites", s.invitesPost()).Methods(http.MethodPost)
 
 	authenticatedApis := s.router.PathPrefix("/api").Subrouter()
 	authenticatedApis.Use(s.requireAuthentication)
@@ -23,6 +24,12 @@ func (s *Server) routes() {
 	static.PathPrefix("/css/").HandlerFunc(serveStaticResource()).Methods(http.MethodGet)
 	static.PathPrefix("/js/").HandlerFunc(serveStaticResource()).Methods(http.MethodGet)
 	static.PathPrefix("/third-party/").HandlerFunc(serveStaticResource()).Methods(http.MethodGet)
+
+	adminViews := s.router.PathPrefix("/admin").Subrouter()
+	adminViews.Use(s.requireAuthentication)
+	adminViews.Use(s.requireAdmin)
+	adminViews.HandleFunc("/invites", s.invitesGet()).Methods(http.MethodGet)
+	adminViews.HandleFunc("/invites/new", s.invitesNewGet()).Methods(http.MethodGet)
 
 	authenticatedViews := s.router.PathPrefix("/").Subrouter()
 	authenticatedViews.Use(s.requireAuthentication)

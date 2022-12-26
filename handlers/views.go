@@ -19,6 +19,7 @@ import (
 type commonProps struct {
 	Title           string
 	IsAuthenticated bool
+	IsAdmin         bool
 }
 
 func (s Server) indexGet() http.HandlerFunc {
@@ -237,10 +238,37 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) invitesGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := renderTemplate(w, "invites.html", struct {
+			commonProps
+		}{
+			commonProps: makeCommonProps("Invites", r.Context()),
+		}, template.FuncMap{}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func (s Server) invitesNewGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := renderTemplate(w, "invites-new.html", struct {
+			commonProps
+		}{
+			commonProps: makeCommonProps("Create Invite Link", r.Context()),
+		}, template.FuncMap{}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func makeCommonProps(title string, ctx context.Context) commonProps {
 	return commonProps{
 		Title:           title,
 		IsAuthenticated: isAuthenticated(ctx),
+		IsAdmin:         isAdmin(ctx),
 	}
 }
 

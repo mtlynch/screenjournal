@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
@@ -31,18 +30,6 @@ func (s Server) usersPut() http.HandlerFunc {
 		if err != nil {
 			log.Printf("failed to query user count: %v", err)
 			http.Error(w, "Failed to query user count", http.StatusInternalServerError)
-			return
-		}
-
-		// Temporary hack to prevent users from signing up in production without
-		// breaking unit tests.
-		maxUsers := 3
-		if os.Getenv("SJ_BEHIND_PROXY") != "" {
-			maxUsers = 1
-		}
-
-		if c >= uint(maxUsers) {
-			http.Error(w, "Signups are temporarily locked", http.StatusForbidden)
 			return
 		}
 

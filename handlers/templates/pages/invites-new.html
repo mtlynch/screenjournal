@@ -1,0 +1,31 @@
+{{ define "style-tags" }}
+{{ end }}
+
+{{ define "script-tags" }}
+{{ end }}
+
+{{ define "custom-elements" }}
+{{ end }}
+
+{{ define "content" }}
+  <h1>{{ .Title }}</h1>
+
+  <form id="create-invite" class="my-5">
+    <div class="mb-3">
+      <label for="invitee" class="form-label">Invitee's name</label>
+      <input id="invitee" type="text" required />
+    </div>
+
+    <input type="submit" class="btn btn-primary" value="Create" />
+  </form>
+
+  <div id="submit-spinner" class="spinner-border invisible" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+
+  <div id="error" class="alert alert-danger invisible" role="alert">
+    Placeholder error
+  </div>
+{{ end }}
+
+{{ template "base.html" }}

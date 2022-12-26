@@ -52,6 +52,28 @@
             </ul>
           </li>
         </ul>
+
+        {{ if .IsAdmin }}
+          <ul class="navbar-nav">
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="admin-dropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Admin
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="account-dropdown">
+                <li>
+                  <a href="/admin/invites" class="dropdown-item">Invites</a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        {{ end }}
       {{ else }}
         <div class="ms-auto">
           <a

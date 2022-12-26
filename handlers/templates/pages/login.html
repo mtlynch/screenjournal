@@ -1,4 +1,11 @@
 {{ define "style-tags" }}
+  <style>
+    @media screen and (min-width: 768px) {
+      #content {
+        max-width: 25%;
+      }
+    }
+  </style>
 {{ end }}
 
 {{ define "script-tags" }}
@@ -46,7 +53,7 @@
 {{ end }}
 
 {{ define "content" }}
-  <div class="container w-25 p-4 justify-content-center pb-4">
+  <div id="content" class="container p-4 justify-content-center pb-4">
     <h1>Sign in</h1>
     <form id="auth-form" class="my-5">
       <div class="form-outline mb-4">
@@ -54,7 +61,13 @@
         <label class="form-label" for="username">Username</label>
       </div>
       <div class="form-outline mb-4">
-        <input type="password" id="password" class="form-control" required />
+        <input
+          type="password"
+          id="password"
+          class="form-control"
+          required
+          minlength="8"
+        />
         <label class="form-label" for="password">Password</label>
       </div>
       <div class="row mb-4">

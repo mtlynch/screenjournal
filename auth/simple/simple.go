@@ -3,28 +3,37 @@ package simple
 import (
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/auth"
-	"github.com/mtlynch/screenjournal/v2/store"
 )
 
 type (
+	UserStore interface {
+		ReadUser(screenjournal.Username) (screenjournal.User, error)
+	}
+
 	authenticator struct {
-		store store.Store
+		store UserStore
 	}
 )
 
-func New(store store.Store) (auth.Authenticator, error) {
+func New(store UserStore) auth.Authenticator {
 	return authenticator{
 		store: store,
-	}, nil
+	}
 }
 
 func (a authenticator) Authenticate(username screenjournal.Username, password screenjournal.Password) (screenjournal.User, error) {
 	u, err := a.store.ReadUser(username)
 	if err != nil {
+		if err == screenjournal.ErrUserNotFound {
+			return screenjournal.User{}, screenjournal.ErrInvalidCredentials
+		}
 		return screenjournal.User{}, err
 	}
 
 	if err := u.PasswordHash.MatchesPlaintext(password); err != nil {
+		if err == screenjournal.ErrIncorrectPassword {
+			return screenjournal.User{}, screenjournal.ErrInvalidCredentials
+		}
 		return screenjournal.User{}, err
 	}
 

@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"database/sql"
 	"log"
 	"time"
 
@@ -16,22 +17,26 @@ func (db DB) CountUsers() (uint, error) {
 }
 
 func (db DB) ReadUser(username screenjournal.Username) (screenjournal.User, error) {
+	var isAdmin bool
 	var email string
 	var passwordHashEncoded string
 	if err := db.ctx.QueryRow(`
 	SELECT
+		is_admin,
 		email,
 		password_hash
 	FROM
 		users
 	WHERE
-		username = ?`, username.String()).Scan(&email, &passwordHashEncoded); err != nil {
+		username = ?`, username.String()).Scan(&isAdmin, &email, &passwordHashEncoded); err != nil {
+		if err == sql.ErrNoRows {
+			return screenjournal.User{}, screenjournal.ErrUserNotFound
+		}
 		return screenjournal.User{}, err
 	}
 
-	// TODO: read isadmin
-
 	return screenjournal.User{
+		IsAdmin:      isAdmin,
 		Username:     screenjournal.Username(username),
 		Email:        screenjournal.Email(email),
 		PasswordHash: decodePasswordHash(passwordHashEncoded),
@@ -43,23 +48,23 @@ func (db DB) InsertUser(user screenjournal.User) error {
 
 	now := time.Now()
 
-	// TODO: Set isadmin
-
 	if _, err := db.ctx.Exec(`
 	INSERT INTO
 		users
 	(
 		username,
+		is_admin,
 		email,
 		password_hash,
 		created_time,
 		last_modified_time
 	)
 	VALUES (
-		?, ?, ?, ?, ?
+		?, ?, ?, ?, ?, ?
 	)
 	`,
 		user.Username.String(),
+		user.IsAdmin,
 		user.Email.String(),
 		encodePasswordHash(user.PasswordHash),
 		formatTime(now),

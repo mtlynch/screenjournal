@@ -27,10 +27,7 @@ func main() {
 	ensureDirExists(filepath.Dir(*dbPath))
 	store := sqlite.New(*dbPath, isLitestreamEnabled())
 
-	authenticator, err := simple_auth.New(store)
-	if err != nil {
-		log.Fatalf("failed to create authenticator: %v", err)
-	}
+	authenticator := simple_auth.New(store)
 
 	sessionManager, err := jeff_sessions.New(*dbPath)
 	if err != nil {

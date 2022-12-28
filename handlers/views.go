@@ -23,23 +23,6 @@ type commonProps struct {
 	IsAdmin         bool
 }
 
-// devInvites are temporary, hardcoded invites until I implement SQLite handlers
-// for invites.
-var devInvites []screenjournal.SignupInvitation
-
-func init() {
-	devInvites = []screenjournal.SignupInvitation{
-		{
-			Invitee:    screenjournal.Invitee("Alice"),
-			InviteCode: screenjournal.InviteCode("abc123"),
-		},
-		{
-			Invitee:    screenjournal.Invitee("Bob"),
-			InviteCode: screenjournal.InviteCode("def456"),
-		},
-	}
-}
-
 func (s Server) indexGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := renderTemplate(w, "index.html", struct {
@@ -83,8 +66,6 @@ func (s Server) signUpGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		templateFilename := "sign-up.html"
 
-		// TODO: Check for an invite code
-
 		inviteCode, err := inviteCodeFromQueryParams(r)
 		if err != nil {
 			log.Printf("invalid invite code: %v", err)
@@ -95,9 +76,15 @@ func (s Server) signUpGet() http.HandlerFunc {
 		var invite screenjournal.SignupInvitation
 
 		if inviteCode != "" {
-			// TODO: Check invite code in data store
+			invites, err := s.store.ReadSignupInvitations()
+			if err != nil {
+				log.Printf("failed to read signup invitations: %v", err)
+				http.Error(w, "Failed to read signup invitations", http.StatusInternalServerError)
+				return
+			}
+
 			findInvite := func(code screenjournal.InviteCode) (screenjournal.SignupInvitation, error) {
-				for _, invite := range devInvites {
+				for _, invite := range invites {
 					if invite.InviteCode == code {
 						return invite, nil
 					}
@@ -291,13 +278,18 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 
 func (s Server) invitesGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		invites, err := s.store.ReadSignupInvitations()
+		if err != nil {
+			log.Printf("failed to read signup invitations: %v", err)
+			http.Error(w, "Failed to read signup invitations", http.StatusInternalServerError)
+			return
+		}
 		if err := renderTemplate(w, "invites.html", struct {
 			commonProps
 			Invites []screenjournal.SignupInvitation
 		}{
 			commonProps: makeCommonProps("Invites", r.Context()),
-			Invites:     devInvites,
+			Invites:     invites,
 		}, template.FuncMap{}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

@@ -116,7 +116,11 @@ func (s Server) signUpGet() http.HandlerFunc {
 		}{
 			commonProps: makeCommonProps("Sign Up", r.Context()),
 			Invitee:     invite.Invitee,
-		}, template.FuncMap{}); err != nil {
+		}, template.FuncMap{
+			"toLower": func(s string) string {
+				return strings.ToLower(s)
+			},
+		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

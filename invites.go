@@ -26,6 +26,14 @@ func NewInviteCode() InviteCode {
 	return InviteCode(random.String(6, charset))
 }
 
+func (ic InviteCode) String() string {
+	return string(ic)
+}
+
+func (ic InviteCode) Empty() bool {
+	return ic.String() == ""
+}
+
 func (si SignupInvitation) Empty() bool {
 	return si.Invitee.Empty()
 }

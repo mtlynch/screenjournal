@@ -48,9 +48,12 @@
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
       const passwordConfirm = document.getElementById("password-confirm").value;
+      const inviteCode = new URLSearchParams(window.location.search).get(
+        "invite"
+      );
       errorContainer.classList.add("invisible");
       disableRegisterForm();
-      register(email, username, password)
+      register(email, username, password, inviteCode)
         .then(() => {
           document.location = "/reviews";
         })
@@ -77,7 +80,13 @@
     {{ end }}
     <form id="register-form" class="my-5">
       <div class="form-outline mb-4">
-        <input type="text" id="username" class="form-control" required />
+        <input
+          type="text"
+          id="username"
+          class="form-control"
+          required
+          {{ if .Invitee }}value="{{ .Invitee.String | toLower }}"{{ end }}
+        />
         <label class="form-label" for="username">Username</label>
       </div>
       <div class="form-outline mb-4">

@@ -25,6 +25,7 @@ type (
 		InsertUser(screenjournal.User) error
 		InsertSignupInvitation(screenjournal.SignupInvitation) error
 		ReadSignupInvitations() ([]screenjournal.SignupInvitation, error)
+		DeleteSignupInvitation(screenjournal.InviteCode) error
 	}
 )
 

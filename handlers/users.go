@@ -15,6 +15,7 @@ type userPutRequest struct {
 	Email        screenjournal.Email
 	Username     screenjournal.Username
 	PasswordHash screenjournal.PasswordHash
+	InviteCode   screenjournal.InviteCode
 }
 
 func (s Server) usersPut() http.HandlerFunc {
@@ -40,6 +41,12 @@ func (s Server) usersPut() http.HandlerFunc {
 			PasswordHash: req.PasswordHash,
 		}
 
+		if c >= 1 && req.InviteCode.Empty() {
+			log.Printf("signup attempt when there are %d users but no invite code", c)
+			http.Error(w, "Invite code required for signup", http.StatusForbidden)
+			return
+		}
+
 		if err := s.store.InsertUser(user); err != nil {
 			if err == store.ErrEmailAssociatedWithAnotherAccount {
 				http.Error(w, "Failed to add new user", http.StatusConflict)
@@ -56,6 +63,13 @@ func (s Server) usersPut() http.HandlerFunc {
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
 		}
+
+		if !req.InviteCode.Empty() {
+			if err := s.store.DeleteSignupInvitation(req.InviteCode); err != nil {
+				log.Printf("failed to delete used signup invitation code: %v", err)
+			}
+		}
+
 	}
 }
 
@@ -66,8 +80,9 @@ func newUserFromRequest(r *http.Request) (userPutRequest, error) {
 	}
 
 	var payload struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email      string `json:"email"`
+		Password   string `json:"password"`
+		InviteCode string `json:"inviteCode"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		log.Printf("failed to decode JSON request: %v", err)
@@ -84,9 +99,17 @@ func newUserFromRequest(r *http.Request) (userPutRequest, error) {
 		return userPutRequest{}, err
 	}
 
+	var inviteCode screenjournal.InviteCode
+	if payload.InviteCode != "" {
+		if inviteCode, err = parse.InviteCode(payload.InviteCode); err != nil {
+			return userPutRequest{}, err
+		}
+	}
+
 	return userPutRequest{
 		Email:        email,
 		Username:     username,
 		PasswordHash: screenjournal.NewPasswordHash(plaintextPassword),
+		InviteCode:   inviteCode,
 	}, nil
 }

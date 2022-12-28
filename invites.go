@@ -1,5 +1,7 @@
 package screenjournal
 
+import "github.com/mtlynch/screenjournal/v2/random"
+
 type (
 	Invitee    string
 	InviteCode string
@@ -16,6 +18,12 @@ func (i Invitee) String() string {
 
 func (i Invitee) Empty() bool {
 	return i.String() == ""
+}
+
+func NewInviteCode() InviteCode {
+	// Alphanumeric characters, with commonly-confused characters removed.
+	charset := []rune("ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789")
+	return InviteCode(random.String(6, charset))
 }
 
 func (si SignupInvitation) Empty() bool {

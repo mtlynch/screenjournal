@@ -2,6 +2,43 @@
 {{ end }}
 
 {{ define "script-tags" }}
+  <script type="module">
+    import { createInvite } from "/js/controllers/invites.js";
+    import { showElement, hideElement } from "/js/lib/bootstrap.js";
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      function () {
+        const errorAlert = document.getElementById("error");
+        const submitSpinner = document.getElementById("submit-spinner");
+        const submitBtn = document.querySelector("form .btn-primary");
+
+        document
+          .getElementById("create-invite")
+          .addEventListener("submit", (evt) => {
+            evt.preventDefault();
+
+            submitBtn.disabled = true;
+            hideElement(errorAlert);
+            showElement(submitSpinner);
+
+            createInvite(document.getElementById("invitee").value)
+              .then(() => {
+                window.location.pathname = `/admin/invites`;
+              })
+              .catch((error) => {
+                errorAlert.innerText = error;
+                showElement(errorAlert);
+              })
+              .finally(() => {
+                hideElement(submitSpinner);
+                submitBtn.disabled = false;
+              });
+          });
+      },
+      false
+    );
+  </script>
 {{ end }}
 
 {{ define "custom-elements" }}

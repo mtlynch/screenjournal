@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -43,7 +42,7 @@ func (s Server) usersPut() http.HandlerFunc {
 		}
 
 		if c >= 1 {
-			if err := s.isValidInviteCode(req.InviteCode); err != nil {
+			if _, err := s.store.ReadSignupInvitation(req.InviteCode); err != nil {
 				log.Printf("invalid invite code: %v", err)
 				http.Error(w, "Invalid invite code", http.StatusForbidden)
 				return
@@ -74,19 +73,6 @@ func (s Server) usersPut() http.HandlerFunc {
 		}
 
 	}
-}
-
-func (s Server) isValidInviteCode(code screenjournal.InviteCode) error {
-	invitations, err := s.store.ReadSignupInvitations()
-	if err != nil {
-		return err
-	}
-	for _, si := range invitations {
-		if si.InviteCode.Equal(code) {
-			return nil
-		}
-	}
-	return errors.New("invite code not found")
 }
 
 func newUserFromRequest(r *http.Request) (userPutRequest, error) {

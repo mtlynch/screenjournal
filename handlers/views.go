@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"embed"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -74,25 +73,8 @@ func (s Server) signUpGet() http.HandlerFunc {
 		}
 
 		var invite screenjournal.SignupInvitation
-
-		if inviteCode != "" {
-			invites, err := s.store.ReadSignupInvitations()
-			if err != nil {
-				log.Printf("failed to read signup invitations: %v", err)
-				http.Error(w, "Failed to read signup invitations", http.StatusInternalServerError)
-				return
-			}
-
-			findInvite := func(code screenjournal.InviteCode) (screenjournal.SignupInvitation, error) {
-				for _, invite := range invites {
-					if invite.InviteCode == code {
-						return invite, nil
-					}
-				}
-				return screenjournal.SignupInvitation{}, errors.New("invite code does not exist")
-			}
-
-			invite, err = findInvite(inviteCode)
+		if !inviteCode.Empty() {
+			invite, err = s.store.ReadSignupInvitation(inviteCode)
 			if err != nil {
 				log.Printf("invalid invite code: %v", err)
 				http.Error(w, "Invalid invite code", http.StatusUnauthorized)

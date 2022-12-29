@@ -27,6 +27,24 @@ func (d DB) InsertSignupInvitation(invite screenjournal.SignupInvitation) error 
 	return nil
 }
 
+func (d DB) ReadSignupInvitation(code screenjournal.InviteCode) (screenjournal.SignupInvitation, error) {
+	var invitee string
+	if err := d.ctx.QueryRow(`
+		SELECT
+			invitee
+		FROM
+			invites
+		WHERE
+			code = ?`, code).Scan(&invitee); err != nil {
+		return screenjournal.SignupInvitation{}, err
+	}
+
+	return screenjournal.SignupInvitation{
+		Invitee:    screenjournal.Invitee(invitee),
+		InviteCode: code,
+	}, nil
+}
+
 func (d DB) ReadSignupInvitations() ([]screenjournal.SignupInvitation, error) {
 	rows, err := d.ctx.Query(`
 		SELECT

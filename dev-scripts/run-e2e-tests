@@ -30,4 +30,4 @@ set +x
 . .env.dev
 set -x
 
-npx playwright test e2e/invite.spec.ts # DEBUG
+npx playwright test

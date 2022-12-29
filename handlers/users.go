@@ -42,13 +42,7 @@ func (s Server) usersPut() http.HandlerFunc {
 			PasswordHash: req.PasswordHash,
 		}
 
-		if c >= 1 && req.InviteCode.Empty() {
-			log.Printf("signup attempt when there are %d users but no invite code", c)
-			http.Error(w, "Invite code required for signup", http.StatusForbidden)
-			return
-		}
-
-		if !req.InviteCode.Empty() {
+		if c >= 1 {
 			if err := s.isValidInviteCode(req.InviteCode); err != nil {
 				log.Printf("invalid invite code: %v", err)
 				http.Error(w, "Invalid invite code", http.StatusForbidden)

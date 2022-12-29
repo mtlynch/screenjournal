@@ -27,7 +27,11 @@
       {{ range .Invites }}
         <tr>
           <td>
-            <a href="/sign-up?invite={{ .InviteCode }}">{{ .Invitee }}</a>
+            <a
+              data-test-id="invite-link"
+              href="/sign-up?invite={{ .InviteCode }}"
+              >{{ .Invitee }}</a
+            >
           </td>
 
           <td>

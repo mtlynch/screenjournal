@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -47,6 +48,14 @@ func (s Server) usersPut() http.HandlerFunc {
 			return
 		}
 
+		if !req.InviteCode.Empty() {
+			if err := s.isValidInviteCode(req.InviteCode); err != nil {
+				log.Printf("invalid invite code: %v", err)
+				http.Error(w, "Invalid invite code", http.StatusForbidden)
+				return
+			}
+		}
+
 		if err := s.store.InsertUser(user); err != nil {
 			if err == store.ErrEmailAssociatedWithAnotherAccount {
 				http.Error(w, "Failed to add new user", http.StatusConflict)
@@ -71,6 +80,19 @@ func (s Server) usersPut() http.HandlerFunc {
 		}
 
 	}
+}
+
+func (s Server) isValidInviteCode(code screenjournal.InviteCode) error {
+	invitations, err := s.store.ReadSignupInvitations()
+	if err != nil {
+		return err
+	}
+	for _, si := range invitations {
+		if si.InviteCode.Equal(code) {
+			return nil
+		}
+	}
+	return errors.New("invite code not found")
 }
 
 func newUserFromRequest(r *http.Request) (userPutRequest, error) {

@@ -15,4 +15,7 @@ func (db DB) Clear() {
 	if _, err := db.ctx.Exec(`DELETE FROM users`); err != nil {
 		log.Fatalf("failed to delete users: %v", err)
 	}
+	if _, err := db.ctx.Exec(`DELETE FROM invites`); err != nil {
+		log.Fatalf("failed to delete invites: %v", err)
+	}
 }

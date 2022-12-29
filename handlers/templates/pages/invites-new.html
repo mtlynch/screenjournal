@@ -12,6 +12,9 @@
         const errorAlert = document.getElementById("error");
         const submitSpinner = document.getElementById("submit-spinner");
         const submitBtn = document.querySelector("form .btn-primary");
+        const inviteeInput = document.getElementById("invitee");
+
+        inviteeInput.focus();
 
         document
           .getElementById("create-invite")
@@ -22,7 +25,7 @@
             hideElement(errorAlert);
             showElement(submitSpinner);
 
-            createInvite(document.getElementById("invitee").value)
+            createInvite(inviteeInput.value)
               .then(() => {
                 window.location.pathname = `/admin/invites`;
               })

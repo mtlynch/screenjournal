@@ -34,6 +34,10 @@ func (ic InviteCode) Empty() bool {
 	return ic.String() == ""
 }
 
+func (ic InviteCode) Equal(other InviteCode) bool {
+	return ic.String() == other.String()
+}
+
 func (si SignupInvitation) Empty() bool {
 	return si.Invitee.Empty()
 }

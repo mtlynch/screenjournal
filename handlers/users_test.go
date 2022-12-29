@@ -74,6 +74,45 @@ func TestUsersPut(t *testing.T) {
 			status: http.StatusConflict,
 		},
 		{
+			description: "rejects signup with missing invite code",
+			route:       "/api/users/sammy123",
+			payload: `{
+					"email": "sammy123@example.com",
+					"password": "dummyp@ss"
+				}`,
+			users: []screenjournal.User{
+				userA,
+				userB,
+			},
+			invites: []screenjournal.SignupInvitation{
+				{
+					Invitee:    screenjournal.Invitee("Sammy"),
+					InviteCode: screenjournal.InviteCode("123456"),
+				},
+			},
+			status: http.StatusForbidden,
+		},
+		{
+			description: "rejects signup with incorrect invite code",
+			route:       "/api/users/sammy123",
+			payload: `{
+					"email": "sammy123@example.com",
+					"password": "dummyp@ss",
+					"inviteCode": "001001"
+				}`,
+			users: []screenjournal.User{
+				userA,
+				userB,
+			},
+			invites: []screenjournal.SignupInvitation{
+				{
+					Invitee:    screenjournal.Invitee("Sammy"),
+					InviteCode: screenjournal.InviteCode("123456"),
+				},
+			},
+			status: http.StatusForbidden,
+		},
+		{
 			description: "rejects invalid username",
 			route:       "/api/users/q",
 			payload: `{

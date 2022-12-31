@@ -18,9 +18,10 @@ import (
 )
 
 type commonProps struct {
-	Title           string
-	IsAuthenticated bool
-	IsAdmin         bool
+	Title            string
+	IsAuthenticated  bool
+	IsAdmin          bool
+	LoggedInUsername screenjournal.Username
 }
 
 func (s Server) indexGet() http.HandlerFunc {
@@ -135,8 +136,6 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			return reviews[i].Watched.Time().After(reviews[j].Watched.Time())
 		})
 
-		loggedInUsername := usernameFromContext(r.Context())
-
 		title := "Ratings"
 		if !collectionOwner.IsEmpty() {
 			title = fmt.Sprintf("%s's %s", collectionOwner, title)
@@ -144,14 +143,12 @@ func (s Server) reviewsGet() http.HandlerFunc {
 
 		if err := renderTemplate(w, "reviews-index.html", struct {
 			commonProps
-			Reviews          []screenjournal.Review
-			CollectionOwner  screenjournal.Username
-			LoggedInUsername screenjournal.Username
+			Reviews         []screenjournal.Review
+			CollectionOwner screenjournal.Username
 		}{
-			commonProps:      makeCommonProps(title, r.Context()),
-			Reviews:          reviews,
-			CollectionOwner:  collectionOwner,
-			LoggedInUsername: loggedInUsername,
+			commonProps:     makeCommonProps(title, r.Context()),
+			Reviews:         reviews,
+			CollectionOwner: collectionOwner,
 		}, template.FuncMap{
 			"relativeWatchDate": relativeWatchDate,
 			"formatWatchDate": func(t screenjournal.WatchDate) string {
@@ -372,9 +369,10 @@ func relativeWatchDate(t screenjournal.WatchDate) string {
 
 func makeCommonProps(title string, ctx context.Context) commonProps {
 	return commonProps{
-		Title:           title,
-		IsAuthenticated: isAuthenticated(ctx),
-		IsAdmin:         isAdmin(ctx),
+		Title:            title,
+		IsAuthenticated:  isAuthenticated(ctx),
+		IsAdmin:          isAdmin(ctx),
+		LoggedInUsername: usernameFromContext(ctx),
 	}
 }
 

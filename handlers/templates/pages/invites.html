@@ -2,6 +2,18 @@
 {{ end }}
 
 {{ define "script-tags" }}
+  <script type="module">
+    import { copyToClipboard } from "/js/lib/clipboard.js";
+
+    document.querySelectorAll('[data-purpose="copy"]').forEach((copyBtn) => {
+      copyBtn.addEventListener("click", () => {
+        const inviteCode = copyBtn.getAttribute("data-invite-code");
+        const inviteLink = `${window.location.origin}/sign-up?invite=${inviteCode}`;
+
+        copyToClipboard(inviteLink);
+      });
+    });
+  </script>
 {{ end }}
 
 {{ define "custom-elements" }}
@@ -35,10 +47,7 @@
           </td>
 
           <td>
-            <a href="/admin/invites/{{ .InviteCode }}/edit">
-              <i class="fas fa-edit"></i>
-            </a>
-            <button>
+            <button data-purpose="copy" data-invite-code="{{ .InviteCode }}">
               <i class="fas fa-copy"></i>
             </button>
           </td>

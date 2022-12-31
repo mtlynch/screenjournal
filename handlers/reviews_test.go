@@ -452,6 +452,8 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				}`,
 			sessionToken: "abc123",
 			expected: screenjournal.Review{
+				ID:      screenjournal.ReviewID(1),
+				Owner:   screenjournal.Username("userA"),
 				Rating:  screenjournal.Rating(8),
 				Watched: mustParseWatchDate("2022-10-30T00:00:00-04:00"),
 				Blurb:   screenjournal.Blurb("It's a pretty good movie!"),
@@ -514,6 +516,8 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				}`,
 			sessionToken: "abc123",
 			expected: screenjournal.Review{
+				ID:      screenjournal.ReviewID(1),
+				Owner:   screenjournal.Username("userA"),
 				Rating:  screenjournal.Rating(5),
 				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 				Blurb:   screenjournal.Blurb(""),

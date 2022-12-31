@@ -19,6 +19,7 @@ func TestUsersPut(t *testing.T) {
 		route       string
 		payload     string
 		users       []screenjournal.User
+		invites     []screenjournal.SignupInvitation
 		status      int
 	}{
 		{
@@ -28,19 +29,27 @@ func TestUsersPut(t *testing.T) {
 					"email": "userA@example.com",
 					"password": "dummyp@ss"
 				}`,
-			users:  []screenjournal.User{},
-			status: http.StatusOK,
+			users:   []screenjournal.User{},
+			invites: []screenjournal.SignupInvitation{},
+			status:  http.StatusOK,
 		},
 		{
 			description: "rejects signup of existing username",
 			route:       "/api/users/userA",
 			payload: `{
 					"email": "someuser@example.com",
-					"password": "dummyp@ss"
+					"password": "dummyp@ss",
+					"inviteCode": "abc456"
 				}`,
 			users: []screenjournal.User{
 				userA,
 				userB,
+			},
+			invites: []screenjournal.SignupInvitation{
+				{
+					Invitee:    screenjournal.Invitee("Sammy"),
+					InviteCode: screenjournal.InviteCode("abc456"),
+				},
 			},
 			status: http.StatusConflict,
 		},
@@ -49,13 +58,59 @@ func TestUsersPut(t *testing.T) {
 			route:       "/api/users/someguy",
 			payload: `{
 					"email": "userA@example.com",
+					"password": "dummyp@ss",
+					"inviteCode": "abc456"
+				}`,
+			users: []screenjournal.User{
+				userA,
+				userB,
+			},
+			invites: []screenjournal.SignupInvitation{
+				{
+					Invitee:    screenjournal.Invitee("Sammy"),
+					InviteCode: screenjournal.InviteCode("abc456"),
+				},
+			},
+			status: http.StatusConflict,
+		},
+		{
+			description: "rejects signup with missing invite code",
+			route:       "/api/users/sammy123",
+			payload: `{
+					"email": "sammy123@example.com",
 					"password": "dummyp@ss"
 				}`,
 			users: []screenjournal.User{
 				userA,
 				userB,
 			},
-			status: http.StatusConflict,
+			invites: []screenjournal.SignupInvitation{
+				{
+					Invitee:    screenjournal.Invitee("Sammy"),
+					InviteCode: screenjournal.InviteCode("abc456"),
+				},
+			},
+			status: http.StatusForbidden,
+		},
+		{
+			description: "rejects signup with incorrect invite code",
+			route:       "/api/users/sammy123",
+			payload: `{
+					"email": "sammy123@example.com",
+					"password": "dummyp@ss",
+					"inviteCode": "abc456"
+				}`,
+			users: []screenjournal.User{
+				userA,
+				userB,
+			},
+			invites: []screenjournal.SignupInvitation{
+				{
+					Invitee:    screenjournal.Invitee("Sammy"),
+					InviteCode: screenjournal.InviteCode("232323"),
+				},
+			},
+			status: http.StatusForbidden,
 		},
 		{
 			description: "rejects invalid username",
@@ -64,8 +119,9 @@ func TestUsersPut(t *testing.T) {
 					"email": "userA@example.com",
 					"password": "dummyp@ss"
 				}`,
-			users:  []screenjournal.User{},
-			status: http.StatusBadRequest,
+			users:   []screenjournal.User{},
+			invites: []screenjournal.SignupInvitation{},
+			status:  http.StatusBadRequest,
 		},
 		{
 			description: "rejects invalid email",
@@ -74,8 +130,9 @@ func TestUsersPut(t *testing.T) {
 					"email": "userA@example@com",
 					"password": "dummyp@ss"
 				}`,
-			users:  []screenjournal.User{},
-			status: http.StatusBadRequest,
+			users:   []screenjournal.User{},
+			invites: []screenjournal.SignupInvitation{},
+			status:  http.StatusBadRequest,
 		},
 		{
 			description: "rejects invalid password",
@@ -84,8 +141,9 @@ func TestUsersPut(t *testing.T) {
 					"email": "userA@example.com",
 					"password": "a"
 				}`,
-			users:  []screenjournal.User{},
-			status: http.StatusBadRequest,
+			users:   []screenjournal.User{},
+			invites: []screenjournal.SignupInvitation{},
+			status:  http.StatusBadRequest,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
@@ -93,6 +151,11 @@ func TestUsersPut(t *testing.T) {
 
 			for _, user := range tt.users {
 				if err := dataStore.InsertUser(user); err != nil {
+					panic(err)
+				}
+			}
+			for _, invite := range tt.invites {
+				if err := dataStore.InsertSignupInvitation(invite); err != nil {
 					panic(err)
 				}
 			}

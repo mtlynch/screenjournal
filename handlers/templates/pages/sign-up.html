@@ -48,9 +48,12 @@
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
       const passwordConfirm = document.getElementById("password-confirm").value;
+      const inviteCode = new URLSearchParams(window.location.search).get(
+        "invite"
+      );
       errorContainer.classList.add("invisible");
       disableRegisterForm();
-      register(email, username, password)
+      register(email, username, password, inviteCode)
         .then(() => {
           document.location = "/reviews";
         })
@@ -69,9 +72,21 @@
 {{ define "content" }}
   <div id="content" class="container p-4 justify-content-center pb-4">
     <h1>Sign Up</h1>
+    {{ if .Invitee }}
+      <div class="alert alert-info mt-4" role="alert">
+        <p>Welcome, <strong>{{ .Invitee }}</strong>!</p>
+        <p class="mb-0">We've been expecting you.</p>
+      </div>
+    {{ end }}
     <form id="register-form" class="my-5">
       <div class="form-outline mb-4">
-        <input type="text" id="username" class="form-control" required />
+        <input
+          type="text"
+          id="username"
+          class="form-control"
+          required
+          {{ if .SuggestedUsername }}value="{{ .SuggestedUsername }}"{{ end }}
+        />
         <label class="form-label" for="username">Username</label>
       </div>
       <div class="form-outline mb-4">

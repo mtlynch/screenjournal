@@ -1,4 +1,4 @@
-export async function register(email, username, password) {
+export async function register(email, username, password, inviteCode) {
   return fetch(`/api/users/${username}`, {
     method: "PUT",
     mode: "same-origin",
@@ -8,6 +8,7 @@ export async function register(email, username, password) {
     body: JSON.stringify({
       email: email,
       password: password,
+      inviteCode: inviteCode,
     }),
   }).then((response) => {
     if (!response.ok) {

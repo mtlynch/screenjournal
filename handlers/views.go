@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"regexp"
 	"sort"
 	"strings"
 	"text/template"
@@ -19,6 +20,7 @@ import (
 type commonProps struct {
 	Title           string
 	IsAuthenticated bool
+	IsAdmin         bool
 }
 
 func (s Server) indexGet() http.HandlerFunc {
@@ -63,6 +65,24 @@ func (s Server) logInGet() http.HandlerFunc {
 func (s Server) signUpGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		templateFilename := "sign-up.html"
+
+		inviteCode, err := inviteCodeFromQueryParams(r)
+		if err != nil {
+			log.Printf("invalid invite code: %v", err)
+			http.Error(w, "Invalid invite code", http.StatusBadRequest)
+			return
+		}
+
+		var invite screenjournal.SignupInvitation
+		if !inviteCode.Empty() {
+			invite, err = s.store.ReadSignupInvitation(inviteCode)
+			if err != nil {
+				log.Printf("invalid invite code: %v", err)
+				http.Error(w, "Invalid invite code", http.StatusUnauthorized)
+				return
+			}
+		}
+
 		uc, err := s.store.CountUsers()
 		if err != nil {
 			log.Printf("failed to count users: %v", err)
@@ -70,13 +90,25 @@ func (s Server) signUpGet() http.HandlerFunc {
 			return
 		}
 
-		if uc > 0 {
+		if uc > 0 && invite.Empty() {
 			templateFilename = "sign-up-by-invitation.html"
 		}
+
+		var suggestedUsername string
+		if !invite.Empty() {
+			nonSuggestedCharsPattern := regexp.MustCompile(`(?i)[^a-z0-9]`)
+			firstPart := strings.SplitN(invite.Invitee.String(), " ", 2)[0]
+			suggestedUsername = nonSuggestedCharsPattern.ReplaceAllString(strings.ToLower(firstPart), "")
+		}
+
 		if err := renderTemplate(w, templateFilename, struct {
 			commonProps
+			Invitee           screenjournal.Invitee
+			SuggestedUsername string
 		}{
-			commonProps: makeCommonProps("Sign Up", r.Context()),
+			commonProps:       makeCommonProps("Sign Up", r.Context()),
+			Invitee:           invite.Invitee,
+			SuggestedUsername: suggestedUsername,
 		}, template.FuncMap{}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -237,10 +269,45 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) invitesGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		invites, err := s.store.ReadSignupInvitations()
+		if err != nil {
+			log.Printf("failed to read signup invitations: %v", err)
+			http.Error(w, "Failed to read signup invitations", http.StatusInternalServerError)
+			return
+		}
+		if err := renderTemplate(w, "invites.html", struct {
+			commonProps
+			Invites []screenjournal.SignupInvitation
+		}{
+			commonProps: makeCommonProps("Invites", r.Context()),
+			Invites:     invites,
+		}, template.FuncMap{}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func (s Server) invitesNewGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := renderTemplate(w, "invites-new.html", struct {
+			commonProps
+		}{
+			commonProps: makeCommonProps("Create Invite Link", r.Context()),
+		}, template.FuncMap{}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func makeCommonProps(title string, ctx context.Context) commonProps {
 	return commonProps{
 		Title:           title,
 		IsAuthenticated: isAuthenticated(ctx),
+		IsAdmin:         isAdmin(ctx),
 	}
 }
 

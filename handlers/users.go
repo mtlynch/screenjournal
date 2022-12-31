@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
@@ -16,6 +15,7 @@ type userPutRequest struct {
 	Email        screenjournal.Email
 	Username     screenjournal.Username
 	PasswordHash screenjournal.PasswordHash
+	InviteCode   screenjournal.InviteCode
 }
 
 func (s Server) usersPut() http.HandlerFunc {
@@ -34,23 +34,19 @@ func (s Server) usersPut() http.HandlerFunc {
 			return
 		}
 
-		// Temporary hack to prevent users from signing up in production without
-		// breaking unit tests.
-		maxUsers := 3
-		if os.Getenv("SJ_BEHIND_PROXY") != "" {
-			maxUsers = 1
-		}
-
-		if c >= uint(maxUsers) {
-			http.Error(w, "Signups are temporarily locked", http.StatusForbidden)
-			return
-		}
-
 		user := screenjournal.User{
 			IsAdmin:      c == 0, // First user is automatically admin
 			Email:        req.Email,
 			Username:     req.Username,
 			PasswordHash: req.PasswordHash,
+		}
+
+		if c >= 1 {
+			if _, err := s.store.ReadSignupInvitation(req.InviteCode); err != nil {
+				log.Printf("invalid invite code: %v", err)
+				http.Error(w, "Invalid invite code", http.StatusForbidden)
+				return
+			}
 		}
 
 		if err := s.store.InsertUser(user); err != nil {
@@ -69,6 +65,13 @@ func (s Server) usersPut() http.HandlerFunc {
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
 		}
+
+		if !req.InviteCode.Empty() {
+			if err := s.store.DeleteSignupInvitation(req.InviteCode); err != nil {
+				log.Printf("failed to delete used signup invitation code: %v", err)
+			}
+		}
+
 	}
 }
 
@@ -79,8 +82,9 @@ func newUserFromRequest(r *http.Request) (userPutRequest, error) {
 	}
 
 	var payload struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email      string `json:"email"`
+		Password   string `json:"password"`
+		InviteCode string `json:"inviteCode"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		log.Printf("failed to decode JSON request: %v", err)
@@ -97,9 +101,17 @@ func newUserFromRequest(r *http.Request) (userPutRequest, error) {
 		return userPutRequest{}, err
 	}
 
+	var inviteCode screenjournal.InviteCode
+	if payload.InviteCode != "" {
+		if inviteCode, err = parse.InviteCode(payload.InviteCode); err != nil {
+			return userPutRequest{}, err
+		}
+	}
+
 	return userPutRequest{
 		Email:        email,
 		Username:     username,
 		PasswordHash: screenjournal.NewPasswordHash(plaintextPassword),
+		InviteCode:   inviteCode,
 	}, nil
 }

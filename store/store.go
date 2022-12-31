@@ -23,6 +23,10 @@ type (
 		CountUsers() (uint, error)
 		ReadUser(screenjournal.Username) (screenjournal.User, error)
 		InsertUser(screenjournal.User) error
+		InsertSignupInvitation(screenjournal.SignupInvitation) error
+		ReadSignupInvitation(screenjournal.InviteCode) (screenjournal.SignupInvitation, error)
+		ReadSignupInvitations() ([]screenjournal.SignupInvitation, error)
+		DeleteSignupInvitation(screenjournal.InviteCode) error
 	}
 )
 

@@ -1,9 +1,4 @@
 {{ define "style-tags" }}
-  <style>
-    .fa-star {
-      color: #ffcb3b;
-    }
-  </style>
 {{ end }}
 
 {{ define "script-tags" }}
@@ -50,14 +45,20 @@
                 <i class="fa-regular fa-star"></i>
               {{ end }}
             </div>
-            {{ with .Blurb }}
+            {{ with .Blurb | elideBlurb }}
               <p class="card-text">
-                {{ range .String | splitByNewline }}
+                {{ range . | splitByNewline }}
                   {{ . }}<br />
                 {{ end }}
               </p>
             {{ end }}
             <p>
+              <a
+                href="/reviews/{{ .ID }}"
+                class="card-link"
+                data-test-id="full-review"
+                >Full review</a
+              >
               <a
                 href="/reviews/{{ .ID }}/edit"
                 class="card-link"

@@ -156,21 +156,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			Owner:               owner,
 			LoggedInUserIsOwner: loggedInUserIsOwner,
 		}, template.FuncMap{
-			"relativeWatchDate": func(t screenjournal.WatchDate) string {
-				daysAgo := int(time.Since(t.Time()).Hours() / 24)
-				weeksAgo := int(daysAgo / 7)
-				if daysAgo < 1 {
-					return "today"
-				} else if daysAgo == 1 {
-					return "yesterday"
-				} else if daysAgo <= 14 {
-					return fmt.Sprintf("%d days ago", daysAgo)
-				} else if weeksAgo < 8 {
-					return fmt.Sprintf("%d weeks ago", weeksAgo)
-				}
-				monthsAgo := int(daysAgo / 30)
-				return fmt.Sprintf("%d months ago", monthsAgo)
-			},
+			"relativeWatchDate": relativeWatchDate,
 			"formatWatchDate": func(t screenjournal.WatchDate) string {
 				return t.Time().Format("2006-01-02")
 			},
@@ -238,21 +224,7 @@ func (s Server) reviewsReadGet() http.HandlerFunc {
 			commonProps: makeCommonProps(review.Movie.Title.String(), r.Context()),
 			Review:      review,
 		}, template.FuncMap{
-			"relativeWatchDate": func(t screenjournal.WatchDate) string {
-				daysAgo := int(time.Since(t.Time()).Hours() / 24)
-				weeksAgo := int(daysAgo / 7)
-				if daysAgo < 1 {
-					return "today"
-				} else if daysAgo == 1 {
-					return "yesterday"
-				} else if daysAgo <= 14 {
-					return fmt.Sprintf("%d days ago", daysAgo)
-				} else if weeksAgo < 8 {
-					return fmt.Sprintf("%d weeks ago", weeksAgo)
-				}
-				monthsAgo := int(daysAgo / 30)
-				return fmt.Sprintf("%d months ago", monthsAgo)
-			},
+			"relativeWatchDate": relativeWatchDate,
 			"formatWatchDate": func(t screenjournal.WatchDate) string {
 				return t.Time().Format("2006-01-02")
 			},
@@ -266,9 +238,6 @@ func (s Server) reviewsReadGet() http.HandlerFunc {
 			},
 			"minus": func(a, b uint8) uint8 {
 				return a - b
-			},
-			"formatDate": func(t time.Time) string {
-				return t.Format("2006-01-02")
 			},
 			"splitByNewline": func(s string) []string {
 				return strings.Split(s, "\n")
@@ -386,6 +355,22 @@ func (s Server) invitesNewGet() http.HandlerFunc {
 			return
 		}
 	}
+}
+
+func relativeWatchDate(t screenjournal.WatchDate) string {
+	daysAgo := int(time.Since(t.Time()).Hours() / 24)
+	weeksAgo := int(daysAgo / 7)
+	if daysAgo < 1 {
+		return "today"
+	} else if daysAgo == 1 {
+		return "yesterday"
+	} else if daysAgo <= 14 {
+		return fmt.Sprintf("%d days ago", daysAgo)
+	} else if weeksAgo < 8 {
+		return fmt.Sprintf("%d weeks ago", weeksAgo)
+	}
+	monthsAgo := int(daysAgo / 30)
+	return fmt.Sprintf("%d months ago", monthsAgo)
 }
 
 func makeCommonProps(title string, ctx context.Context) commonProps {

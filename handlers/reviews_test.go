@@ -905,6 +905,60 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			sessionToken: "abc123",
 			status:       http.StatusBadRequest,
 		},
+
+		{
+			description: "rejects request with review ID of zero",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+			},
+			priorReviews: []screenjournal.Review{
+				{
+					ID:      screenjournal.ReviewID(1),
+					Owner:   screenjournal.Username("userA"),
+					Rating:  screenjournal.Rating(10),
+					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+					Movie: screenjournal.Movie{
+						ID:          screenjournal.MovieID(1),
+						TmdbID:      screenjournal.TmdbID(38),
+						ImdbID:      screenjournal.ImdbID("tt0338013"),
+						Title:       "Eternal Sunshine of the Spotless Mind",
+						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+					},
+				},
+			},
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("userA"),
+						},
+					},
+				},
+				{
+					token: "def456",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("userB"),
+						},
+					},
+				},
+			},
+			route: "/api/reviews/1",
+			payload: `{
+					"rating": 8,
+					"watched":"2022-10-30T00:00:00-04:00",
+					"blurb": "I'm overwriting userA's review!"
+				}`,
+			sessionToken: "def456",
+			status:       http.StatusForbidden,
+		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()

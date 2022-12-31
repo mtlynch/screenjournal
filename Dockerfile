@@ -6,6 +6,7 @@ COPY ./auth /app/auth
 COPY ./cmd /app/cmd
 COPY ./handlers /app/handlers
 COPY ./metadata /app/metadata
+COPY ./random /app/random
 COPY ./store /app/store
 COPY ./*.go /app/
 COPY ./go.* /app/

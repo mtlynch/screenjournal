@@ -18,5 +18,9 @@ func usernameFromRequestPath(r *http.Request) (screenjournal.Username, error) {
 }
 
 func inviteCodeFromQueryParams(r *http.Request) (screenjournal.InviteCode, error) {
-	return parse.InviteCode(r.URL.Query().Get("invite"))
+	raw := r.URL.Query().Get("invite")
+	if raw == "" {
+		return screenjournal.InviteCode(""), nil
+	}
+	return parse.InviteCode(raw)
 }

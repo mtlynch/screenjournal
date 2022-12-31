@@ -64,7 +64,7 @@ test("signing up with an invalid invite code fails", async ({
 
   const guestContext = await browser.newContext();
   const guestPage = await guestContext.newPage();
-  const response = await guestPage.goto("/sign-up?invite=1nv4LD");
+  const response = await guestPage.goto("/sign-up?invite=222333");
   await expect(response?.status()).toBe(401);
 
   await guestContext.close();

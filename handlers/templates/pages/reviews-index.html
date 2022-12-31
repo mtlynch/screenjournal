@@ -53,7 +53,12 @@
               </p>
             {{ end }}
             <p>
-              <a href="/reviews/{{ .ID }}" class="card-link">Full review</a>
+              <a
+                href="/reviews/{{ .ID }}"
+                class="card-link"
+                data-test-id="full-review"
+                >Full review</a
+              >
               <a
                 href="/reviews/{{ .ID }}/edit"
                 class="card-link"

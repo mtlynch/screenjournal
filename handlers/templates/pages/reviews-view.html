@@ -27,7 +27,7 @@
     </div>
 
     {{ with .Blurb }}
-      <p>
+      <p data-test-id="blurb">
         {{ range .String | splitByNewline }}
           {{ . }}<br />
         {{ end }}

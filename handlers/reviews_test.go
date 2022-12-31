@@ -61,19 +61,14 @@ func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, r *http.Reque
 }
 
 func (sm mockSessionManager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
-	log.Printf("matching request to session") // DEBUG
 	token, err := r.Cookie("token")
 	if err != nil {
 		return sessions.Session{}, errors.New("mock session manager: no token cookie found")
 	}
-	log.Printf("token=%v", token) // DEBUG
 	session, ok := sm.sessions[token.Value]
 	if !ok {
-		log.Printf("no matching session for %s", token) // DEBUG
-		log.Printf("tokens=%+v", sm.sessions)           // DEBUG
 		return sessions.Session{}, errors.New("mock session manager: no session associated with token")
 	}
-	log.Printf("session matches username %s", session.User.Username.String()) // DEBUG
 	return session, nil
 }
 
@@ -294,16 +289,40 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 
 func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 	for _, tt := range []struct {
-		description string
-		payload     string
+		description  string
+		payload      string
+		sessionToken string
+		sessions     []mockSession
 	}{
 		{
-			description: "empty string",
-			payload:     "",
+			description:  "empty string",
+			payload:      "",
+			sessionToken: "abc123",
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("userA"),
+						},
+					},
+				},
+			},
 		},
 		{
-			description: "empty payload",
-			payload:     "{}",
+			description:  "empty payload",
+			payload:      "{}",
+			sessionToken: "abc123",
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("userA"),
+						},
+					},
+				},
+			},
 		},
 		{
 			description: "invalid title field (non-string)",
@@ -313,6 +332,17 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 					"watched":"2022-10-28T00:00:00-04:00",
 					"blurb": "It's my favorite movie!"
 				}`,
+			sessionToken: "abc123",
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("userA"),
+						},
+					},
+				},
+			},
 		},
 		{
 			description: "invalid title field (too long)",
@@ -322,12 +352,23 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 					"watched":"2022-10-28T00:00:00-04:00",
 					"blurb": "It's my favorite movie!"
 				}`, strings.Repeat("A", parse.MediaTitleMaxLength+1)),
+			sessionToken: "abc123",
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("userA"),
+						},
+					},
+				},
+			},
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			sessionManager := newMockSessionManager([]mockSession{})
+			sessionManager := newMockSessionManager(tt.sessions)
 			s := handlers.New(mockAuthenticator{}, &sessionManager, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
@@ -335,6 +376,10 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 				t.Fatal(err)
 			}
 			req.Header.Add("Content-Type", "text/json")
+			req.AddCookie(&http.Cookie{
+				Name:  "token",
+				Value: tt.sessionToken,
+			})
 
 			w := httptest.NewRecorder()
 			s.Router().ServeHTTP(w, req)
@@ -351,8 +396,10 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 		description  string
 		localMovies  []screenjournal.Movie
 		priorReviews []screenjournal.Review
+		sessions     []mockSession
 		route        string
 		payload      string
+		sessionToken string
 		expected     screenjournal.Review
 	}{
 		{
@@ -387,12 +434,23 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					},
 				},
 			},
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("userA"),
+						},
+					},
+				},
+			},
 			route: "/api/reviews/1",
 			payload: `{
 					"rating": 8,
 					"watched":"2022-10-30T00:00:00-04:00",
 					"blurb": "It's a pretty good movie!"
 				}`,
+			sessionToken: "abc123",
 			expected: screenjournal.Review{
 				Rating:  screenjournal.Rating(8),
 				Watched: mustParseWatchDate("2022-10-30T00:00:00-04:00"),
@@ -438,12 +496,23 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					},
 				},
 			},
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("userA"),
+						},
+					},
+				},
+			},
 			route: "/api/reviews/1",
 			payload: `{
 					"rating": 5,
 					"watched":"2022-10-28T00:00:00-04:00",
 					"blurb": ""
 				}`,
+			sessionToken: "abc123",
 			expected: screenjournal.Review{
 				Rating:  screenjournal.Rating(5),
 				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
@@ -473,7 +542,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				}
 			}
 
-			sessionManager := newMockSessionManager([]mockSession{})
+			sessionManager := newMockSessionManager(tt.sessions)
 			s := handlers.New(mockAuthenticator{}, &sessionManager, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
@@ -481,6 +550,10 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				t.Fatal(err)
 			}
 			req.Header.Add("Content-Type", "text/json")
+			req.AddCookie(&http.Cookie{
+				Name:  "token",
+				Value: tt.sessionToken,
+			})
 
 			w := httptest.NewRecorder()
 			s.Router().ServeHTTP(w, req)
@@ -511,8 +584,10 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 		description  string
 		localMovies  []screenjournal.Movie
 		priorReviews []screenjournal.Review
+		sessions     []mockSession
 		route        string
 		payload      string
+		sessionToken string
 		status       int
 	}{
 		{
@@ -541,13 +616,24 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					},
 				},
 			},
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("userA"),
+						},
+					},
+				},
+			},
 			route: "/api/reviews/0",
 			payload: `{
 					"rating": 8,
 					"watched":"2022-10-30T00:00:00-04:00",
 					"blurb": "It's a pretty good movie!"
 				}`,
-			status: http.StatusBadRequest,
+			sessionToken: "abc123",
+			status:       http.StatusBadRequest,
 		},
 		{
 			description: "rejects request with non-existent review ID",
@@ -561,6 +647,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			},
 			priorReviews: []screenjournal.Review{
 				{
+					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(10),
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
@@ -573,13 +660,24 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					},
 				},
 			},
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("userA"),
+						},
+					},
+				},
+			},
 			route: "/api/reviews/9876",
 			payload: `{
 					"rating": 8,
 					"watched":"2022-10-30T00:00:00-04:00",
 					"blurb": "It's a pretty good movie!"
 				}`,
-			status: http.StatusNotFound,
+			sessionToken: "abc123",
+			status:       http.StatusNotFound,
 		},
 		{
 			description: "rejects request with malformed JSON",
@@ -607,12 +705,23 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					},
 				},
 			},
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("userA"),
+						},
+					},
+				},
+			},
 			route: "/api/reviews/1",
 			payload: `{
 					"rating": 8,
 					"watched":"2022-10-30T00:00:00-04:00",
 					"blurb": "no JSON ending brace!"`,
-			status: http.StatusBadRequest,
+			sessionToken: "abc123",
+			status:       http.StatusBadRequest,
 		},
 		{
 			description: "rejects request with missing rating field",
@@ -640,12 +749,23 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					},
 				},
 			},
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("userA"),
+						},
+					},
+				},
+			},
 			route: "/api/reviews/1",
 			payload: `{
 					"watched":"2022-10-30T00:00:00-04:00",
 					"blurb": "It's a pretty good movie!"
 				}`,
-			status: http.StatusBadRequest,
+			sessionToken: "abc123",
+			status:       http.StatusBadRequest,
 		},
 		{
 			description: "rejects request with missing watched field",
@@ -673,12 +793,23 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					},
 				},
 			},
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("userA"),
+						},
+					},
+				},
+			},
 			route: "/api/reviews/1",
 			payload: `{
 					"rating": 8,
 					"blurb": "It's a pretty good movie!"
 				}`,
-			status: http.StatusBadRequest,
+			sessionToken: "abc123",
+			status:       http.StatusBadRequest,
 		},
 		{
 			description: "rejects request with numeric blurb field",
@@ -706,13 +837,24 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					},
 				},
 			},
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("userA"),
+						},
+					},
+				},
+			},
 			route: "/api/reviews/1",
 			payload: `{
 					"rating": 8,
 					"watched":"2022-10-30T00:00:00-04:00",
 					"blurb": 6
 				}`,
-			status: http.StatusBadRequest,
+			sessionToken: "abc123",
+			status:       http.StatusBadRequest,
 		},
 		{
 			description: "rejects request with script tag in blurb field",
@@ -740,13 +882,24 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					},
 				},
 			},
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("userA"),
+						},
+					},
+				},
+			},
 			route: "/api/reviews/1",
 			payload: `{
 					"rating": 8,
 					"watched":"2022-10-30T00:00:00-04:00",
 					"blurb": "Nothing evil going on here...<script>alert(1)</script>"
 				}`,
-			status: http.StatusBadRequest,
+			sessionToken: "abc123",
+			status:       http.StatusBadRequest,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
@@ -764,7 +917,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 				}
 			}
 
-			sessionManager := newMockSessionManager([]mockSession{})
+			sessionManager := newMockSessionManager(tt.sessions)
 
 			s := handlers.New(mockAuthenticator{}, &sessionManager, dataStore, mockMetadataFinder{})
 
@@ -773,6 +926,10 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 				t.Fatal(err)
 			}
 			req.Header.Add("Content-Type", "text/json")
+			req.AddCookie(&http.Cookie{
+				Name:  "token",
+				Value: tt.sessionToken,
+			})
 
 			w := httptest.NewRecorder()
 			s.Router().ServeHTTP(w, req)

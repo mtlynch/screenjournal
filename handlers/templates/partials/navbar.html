@@ -42,6 +42,13 @@
             </a>
             <ul class="dropdown-menu" aria-labelledby="account-dropdown">
               <li>
+                <a
+                  href="/reviews/by/{{ .LoggedInUsername }}"
+                  class="dropdown-item"
+                  >My ratings</a
+                >
+              </li>
+              <li>
                 <a id="navbar-log-out" href="/logout" class="dropdown-item"
                   >Log out</a
                 >

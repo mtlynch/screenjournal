@@ -54,6 +54,12 @@ func (s Server) reviewsPost() http.HandlerFunc {
 
 func (s Server) reviewsPut() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		loggedInUser, ok := userFromContext(r.Context())
+		if !ok {
+			http.Error(w, "You must be logged in to edit reviews", http.StatusUnauthorized)
+			return
+		}
+
 		id, err := reviewIDFromRequestPath(r)
 		if err != nil {
 			http.Error(w, "Invalid review ID", http.StatusBadRequest)
@@ -66,6 +72,11 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		} else if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to read review: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		if !review.Owner.Equal(loggedInUser.Username) {
+			http.Error(w, "You can't edit another user's review.", http.StatusForbidden)
 			return
 		}
 

@@ -18,6 +18,5 @@ func usernameFromRequestPath(r *http.Request) (screenjournal.Username, error) {
 }
 
 func inviteCodeFromQueryParams(r *http.Request) (screenjournal.InviteCode, error) {
-	// TODO: Parse for real
-	return screenjournal.InviteCode(r.URL.Query().Get("invite")), nil
+	return parse.InviteCode(r.URL.Query().Get("invite"))
 }

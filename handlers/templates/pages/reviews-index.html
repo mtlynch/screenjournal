@@ -10,7 +10,7 @@
 {{ define "content" }}
   <h1>{{ .Title }}</h1>
 
-  {{ if (or (not .Owner) .LoggedInUserIsOwner) }}
+  {{ if (or (not .CollectionOwner) (eq .CollectionOwner .LoggedInUsername)) }}
     <a
       href="/reviews/new"
       class="btn btn-primary my-3"
@@ -18,6 +18,8 @@
       >Add Rating</a
     >
   {{ end }}
+
+  {{ $loggedInUsername := .LoggedInUsername }}
 
 
   <div class="row row-cols-1 row-cols-md-3 g-4">
@@ -59,12 +61,14 @@
                 data-test-id="full-review"
                 >Full review</a
               >
-              <a
-                href="/reviews/{{ .ID }}/edit"
-                class="card-link"
-                data-test-id="edit-rating"
-                >Edit</a
-              >
+              {{ if (eq .Owner $loggedInUsername) }}
+                <a
+                  href="/reviews/{{ .ID }}/edit"
+                  class="card-link"
+                  data-test-id="edit-rating"
+                  >Edit</a
+                >
+              {{ end }}
             </p>
           </div>
         </div>

@@ -118,12 +118,12 @@ func (s Server) signUpGet() http.HandlerFunc {
 
 func (s Server) reviewsGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		owner, err := usernameFromRequestPath(r)
+		collectionOwner, err := usernameFromRequestPath(r)
 		if err != nil {
-			owner = screenjournal.Username("")
+			collectionOwner = screenjournal.Username("")
 		}
 
-		reviews, err := s.store.ReadReviews(store.ReviewFilters{Username: owner})
+		reviews, err := s.store.ReadReviews(store.ReviewFilters{Username: collectionOwner})
 		if err != nil {
 			log.Printf("failed to read reviews: %v", err)
 			http.Error(w, "Failed to read reviews", http.StatusInternalServerError)
@@ -135,26 +135,23 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			return reviews[i].Watched.Time().After(reviews[j].Watched.Time())
 		})
 
-		var loggedInUserIsOwner bool
-		if !owner.IsEmpty() {
-			loggedInUserIsOwner = usernameFromContext(r.Context()).Equal(owner)
-		}
+		loggedInUsername := usernameFromContext(r.Context())
 
 		title := "Ratings"
-		if !owner.IsEmpty() {
-			title = fmt.Sprintf("%s's %s", owner, title)
+		if !collectionOwner.IsEmpty() {
+			title = fmt.Sprintf("%s's %s", collectionOwner, title)
 		}
 
 		if err := renderTemplate(w, "reviews-index.html", struct {
 			commonProps
-			Reviews             []screenjournal.Review
-			Owner               screenjournal.Username
-			LoggedInUserIsOwner bool
+			Reviews          []screenjournal.Review
+			CollectionOwner  screenjournal.Username
+			LoggedInUsername screenjournal.Username
 		}{
-			commonProps:         makeCommonProps(title, r.Context()),
-			Reviews:             reviews,
-			Owner:               owner,
-			LoggedInUserIsOwner: loggedInUserIsOwner,
+			commonProps:      makeCommonProps(title, r.Context()),
+			Reviews:          reviews,
+			CollectionOwner:  collectionOwner,
+			LoggedInUsername: loggedInUsername,
 		}, template.FuncMap{
 			"relativeWatchDate": relativeWatchDate,
 			"formatWatchDate": func(t screenjournal.WatchDate) string {

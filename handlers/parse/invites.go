@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	ErrInviteeInvalid    = errors.New("invalid invitee name")
 	ErrInviteCodeInvalid = errors.New("invalid invite code")
 
 	validInviteCodeChars map[rune]bool
@@ -20,7 +21,9 @@ func init() {
 }
 
 func Invitee(raw string) (screenjournal.Invitee, error) {
-	// TODO: Actually parse
+	if !screenjournal.InviteePattern.MatchString(raw) {
+		return screenjournal.Invitee(""), ErrInviteeInvalid
+	}
 	return screenjournal.Invitee(raw), nil
 }
 

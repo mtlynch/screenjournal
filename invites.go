@@ -1,6 +1,10 @@
 package screenjournal
 
-import "github.com/mtlynch/screenjournal/v2/random"
+import (
+	"regexp"
+
+	"github.com/mtlynch/screenjournal/v2/random"
+)
 
 type (
 	Invitee    string
@@ -12,11 +16,17 @@ type (
 	}
 )
 
-const InviteCodeLength = 6
+const (
+	InviteCodeLength = 6
+)
 
-// InviteCodeCharset contains the allowed characters for an invite code. It
-// includes alphanumeric characters with commonly-confused characters removed.
-var InviteCodeCharset = []rune("ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789")
+var (
+	InviteePattern = regexp.MustCompile(`(?i)^[a-z0-9áàâüñçå\-\. ]{1,80}$`)
+
+	// InviteCodeCharset contains the allowed characters for an invite code. It
+	// includes alphanumeric characters with commonly-confused characters removed.
+	InviteCodeCharset = []rune("ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789")
+)
 
 func (i Invitee) String() string {
 	return string(i)
@@ -24,6 +34,10 @@ func (i Invitee) String() string {
 
 func (i Invitee) Empty() bool {
 	return i.String() == ""
+}
+
+func (i Invitee) Equal(other Invitee) bool {
+	return i.String() == other.String()
 }
 
 func NewInviteCode() InviteCode {

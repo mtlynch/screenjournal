@@ -9,6 +9,81 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 )
 
+func TestInvitee(t *testing.T) {
+	for _, tt := range []struct {
+		description string
+		input       string
+		inviteee    screenjournal.Invitee
+		err         error
+	}{
+		{
+			"valid invitee is valid",
+			"Joe",
+			screenjournal.Invitee("Joe"),
+			nil,
+		},
+		{
+			"invitee with accented characters is valid",
+			"Joe Peña",
+			screenjournal.Invitee("Joe Peña"),
+			nil,
+		},
+		{
+			"invitee with dots and dashes is valid",
+			"J.P. Morgendorfer-Hoogenblast",
+			screenjournal.Invitee("J.P. Morgendorfer-Hoogenblast"),
+			nil,
+		},
+		{
+			"invitee that's exactly the maximum length is valid",
+			strings.Repeat("A", 80),
+			screenjournal.Invitee(strings.Repeat("A", 80)),
+			nil,
+		},
+		{
+			"empty string is invalid",
+			"",
+			screenjournal.Invitee(""),
+			parse.ErrInviteeInvalid,
+		},
+		{
+			"invitee with more than the maximum length is invalid",
+			strings.Repeat("A", 81),
+			screenjournal.Invitee(""),
+			parse.ErrInviteeInvalid,
+		},
+		{
+			"invitee with newlines is invalid",
+			"Joe\nSmith",
+			screenjournal.Invitee(""),
+			parse.ErrInviteeInvalid,
+		},
+		{
+			"invitee with script tags is invalid",
+			"Joe<script>Smith",
+			screenjournal.Invitee(""),
+			parse.ErrInviteeInvalid,
+		},
+		{
+			"invitee with emoji characters is invalid",
+			"M😊rk",
+			screenjournal.Invitee(""),
+			parse.ErrInviteeInvalid,
+		},
+	} {
+		t.Run(fmt.Sprintf("%s [%s]", tt.description, tt.input), func(t *testing.T) {
+			code, err := parse.Invitee(tt.input)
+
+			if got, want := err, tt.err; got != want {
+				t.Fatalf("err=%v, want=%v", got, want)
+			}
+			if got, want := code, tt.inviteee; !got.Equal(want) {
+				t.Errorf("inviteee=%v, want=%v", got, want)
+			}
+		})
+	}
+}
+
 func TestInviteCode(t *testing.T) {
 	for _, tt := range []struct {
 		description string

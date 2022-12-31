@@ -39,7 +39,7 @@ func TestUsersPut(t *testing.T) {
 			payload: `{
 					"email": "someuser@example.com",
 					"password": "dummyp@ss",
-					"inviteCode": "123456"
+					"inviteCode": "abc456"
 				}`,
 			users: []screenjournal.User{
 				userA,
@@ -48,7 +48,7 @@ func TestUsersPut(t *testing.T) {
 			invites: []screenjournal.SignupInvitation{
 				{
 					Invitee:    screenjournal.Invitee("Sammy"),
-					InviteCode: screenjournal.InviteCode("123456"),
+					InviteCode: screenjournal.InviteCode("abc456"),
 				},
 			},
 			status: http.StatusConflict,
@@ -59,7 +59,7 @@ func TestUsersPut(t *testing.T) {
 			payload: `{
 					"email": "userA@example.com",
 					"password": "dummyp@ss",
-					"inviteCode": "123456"
+					"inviteCode": "abc456"
 				}`,
 			users: []screenjournal.User{
 				userA,
@@ -68,7 +68,7 @@ func TestUsersPut(t *testing.T) {
 			invites: []screenjournal.SignupInvitation{
 				{
 					Invitee:    screenjournal.Invitee("Sammy"),
-					InviteCode: screenjournal.InviteCode("123456"),
+					InviteCode: screenjournal.InviteCode("abc456"),
 				},
 			},
 			status: http.StatusConflict,
@@ -87,7 +87,7 @@ func TestUsersPut(t *testing.T) {
 			invites: []screenjournal.SignupInvitation{
 				{
 					Invitee:    screenjournal.Invitee("Sammy"),
-					InviteCode: screenjournal.InviteCode("123456"),
+					InviteCode: screenjournal.InviteCode("abc456"),
 				},
 			},
 			status: http.StatusForbidden,
@@ -98,7 +98,7 @@ func TestUsersPut(t *testing.T) {
 			payload: `{
 					"email": "sammy123@example.com",
 					"password": "dummyp@ss",
-					"inviteCode": "001001"
+					"inviteCode": "abc456"
 				}`,
 			users: []screenjournal.User{
 				userA,
@@ -107,7 +107,7 @@ func TestUsersPut(t *testing.T) {
 			invites: []screenjournal.SignupInvitation{
 				{
 					Invitee:    screenjournal.Invitee("Sammy"),
-					InviteCode: screenjournal.InviteCode("123456"),
+					InviteCode: screenjournal.InviteCode("232323"),
 				},
 			},
 			status: http.StatusForbidden,

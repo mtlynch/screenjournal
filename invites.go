@@ -12,6 +12,12 @@ type (
 	}
 )
 
+const InviteCodeLength = 6
+
+// InviteCodeCharset contains the allowed characters for an invite code. It
+// includes alphanumeric characters with commonly-confused characters removed.
+var InviteCodeCharset = []rune("ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789")
+
 func (i Invitee) String() string {
 	return string(i)
 }
@@ -21,9 +27,7 @@ func (i Invitee) Empty() bool {
 }
 
 func NewInviteCode() InviteCode {
-	// Alphanumeric characters, with commonly-confused characters removed.
-	charset := []rune("ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789")
-	return InviteCode(random.String(6, charset))
+	return InviteCode(random.String(InviteCodeLength, InviteCodeCharset))
 }
 
 func (ic InviteCode) String() string {

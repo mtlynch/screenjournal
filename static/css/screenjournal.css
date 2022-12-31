@@ -1,8 +1,16 @@
+h2 {
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+}
+
+p {
+  max-width: 70ch;
+}
+
 a {
   text-decoration: none;
 }
 
-h2 {
-  margin-top: 3rem;
-  margin-bottom: 1rem;
+.fa-star {
+  color: #ffcb3b;
 }

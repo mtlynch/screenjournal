@@ -35,6 +35,7 @@ func (s *Server) routes() {
 	authenticatedViews.Use(s.requireAuthentication)
 	authenticatedViews.HandleFunc("/reviews", s.reviewsGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews/by/{username}", s.reviewsGet()).Methods(http.MethodGet)
+	authenticatedViews.HandleFunc("/reviews/{reviewID}", s.reviewsReadGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews/{reviewID}/edit", s.reviewsEditGet()).Methods(http.MethodGet)
 
 	views := s.router.PathPrefix("/").Subrouter()

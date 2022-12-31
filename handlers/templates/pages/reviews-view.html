@@ -1,0 +1,40 @@
+{{ define "style-tags" }}
+{{ end }}
+
+{{ define "script-tags" }}
+{{ end }}
+
+{{ define "custom-elements" }}
+{{ end }}
+
+{{ define "content" }}
+  {{ with .Review }}
+    <h1>{{ .Movie.Title }} ({{ .Movie.ReleaseDate.Year }})</h1>
+
+    <h6 class="card-subtitle mb-2 text-muted">
+      <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> watched this
+      <span data-test-id="watch-date" title="{{ formatWatchDate .Watched }}"
+        >{{ relativeWatchDate .Watched }}</span
+      >
+    </h6>
+    <div data-test-id="rating">
+      {{ range iterate .Rating.UInt8 }}
+        <i class="fa-solid fa-star"></i>
+      {{ end }}
+      {{ range iterate (minus 10 .Rating.UInt8) }}
+        <i class="fa-regular fa-star"></i>
+      {{ end }}
+    </div>
+
+    {{ with .Blurb }}
+      <p>
+        {{ range .String | splitByNewline }}
+          {{ . }}<br />
+        {{ end }}
+      </p>
+    {{ end }}
+  {{ end }}
+
+{{ end }}
+
+{{ template "base.html" }}

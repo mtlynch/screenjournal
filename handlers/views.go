@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"regexp"
 	"sort"
 	"strings"
 	"text/template"
@@ -92,17 +93,23 @@ func (s Server) signUpGet() http.HandlerFunc {
 		if uc > 0 && invite.Empty() {
 			templateFilename = "sign-up-by-invitation.html"
 		}
+
+		var suggestedUsername string
+		if !invite.Empty() {
+			nonSuggestedCharsPattern := regexp.MustCompile(`(?i)[^a-z0-9]`)
+			firstPart := strings.SplitN(invite.Invitee.String(), " ", 2)[0]
+			suggestedUsername = nonSuggestedCharsPattern.ReplaceAllString(strings.ToLower(firstPart), "")
+		}
+
 		if err := renderTemplate(w, templateFilename, struct {
 			commonProps
-			Invitee screenjournal.Invitee
+			Invitee           screenjournal.Invitee
+			SuggestedUsername string
 		}{
-			commonProps: makeCommonProps("Sign Up", r.Context()),
-			Invitee:     invite.Invitee,
-		}, template.FuncMap{
-			"toLower": func(s string) string {
-				return strings.ToLower(s)
-			},
-		}); err != nil {
+			commonProps:       makeCommonProps("Sign Up", r.Context()),
+			Invitee:           invite.Invitee,
+			SuggestedUsername: suggestedUsername,
+		}, template.FuncMap{}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

@@ -85,7 +85,7 @@
           id="username"
           class="form-control"
           required
-          {{ if .Invitee }}value="{{ .Invitee.String | toLower }}"{{ end }}
+          {{ if .SuggestedUsername }}value="{{ .SuggestedUsername }}"{{ end }}
         />
         <label class="form-label" for="username">Username</label>
       </div>

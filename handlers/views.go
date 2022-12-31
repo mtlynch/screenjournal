@@ -220,7 +220,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 		}
 
 		if !review.Owner.Equal(loggedInUser.Username) {
-			http.Error(w, "You can't edit another user's review.", http.StatusForbidden)
+			http.Error(w, "You can't edit another user's review", http.StatusForbidden)
 			return
 		}
 

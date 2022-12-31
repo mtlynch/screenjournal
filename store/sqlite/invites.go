@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"log"
+	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
 )
@@ -9,18 +10,21 @@ import (
 func (d DB) InsertSignupInvitation(invite screenjournal.SignupInvitation) error {
 	log.Printf("inserting new signup invite code for %s: %v", invite.Invitee, invite.InviteCode)
 
+	now := time.Now()
+
 	if _, err := d.ctx.Exec(`
 	INSERT INTO
 		invites
 	(
 		invitee,
-		code
+		code,
+		created_time
 	)
 	VALUES (
-		?, ?
+		?, ?, ?
 	)
 	`,
-		invite.Invitee, invite.InviteCode); err != nil {
+		invite.Invitee, invite.InviteCode, formatTime(now)); err != nil {
 		return err
 	}
 
@@ -51,7 +55,9 @@ func (d DB) ReadSignupInvitations() ([]screenjournal.SignupInvitation, error) {
 			invitee,
 			code
 		FROM
-			invites`)
+			invites
+		ORDER BY
+			created_time DESC`)
 	if err != nil {
 		return []screenjournal.SignupInvitation{}, err
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/auth/simple"
 	"github.com/mtlynch/screenjournal/v2/handlers"
+	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -99,7 +100,7 @@ func TestAuthPost(t *testing.T) {
 
 			authenticator := simple.New(dataStore)
 			var nilMetadataFinder metadata.Finder
-			sessionManager := mockSessionManager{}
+			sessionManager := newMockSessionManager([]mockSession{})
 
 			s := handlers.New(authenticator, &sessionManager, dataStore, nilMetadataFinder)
 
@@ -115,8 +116,21 @@ func TestAuthPost(t *testing.T) {
 			if got, want := w.Code, tt.status; got != want {
 				t.Fatalf("httpStatus=%v, want=%v", got, want)
 			}
-			if got, want := sessionManager.lastSession, tt.matchingUser; !reflect.DeepEqual(got, want) {
-				t.Errorf("user=%v, want=%v", got, want)
+
+			if tt.status != http.StatusOK {
+				return
+			}
+
+			sessionsCreated := []sessions.Session{}
+			for _, session := range sessionManager.sessions {
+				sessionsCreated = append(sessionsCreated, session)
+			}
+
+			if got, want := len(sessionsCreated), 1; got != want {
+				t.Fatalf("count(sessions)=%d, want=%d", got, want)
+			}
+			if got, want := sessionsCreated[0].User, tt.matchingUser; !reflect.DeepEqual(got, want) {
+				t.Errorf("user=%+v, want=%+v", got, want)
 			}
 		})
 	}

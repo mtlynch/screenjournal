@@ -1,6 +1,7 @@
 package handlers_test
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,6 +18,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
+	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/store"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -27,21 +29,52 @@ func (a mockAuthenticator) Authenticate(screenjournal.Username, screenjournal.Pa
 	return screenjournal.User{}, nil
 }
 
+type mockSession struct {
+	token   string
+	session sessions.Session
+}
+
 type mockSessionManager struct {
-	lastSession screenjournal.User
+	sessions map[string]sessions.Session
+}
+
+func newMockSessionManager(mockSessions []mockSession) mockSessionManager {
+	sessions := make(map[string]sessions.Session, len(mockSessions))
+	for _, ms := range mockSessions {
+		sessions[ms.token] = ms.session
+	}
+	return mockSessionManager{
+		sessions: sessions,
+	}
 }
 
 func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, r *http.Request, user screenjournal.User) error {
-	sm.lastSession = user
+	token := random.String(10, []rune("abcdefghijklmnopqrstuvwxyz0123456789"))
+	sm.sessions[token] = sessions.Session{
+		User: user,
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:  "token",
+		Value: token,
+	})
 	return nil
 }
 
-func (sm mockSessionManager) SessionFromRequest(*http.Request) (sessions.Session, error) {
-	return sessions.Session{
-		User: screenjournal.User{
-			Username: screenjournal.Username("dummyadmin"),
-		},
-	}, nil
+func (sm mockSessionManager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
+	log.Printf("matching request to session") // DEBUG
+	token, err := r.Cookie("token")
+	if err != nil {
+		return sessions.Session{}, errors.New("mock session manager: no token cookie found")
+	}
+	log.Printf("token=%v", token) // DEBUG
+	session, ok := sm.sessions[token.Value]
+	if !ok {
+		log.Printf("no matching session for %s", token) // DEBUG
+		log.Printf("tokens=%+v", sm.sessions)           // DEBUG
+		return sessions.Session{}, errors.New("mock session manager: no session associated with token")
+	}
+	log.Printf("session matches username %s", session.User.Username.String()) // DEBUG
+	return session, nil
 }
 
 func (sm mockSessionManager) EndSession(*http.Request, http.ResponseWriter) {}
@@ -79,8 +112,10 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 	for _, tt := range []struct {
 		description     string
 		payload         string
+		sessionToken    string
 		localMovies     []screenjournal.Movie
 		remoteMovieInfo []metadata.MovieInfo
+		sessions        []mockSession
 		expected        screenjournal.Review
 	}{
 		{
@@ -91,12 +126,23 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 					"watched":"2022-10-28T00:00:00-04:00",
 					"blurb": "It's my favorite movie!"
 				}`,
+			sessionToken: "abc123",
 			localMovies: []screenjournal.Movie{
 				{
 					TmdbID:      screenjournal.TmdbID(38),
 					ImdbID:      screenjournal.ImdbID("tt0338013"),
 					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+			},
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("dummyadmin"),
+						},
+					},
 				},
 			},
 			expected: screenjournal.Review{
@@ -121,6 +167,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 					"watched":"2022-10-21T00:00:00-04:00",
 					"blurb": ""
 				}`,
+			sessionToken: "abc123",
 			localMovies: []screenjournal.Movie{
 				{
 					ID:          screenjournal.MovieID(1),
@@ -128,6 +175,16 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 					ImdbID:      screenjournal.ImdbID("tt0120654"),
 					Title:       screenjournal.MediaTitle("Dirty Work"),
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
+				},
+			},
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("dummyadmin"),
+						},
+					},
 				},
 			},
 			expected: screenjournal.Review{
@@ -152,12 +209,23 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 					"watched":"2022-10-28T00:00:00-04:00",
 					"blurb": "It's my favorite movie!"
 				}`,
+			sessionToken: "abc123",
 			remoteMovieInfo: []metadata.MovieInfo{
 				{
 					TmdbID:      screenjournal.TmdbID(38),
 					ImdbID:      screenjournal.ImdbID("tt0338013"),
 					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+			},
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("dummyadmin"),
+						},
+					},
 				},
 			},
 			expected: screenjournal.Review{
@@ -184,13 +252,19 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				}
 			}
 
-			s := handlers.New(mockAuthenticator{}, &mockSessionManager{}, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo))
+			sessionManager := newMockSessionManager(tt.sessions)
+
+			s := handlers.New(mockAuthenticator{}, &sessionManager, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo))
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
 			if err != nil {
 				t.Fatal(err)
 			}
 			req.Header.Add("Content-Type", "text/json")
+			req.AddCookie(&http.Cookie{
+				Name:  "token",
+				Value: tt.sessionToken,
+			})
 
 			w := httptest.NewRecorder()
 			s.Router().ServeHTTP(w, req)
@@ -253,7 +327,8 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			s := handlers.New(mockAuthenticator{}, &mockSessionManager{}, dataStore, mockMetadataFinder{})
+			sessionManager := newMockSessionManager([]mockSession{})
+			s := handlers.New(mockAuthenticator{}, &sessionManager, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
 			if err != nil {
@@ -299,6 +374,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			priorReviews: []screenjournal.Review{
 				{
 					ID:      screenjournal.ReviewID(1),
+					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(10),
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
@@ -349,6 +425,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			priorReviews: []screenjournal.Review{
 				{
 					ID:      screenjournal.ReviewID(1),
+					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(9),
 					Watched: mustParseWatchDate("2022-10-21T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("Love Norm McDonald!"),
@@ -396,7 +473,8 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				}
 			}
 
-			s := handlers.New(mockAuthenticator{}, &mockSessionManager{}, dataStore, mockMetadataFinder{})
+			sessionManager := newMockSessionManager([]mockSession{})
+			s := handlers.New(mockAuthenticator{}, &sessionManager, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {
@@ -449,6 +527,8 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			},
 			priorReviews: []screenjournal.Review{
 				{
+					ID:      screenjournal.ReviewID(1),
+					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(10),
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
@@ -513,6 +593,8 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			},
 			priorReviews: []screenjournal.Review{
 				{
+					ID:      screenjournal.ReviewID(1),
+					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(10),
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
@@ -544,6 +626,8 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			},
 			priorReviews: []screenjournal.Review{
 				{
+					ID:      screenjournal.ReviewID(1),
+					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(10),
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
@@ -575,6 +659,8 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			},
 			priorReviews: []screenjournal.Review{
 				{
+					ID:      screenjournal.ReviewID(1),
+					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(10),
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
@@ -606,6 +692,8 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			},
 			priorReviews: []screenjournal.Review{
 				{
+					ID:      screenjournal.ReviewID(1),
+					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(10),
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
@@ -638,6 +726,8 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			},
 			priorReviews: []screenjournal.Review{
 				{
+					ID:      screenjournal.ReviewID(1),
+					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(10),
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
@@ -674,7 +764,9 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 				}
 			}
 
-			s := handlers.New(mockAuthenticator{}, &mockSessionManager{}, dataStore, mockMetadataFinder{})
+			sessionManager := newMockSessionManager([]mockSession{})
+
+			s := handlers.New(mockAuthenticator{}, &sessionManager, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {

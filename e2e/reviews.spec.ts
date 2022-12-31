@@ -208,3 +208,62 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
     "Am I in the Matrix right now?"
   );
 });
+
+test("editing another user's review fails", async ({ page, browser }) => {
+  await page.locator("data-test-id=add-rating").click();
+
+  await page.locator("title-search #media-title").fill("the matri");
+  const matchingTitle = await page.locator(
+    "#search-results-list li:first-child span"
+  );
+  await expect(matchingTitle).toHaveText("The Matrix (1999)");
+  await matchingTitle.click();
+  await expect(page.locator("title-search #media-title")).toHaveValue(
+    "The Matrix"
+  );
+
+  await page.locator("#rating-select").selectOption({ label: "8" });
+  await page.locator("#watched-date").fill("2022-10-29");
+  await page.locator("#blurb").fill("Am I in the Matrix right now?");
+
+  await page.locator("form input[type='submit']").click();
+
+  // Invite another user/
+  await page.locator("id=admin-dropdown").click();
+  await page.locator("data-test-id=invites-btn").click();
+
+  await expect(page).toHaveURL("/admin/invites");
+  await page.locator("data-test-id=create-invite").click();
+
+  await expect(page).toHaveURL("/admin/invites/new");
+  await expect(page.locator("id=invitee")).toBeFocused();
+  await page.locator("id=invitee").fill("Billy");
+  await page.locator("form input[type='submit']").click();
+
+  await expect(page).toHaveURL("/admin/invites");
+
+  const inviteLink =
+    (await page.locator("data-test-id=invite-link").getAttribute("href")) || "";
+
+  // Switch to other user.
+  const guestContext = await browser.newContext();
+  const guestPage = await guestContext.newPage();
+  await guestPage.goto(inviteLink);
+
+  await expect(guestPage.locator(".alert-info")).toHaveText(
+    "Welcome, Billy! We've been expecting you."
+  );
+  await expect(guestPage.locator("id=username")).toHaveValue("billy");
+  await guestPage.locator("id=username").fill("billy123");
+  await guestPage.locator("id=email").fill("billy@example.com");
+  await guestPage.locator("id=password").fill("billypass");
+  await guestPage.locator("id=password-confirm").fill("billypass");
+  await guestPage.locator("form input[type='submit']").click();
+
+  await expect(guestPage).toHaveURL("/reviews");
+
+  const response = await guestPage.goto("/reviews/1/edit");
+  await expect(response?.status()).toBe(403);
+
+  await guestContext.close();
+});

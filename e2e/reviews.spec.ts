@@ -1,10 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { registerAsAdmin } from "./helpers/auth.js";
-import { wipeDB } from "./helpers/wipe.js";
+import { populateDummyData, wipeDB } from "./helpers/db.js";
+import { loginAsAdmin } from "./helpers/login.js";
 
 test.beforeEach(async ({ page }) => {
   await wipeDB(page);
-  await registerAsAdmin(page);
+  await populateDummyData(page);
+  await loginAsAdmin(page);
 });
 
 test("adds a new rating and fills in only required fields", async ({

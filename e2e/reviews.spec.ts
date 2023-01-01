@@ -1,11 +1,11 @@
 import { test, expect } from "@playwright/test";
 import { populateDummyData, wipeDB } from "./helpers/db.js";
-import { loginAsAdmin } from "./helpers/login.js";
+import { loginAsUserA, loginAsUserB } from "./helpers/login.js";
 
 test.beforeEach(async ({ page }) => {
   await wipeDB(page);
   await populateDummyData(page);
-  await loginAsAdmin(page);
+  await loginAsUserA(page);
 });
 
 test("adds a new rating and fills in only required fields", async ({
@@ -34,7 +34,7 @@ test("adds a new rating and fills in only required fields", async ({
   const reviewCard = await page.locator(":nth-match(.card, 1)");
   await expect(reviewCard.locator(".card-title")).toHaveText("Slow Learners");
   await expect(reviewCard.locator(".card-subtitle")).toHaveText(
-    /dummyadmin watched this .+ ago/,
+    /userA watched this .+ ago/,
     { useInnerText: true }
   );
   await expect(
@@ -87,7 +87,7 @@ You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, o
     "Weird: The Al Yankovic Story"
   );
   await expect(reviewCard.locator(".card-subtitle")).toHaveText(
-    /dummyadmin watched this .+ ago/,
+    /userA watched this .+ ago/,
     { useInnerText: true }
   );
   await expect(
@@ -111,7 +111,7 @@ If you think of Weird Al as just a parody music guy, give it a chance. I was nev
     "Weird: The Al Yankovic Story (2022)"
   );
   await expect(page.locator(".card-subtitle")).toHaveText(
-    /dummyadmin watched this .+ ago/,
+    /userA watched this .+ ago/,
     { useInnerText: true }
   );
 
@@ -163,7 +163,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
     "Eternal Sunshine of the Spotless Mind"
   );
   await expect(reviewCard.locator(".card-subtitle")).toHaveText(
-    /dummyadmin watched this .+ ago/,
+    /userA watched this .+ ago/,
     { useInnerText: true }
   );
   await expect(
@@ -225,7 +225,7 @@ test("adds a new rating and edits the details", async ({ page }) => {
   await expect(page).toHaveURL("/reviews");
 
   await expect(reviewCard.locator(".card-subtitle")).toHaveText(
-    /dummyadmin watched this .+ ago/,
+    /userA watched this .+ ago/,
     { useInnerText: true }
   );
   await expect(
@@ -277,7 +277,7 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   await expect(page).toHaveURL("/reviews");
 
   await expect(reviewCard.locator(".card-subtitle")).toHaveText(
-    /dummyadmin watched this .+ ago/,
+    /userA watched this .+ ago/,
     { useInnerText: true }
   );
   await expect(
@@ -292,4 +292,36 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   await expect(reviewCard.locator(".card-text")).toHaveText(
     "Am I in the Matrix right now?"
   );
+});
+
+test("editing another user's review fails", async ({ page, browser }) => {
+  await page.locator("data-test-id=add-rating").click();
+
+  await page.locator("title-search #media-title").fill("the matri");
+  const matchingTitle = await page.locator(
+    "#search-results-list li:first-child span"
+  );
+  await expect(matchingTitle).toHaveText("The Matrix (1999)");
+  await matchingTitle.click();
+  await expect(page.locator("title-search #media-title")).toHaveValue(
+    "The Matrix"
+  );
+
+  await page.locator("#rating-select").selectOption({ label: "8" });
+  await page.locator("#watched-date").fill("2022-10-29");
+  await page.locator("#blurb").fill("Am I in the Matrix right now?");
+
+  await page.locator("form input[type='submit']").click();
+
+  await expect(page).toHaveURL("/reviews");
+
+  // Switch to other user.
+  const guestContext = await browser.newContext();
+  const guestPage = await guestContext.newPage();
+  await loginAsUserB(guestPage);
+
+  const response = await guestPage.goto("/reviews/1/edit");
+  await expect(response?.status()).toBe(403);
+
+  await guestContext.close();
 });

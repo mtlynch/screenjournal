@@ -1,9 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { registerAsAdmin } from "./helpers/auth.js";
-import { wipeDB } from "./helpers/wipe.js";
+import { populateDummyData, wipeDB } from "./helpers/db.js";
+import { loginAsAdmin } from "./helpers/login.js";
 
 test.beforeEach(async ({ page }) => {
   await wipeDB(page);
+  await populateDummyData(page);
 });
 
 test("navbar updates links based on auth state", async ({ page }) => {
@@ -20,7 +21,7 @@ test("navbar updates links based on auth state", async ({ page }) => {
 
   await expect(page.locator(".navbar").getByText("Account")).toHaveCount(0);
 
-  await registerAsAdmin(page);
+  await loginAsAdmin(page);
 
   await page.locator(".navbar-brand").click();
   await expect(page).toHaveURL("/reviews");

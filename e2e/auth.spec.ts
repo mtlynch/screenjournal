@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { wipeDB } from "./helpers/wipe.js";
+import { wipeDB } from "./helpers/db.js";
 
 test.beforeEach(async ({ page }) => {
   await wipeDB(page);

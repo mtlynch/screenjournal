@@ -29,6 +29,10 @@ func (id ReviewID) IsZero() bool {
 	return id == ReviewID(0)
 }
 
+func (mt MediaTitle) String() string {
+	return string(mt)
+}
+
 func (r Rating) UInt8() uint8 {
 	return uint8(r)
 }

@@ -1,10 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { registerAsAdmin } from "./helpers/auth.js";
-import { wipeDB } from "./helpers/wipe.js";
+import { loginAsAdmin } from "./helpers/login.js";
+import { populateDummyData, wipeDB } from "./helpers/db.js";
 
 test.beforeEach(async ({ page }) => {
   await wipeDB(page);
-  await registerAsAdmin(page);
+  await populateDummyData(page);
+  await loginAsAdmin(page);
 });
 
 test("signing up with an valid invite code succeeds", async ({

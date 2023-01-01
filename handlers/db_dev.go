@@ -32,6 +32,12 @@ func (s Server) populateDummyData() http.HandlerFunc {
 			IsAdmin:      false,
 			Email:        screenjournal.Email("userA@example.com"),
 		},
+		{
+			Username:     screenjournal.Username("userB"),
+			PasswordHash: screenjournal.NewPasswordHash(screenjournal.Password("password456")),
+			IsAdmin:      false,
+			Email:        screenjournal.Email("userB@example.com"),
+		},
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {

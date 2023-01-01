@@ -12,3 +12,16 @@ export async function loginAsAdmin(page) {
 
   await expect(page).toHaveURL("/reviews");
 }
+
+export async function loginAsUserA(page) {
+  await page.goto("/");
+
+  await page.locator("data-test-id=sign-in-btn").click();
+
+  await expect(page).toHaveURL("/login");
+  await page.locator("id=username").fill("userA");
+  await page.locator("id=password").fill("password123");
+  await page.locator("form input[type='submit']").click();
+
+  await expect(page).toHaveURL("/reviews");
+}

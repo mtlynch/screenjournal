@@ -6,9 +6,9 @@ set -e
 # Echo commands to stdout.
 set -x
 
-REBUILD_BIN=""
-if [[ "$1" = "--rebuild" ]]; then
-  REBUILD_BIN="1"
+REBUILD_BIN="1"
+if [[ "$1" = "--skip-rebuild" ]]; then
+  REBUILD_BIN=""
 fi
 readonly REBUILD_BIN
 

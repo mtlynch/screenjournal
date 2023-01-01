@@ -7,11 +7,11 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/abraithwaite/jeff"
+	"github.com/mtlynch/jeff"
+	"github.com/mtlynch/jeff/sqlite"
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions/jeff/sqlite_store"
 )
 
 type (
@@ -30,7 +30,7 @@ func New(dbPath string) (sessions.Manager, error) {
 	if err != nil {
 		return manager{}, err
 	}
-	store, err := sqlite_store.New(db)
+	store, err := sqlite.New(db)
 	if err != nil {
 		return manager{}, err
 	}

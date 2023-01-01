@@ -905,9 +905,8 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			sessionToken: "abc123",
 			status:       http.StatusBadRequest,
 		},
-
 		{
-			description: "rejects request with review ID of zero",
+			description: "prevents a user from overwriting another user's review",
 			localMovies: []screenjournal.Movie{
 				{
 					TmdbID:      screenjournal.TmdbID(38),

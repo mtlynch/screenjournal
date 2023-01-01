@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/abraithwaite/jeff"
+	"github.com/mtlynch/jeff"
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"

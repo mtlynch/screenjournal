@@ -105,17 +105,22 @@
       <textarea id="blurb" class="form-control">{{ .Review.Blurb }}</textarea>
     </div>
 
-    <div class="d-flex justify-content-end" style="gap: 1rem">
+    <!-- Use reverse order so that tabbing from input goes to the save button
+         before the cancel button. -->
+    <div
+      class="d-flex flex-row-reverse justify-content-start"
+      style="gap: 1rem"
+    >
+      <button class="btn btn-primary" value="Save">
+        <i class="fa-solid fa-floppy-disk"></i>
+        Save
+      </button>
       <a
         class="btn btn-outline-secondary"
         data-test-id="cancel-edit"
         href="/reviews"
         >Cancel</a
       >
-      <button class="btn btn-primary" value="Save">
-        <i class="fa-solid fa-floppy-disk"></i>
-        Save
-      </button>
     </div>
   </form>
 

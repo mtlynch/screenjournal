@@ -59,7 +59,7 @@ RUN tar -xvzf litestream.tgz
 
 FROM alpine:3.15
 
-RUN apk add --no-cache bash
+RUN apk add --no-cache bash tzdata
 
 COPY --from=builder /app/screenjournal /app/screenjournal
 COPY --from=litestream_downloader /litestream/litestream /app/litestream

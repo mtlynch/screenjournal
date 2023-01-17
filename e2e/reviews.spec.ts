@@ -245,19 +245,19 @@ test("adds a new rating and edits the details", async ({ page }) => {
 test("adds a new rating and cancels the edit", async ({ page }) => {
   await page.locator("data-test-id=add-rating").click();
 
-  await page.locator("title-search #media-title").fill("the matri");
+  await page.locator("title-search #media-title").fill("the english pati");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );
-  await expect(matchingTitle).toHaveText("The Matrix (1999)");
+  await expect(matchingTitle).toHaveText("The English Patient (1996)");
   await matchingTitle.click();
   await expect(page.locator("title-search #media-title")).toHaveValue(
-    "The Matrix"
+    "The English Patient"
   );
 
   await page.locator("#rating-select").selectOption({ label: "8" });
   await page.locator("#watched-date").fill("2022-10-29");
-  await page.locator("#blurb").fill("Am I in the Matrix right now?");
+  await page.locator("#blurb").fill("What an English patient he was!");
 
   await page.locator("form input[type='submit']").click();
 
@@ -290,26 +290,26 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
     reviewCard.locator("[data-test-id='rating'] .fa-star.fa-regular")
   ).toHaveCount(2);
   await expect(reviewCard.locator(".card-text")).toHaveText(
-    "Am I in the Matrix right now?"
+    "What an English patient he was!"
   );
 });
 
 test("editing another user's review fails", async ({ page, browser }) => {
   await page.locator("data-test-id=add-rating").click();
 
-  await page.locator("title-search #media-title").fill("the matri");
+  await page.locator("title-search #media-title").fill("the english pati");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );
-  await expect(matchingTitle).toHaveText("The Matrix (1999)");
+  await expect(matchingTitle).toHaveText("The English Patient (1996)");
   await matchingTitle.click();
   await expect(page.locator("title-search #media-title")).toHaveValue(
-    "The Matrix"
+    "The English Patient"
   );
 
   await page.locator("#rating-select").selectOption({ label: "8" });
   await page.locator("#watched-date").fill("2022-10-29");
-  await page.locator("#blurb").fill("Am I in the Matrix right now?");
+  await page.locator("#blurb").fill("What an English patient he was!");
 
   await page.locator("form input[type='submit']").click();
 

@@ -29,7 +29,7 @@ func (d DB) applyMigrations() {
 		log.Fatalf("error loading database migrations: %v", err)
 	}
 
-	log.Printf("Migration counter: %d/%d", version, len(migrations))
+	log.Printf("migration counter: %d/%d", version, len(migrations))
 
 	for _, migration := range migrations {
 		if migration.version <= version {
@@ -54,7 +54,7 @@ func (d DB) applyMigrations() {
 			log.Fatalf("failed to commit migration %d: %v", migration.version, err)
 		}
 
-		log.Printf("Migration counter: %d/%d", migration.version, len(migrations))
+		log.Printf("migration counter: %d/%d", migration.version, len(migrations))
 	}
 }
 

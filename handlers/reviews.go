@@ -44,7 +44,7 @@ func (s Server) reviewsPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.store.InsertReview(req.Review); err != nil {
+		if _, err := s.store.InsertReview(req.Review); err != nil {
 			log.Printf("failed to save review: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to save review: %v", err), http.StatusInternalServerError)
 			return

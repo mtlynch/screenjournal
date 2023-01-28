@@ -14,7 +14,7 @@ type (
 	Store interface {
 		ReadReview(screenjournal.ReviewID) (screenjournal.Review, error)
 		ReadReviews(ReviewFilters) ([]screenjournal.Review, error)
-		InsertReview(screenjournal.Review) error
+		InsertReview(screenjournal.Review) (screenjournal.ReviewID, error)
 		UpdateReview(screenjournal.Review) error
 		ReadMovie(screenjournal.MovieID) (screenjournal.Movie, error)
 		ReadMovieByTmdbID(screenjournal.TmdbID) (screenjournal.Movie, error)

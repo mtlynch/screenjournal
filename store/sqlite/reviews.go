@@ -81,12 +81,12 @@ func (db DB) ReadReviews(filters store.ReviewFilters) ([]screenjournal.Review, e
 	return reviews, nil
 }
 
-func (d DB) InsertReview(r screenjournal.Review) error {
+func (d DB) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, error) {
 	log.Printf("inserting new review of movie ID %v: %v", r.Movie.ID, r.Rating.UInt8())
 
 	now := time.Now()
 
-	if _, err := d.ctx.Exec(`
+	res, err := d.ctx.Exec(`
 	INSERT INTO
 		reviews
 	(
@@ -108,11 +108,17 @@ func (d DB) InsertReview(r screenjournal.Review) error {
 		r.Blurb,
 		formatWatchDate(r.Watched),
 		formatTime(now),
-		formatTime(now)); err != nil {
-		return err
+		formatTime(now))
+	if err != nil {
+		return screenjournal.ReviewID(0), err
 	}
 
-	return nil
+	lastID, err := res.LastInsertId()
+	if err != nil {
+		return screenjournal.ReviewID(0), err
+	}
+
+	return screenjournal.ReviewID(lastID), nil
 }
 
 func (d DB) UpdateReview(r screenjournal.Review) error {

@@ -541,7 +541,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			}
 
 			for _, r := range tt.priorReviews {
-				if err := dataStore.InsertReview(r); err != nil {
+				if _, err := dataStore.InsertReview(r); err != nil {
 					panic(err)
 				}
 			}
@@ -969,7 +969,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			}
 
 			for _, r := range tt.priorReviews {
-				if err := dataStore.InsertReview(r); err != nil {
+				if _, err := dataStore.InsertReview(r); err != nil {
 					panic(err)
 				}
 			}

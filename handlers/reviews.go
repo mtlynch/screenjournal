@@ -44,11 +44,14 @@ func (s Server) reviewsPost() http.HandlerFunc {
 			return
 		}
 
-		if _, err := s.store.InsertReview(req.Review); err != nil {
+		req.Review.ID, err = s.store.InsertReview(req.Review)
+		if err != nil {
 			log.Printf("failed to save review: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to save review: %v", err), http.StatusInternalServerError)
 			return
 		}
+
+		s.announcer.AnnounceNewReview(req.Review)
 	}
 }
 
@@ -179,7 +182,8 @@ func (s Server) moviefromTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movi
 		return screenjournal.Movie{}, err
 	}
 
-	movie.ID, err = s.store.InsertMovie(metadata.MovieFromMovieInfo(mi))
+	movie = metadata.MovieFromMovieInfo(mi)
+	movie.ID, err = s.store.InsertMovie(movie)
 	if err != nil {
 		return screenjournal.Movie{}, err
 	}

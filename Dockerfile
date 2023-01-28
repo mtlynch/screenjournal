@@ -2,8 +2,10 @@ FROM golang:1.19.1 AS builder
 
 ARG TARGETPLATFORM
 
+COPY ./announce /app/announce
 COPY ./auth /app/auth
 COPY ./cmd /app/cmd
+COPY ./email /app/email
 COPY ./handlers /app/handlers
 COPY ./metadata /app/metadata
 COPY ./random /app/random

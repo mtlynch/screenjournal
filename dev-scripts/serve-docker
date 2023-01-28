@@ -21,8 +21,6 @@ docker rm -f screenjournal || true
 
 docker run \
   --env "PORT=4002" \
-  --env "SJ_ADMIN_USERNAME=${SJ_ADMIN_USERNAME}" \
-  --env "SJ_ADMIN_PASSWORD=${SJ_ADMIN_PASSWORD}" \
   --env "LITESTREAM_BUCKET=${LITESTREAM_BUCKET}" \
   --env "LITESTREAM_ENDPOINT=${LITESTREAM_ENDPOINT}" \
   --env "LITESTREAM_ACCESS_KEY_ID=${LITESTREAM_ACCESS_KEY_ID}" \

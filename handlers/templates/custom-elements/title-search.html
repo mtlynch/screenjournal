@@ -118,7 +118,8 @@
               return;
             }
 
-            for (const m of results.matches.slice(0, 10)) {
+            const maxTitleMatches = 7;
+            for (const m of results.matches.slice(0, maxTitleMatches)) {
               const d = new Date(m.releaseDate);
 
               const imgEl = document.createElement("img");

@@ -32,13 +32,13 @@ func New(baseURL string, sender email.Sender, store UserStore) announce.Announce
 }
 
 func (a announcer) AnnounceNewReview(r screenjournal.Review) {
-	log.Printf("announcing new review for %+v", r)
+	log.Printf("announcing %s' new review of %s", r.Owner.String(), r.Movie.Title)
 	users, err := a.store.ReadUsers()
 	if err != nil {
 		log.Printf("failed to read announcement recipients from store: %v", err)
 	}
 	for _, u := range users {
-		log.Printf("checking user %s", u.Username.String())
+		// Don't send a notification to the review author.
 		if u.Username == r.Owner {
 			continue
 		}
@@ -53,7 +53,7 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 					Address: u.Email.String(),
 				},
 			},
-			Subject: fmt.Sprintf("bob posted a new review: %s", r.Movie.Title),
+			Subject: fmt.Sprintf("%s posted a new review: %s", r.Owner.String(), r.Movie.Title),
 			Date:    time.Now(),
 			TextBody: fmt.Sprintf(`Hey %s,
 

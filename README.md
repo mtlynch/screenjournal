@@ -30,7 +30,7 @@ ScreenJournal is in pre-alpha state and is not yet documented for other people t
 | -------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `PORT`               | TCP port on which to listen for HTTP connections (defaults to 3001).                                            |
 | `SJ_TMDB_API`        | (required) API key for TMDB. You can obtain a free key at [TMDB](https://www.themoviedb.org/documentation/api). |
-| `SJ_SMTP_HOST`       | TODO                                                                                                            |
-| `SJ_SMTP_PORT`       | TODO                                                                                                            |
-| `SJ_SMTP_USERNAME`   | TODO                                                                                                            |
-| `SJ_SMTP_PASSWORD`   | TODO                                                                                                            |
+| `SJ_SMTP_HOST`       | (optional) Hostname of SMTP server to send notifications.                                                       |
+| `SJ_SMTP_PORT`       | (optional) Port of SMTP server to send notifications.                                                           |
+| `SJ_SMTP_USERNAME`   | (optional) Username for SMTP server to send notifications.                                                      |
+| `SJ_SMTP_PASSWORD`   | (optional) Password for SMTP server to send notifications.                                                      |

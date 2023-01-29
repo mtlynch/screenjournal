@@ -279,7 +279,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			Today         time.Time
 		}{
 			commonProps:   makeCommonProps("Edit Review", r.Context()),
-			RatingOptions: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+			RatingOptions: []int{1, 2, 3, 4, 5},
 			Review:        review,
 			Today:         time.Now(),
 		}, template.FuncMap{
@@ -315,7 +315,7 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 			Today         time.Time
 		}{
 			commonProps:   makeCommonProps("Add Review", r.Context()),
-			RatingOptions: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+			RatingOptions: []int{1, 2, 3, 4, 5},
 			Today:         time.Now(),
 		}, template.FuncMap{
 			"formatDate": func(t time.Time) string {

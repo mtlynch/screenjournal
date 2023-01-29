@@ -167,14 +167,20 @@ func TestRating(t *testing.T) {
 			nil,
 		},
 		{
-			"rating of 10 is valid",
-			10,
-			screenjournal.Rating(10),
+			"rating of 5 is valid",
+			5,
+			screenjournal.Rating(5),
 			nil,
 		},
 		{
 			"rating of -1 is invalid",
 			-1,
+			screenjournal.Rating(0),
+			parse.ErrInvalidRating,
+		},
+		{
+			"rating of 6 is invalid",
+			6,
 			screenjournal.Rating(0),
 			parse.ErrInvalidRating,
 		},

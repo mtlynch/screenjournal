@@ -60,6 +60,18 @@
 <script type="module">
   import { searchGet } from "/js/controllers/search.js";
 
+  function throttle(func, waitInMilliseconds) {
+    let timer = null;
+    return function (...args) {
+      if (timer === null) {
+        timer = setTimeout(() => {
+          func.apply(this, args);
+          timer = null;
+        }, waitInMilliseconds);
+      }
+    };
+  }
+
   (function () {
     const template = document.querySelector("#title-search-template");
 
@@ -85,6 +97,10 @@
             }
           });
           this._tmdbId = null;
+
+          this._throttledUpdateSearchQuery = throttle((query) => {
+            this._updateSearchQuery(query);
+          }, 250);
         }
 
         get value() {
@@ -109,6 +125,10 @@
           if (query.length < 2) {
             return;
           }
+          this._throttledUpdateSearchQuery(query);
+        }
+
+        _updateSearchQuery(query) {
           searchGet(query).then((results) => {
             this._clearSearchResults();
             this._elements.resultsList.classList.add("show");

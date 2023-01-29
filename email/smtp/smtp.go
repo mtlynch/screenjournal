@@ -2,6 +2,7 @@ package smtp
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"log"
 	"net/smtp"
@@ -24,7 +25,15 @@ type (
 )
 
 func New(host string, port int, username, password string) (email.Sender, error) {
-	// TODO: Check for valid config.
+	if host == "" {
+		return sender{}, errors.New("invalid SMTP hostname")
+	}
+	if port == 0 {
+		return sender{}, errors.New("invalid SMTP port")
+	}
+	if username == "" || password == "" {
+		return sender{}, errors.New("invalid SMTP credentials")
+	}
 	return sender{
 		config: config{
 			Host:     host,

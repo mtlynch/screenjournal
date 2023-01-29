@@ -13,6 +13,16 @@
       border-top: 1px solid #c2c2c2;
     }
 
+    #search-results-list li a {
+      display: block;
+      text-decoration: none;
+      color: black;
+    }
+
+    #search-results-list li a:hover {
+      background-color: #def0ff;
+    }
+
     #search-results-list img {
       max-height: 100px;
     }
@@ -122,10 +132,12 @@
               spanEl.innerText = `${m.title} (${d.getFullYear()})`;
 
               const anchorEl = document.createElement("a");
+              anchorEl.href = "#";
               anchorEl.appendChild(imgEl);
               anchorEl.appendChild(spanEl);
 
               anchorEl.addEventListener("click", (evt) => {
+                evt.preventDefault();
                 this._elements.title.value = m.title;
                 this._tmdbId = m.tmdbId;
                 this._clearSearchResults();

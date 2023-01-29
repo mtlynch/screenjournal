@@ -28,7 +28,13 @@
         <div class="card h-100">
           <div class="card-body">
             <h5 class="card-title">
-              {{ .Movie.Title }}
+              <a
+                href="/reviews/{{ .ID }}"
+                class="card-link"
+                data-test-id="full-review"
+              >
+                {{ .Movie.Title }}</a
+              >
             </h5>
             <h6 class="card-subtitle mb-2 text-muted">
               <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> watched

@@ -122,6 +122,12 @@ func TestInviteCode(t *testing.T) {
 			parse.ErrInviteCodeInvalid,
 		},
 		{
+			"invite code with invalid character is invalid",
+			"abc45#",
+			screenjournal.InviteCode(""),
+			parse.ErrInviteCodeInvalid,
+		},
+		{
 			"invite code with emoji characters is invalid",
 			"23456😊",
 			screenjournal.InviteCode(""),

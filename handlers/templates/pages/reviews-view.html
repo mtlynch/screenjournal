@@ -21,7 +21,7 @@
       {{ range iterate .Rating.UInt8 }}
         <i class="fa-solid fa-star"></i>
       {{ end }}
-      {{ range iterate (minus 10 .Rating.UInt8) }}
+      {{ range iterate (minus 5 .Rating.UInt8) }}
         <i class="fa-regular fa-star"></i>
       {{ end }}
     </div>

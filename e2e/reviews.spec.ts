@@ -23,7 +23,7 @@ test("adds a new rating and fills in only required fields", async ({
     "Slow Learners"
   );
 
-  await page.locator("#rating-select").selectOption({ label: "3" });
+  await page.locator("#rating-select").selectOption({ label: "1" });
 
   await page.locator("#watched-date").fill("2022-10-21");
 
@@ -42,10 +42,10 @@ test("adds a new rating and fills in only required fields", async ({
   ).toHaveAttribute("title", "2022-10-21");
   await expect(
     reviewCard.locator("[data-test-id='rating'] .fa-star.fa-solid")
-  ).toHaveCount(3);
+  ).toHaveCount(1);
   await expect(
     reviewCard.locator("[data-test-id='rating'] .fa-star.fa-regular")
-  ).toHaveCount(7);
+  ).toHaveCount(4);
   await expect(reviewCard.locator(".card-text")).toHaveCount(0);
 });
 
@@ -67,7 +67,7 @@ test("adds a new rating that's too long to display in a card", async ({
   );
   await page.locator("#watched-date").fill("2022-11-11");
 
-  await page.locator("#rating-select").selectOption({ label: "10" });
+  await page.locator("#rating-select").selectOption({ label: "5" });
 
   await page.locator("#blurb")
     .fill(`Instant movie of the year for me. It's such a delightful and creative way to play with the genre of musical biopics.
@@ -95,7 +95,7 @@ You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, o
   ).toHaveAttribute("title", "2022-11-11");
   await expect(
     reviewCard.locator("[data-test-id='rating'] .fa-star.fa-solid")
-  ).toHaveCount(10);
+  ).toHaveCount(5);
   await expect(
     reviewCard.locator("[data-test-id='rating'] .fa-star.fa-regular")
   ).toHaveCount(0);
@@ -117,7 +117,7 @@ If you think of Weird Al as just a parody music guy, give it a chance. I was nev
 
   await expect(
     page.locator("[data-test-id='rating'] .fa-star.fa-solid")
-  ).toHaveCount(10);
+  ).toHaveCount(5);
   await expect(
     page.locator("[data-test-id='rating'] .fa-star.fa-regular")
   ).toHaveCount(0);
@@ -148,7 +148,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
     "Eternal Sunshine of the Spotless Mind"
   );
 
-  await page.locator("#rating-select").selectOption({ label: "10" });
+  await page.locator("#rating-select").selectOption({ label: "5" });
 
   await page.locator("#watched-date").fill("2022-10-29");
 
@@ -171,7 +171,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
   ).toHaveAttribute("title", "2022-10-29");
   await expect(
     reviewCard.locator("[data-test-id='rating'] .fa-star.fa-solid")
-  ).toHaveCount(10);
+  ).toHaveCount(5);
   await expect(
     reviewCard.locator("[data-test-id='rating'] .fa-star.fa-regular")
   ).toHaveCount(0);
@@ -193,7 +193,7 @@ test("adds a new rating and edits the details", async ({ page }) => {
     "There's Something About Mary"
   );
 
-  await page.locator("#rating-select").selectOption({ label: "10" });
+  await page.locator("#rating-select").selectOption({ label: "5" });
 
   await page.locator("#watched-date").fill("2022-10-29");
 
@@ -211,8 +211,8 @@ test("adds a new rating and edits the details", async ({ page }) => {
     "There's Something About Mary (1998)"
   );
 
-  await expect(page.locator("#rating-select")).toHaveValue("10");
-  await page.locator("#rating-select").selectOption({ label: "8" });
+  await expect(page.locator("#rating-select")).toHaveValue("5");
+  await page.locator("#rating-select").selectOption({ label: "4" });
 
   await expect(page.locator("#watched-date")).toHaveValue("2022-10-29");
   await page.locator("#watched-date").fill("2022-10-22");
@@ -233,10 +233,10 @@ test("adds a new rating and edits the details", async ({ page }) => {
   ).toHaveAttribute("title", "2022-10-22");
   await expect(
     reviewCard.locator("[data-test-id='rating'] .fa-star.fa-solid")
-  ).toHaveCount(8);
+  ).toHaveCount(4);
   await expect(
     reviewCard.locator("[data-test-id='rating'] .fa-star.fa-regular")
-  ).toHaveCount(2);
+  ).toHaveCount(1);
   await expect(reviewCard.locator(".card-text")).toHaveText(
     "Not as good as I remembered"
   );
@@ -255,7 +255,7 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
     "The English Patient"
   );
 
-  await page.locator("#rating-select").selectOption({ label: "8" });
+  await page.locator("#rating-select").selectOption({ label: "4" });
   await page.locator("#watched-date").fill("2022-10-29");
   await page.locator("#blurb").fill("What an English patient he was!");
 
@@ -285,10 +285,10 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   ).toHaveAttribute("title", "2022-10-29");
   await expect(
     reviewCard.locator("[data-test-id='rating'] .fa-star.fa-solid")
-  ).toHaveCount(8);
+  ).toHaveCount(4);
   await expect(
     reviewCard.locator("[data-test-id='rating'] .fa-star.fa-regular")
-  ).toHaveCount(2);
+  ).toHaveCount(1);
   await expect(reviewCard.locator(".card-text")).toHaveText(
     "What an English patient he was!"
   );
@@ -307,7 +307,7 @@ test("editing another user's review fails", async ({ page, browser }) => {
     "The English Patient"
   );
 
-  await page.locator("#rating-select").selectOption({ label: "8" });
+  await page.locator("#rating-select").selectOption({ label: "4" });
   await page.locator("#watched-date").fill("2022-10-29");
   await page.locator("#blurb").fill("What an English patient he was!");
 

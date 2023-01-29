@@ -27,11 +27,6 @@ func TestFromEmail(t *testing.T) {
 						Address: "alice@user.example.com",
 					},
 				},
-				Bcc: []mail.Address{
-					{
-						Address: "archiver@sj.example.com",
-					},
-				},
 				Subject: "Frank posted a review of The Room",
 				TextBody: `Hi Alice,
 

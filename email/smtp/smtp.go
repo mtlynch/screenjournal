@@ -68,8 +68,8 @@ func (s sender) Send(msg email.Message) error {
 		return err
 	}
 
-	rcpts := append(msg.To, msg.Bcc...)
-	// TODO: Add cc recepients
+	rcpts := msg.To
+	// TODO: Add cc and bcc recepients
 	for _, rcpt := range rcpts {
 		if err := c.Rcpt(rcpt.Address); err != nil {
 			return err

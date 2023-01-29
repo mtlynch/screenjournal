@@ -8,7 +8,6 @@ import (
 type Message struct {
 	From     mail.Address
 	To       []mail.Address
-	Bcc      []mail.Address
 	Subject  string
 	Date     time.Time
 	TextBody string

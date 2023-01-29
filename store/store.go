@@ -22,6 +22,7 @@ type (
 		UpdateMovie(screenjournal.Movie) error
 		CountUsers() (uint, error)
 		ReadUser(screenjournal.Username) (screenjournal.User, error)
+		ReadUsers() ([]screenjournal.User, error)
 		InsertUser(screenjournal.User) error
 		InsertSignupInvitation(screenjournal.SignupInvitation) error
 		ReadSignupInvitation(screenjournal.InviteCode) (screenjournal.SignupInvitation, error)

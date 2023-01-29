@@ -20,25 +20,63 @@ func (db DB) CountUsers() (uint, error) {
 	return c, nil
 }
 
-func (db DB) ReadUser(username screenjournal.Username) (screenjournal.User, error) {
-	var isAdmin bool
-	var email string
-	var passwordHashEncoded string
-	if err := db.ctx.QueryRow(`
+func (db DB) ReadUsers() ([]screenjournal.User, error) {
+	rows, err := db.ctx.Query(`
 	SELECT
+		username,
+		is_admin,
+		email,
+		password_hash
+	FROM
+		users`)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return []screenjournal.User{}, nil
+		}
+		return []screenjournal.User{}, err
+	}
+
+	users := []screenjournal.User{}
+	for rows.Next() {
+		user, err := userFromRow(rows)
+		if err != nil {
+			return []screenjournal.User{}, err
+		}
+		users = append(users, user)
+	}
+	return users, nil
+}
+
+func (db DB) ReadUser(username screenjournal.Username) (screenjournal.User, error) {
+	row := db.ctx.QueryRow(`
+	SELECT
+		username,
 		is_admin,
 		email,
 		password_hash
 	FROM
 		users
 	WHERE
-		username = ?`, username.String()).Scan(&isAdmin, &email, &passwordHashEncoded); err != nil {
+		username = ?`, username.String())
+	user, err := userFromRow(row)
+	if err != nil {
 		if err == sql.ErrNoRows {
 			return screenjournal.User{}, screenjournal.ErrUserNotFound
 		}
 		return screenjournal.User{}, err
 	}
 
+	return user, nil
+}
+
+func userFromRow(row rowScanner) (screenjournal.User, error) {
+	var username string
+	var isAdmin bool
+	var email string
+	var passwordHashEncoded string
+	if err := row.Scan(&username, &isAdmin, &email, &passwordHashEncoded); err != nil {
+		return screenjournal.User{}, err
+	}
 	return screenjournal.User{
 		IsAdmin:      isAdmin,
 		Username:     screenjournal.Username(username),

@@ -164,7 +164,7 @@ func TestUsersPut(t *testing.T) {
 			var nilMetadataFinder metadata.Finder
 			sessionManager := newMockSessionManager([]mockSession{})
 
-			s := handlers.New(authenticator, &sessionManager, dataStore, nilMetadataFinder)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {

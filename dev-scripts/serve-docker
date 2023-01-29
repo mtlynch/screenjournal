@@ -21,6 +21,10 @@ docker rm -f screenjournal || true
 
 docker run \
   --env "PORT=4002" \
+  --env "SJ_SMTP_HOST=${SJ_SMTP_HOST}" \
+  --env "SJ_SMTP_PORT=${SJ_SMTP_PORT}" \
+  --env "SJ_SMTP_USERNAME=${SJ_SMTP_USERNAME}" \
+  --env "SJ_SMTP_PASSWORD=${SJ_SMTP_PASSWORD}" \
   --env "LITESTREAM_BUCKET=${LITESTREAM_BUCKET}" \
   --env "LITESTREAM_ENDPOINT=${LITESTREAM_ENDPOINT}" \
   --env "LITESTREAM_ACCESS_KEY_ID=${LITESTREAM_ACCESS_KEY_ID}" \

@@ -14,6 +14,7 @@ import (
 	"github.com/go-test/deep"
 
 	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/announce"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
@@ -23,10 +24,20 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
+var nilAnnouncer announce.Announcer
+
 type mockAuthenticator struct{}
 
 func (a mockAuthenticator) Authenticate(screenjournal.Username, screenjournal.Password) (screenjournal.User, error) {
 	return screenjournal.User{}, nil
+}
+
+type mockAnnouncer struct {
+	announcedReviews []screenjournal.Review
+}
+
+func (a *mockAnnouncer) AnnounceNewReview(r screenjournal.Review) {
+	a.announcedReviews = append(a.announcedReviews, r)
 }
 
 type mockSession struct {
@@ -247,9 +258,11 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				}
 			}
 
+			announcer := mockAnnouncer{}
+
 			sessionManager := newMockSessionManager(tt.sessions)
 
-			s := handlers.New(mockAuthenticator{}, &sessionManager, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo))
+			s := handlers.New(mockAuthenticator{}, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo))
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
 			if err != nil {
@@ -274,14 +287,20 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				t.Fatalf("%s: failed to retrieve review from datastore: %v", tt.description, err)
 			}
 
-			found := false
-			for _, r := range rr {
-				if reviewContentsEqual(r, tt.expected) {
-					found = true
-				}
+			if got, want := len(rr), 1; got != want {
+				t.Fatalf("reviewCountInStore=%d, want=%d", got, want)
 			}
-			if !found {
-				t.Fatalf("did not find expected review: %s, datastore reviews=%+v", tt.expected.Movie.Title, rr)
+
+			if !reviewContentsEqual(rr[0], tt.expected) {
+				t.Errorf("did not find expected review: %s, datastore reviews=%+v", tt.expected.Movie.Title, rr)
+			}
+
+			if got, want := len(announcer.announcedReviews), 1; got != want {
+				t.Fatalf("reviewCountAnnounced=%d, want=%d", got, want)
+			}
+
+			if !reviewContentsEqual(announcer.announcedReviews[0], tt.expected) {
+				t.Errorf("did not find expected review: %s, announced reviews=%+v", tt.expected.Movie.Title, rr)
 			}
 		})
 	}
@@ -368,8 +387,10 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
+			announcer := mockAnnouncer{}
+
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(mockAuthenticator{}, &sessionManager, dataStore, mockMetadataFinder{})
+			s := handlers.New(mockAuthenticator{}, &announcer, &sessionManager, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
 			if err != nil {
@@ -386,6 +407,10 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 
 			if got, want := w.Code, http.StatusBadRequest; got != want {
 				t.Fatalf("/api/reviews POST returned wrong status: got=%v, want=%v", got, want)
+			}
+
+			if got, want := len(announcer.announcedReviews), 0; got != want {
+				t.Errorf("announcedReviews=%d, want=%d", got, want)
 			}
 		})
 	}
@@ -547,7 +572,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			}
 
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(mockAuthenticator{}, &sessionManager, dataStore, mockMetadataFinder{})
+			s := handlers.New(mockAuthenticator{}, nilAnnouncer, &sessionManager, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {
@@ -976,7 +1001,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 
 			sessionManager := newMockSessionManager(tt.sessions)
 
-			s := handlers.New(mockAuthenticator{}, &sessionManager, dataStore, mockMetadataFinder{})
+			s := handlers.New(mockAuthenticator{}, nilAnnouncer, &sessionManager, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {

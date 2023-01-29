@@ -73,10 +73,14 @@ func TestAnnounceNewReview(t *testing.T) {
 							Address: "alice.amberson@example.com",
 						},
 					},
-					Subject: "New review of The Matrix",
-					TextBody: `A new review is up for The Matrix!
+					Subject: "bob posted a new review: The Matrix",
+					TextBody: `Hey alice,
 
-https://dev.thescreenjournal.com/reviews/123`,
+bob just posted a new review for The Matrix! Check it out:
+
+https://dev.thescreenjournal.com/reviews/123
+
+-ScreenJournal Bot`,
 				},
 				{
 					From: mail.Address{
@@ -89,10 +93,14 @@ https://dev.thescreenjournal.com/reviews/123`,
 							Address: "charlie.barley@example.com",
 						},
 					},
-					Subject: "New review of The Matrix",
-					TextBody: `A new review is up for The Matrix!
+					Subject: "bob posted a new review: The Matrix",
+					TextBody: `Hey charlie,
 
-https://dev.thescreenjournal.com/reviews/123`,
+bob just posted a new review for The Matrix! Check it out:
+
+https://dev.thescreenjournal.com/reviews/123
+
+-ScreenJournal Bot`,
 				},
 			},
 		},

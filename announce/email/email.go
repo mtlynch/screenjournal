@@ -53,11 +53,15 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 					Address: u.Email.String(),
 				},
 			},
-			Subject: fmt.Sprintf("New review of %s", r.Movie.Title),
+			Subject: fmt.Sprintf("bob posted a new review: %s", r.Movie.Title),
 			Date:    time.Now(),
-			TextBody: fmt.Sprintf(`A new review is up for %s!
+			TextBody: fmt.Sprintf(`Hey %s,
 
-%s/reviews/%d`, r.Movie.Title, a.baseURL, r.ID),
+%s just posted a new review for %s! Check it out:
+
+%s/reviews/%d
+
+-ScreenJournal Bot`, u.Username.String(), r.Owner.String(), r.Movie.Title, a.baseURL, r.ID),
 		}
 		if err := a.sender.Send(msg); err != nil {
 			log.Printf("failed to send message [%s] to recipient [%s]", msg.Subject, msg.To[0].String())

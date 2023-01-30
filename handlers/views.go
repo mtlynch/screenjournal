@@ -363,6 +363,24 @@ func (s Server) invitesNewGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) accountNotificationsGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// TODO: Read this from DB.
+		reviewNotices := true
+
+		if err := renderTemplate(w, "account-notifications.html", struct {
+			commonProps
+			ReceivesReviewNotices bool
+		}{
+			commonProps:           makeCommonProps("Manage Notifications", r.Context()),
+			ReceivesReviewNotices: reviewNotices,
+		}, template.FuncMap{}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func relativeWatchDate(t screenjournal.WatchDate) string {
 	daysAgo := int(time.Since(t.Time()).Hours() / 24)
 	weeksAgo := int(daysAgo / 7)

@@ -1,0 +1,88 @@
+{{ define "style-tags" }}
+{{ end }}
+
+{{ define "script-tags" }}
+  <script type="module" nonce="{{ .CspNonce }}">
+    import { showElement, hideElement } from "/js/lib/bootstrap.js";
+    import { notificationsPut } from "/js/controllers/notifications.js";
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      function () {
+        const newReviewsCheckbox = document.getElementById(
+          "new-reviews-checkbox"
+        );
+
+        const errorAlert = document.getElementById("error");
+        const submitSpinner = document.getElementById("submit-spinner");
+        const submitBtn = document.querySelector("form .btn-primary");
+
+        newReviewsCheckbox.addEventListener("change", () => {
+          submitBtn.removeAttribute("disabled");
+        });
+
+        document
+          .getElementById("notifications-form")
+          .addEventListener("submit", (evt) => {
+            evt.preventDefault();
+
+            submitBtn.disabled = true;
+            hideElement(errorAlert);
+            showElement(submitSpinner);
+
+            const isSubscribed = newReviewsCheckbox.checked;
+
+            notificationsPut(isSubscribed)
+              .then(() => {
+                // TODO: Report success
+              })
+              .catch((error) => {
+                errorAlert.innerText = error;
+                showElement(errorAlert);
+              })
+              .finally(() => {
+                hideElement(submitSpinner);
+                submitBtn.disabled = false;
+              });
+          });
+      },
+      false
+    );
+  </script>
+{{ end }}
+
+{{ define "custom-elements" }}
+{{ end }}
+
+{{ define "content" }}
+  <h1>Manage Notifications</h1>
+
+  <form id="notifications-form" class="my-4">
+    <div class="form-check my-4">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        id="new-reviews-checkbox"
+        {{ if .ReceivesReviewNotices }}checked{{ end }}
+      />
+      <label class="form-check-label" for="new-reviews-checkbox">
+        Receive email notifications for new reviews
+      </label>
+    </div>
+
+    <button class="btn btn-primary" value="Save" disabled>
+      <i class="fa-solid fa-floppy-disk"></i>
+      Save
+    </button>
+  </form>
+
+  <div id="submit-spinner" class="spinner-border invisible" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+
+  <div id="error" class="alert alert-danger invisible" role="alert">
+    Placeholder error
+  </div>
+{{ end }}
+
+{{ template "base.html" }}

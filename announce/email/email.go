@@ -61,7 +61,9 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 
 %s/reviews/%d
 
--ScreenJournal Bot`, u.Username.String(), r.Owner.String(), r.Movie.Title, a.baseURL, r.ID),
+To manage your notifications, visit: %s/account/notifications
+
+-ScreenJournal Bot`, u.Username.String(), r.Owner.String(), r.Movie.Title, a.baseURL, r.ID, a.baseURL),
 		}
 		if err := a.sender.Send(msg); err != nil {
 			log.Printf("failed to send message [%s] to recipient [%s]", msg.Subject, msg.To[0].String())

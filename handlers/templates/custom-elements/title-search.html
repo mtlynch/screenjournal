@@ -4,7 +4,7 @@
     type="text/css"
     href="/third-party/bootstrap@5.2.2/css/bootstrap.min.css"
   />
-  <style>
+  <style nonce="{{ .CspNonce }}">
     #search-results-list {
       padding: 0;
     }
@@ -57,7 +57,7 @@
   ></ul>
 </template>
 
-<script type="module">
+<script type="module" nonce="{{ .CspNonce }}">
   import { searchGet } from "/js/controllers/search.js";
 
   function throttle(func, waitInMilliseconds) {

@@ -22,6 +22,7 @@ type commonProps struct {
 	IsAuthenticated  bool
 	IsAdmin          bool
 	LoggedInUsername screenjournal.Username
+	CspNonce         string
 }
 
 func (s Server) indexGet() http.HandlerFunc {
@@ -384,6 +385,7 @@ func makeCommonProps(title string, ctx context.Context) commonProps {
 		IsAuthenticated:  isAuthenticated(ctx),
 		IsAdmin:          isAdmin(ctx),
 		LoggedInUsername: usernameFromContext(ctx),
+		CspNonce:         cspNonce(ctx),
 	}
 }
 

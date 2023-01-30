@@ -2,7 +2,7 @@
 {{ end }}
 
 {{ define "script-tags" }}
-  <script type="module">
+  <script type="module" nonce="{{ .CspNonce }}">
     import { addReview } from "/js/controllers/reviews.js";
     import { showElement, hideElement } from "/js/lib/bootstrap.js";
     import { tzOffsetString } from "/js/lib/time.js";

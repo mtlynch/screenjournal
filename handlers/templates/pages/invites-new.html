@@ -2,7 +2,7 @@
 {{ end }}
 
 {{ define "script-tags" }}
-  <script type="module">
+  <script type="module" nonce="{{ .CspNonce }}">
     import { createInvite } from "/js/controllers/invites.js";
     import { showElement, hideElement } from "/js/lib/bootstrap.js";
 

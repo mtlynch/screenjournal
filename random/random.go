@@ -11,6 +11,12 @@ func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
+func Bytes(n int) []byte {
+	b := make([]byte, n)
+	rand.Read(b)
+	return b
+}
+
 func String(n int, characters []rune) string {
 	b := make([]rune, n)
 	for i := range b {

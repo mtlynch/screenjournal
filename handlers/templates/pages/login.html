@@ -1,5 +1,5 @@
 {{ define "style-tags" }}
-  <style>
+  <style nonce="{{ .CspNonce }}">
     @media screen and (min-width: 768px) {
       #content {
         max-width: 25%;
@@ -9,7 +9,7 @@
 {{ end }}
 
 {{ define "script-tags" }}
-  <script type="module">
+  <script type="module" nonce="{{ .CspNonce }}">
     import { authenticate, logOut } from "/js/controllers/auth.js";
 
     function setAuthFormState(isEnabled) {

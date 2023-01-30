@@ -28,11 +28,13 @@ func (s *Server) routes() {
 	adminViews := s.router.PathPrefix("/admin").Subrouter()
 	adminViews.Use(s.requireAuthentication)
 	adminViews.Use(s.requireAdmin)
+	adminViews.Use(enforceContentSecurityPolicy)
 	adminViews.HandleFunc("/invites", s.invitesGet()).Methods(http.MethodGet)
 	adminViews.HandleFunc("/invites/new", s.invitesNewGet()).Methods(http.MethodGet)
 
 	views := s.router.PathPrefix("/").Subrouter()
 	views.Use(upgradeToHttps)
+	views.Use(enforceContentSecurityPolicy)
 	views.HandleFunc("/about", s.aboutGet()).Methods(http.MethodGet)
 	views.HandleFunc("/login", s.logInGet()).Methods(http.MethodGet)
 	views.HandleFunc("/reviews/new", s.reviewsNewGet()).Methods(http.MethodGet)
@@ -41,6 +43,7 @@ func (s *Server) routes() {
 
 	authenticatedViews := s.router.PathPrefix("/").Subrouter()
 	authenticatedViews.Use(s.requireAuthentication)
+	authenticatedViews.Use(enforceContentSecurityPolicy)
 	authenticatedViews.HandleFunc("/reviews", s.reviewsGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews/by/{username}", s.reviewsGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews/{reviewID}", s.reviewsReadGet()).Methods(http.MethodGet)

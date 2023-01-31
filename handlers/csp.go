@@ -46,6 +46,7 @@ func enforceContentSecurityPolicy(next http.Handler) http.Handler {
 				values: []string{
 					"'self'",
 					"data:",
+					"image.tmdb.org",
 				},
 			},
 		}

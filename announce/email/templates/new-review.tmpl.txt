@@ -1,0 +1,9 @@
+Hey {{ .Recipient }},
+
+{{ .Author }} just posted a new review for {{ .Title }}! Check it out:
+
+{{ .BaseURL }}/reviews/{{ .ReviewID }}
+
+-ScreenJournal Bot
+
+To manage your notifications, visit: {{ .BaseURL }}/account/notifications

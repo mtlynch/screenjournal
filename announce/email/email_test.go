@@ -80,7 +80,10 @@ bob just posted a new review for The Matrix! Check it out:
 
 https://dev.thescreenjournal.com/reviews/123
 
--ScreenJournal Bot`,
+-ScreenJournal Bot
+
+To manage your notifications, visit: https://dev.thescreenjournal.com/account/notifications
+`,
 				},
 				{
 					From: mail.Address{
@@ -100,7 +103,10 @@ bob just posted a new review for The Matrix! Check it out:
 
 https://dev.thescreenjournal.com/reviews/123
 
--ScreenJournal Bot`,
+-ScreenJournal Bot
+
+To manage your notifications, visit: https://dev.thescreenjournal.com/account/notifications
+`,
 				},
 			},
 		},

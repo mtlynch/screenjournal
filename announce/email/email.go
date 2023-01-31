@@ -1,9 +1,13 @@
 package email
 
 import (
+	"bytes"
+	"embed"
 	"fmt"
 	"log"
 	"net/mail"
+	"path"
+	"text/template"
 	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
@@ -55,16 +59,39 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 			},
 			Subject: fmt.Sprintf("%s posted a new review: %s", r.Owner.String(), r.Movie.Title),
 			Date:    time.Now(),
-			TextBody: fmt.Sprintf(`Hey %s,
-
-%s just posted a new review for %s! Check it out:
-
-%s/reviews/%d
-
--ScreenJournal Bot`, u.Username.String(), r.Owner.String(), r.Movie.Title, a.baseURL, r.ID),
+			TextBody: mustRenderTemplate("new-review.tmpl.txt", struct {
+				Recipient string
+				Title     string
+				Author    string
+				BaseURL   string
+				ReviewID  uint64
+			}{
+				Recipient: u.Username.String(),
+				Title:     r.Movie.Title.String(),
+				Author:    r.Owner.String(),
+				BaseURL:   a.baseURL,
+				ReviewID:  r.ID.UInt64(),
+			}),
 		}
 		if err := a.sender.Send(msg); err != nil {
 			log.Printf("failed to send message [%s] to recipient [%s]", msg.Subject, msg.To[0].String())
 		}
 	}
+}
+
+//go:embed templates
+var templatesFS embed.FS
+
+func mustRenderTemplate(templateFilename string, templateVars interface{}) string {
+	t := template.New(templateFilename)
+	t = template.Must(
+		t.ParseFS(
+			templatesFS,
+			path.Join("templates", templateFilename)))
+
+	buf := bytes.NewBuffer([]byte{})
+	if err := t.ExecuteTemplate(buf, templateFilename, templateVars); err != nil {
+		panic(err)
+	}
+	return buf.String()
 }

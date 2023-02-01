@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
@@ -39,11 +40,41 @@ func (s Server) populateDummyData() http.HandlerFunc {
 			Email:        screenjournal.Email("userB@example.com"),
 		},
 	}
+	movies := []screenjournal.Movie{
+		{
+			ID:    screenjournal.MovieID(1),
+			Title: screenjournal.MediaTitle("The Waterboy"),
+		},
+	}
+	reviews := []screenjournal.Review{
+		{
+			ID:     screenjournal.ReviewID(1),
+			Owner:  screenjournal.Username("userA"),
+			Rating: screenjournal.Rating(5),
+			Movie: screenjournal.Movie{
+				ID: screenjournal.MovieID(1),
+			},
+			Watched: screenjournal.WatchDate(time.Date(2020, time.October, 5, 20, 18, 55, 0, time.Local)),
+			Blurb:   screenjournal.Blurb("I love water!"),
+		},
+	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		for _, u := range users {
 			if err := s.store.InsertUser(u); err != nil {
 				http.Error(w, fmt.Sprintf("Failed to insert user: %v", err), http.StatusInternalServerError)
+				return
+			}
+		}
+		for _, movie := range movies {
+			if _, err := s.store.InsertMovie(movie); err != nil {
+				http.Error(w, fmt.Sprintf("Failed to insert movie: %v", err), http.StatusInternalServerError)
+				return
+			}
+		}
+		for _, review := range reviews {
+			if _, err := s.store.InsertReview(review); err != nil {
+				http.Error(w, fmt.Sprintf("Failed to insert review: %v", err), http.StatusInternalServerError)
 				return
 			}
 		}

@@ -26,6 +26,16 @@
       setAuthFormState(/* isEnabled= */ true);
     }
 
+    function redirectAfterLogin() {
+      const nextUrl = new URLSearchParams(window.location.search).get("next");
+      // Prevent an open redirect on the subsequent URL.
+      if (nextUrl && nextUrl.match(/^\/[^/]/g)) {
+        document.location = nextUrl;
+        return;
+      }
+      document.location = "/reviews";
+    }
+
     const errorContainer = document.getElementById("error");
     const authForm = document.getElementById("auth-form");
 
@@ -37,7 +47,7 @@
       disableAuthForm();
       authenticate(username, password)
         .then(() => {
-          document.location = "/reviews";
+          redirectAfterLogin();
         })
         .catch((error) => {
           logOut();

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
@@ -65,11 +66,25 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 	}))
 }
 
-func (s Server) requireAuthentication(next http.Handler) http.Handler {
+func (s Server) requireAuthenticationForAPI(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if _, ok := userFromContext(r.Context()); !ok {
 			s.sessionManager.EndSession(r, w)
 			http.Error(w, "Authentication required", http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (s Server) requireAuthenticationForView(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, ok := userFromContext(r.Context()); !ok {
+			s.sessionManager.EndSession(r, w)
+
+			newURL := "/login?next=" + url.QueryEscape(r.URL.String())
+			http.Redirect(w, r, newURL, http.StatusTemporaryRedirect)
 			return
 		}
 

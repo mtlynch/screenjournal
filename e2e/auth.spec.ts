@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { wipeDB } from "./helpers/db.js";
+import { populateDummyData, wipeDB } from "./helpers/db.js";
 
 test.beforeEach(async ({ page }) => {
   await wipeDB(page);
@@ -119,4 +119,19 @@ test("signs up fails after there's already an admin user", async ({ page }) => {
   await expect(page).toHaveURL("/sign-up");
 
   await expect(page.locator("form input[type='submit']")).not.toBeVisible();
+});
+
+test("prompts to log in if they click a link to a review before signing in", async ({
+  page,
+}) => {
+  await populateDummyData(page);
+
+  await page.goto("/reviews/1");
+
+  await expect(page).toHaveURL("/login?next=%2Freviews%2F1");
+  await page.locator("id=username").fill("userB");
+  await page.locator("id=password").fill("password456");
+  await page.locator("form input[type='submit']").click();
+
+  await expect(page).toHaveURL("/reviews/1");
 });

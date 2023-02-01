@@ -320,7 +320,7 @@ test("editing another user's review fails", async ({ page, browser }) => {
   const guestPage = await guestContext.newPage();
   await loginAsUserB(guestPage);
 
-  const response = await guestPage.goto("/reviews/1/edit");
+  const response = await guestPage.goto("/reviews/2/edit");
   await expect(response?.status()).toBe(403);
 
   await guestContext.close();

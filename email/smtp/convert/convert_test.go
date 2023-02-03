@@ -2,6 +2,7 @@ package convert_test
 
 import (
 	"net/mail"
+	"strings"
 	"testing"
 
 	"github.com/kylelemons/godebug/diff"
@@ -36,20 +37,42 @@ https://sj.example.com/reviews/25
 
 Sincerely,
 ScreenJournal Bot`,
+				HtmlBody: `<p>Hi Alice,</p>
+
+<p>Frank has posted a new review of <em>The Room</em>:</p>
+
+<p><a href="https://sj.example.com/reviews/25">https://sj.example.com/reviews/25</a></p>
+
+<p>-ScreenJournal Bot</p>`,
 			},
-			expected: "From: \"ScreenJournal Bot\" <bot@sj.example.com>\r\n" +
-				"To: \"Alice User\" <alice@user.example.com>\r\n" +
-				"Subject: Frank posted a review of The Room\r\n" +
-				"\r\n" +
-				`Hi Alice,
+			expected: normalizeLineEndings(`From: "ScreenJournal Bot" <bot@sj.example.com>
+To: "Alice User" <alice@user.example.com>
+Subject: Frank posted a review of The Room
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="boundary-type-1234567892-alt"
+--boundary-type-1234567892-alt
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
+
+Hi Alice,
 
 Frank has posted a new review of *The Room*:
 
 https://sj.example.com/reviews/25
 
 Sincerely,
-ScreenJournal Bot` +
-				"\r\n",
+ScreenJournal Bot
+--boundary-type-1234567892-alt
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="iso-8859-1"
+
+<p>Hi Alice,</p>
+
+<p>Frank has posted a new review of <em>The Room</em>:</p>
+
+<p><a href="https://sj.example.com/reviews/25">https://sj.example.com/reviews/25</a></p>
+
+<p>-ScreenJournal Bot</p>`),
 		},
 	}
 
@@ -63,4 +86,8 @@ ScreenJournal Bot` +
 			t.Fatalf("unexpected smtp message for email: %s\n%s", tt.input.Subject, diff)
 		}
 	}
+}
+
+func normalizeLineEndings(s string) string {
+	return strings.ReplaceAll(s, "\n", "\r\n")
 }

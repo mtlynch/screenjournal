@@ -13,6 +13,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/announce"
 	"github.com/mtlynch/screenjournal/v2/email"
+	"github.com/mtlynch/screenjournal/v2/markdown"
 )
 
 type (
@@ -46,6 +47,20 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 		if u.Username == r.Owner {
 			continue
 		}
+		bodyPlaintext := mustRenderTemplate("new-review.tmpl.txt", struct {
+			Recipient string
+			Title     string
+			Author    string
+			BaseURL   string
+			ReviewID  uint64
+		}{
+			Recipient: u.Username.String(),
+			Title:     r.Movie.Title.String(),
+			Author:    r.Owner.String(),
+			BaseURL:   a.baseURL,
+			ReviewID:  r.ID.UInt64(),
+		})
+		bodyHtml := markdown.Render(bodyPlaintext)
 		msg := email.Message{
 			From: mail.Address{
 				Name:    "ScreenJournal",
@@ -57,21 +72,10 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 					Address: u.Email.String(),
 				},
 			},
-			Subject: fmt.Sprintf("%s posted a new review: %s", r.Owner.String(), r.Movie.Title),
-			Date:    time.Now(),
-			TextBody: mustRenderTemplate("new-review.tmpl.txt", struct {
-				Recipient string
-				Title     string
-				Author    string
-				BaseURL   string
-				ReviewID  uint64
-			}{
-				Recipient: u.Username.String(),
-				Title:     r.Movie.Title.String(),
-				Author:    r.Owner.String(),
-				BaseURL:   a.baseURL,
-				ReviewID:  r.ID.UInt64(),
-			}),
+			Subject:  fmt.Sprintf("%s posted a new review: %s", r.Owner.String(), r.Movie.Title),
+			Date:     time.Now(),
+			TextBody: bodyPlaintext,
+			HtmlBody: bodyHtml,
 		}
 		if err := a.sender.Send(msg); err != nil {
 			log.Printf("failed to send message [%s] to recipient [%s]", msg.Subject, msg.To[0].String())

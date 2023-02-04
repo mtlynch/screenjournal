@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"path"
 	"regexp"
 	"sort"
@@ -187,6 +188,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			"minus": func(a, b uint8) uint8 {
 				return a - b
 			},
+			"posterPathToURL": posterPathToURL,
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -220,6 +222,9 @@ func (s Server) reviewsReadGet() http.HandlerFunc {
 			Review:      review,
 		}, template.FuncMap{
 			"relativeWatchDate": relativeWatchDate,
+			"formatReleaseDate": func(t screenjournal.ReleaseDate) string {
+				return t.Time().Format("1/2/2006")
+			},
 			"formatWatchDate": func(t screenjournal.WatchDate) string {
 				return t.Time().Format("2006-01-02")
 			},
@@ -237,6 +242,7 @@ func (s Server) reviewsReadGet() http.HandlerFunc {
 			"splitByNewline": func(s string) []string {
 				return strings.Split(s, "\n")
 			},
+			"posterPathToURL": posterPathToURL,
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -377,6 +383,13 @@ func relativeWatchDate(t screenjournal.WatchDate) string {
 	}
 	monthsAgo := int(daysAgo / 30)
 	return fmt.Sprintf("%d months ago", monthsAgo)
+}
+
+func posterPathToURL(pp url.URL) string {
+	pp.Scheme = "https"
+	pp.Host = "image.tmdb.org"
+	pp.Path = "/t/p/w600_and_h900_bestv2" + pp.Path
+	return pp.String()
 }
 
 func makeCommonProps(title string, ctx context.Context) commonProps {

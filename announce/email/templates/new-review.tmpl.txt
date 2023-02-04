@@ -6,4 +6,4 @@ Hey {{ .Recipient }},
 
 -ScreenJournal Bot
 
-To manage your notifications, visit: {{ .BaseURL }}/account/notifications
+To manage your notifications, visit {{ .BaseURL }}/account/notifications

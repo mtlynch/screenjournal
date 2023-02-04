@@ -82,7 +82,7 @@ https://dev.thescreenjournal.com/reviews/123
 
 -ScreenJournal Bot
 
-To manage your notifications, visit: https://dev.thescreenjournal.com/account/notifications
+To manage your notifications, visit https://dev.thescreenjournal.com/account/notifications
 `,
 					HtmlBody: `<p>Hey alice,</p>
 
@@ -91,6 +91,8 @@ To manage your notifications, visit: https://dev.thescreenjournal.com/account/no
 <p><a href="https://dev.thescreenjournal.com/reviews/123">https://dev.thescreenjournal.com/reviews/123</a></p>
 
 <p>-ScreenJournal Bot</p>
+
+<p>To manage your notifications, visit <a href="https://dev.thescreenjournal.com/account/notifications">https://dev.thescreenjournal.com/account/notifications</a></p>
 `,
 				},
 				{
@@ -113,7 +115,7 @@ https://dev.thescreenjournal.com/reviews/123
 
 -ScreenJournal Bot
 
-To manage your notifications, visit: https://dev.thescreenjournal.com/account/notifications
+To manage your notifications, visit https://dev.thescreenjournal.com/account/notifications
 `,
 					HtmlBody: `<p>Hey charlie,</p>
 
@@ -122,6 +124,8 @@ To manage your notifications, visit: https://dev.thescreenjournal.com/account/no
 <p><a href="https://dev.thescreenjournal.com/reviews/123">https://dev.thescreenjournal.com/reviews/123</a></p>
 
 <p>-ScreenJournal Bot</p>
+
+<p>To manage your notifications, visit <a href="https://dev.thescreenjournal.com/account/notifications">https://dev.thescreenjournal.com/account/notifications</a></p>
 `,
 				},
 			},

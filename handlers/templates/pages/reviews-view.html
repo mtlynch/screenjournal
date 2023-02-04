@@ -1,4 +1,15 @@
 {{ define "style-tags" }}
+  <style nonce="{{ .CspNonce }}">
+    @media screen and (min-width: 768px) {
+      .poster {
+        max-width: 250px;
+      }
+    }
+
+    .release-year {
+      font-size: 0.85em;
+    }
+  </style>
 {{ end }}
 
 {{ define "script-tags" }}
@@ -9,7 +20,16 @@
 
 {{ define "content" }}
   {{ with .Review }}
-    <h1>{{ .Movie.Title }} ({{ .Movie.ReleaseDate.Year }})</h1>
+    {{ with .Movie }}
+      <h1>{{ .Title }}</h1>
+      <img
+        class="card-img-top poster"
+        src="{{ posterPathToURL .PosterPath }}"
+        alt="Movie poster for {{ .Title }}"
+      />
+      <p class="release-year">Released: {{ formatReleaseDate .ReleaseDate }}</p>
+    {{ end }}
+
 
     <h6 class="card-subtitle mb-2 text-muted">
       <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> watched this

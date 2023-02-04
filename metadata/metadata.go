@@ -1,6 +1,8 @@
 package metadata
 
 import (
+	"net/url"
+
 	"github.com/mtlynch/screenjournal/v2"
 )
 
@@ -29,6 +31,7 @@ type (
 		ImdbID      screenjournal.ImdbID
 		Title       screenjournal.MediaTitle
 		ReleaseDate screenjournal.ReleaseDate
+		PosterPath  url.URL
 	}
 )
 
@@ -38,5 +41,6 @@ func MovieFromMovieInfo(mi MovieInfo) screenjournal.Movie {
 		ImdbID:      mi.ImdbID,
 		Title:       mi.Title,
 		ReleaseDate: mi.ReleaseDate,
+		PosterPath:  mi.PosterPath,
 	}
 }

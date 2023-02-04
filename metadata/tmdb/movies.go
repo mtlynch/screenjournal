@@ -2,6 +2,7 @@ package tmdb
 
 import (
 	"log"
+	"net/url"
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
@@ -38,6 +39,15 @@ func (f tmdbFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, e
 			log.Printf("failed to release date (%s) from TMDB ID %v: %v", m.ReleaseDate, id, err)
 		} else {
 			info.ReleaseDate = rd
+		}
+	}
+
+	if len(m.PosterPath) > 0 {
+		pp, err := url.Parse(m.PosterPath)
+		if err != nil {
+			log.Printf("failed to parse poster path (%s) from TMDB ID %v: %v", m.PosterPath, id, err)
+		} else {
+			info.PosterPath = *pp
 		}
 	}
 

@@ -11,6 +11,10 @@ a {
   text-decoration: none;
 }
 
+img {
+  object-fit: contain;
+}
+
 .fa-star {
   color: #ffcb3b;
 }

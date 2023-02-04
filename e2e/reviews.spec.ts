@@ -107,9 +107,12 @@ If you think of Weird Al as just a parody music guy, give it a chance. I was nev
   );
   await reviewCard.locator("data-test-id=full-review").click();
 
-  await expect(page.locator("h1")).toHaveText(
-    "Weird: The Al Yankovic Story (2022)"
+  await expect(page.locator("h1")).toHaveText("Weird: The Al Yankovic Story");
+  await expect(page.locator(".poster")).toHaveAttribute(
+    "src",
+    "https://image.tmdb.org/t/p/w600_and_h900_bestv2/qcj2z13G0KjaIgc01ifiUKu7W07.jpg"
   );
+  await expect(page.locator(".release-date")).toHaveText("Released: 9/8/2022");
   await expect(page.locator(".card-subtitle")).toHaveText(
     /userA watched this .+ ago/,
     { useInnerText: true }

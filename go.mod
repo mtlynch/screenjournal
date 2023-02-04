@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/go-test/deep v1.0.8
+	github.com/gomarkdown/markdown v0.0.0-20221013030248-663e2500819c
 	github.com/gorilla/mux v1.8.0
 	github.com/kylelemons/godebug v1.1.0
 	github.com/mattn/go-sqlite3 v1.14.16

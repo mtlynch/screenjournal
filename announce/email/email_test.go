@@ -4,8 +4,8 @@ import (
 	"net/mail"
 	"reflect"
 	"testing"
-	"time"
 
+	"github.com/kylelemons/godebug/diff"
 	"github.com/mtlynch/screenjournal/v2"
 	email_announce "github.com/mtlynch/screenjournal/v2/announce/email"
 	"github.com/mtlynch/screenjournal/v2/email"
@@ -76,11 +76,19 @@ func TestAnnounceNewReview(t *testing.T) {
 					Subject: "bob posted a new review: The Matrix",
 					TextBody: `Hey alice,
 
-bob just posted a new review for The Matrix! Check it out:
+bob just posted a new review for *The Matrix*! Check it out:
 
 https://dev.thescreenjournal.com/reviews/123
 
 -ScreenJournal Bot
+`,
+					HtmlBody: `<p>Hey alice,</p>
+
+<p>bob just posted a new review for <em>The Matrix</em>! Check it out:</p>
+
+<p><a href="https://dev.thescreenjournal.com/reviews/123">https://dev.thescreenjournal.com/reviews/123</a></p>
+
+<p>-ScreenJournal Bot</p>
 `,
 				},
 				{
@@ -97,11 +105,19 @@ https://dev.thescreenjournal.com/reviews/123
 					Subject: "bob posted a new review: The Matrix",
 					TextBody: `Hey charlie,
 
-bob just posted a new review for The Matrix! Check it out:
+bob just posted a new review for *The Matrix*! Check it out:
 
 https://dev.thescreenjournal.com/reviews/123
 
 -ScreenJournal Bot
+`,
+					HtmlBody: `<p>Hey charlie,</p>
+
+<p>bob just posted a new review for <em>The Matrix</em>! Check it out:</p>
+
+<p><a href="https://dev.thescreenjournal.com/reviews/123">https://dev.thescreenjournal.com/reviews/123</a></p>
+
+<p>-ScreenJournal Bot</p>
 `,
 				},
 			},
@@ -134,13 +150,20 @@ https://dev.thescreenjournal.com/reviews/123
 			announcer := email_announce.New("https://dev.thescreenjournal.com", &sender, tt.store)
 			announcer.AnnounceNewReview(tt.review)
 
-			// Clear timestamps for easier comparisons.
-			for i := range sender.emailsSent {
-				sender.emailsSent[i].Date = time.Time{}
+			if len(sender.emailsSent) == len(tt.expectedEmails) {
+				for i, emailGot := range sender.emailsSent {
+					emailWant := tt.expectedEmails[i]
+					if diff := diff.Diff(emailWant.TextBody, emailGot.TextBody); diff != "" {
+						t.Errorf("email #%d (plaintext): %s", i, diff)
+					}
+					if diff := diff.Diff(emailWant.HtmlBody, emailGot.HtmlBody); diff != "" {
+						t.Errorf("email #%d (html) %s", i, diff)
+					}
+				}
 			}
 
 			if got, want := sender.emailsSent, tt.expectedEmails; !reflect.DeepEqual(got, want) {
-				t.Fatalf("unexpected announcement emails, got=%+v, want=%+v", got, want)
+				t.Errorf("unexpected announcement emails, got=%+v, want=%+v", got, want)
 			}
 		})
 	}

@@ -34,3 +34,4 @@ ScreenJournal is in pre-alpha state and is not yet documented for other people t
 | `SJ_SMTP_PORT`       | (optional) Port of SMTP server to send notifications.                                                           |
 | `SJ_SMTP_USERNAME`   | (optional) Username for SMTP server to send notifications.                                                      |
 | `SJ_SMTP_PASSWORD`   | (optional) Password for SMTP server to send notifications.                                                      |
+| `SJ_BASE_URL`        | (optional) Base URL of ScreenJournal server (only used for notifications).                                      |

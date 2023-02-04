@@ -37,7 +37,6 @@ func (s *Server) routes() {
 	views.Use(enforceContentSecurityPolicy)
 	views.HandleFunc("/about", s.aboutGet()).Methods(http.MethodGet)
 	views.HandleFunc("/login", s.logInGet()).Methods(http.MethodGet)
-	views.HandleFunc("/reviews/new", s.reviewsNewGet()).Methods(http.MethodGet)
 	views.HandleFunc("/sign-up", s.signUpGet()).Methods(http.MethodGet)
 	views.HandleFunc("/", s.indexGet()).Methods(http.MethodGet)
 
@@ -46,6 +45,7 @@ func (s *Server) routes() {
 	authenticatedViews.Use(enforceContentSecurityPolicy)
 	authenticatedViews.HandleFunc("/reviews", s.reviewsGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews/by/{username}", s.reviewsGet()).Methods(http.MethodGet)
+	authenticatedViews.HandleFunc("/reviews/new", s.reviewsNewGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews/{reviewID}", s.reviewsReadGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews/{reviewID}/edit", s.reviewsEditGet()).Methods(http.MethodGet)
 

@@ -8,7 +8,6 @@ import (
 	"net/mail"
 	"path"
 	"text/template"
-	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/announce"
@@ -73,7 +72,6 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 				},
 			},
 			Subject:  fmt.Sprintf("%s posted a new review: %s", r.Owner.String(), r.Movie.Title),
-			Date:     time.Now(),
 			TextBody: bodyMarkdown,
 			HtmlBody: bodyHtml,
 		}

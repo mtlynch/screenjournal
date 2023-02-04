@@ -12,6 +12,7 @@ import (
 )
 
 func TestFromEmail(t *testing.T) {
+	convert.MultipartBoundary = "dummy-boundary-for-testing"
 	var tests = []struct {
 		input    email.Message
 		expected string
@@ -49,30 +50,30 @@ ScreenJournal Bot`,
 To: "Alice User" <alice@user.example.com>
 Subject: Frank posted a review of The Room
 MIME-Version: 1.0
-Content-Type: multipart/alternative; boundary="boundary-type-1234567892-alt"
---boundary-type-1234567892-alt
+Content-Type: multipart/alternative; boundary="dummy-boundary-for-testing"
+--dummy-boundary-for-testing
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/plain; charset="iso-8859-1"
 
-Hi Alice,
+`) + `Hi Alice,
 
 Frank has posted a new review of *The Room*:
 
 https://sj.example.com/reviews/25
 
 Sincerely,
-ScreenJournal Bot
---boundary-type-1234567892-alt
+ScreenJournal Bot` + normalizeLineEndings(`
+--dummy-boundary-for-testing
 Content-Transfer-Encoding: quoted-printable
 Content-Type: text/html; charset="iso-8859-1"
 
-<p>Hi Alice,</p>
+`) + `<p>Hi Alice,</p>
 
 <p>Frank has posted a new review of <em>The Room</em>:</p>
 
 <p><a href="https://sj.example.com/reviews/25">https://sj.example.com/reviews/25</a></p>
 
-<p>-ScreenJournal Bot</p>`),
+<p>-ScreenJournal Bot</p>`,
 		},
 	}
 

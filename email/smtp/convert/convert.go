@@ -14,11 +14,20 @@ type header struct {
 	Value string
 }
 
+// Boundary to use in generating multipart messages. Really only useful in
+// testing.
+var MultipartBoundary = ""
+
 func FromEmail(msg email.Message) (string, error) {
 	var sb strings.Builder
 
 	mpw := multipart.NewWriter(&sb)
-	mpw.SetBoundary("boundary-type-1234567892-alt")
+
+	if MultipartBoundary != "" {
+		if err := mpw.SetBoundary(MultipartBoundary); err != nil {
+			panic(err)
+		}
+	}
 
 	headers := []header{}
 	headers = append(headers, makeHeader("From", msg.From.String()))
@@ -34,13 +43,17 @@ func FromEmail(msg email.Message) (string, error) {
 	if err != nil {
 		panic(err)
 	}
-	part.Write([]byte(msg.TextBody))
+	if _, err := part.Write([]byte(msg.TextBody)); err != nil {
+		panic(err)
+	}
 
 	part, err = mpw.CreatePart(textproto.MIMEHeader{"Content-Type": {"text/html; charset=\"iso-8859-1\""}, "Content-Transfer-Encoding": {"quoted-printable"}})
 	if err != nil {
 		panic(err)
 	}
-	part.Write([]byte(msg.HtmlBody))
+	if _, err := part.Write([]byte(msg.HtmlBody)); err != nil {
+		panic(err)
+	}
 
 	return sb.String(), nil
 }

@@ -4,7 +4,6 @@ import (
 	"net/mail"
 	"reflect"
 	"testing"
-	"time"
 
 	"github.com/kylelemons/godebug/diff"
 	"github.com/mtlynch/screenjournal/v2"
@@ -150,11 +149,6 @@ https://dev.thescreenjournal.com/reviews/123
 
 			announcer := email_announce.New("https://dev.thescreenjournal.com", &sender, tt.store)
 			announcer.AnnounceNewReview(tt.review)
-
-			// Clear timestamps for easier comparisons.
-			for i := range sender.emailsSent {
-				sender.emailsSent[i].Date = time.Time{}
-			}
 
 			if len(sender.emailsSent) == len(tt.expectedEmails) {
 				for i, emailGot := range sender.emailsSent {

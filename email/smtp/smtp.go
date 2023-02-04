@@ -48,16 +48,14 @@ func (s sender) Send(msg email.Message) error {
 	log.Printf("sending email from %s to %s (%s)", msg.From.String(), msg.To[0].String(), msg.Subject)
 
 	serverName := fmt.Sprintf("%s:%d", s.config.Host, s.config.Port)
-
 	c, err := smtp.Dial(serverName)
 	if err != nil {
 		return err
 	}
 
-	tlsConfig := &tls.Config{
+	err = c.StartTLS(&tls.Config{
 		ServerName: s.config.Host,
-	}
-	err = c.StartTLS(tlsConfig)
+	})
 	if err != nil {
 		return err
 	}

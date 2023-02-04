@@ -17,6 +17,13 @@ INSERT INTO users (
     "\$2a\$10\$J5zqqeQgH80ScyOSeCNCD.1V3ApJ1ULYMwMEhOjG6j4SM1mqL84YO", -- Hash of "password"
     "2022-09-25T00:00:00-05:00",
     "2022-10-29T00:00:00-05:00"
+), (
+    "alice",
+    0,
+    "alice@example.com",
+    "\$2a\$10\$J5zqqeQgH80ScyOSeCNCD.1V3ApJ1ULYMwMEhOjG6j4SM1mqL84YO", -- Hash of "password"
+    "2023-02-04T00:00:00-05:00",
+    "2023-02-04T05:00:00-05:00"
 );
 
 INSERT INTO movies (
@@ -102,7 +109,7 @@ INSERT INTO reviews (
 ) VALUES (
   "mike",
   1,
-  5,
+  2,
   "Great first half. Second half fell apart.",
   "2022-08-21T00:00:00-05:00",
   "2022-10-29T00:00:00-05:00",
@@ -111,7 +118,7 @@ INSERT INTO reviews (
 (
   "mike",
   2,
-  6,
+  3,
   "",
   "2022-09-03T00:00:00-05:00",
   "2022-10-29T00:00:00-05:00",
@@ -120,7 +127,7 @@ INSERT INTO reviews (
 (
   "mike",
   3,
-  8,
+  4,
   "Very sweet and original ",
   "2022-09-11T00:00:00-05:00",
   "2022-10-29T00:00:00-05:00",
@@ -129,7 +136,7 @@ INSERT INTO reviews (
 (
   "mike",
   4,
-  6,
+  3,
   "Not much useful information, but fun to see cute cat videos while you pretend to learn something.",
   "2022-09-18T00:00:00-05:00",
   "2022-10-29T00:00:00-05:00",
@@ -138,7 +145,7 @@ INSERT INTO reviews (
 (
   "mike",
   5,
-  5,
+  2,
   "Well-made, but not enough story for 2.5 hours.",
   "2022-09-25T00:00:00-05:00",
   "2022-10-29T00:00:00-05:00",
@@ -147,7 +154,7 @@ INSERT INTO reviews (
 (
   "mike",
   6,
-  8,
+  4,
   "Silly fun, reminded me a lot of Naked Gun",
   "2022-10-02T00:00:00-05:00",
   "2022-10-29T00:00:00-05:00",
@@ -156,7 +163,7 @@ INSERT INTO reviews (
 (
   "mike",
   7,
-  3,
+  1,
   "A small amount of the charm from the original, but it just has classic sequel problems of trying to recycle what worked from the original while adding lots of extraneous celebrities",
   "2022-10-08T00:00:00-05:00",
   "2022-10-29T00:00:00-05:00",
@@ -165,7 +172,7 @@ INSERT INTO reviews (
 (
   "mike",
   8,
-  6,
+  3,
   "Fun music and animation, but because it's such a classic, the story is really predictable and not that fun to follow. Scuttle's jokes hold up 30 years later.",
   "2022-10-09T00:00:00-05:00",
   "2022-10-29T00:00:00-05:00",
@@ -174,7 +181,7 @@ INSERT INTO reviews (
 (
   "mike",
   9,
-  7,
+  3,
   "It definitely kept me on my toes. I felt like it didn't hold together quite as much as I want, but I enjoyed the cast and the comedy.",
   "2022-10-16T00:00:00-05:00",
   "2022-10-29T00:00:00-05:00",
@@ -183,7 +190,7 @@ INSERT INTO reviews (
 (
   "mike",
   10,
-  7,
+  3,
   "It had its ups and downs, but there were a lot of good jokes, good cast, original story.",
   "2022-10-23T00:00:00-05:00",
   "2022-10-29T00:00:00-05:00",
@@ -192,7 +199,7 @@ INSERT INTO reviews (
 (
   "mike",
   11,
-  5,
+  3,
   "Great cast. It had a lot of non sequiturs, so I'm wondering if it would have made more sense if I'd read The Decameron. Mostly enjoyed it, but it kind of goes off the rails by the end.",
   "2022-10-27T00:00:00-05:00",
   "2022-10-29T00:00:00-05:00",

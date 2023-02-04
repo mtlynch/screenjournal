@@ -28,14 +28,14 @@ func enforceContentSecurityPolicy(next http.Handler) http.Handler {
 				},
 			},
 			{
-				name: "script-src",
+				name: "script-src-elem",
 				values: []string{
 					"'self'",
 					"'nonce-" + nonce + "'",
 				},
 			},
 			{
-				name: "style-src",
+				name: "style-src-elem",
 				values: []string{
 					"'self'",
 					"'nonce-" + nonce + "'",

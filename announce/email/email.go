@@ -47,7 +47,7 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 		if u.Username == r.Owner {
 			continue
 		}
-		bodyPlaintext := mustRenderTemplate("new-review.tmpl.txt", struct {
+		bodyMarkdown := mustRenderTemplate("new-review.tmpl.txt", struct {
 			Recipient string
 			Title     string
 			Author    string
@@ -60,7 +60,7 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 			BaseURL:   a.baseURL,
 			ReviewID:  r.ID.UInt64(),
 		})
-		bodyHtml := markdown.Render(bodyPlaintext)
+		bodyHtml := markdown.Render(bodyMarkdown)
 		msg := email.Message{
 			From: mail.Address{
 				Name:    "ScreenJournal",
@@ -74,7 +74,7 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 			},
 			Subject:  fmt.Sprintf("%s posted a new review: %s", r.Owner.String(), r.Movie.Title),
 			Date:     time.Now(),
-			TextBody: bodyPlaintext,
+			TextBody: bodyMarkdown,
 			HtmlBody: bodyHtml,
 		}
 		if err := a.sender.Send(msg); err != nil {

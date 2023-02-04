@@ -7,6 +7,7 @@ COPY ./auth /app/auth
 COPY ./cmd /app/cmd
 COPY ./email /app/email
 COPY ./handlers /app/handlers
+COPY ./markdown /app/markdown
 COPY ./metadata /app/metadata
 COPY ./random /app/random
 COPY ./store /app/store

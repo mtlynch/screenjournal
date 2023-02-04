@@ -36,7 +36,7 @@ func New(baseURL string, sender email.Sender, store UserStore) announce.Announce
 }
 
 func (a announcer) AnnounceNewReview(r screenjournal.Review) {
-	log.Printf("announcing %s' new review of %s", r.Owner.String(), r.Movie.Title)
+	log.Printf("announcing new review from user %s of %s", r.Owner.String(), r.Movie.Title)
 	users, err := a.store.ReadUsers()
 	if err != nil {
 		log.Printf("failed to read announcement recipients from store: %v", err)

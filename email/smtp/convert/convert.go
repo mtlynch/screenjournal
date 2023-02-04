@@ -54,6 +54,9 @@ func FromEmail(msg email.Message) (string, error) {
 	if _, err := part.Write([]byte(msg.HtmlBody)); err != nil {
 		panic(err)
 	}
+	if err := mpw.Close(); err != nil {
+		panic(err)
+	}
 
 	return sb.String(), nil
 }

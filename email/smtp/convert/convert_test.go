@@ -73,7 +73,9 @@ Content-Type: text/html; charset="iso-8859-1"
 
 <p><a href="https://sj.example.com/reviews/25">https://sj.example.com/reviews/25</a></p>
 
-<p>-ScreenJournal Bot</p>`,
+<p>-ScreenJournal Bot</p>` + normalizeLineEndings(`
+--dummy-boundary-for-testing--
+`),
 		},
 	}
 

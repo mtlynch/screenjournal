@@ -15,12 +15,6 @@ type accountNotificationsPostRequest struct {
 
 func (s Server) accountNotificationsPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		user, ok := userFromContext(r.Context())
-		if !ok {
-			http.Error(w, "Must be logged in to set account preferences", http.StatusForbidden)
-			return
-		}
-
 		req, err := notificationPreferencesFromRequest(r)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
@@ -31,6 +25,7 @@ func (s Server) accountNotificationsPost() http.HandlerFunc {
 			NewReviews: req.NewReviews,
 		}
 
+		user := mustGetUserFromContext(r.Context())
 		err = s.store.UpdateNotificationPreferences(user.Username, prefs)
 		if err != nil {
 			log.Printf("failed to save notification preferences: %v", err)

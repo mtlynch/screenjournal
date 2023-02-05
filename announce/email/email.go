@@ -16,18 +16,18 @@ import (
 )
 
 type (
-	UserStore interface {
+	NotificationsStore interface {
 		ReadNotificationSubscribers() ([]screenjournal.User, error)
 	}
 
 	announcer struct {
 		baseURL string
 		sender  email.Sender
-		store   UserStore
+		store   NotificationsStore
 	}
 )
 
-func New(baseURL string, sender email.Sender, store UserStore) announce.Announcer {
+func New(baseURL string, sender email.Sender, store NotificationsStore) announce.Announcer {
 	return announcer{
 		baseURL: baseURL,
 		sender:  sender,

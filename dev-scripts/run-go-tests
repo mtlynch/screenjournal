@@ -13,6 +13,9 @@ set -e
 # Echo commands to stdout.
 set -x
 
+# Fail when piped commands fail.
+set -o pipefail
+
 full_test=""
 go_test_flags=()
 readonly COVERAGE_FILE_RAW=".coverage.out"
@@ -32,7 +35,14 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 readonly SCRIPT_DIR
 cd "${SCRIPT_DIR}/.."
 
-go test "${go_test_flags[@]}" ./...
+TEST_OUTPUT_FILE="$(mktemp)"
+readonly TEST_OUTPUT_FILE
+
+if ! go test "${go_test_flags[@]}" ./... | tee "${TEST_OUTPUT_FILE}" ; then
+  set +x
+  grep -C 3 "FAIL: " < "${TEST_OUTPUT_FILE}"
+  exit 1
+fi
 if [[ -n "$full_test" ]]; then
   go tool cover -html "${COVERAGE_FILE_RAW}" -o "${COVERAGE_FILE_HTML}"
 fi

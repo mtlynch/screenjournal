@@ -5,10 +5,9 @@ CREATE TABLE notification_preferences (
 );
 
 INSERT INTO notification_preferences (
-  username
-)
-SELECT
     username
+)
+SELECT username
 FROM
     users;
 

@@ -4,6 +4,7 @@
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
     import { showElement, hideElement } from "/js/lib/bootstrap.js";
+    import { disableElement, enableElement } from "/js/lib/ui.js";
     import { notificationsPut } from "/js/controllers/notifications.js";
 
     document.addEventListener(
@@ -19,7 +20,7 @@
         const submitBtn = document.querySelector("form .btn-primary");
 
         newReviewsCheckbox.addEventListener("change", () => {
-          submitBtn.removeAttribute("disabled");
+          enableElement(submitBtn);
         });
 
         document
@@ -27,7 +28,7 @@
           .addEventListener("submit", (evt) => {
             evt.preventDefault();
 
-            submitBtn.setAttribute("disabled", "true");
+            disableElement(submitBtn);
             hideElement(successAlert);
             hideElement(errorAlert);
             showElement(submitSpinner);
@@ -38,13 +39,13 @@
               .then(() => {
                 showElement(successAlert);
                 successAlert.classList.add("show");
-                submitBtn.setAttribute("disabled", "true");
+                disableElement(submitBtn);
               })
               .catch((error) => {
                 errorAlert.innerText = error;
                 showElement(errorAlert);
 
-                submitBtn.removeAttribute("disabled");
+                enableElement(submitBtn);
               })
               .finally(() => {
                 hideElement(submitSpinner);

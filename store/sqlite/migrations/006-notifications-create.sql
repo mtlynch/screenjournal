@@ -4,9 +4,14 @@ CREATE TABLE notification_preferences (
     FOREIGN KEY(username) REFERENCES users(username)
 );
 
-INSERT INTO notification_preferences
+INSERT INTO notification_preferences (
+  username
+)
 SELECT
-    username,
-    1
+    username
 FROM
     users;
+
+-- Subscribe everyone to new review notifications by default.
+UPDATE notification_preferences
+SET new_reviews = 1;

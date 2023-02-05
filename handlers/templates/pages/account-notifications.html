@@ -38,7 +38,6 @@
             notificationsPut(isSubscribed)
               .then(() => {
                 showElement(successAlert);
-                successAlert.classList.add("show");
                 disableElement(submitBtn);
               })
               .catch((error) => {
@@ -81,11 +80,7 @@
       Save
     </button>
   </form>
-  <div
-    id="success"
-    class="alert alert-success alert-dismissible fade invisible"
-    role="alert"
-  >
+  <div id="success" class="alert alert-success invisible" role="alert">
     Changes saved
   </div>
 

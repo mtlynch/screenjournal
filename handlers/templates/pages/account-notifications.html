@@ -27,7 +27,7 @@
           .addEventListener("submit", (evt) => {
             evt.preventDefault();
 
-            submitBtn.disabled = true;
+            submitBtn.setAttribute("disabled", "true");
             hideElement(successAlert);
             hideElement(errorAlert);
             showElement(submitSpinner);
@@ -38,15 +38,16 @@
               .then(() => {
                 showElement(successAlert);
                 successAlert.classList.add("show");
-                console.log("showing success");
+                submitBtn.setAttribute("disabled", "true");
               })
               .catch((error) => {
                 errorAlert.innerText = error;
                 showElement(errorAlert);
+
+                submitBtn.removeAttribute("disabled");
               })
               .finally(() => {
                 hideElement(submitSpinner);
-                submitBtn.disabled = false;
               });
           });
       },

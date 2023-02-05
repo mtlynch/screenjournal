@@ -36,6 +36,24 @@ func (db DB) ReadNotificationSubscribers() ([]screenjournal.User, error) {
 	return users, nil
 }
 
+func (db DB) ReadNotificationPreferences(username screenjournal.Username) (screenjournal.NotificationPreferences, error) {
+	var newReviews bool
+	err := db.ctx.QueryRow(`
+	SELECT
+		new_reviews
+	FROM
+		notification_preferences
+	WHERE
+		username = ?`, username.String()).Scan(&newReviews)
+	if err != nil {
+		return screenjournal.NotificationPreferences{}, err
+	}
+
+	return screenjournal.NotificationPreferences{
+		NewReviews: newReviews,
+	}, nil
+}
+
 func (db DB) UpdateNotificationPreferences(username screenjournal.Username, prefs screenjournal.NotificationPreferences) error {
 	if _, err := db.ctx.Exec(`
 	UPDATE notification_preferences

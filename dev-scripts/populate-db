@@ -26,6 +26,18 @@ INSERT INTO users (
     "2023-02-04T05:00:00-05:00"
 );
 
+INSERT INTO notification_preferences (
+    username,
+    new_reviews
+) VALUES (
+    "mike",
+    1
+), (
+    "alice",
+    1
+);
+
+
 INSERT INTO movies (
     tmdb_id,
     imdb_id,

@@ -14,6 +14,7 @@
         );
 
         const errorAlert = document.getElementById("error");
+        const successAlert = document.getElementById("success");
         const submitSpinner = document.getElementById("submit-spinner");
         const submitBtn = document.querySelector("form .btn-primary");
 
@@ -27,6 +28,7 @@
             evt.preventDefault();
 
             submitBtn.disabled = true;
+            hideElement(successAlert);
             hideElement(errorAlert);
             showElement(submitSpinner);
 
@@ -34,7 +36,9 @@
 
             notificationsPut(isSubscribed)
               .then(() => {
-                // TODO: Report success
+                showElement(successAlert);
+                successAlert.classList.add("show");
+                console.log("showing success");
               })
               .catch((error) => {
                 errorAlert.innerText = error;
@@ -66,7 +70,7 @@
         {{ if .ReceivesReviewNotices }}checked{{ end }}
       />
       <label class="form-check-label" for="new-reviews-checkbox">
-        Receive email notifications for new reviews
+        Email me when other users post reviews
       </label>
     </div>
 
@@ -75,6 +79,13 @@
       Save
     </button>
   </form>
+  <div
+    id="success"
+    class="alert alert-success alert-dismissible fade invisible"
+    role="alert"
+  >
+    Changes saved
+  </div>
 
   <div id="submit-spinner" class="spinner-border invisible" role="status">
     <span class="visually-hidden">Loading...</span>

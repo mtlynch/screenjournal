@@ -33,8 +33,8 @@ func (s Server) accountNotificationsPost() http.HandlerFunc {
 
 		err = s.store.UpdateNotificationPreferences(user.Username, prefs)
 		if err != nil {
-			log.Printf("failed to save review: %v", err)
-			http.Error(w, fmt.Sprintf("Failed to save review: %v", err), http.StatusInternalServerError)
+			log.Printf("failed to save notification preferences: %v", err)
+			http.Error(w, fmt.Sprintf("Failed to save notification preferences: %v", err), http.StatusInternalServerError)
 			return
 		}
 	}

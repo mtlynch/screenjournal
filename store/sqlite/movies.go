@@ -3,6 +3,7 @@ package sqlite
 import (
 	"database/sql"
 	"log"
+	"net/url"
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/store"
@@ -15,7 +16,8 @@ func (db DB) ReadMovie(id screenjournal.MovieID) (screenjournal.Movie, error) {
 		tmdb_id,
 		imdb_id,
 		title,
-		release_date
+		release_date,
+		poster_path
 	FROM
 		movies
 	WHERE
@@ -31,7 +33,8 @@ func (db DB) ReadMovieByTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movie
 		tmdb_id,
 		imdb_id,
 		title,
-		release_date
+		release_date,
+		poster_path
 	FROM
 		movies
 	WHERE
@@ -50,15 +53,17 @@ func (d DB) InsertMovie(m screenjournal.Movie) (screenjournal.MovieID, error) {
 		tmdb_id,
 		imdb_id,
 		title,
-		release_date
+		release_date,
+		poster_path
 	)
 	VALUES (
-		?, ?, ?, ?
+		?, ?, ?, ?, ?
 	)`,
 		m.TmdbID,
 		m.ImdbID,
 		m.Title,
 		formatReleaseDate(m.ReleaseDate),
+		m.PosterPath.String(),
 	)
 	if err != nil {
 		return screenjournal.MovieID(0), err
@@ -80,12 +85,14 @@ func (db DB) UpdateMovie(m screenjournal.Movie) error {
 	SET
 		title = ?,
 		imdb_id = ?,
-		release_date = ?
+		release_date = ?,
+		poster_path = ?
 	WHERE
 		id = ?`,
 		m.Title,
 		m.ImdbID,
 		formatReleaseDate(m.ReleaseDate),
+		m.PosterPath.String(),
 		m.ID.Int64()); err != nil {
 		return err
 	}
@@ -99,8 +106,9 @@ func movieFromRow(row rowScanner) (screenjournal.Movie, error) {
 	var imdbIDRaw *string
 	var title string
 	var releaseDateRaw *string
+	var posterPathRaw *string
 
-	err := row.Scan(&id, &tmdbID, &imdbIDRaw, &title, &releaseDateRaw)
+	err := row.Scan(&id, &tmdbID, &imdbIDRaw, &title, &releaseDateRaw, &posterPathRaw)
 	if err == sql.ErrNoRows {
 		return screenjournal.Movie{}, store.ErrMovieNotFound
 	} else if err != nil {
@@ -122,11 +130,22 @@ func movieFromRow(row rowScanner) (screenjournal.Movie, error) {
 		}
 	}
 
+	var posterPath url.URL
+	if posterPathRaw != nil {
+		pp, err := url.Parse(*posterPathRaw)
+		if err != nil {
+			log.Printf("failed to parse poster path: %s", *posterPathRaw)
+		} else {
+			posterPath = *pp
+		}
+	}
+
 	return screenjournal.Movie{
 		ID:          screenjournal.MovieID(id),
 		TmdbID:      screenjournal.TmdbID(tmdbID),
 		ImdbID:      imdbID,
 		Title:       screenjournal.MediaTitle(title),
 		ReleaseDate: releaseDate,
+		PosterPath:  posterPath,
 	}, nil
 }

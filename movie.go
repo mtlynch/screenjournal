@@ -1,6 +1,9 @@
 package screenjournal
 
-import "time"
+import (
+	"net/url"
+	"time"
+)
 
 type (
 	ReleaseDate time.Time
@@ -11,6 +14,7 @@ type (
 		ImdbID      ImdbID
 		Title       MediaTitle
 		ReleaseDate ReleaseDate
+		PosterPath  url.URL
 	}
 )
 

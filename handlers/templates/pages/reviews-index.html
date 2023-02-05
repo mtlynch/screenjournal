@@ -1,4 +1,11 @@
 {{ define "style-tags" }}
+  <style nonce="{{ .CspNonce }}">
+    @media screen and (min-width: 768px) {
+      .poster {
+        max-height: 300px;
+      }
+    }
+  </style>
 {{ end }}
 
 {{ define "script-tags" }}
@@ -26,6 +33,12 @@
     {{ range .Reviews }}
       <div class="col">
         <div class="card h-100">
+          <a href="/reviews/{{ .ID }}"
+            ><img
+              class="card-img-top poster"
+              src="{{ posterPathToURL .Movie.PosterPath }}"
+              alt="Movie poster for {{ .Movie.Title }}"
+          /></a>
           <div class="card-body">
             <h5 class="card-title">
               <a href="/reviews/{{ .ID }}">{{ .Movie.Title }}</a>

@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"log"
@@ -90,7 +91,12 @@ func (db DB) InsertUser(user screenjournal.User) error {
 
 	now := time.Now()
 
-	if _, err := db.ctx.Exec(`
+	tx, err := db.ctx.BeginTx(context.Background(), nil)
+	if err != nil {
+		return err
+	}
+
+	if _, err := tx.Exec(`
 	INSERT INTO
 		users
 	(
@@ -125,7 +131,22 @@ func (db DB) InsertUser(user screenjournal.User) error {
 		return err
 	}
 
-	return nil
+	if _, err := tx.Exec(`
+	INSERT INTO
+		notification_preferences
+	(
+		username,
+		new_reviews
+	)
+	VALUES (
+		?, 1
+	)
+	`,
+		user.Username.String()); err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func encodePasswordHash(ph screenjournal.PasswordHash) string {

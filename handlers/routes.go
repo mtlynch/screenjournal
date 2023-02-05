@@ -16,6 +16,7 @@ func (s *Server) routes() {
 
 	authenticatedApis := s.router.PathPrefix("/api").Subrouter()
 	authenticatedApis.Use(s.requireAuthenticationForAPI)
+	authenticatedApis.HandleFunc("/account/notifications", s.accountNotificationsPost()).Methods(http.MethodPost)
 	authenticatedApis.HandleFunc("/search", s.searchGet()).Methods(http.MethodGet)
 	authenticatedApis.HandleFunc("/reviews", s.reviewsPost()).Methods(http.MethodPost)
 	authenticatedApis.HandleFunc("/reviews/{reviewID}", s.reviewsPut()).Methods(http.MethodPut)

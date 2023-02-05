@@ -369,6 +369,28 @@ func (s Server) invitesNewGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) accountNotificationsGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		prefs, err := s.store.ReadNotificationPreferences(usernameFromContext(r.Context()))
+		if err != nil {
+			log.Printf("failed to read notification preferences: %v", err)
+			http.Error(w, fmt.Sprintf("failed to read notification preferences: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		if err := renderTemplate(w, "account-notifications.html", struct {
+			commonProps
+			ReceivesReviewNotices bool
+		}{
+			commonProps:           makeCommonProps("Manage Notifications", r.Context()),
+			ReceivesReviewNotices: prefs.NewReviews,
+		}, template.FuncMap{}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func relativeWatchDate(t screenjournal.WatchDate) string {
 	daysAgo := int(time.Since(t.Time()).Hours() / 24)
 	weeksAgo := int(daysAgo / 7)

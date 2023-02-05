@@ -5,3 +5,5 @@ Hey {{ .Recipient }},
 {{ .BaseURL }}/reviews/{{ .ReviewID }}
 
 -ScreenJournal Bot
+
+To manage your notifications, visit {{ .BaseURL }}/account/notifications

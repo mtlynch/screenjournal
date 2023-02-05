@@ -11,12 +11,12 @@ import (
 	"github.com/mtlynch/screenjournal/v2/email"
 )
 
-type mockUserStore struct {
+type mockNotificationsStore struct {
 	users []screenjournal.User
 }
 
-func (us mockUserStore) ReadUsers() ([]screenjournal.User, error) {
-	return us.users, nil
+func (ns mockNotificationsStore) ReadNotificationSubscribers() ([]screenjournal.User, error) {
+	return ns.users, nil
 }
 
 type mockEmailSender struct {
@@ -32,13 +32,13 @@ func TestAnnounceNewReview(t *testing.T) {
 	for _, tt := range []struct {
 		description    string
 		sender         mockEmailSender
-		store          mockUserStore
+		store          mockNotificationsStore
 		review         screenjournal.Review
 		expectedEmails []email.Message
 	}{
 		{
 			description: "announces new review to everyne except the author",
-			store: mockUserStore{
+			store: mockNotificationsStore{
 				users: []screenjournal.User{
 					{
 						Username: screenjournal.Username("alice"),
@@ -81,6 +81,8 @@ bob just posted a new review for *The Matrix*! Check it out:
 https://dev.thescreenjournal.com/reviews/123
 
 -ScreenJournal Bot
+
+To manage your notifications, visit https://dev.thescreenjournal.com/account/notifications
 `,
 					HtmlBody: `<p>Hey alice,</p>
 
@@ -89,6 +91,8 @@ https://dev.thescreenjournal.com/reviews/123
 <p><a href="https://dev.thescreenjournal.com/reviews/123">https://dev.thescreenjournal.com/reviews/123</a></p>
 
 <p>-ScreenJournal Bot</p>
+
+<p>To manage your notifications, visit <a href="https://dev.thescreenjournal.com/account/notifications">https://dev.thescreenjournal.com/account/notifications</a></p>
 `,
 				},
 				{
@@ -110,6 +114,8 @@ bob just posted a new review for *The Matrix*! Check it out:
 https://dev.thescreenjournal.com/reviews/123
 
 -ScreenJournal Bot
+
+To manage your notifications, visit https://dev.thescreenjournal.com/account/notifications
 `,
 					HtmlBody: `<p>Hey charlie,</p>
 
@@ -118,13 +124,15 @@ https://dev.thescreenjournal.com/reviews/123
 <p><a href="https://dev.thescreenjournal.com/reviews/123">https://dev.thescreenjournal.com/reviews/123</a></p>
 
 <p>-ScreenJournal Bot</p>
+
+<p>To manage your notifications, visit <a href="https://dev.thescreenjournal.com/account/notifications">https://dev.thescreenjournal.com/account/notifications</a></p>
 `,
 				},
 			},
 		},
 		{
 			description: "sends no emails when no users exist except the author",
-			store: mockUserStore{
+			store: mockNotificationsStore{
 				users: []screenjournal.User{
 					{
 						Username: screenjournal.Username("bob"),

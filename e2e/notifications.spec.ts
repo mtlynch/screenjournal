@@ -9,5 +9,10 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("TODO", async ({ page }) => {
+  await page.locator("#account-dropdown").click();
+  await page.locator("data-test-id=notification-prefs-btn").click();
+
+  await expect(page).toHaveURL("/account/notifications");
+
   //TODO
 });

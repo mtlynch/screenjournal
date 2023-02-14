@@ -20,18 +20,13 @@ type reviewPostRequest struct {
 
 func (s Server) reviewsPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		owner, ok := userFromContext(r.Context())
-		if !ok {
-			http.Error(w, "Must be logged in to add a review", http.StatusForbidden)
-			return
-		}
-
 		req, err := newReviewFromRequest(r)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			return
 		}
 
+		owner := mustGetUserFromContext(r.Context())
 		req.Review.Owner = owner.Username
 
 		req.Review.Movie, err = s.moviefromTmdbID(req.TmdbID)
@@ -57,12 +52,6 @@ func (s Server) reviewsPost() http.HandlerFunc {
 
 func (s Server) reviewsPut() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		loggedInUser, ok := userFromContext(r.Context())
-		if !ok {
-			http.Error(w, "You must be logged in to edit reviews", http.StatusUnauthorized)
-			return
-		}
-
 		id, err := reviewIDFromRequestPath(r)
 		if err != nil {
 			http.Error(w, "Invalid review ID", http.StatusBadRequest)
@@ -78,6 +67,7 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
+		loggedInUser := mustGetUserFromContext(r.Context())
 		if !review.Owner.Equal(loggedInUser.Username) {
 			http.Error(w, "You can't edit another user's review", http.StatusForbidden)
 			return

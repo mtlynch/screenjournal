@@ -165,3 +165,11 @@ func usernameFromContext(ctx context.Context) screenjournal.Username {
 	}
 	return user.Username
 }
+
+func mustGetUserFromContext(ctx context.Context) screenjournal.User {
+	user, ok := userFromContext(ctx)
+	if !ok {
+		panic("No user in context in an authenticated handler")
+	}
+	return user
+}

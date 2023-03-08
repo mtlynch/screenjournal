@@ -40,37 +40,32 @@ func FromEmail(msg email.Message) (string, error) {
 		sb.WriteString(fmt.Sprintf("%s: %s\r\n", hdr.Name, hdr.Value))
 	}
 
-	part, err := mpw.CreatePart(textproto.MIMEHeader{"Content-Type": {"text/plain; charset=\"UTF-8\""}, "Content-Transfer-Encoding": {"quoted-printable"}})
-	if err != nil {
-		panic(err)
-	}
-
-	qpw := quotedprintable.NewWriter(part)
-	if _, err := qpw.Write([]byte(msg.TextBody)); err != nil {
-		panic(err)
-	}
-	if err := qpw.Close(); err != nil {
-		panic(err)
-	}
-
-	part, err = mpw.CreatePart(textproto.MIMEHeader{"Content-Type": {"text/html; charset=\"UTF-8\""}, "Content-Transfer-Encoding": {"quoted-printable"}})
-	if err != nil {
-		panic(err)
-	}
-
-	qpw = quotedprintable.NewWriter(part)
-	if _, err := qpw.Write([]byte(msg.HtmlBody)); err != nil {
-		panic(err)
-	}
-	if err := qpw.Close(); err != nil {
-		panic(err)
-	}
+	writePart(mpw, "text/plain", msg.TextBody)
+	writePart(mpw, "text/html", msg.HtmlBody)
 
 	if err := mpw.Close(); err != nil {
 		panic(err)
 	}
 
 	return sb.String(), nil
+}
+
+func writePart(mpw *multipart.Writer, contentType, content string) {
+	part, err := mpw.CreatePart(textproto.MIMEHeader{
+		"Content-Type":              {fmt.Sprintf("%s; charset=\"UTF-8\"", contentType)},
+		"Content-Transfer-Encoding": {"quoted-printable"},
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	qpw := quotedprintable.NewWriter(part)
+	if _, err := qpw.Write([]byte(content)); err != nil {
+		panic(err)
+	}
+	if err := qpw.Close(); err != nil {
+		panic(err)
+	}
 }
 
 func makeHeader(key, value string) header {

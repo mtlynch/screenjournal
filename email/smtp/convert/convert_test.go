@@ -53,27 +53,28 @@ MIME-Version: 1.0
 Content-Type: multipart/alternative; boundary="dummy-boundary-for-testing"
 --dummy-boundary-for-testing
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 
-`) + `Hi Alice,
+Hi Alice,
 
 Frank has posted a new review of *The Room*:
 
 https://sj.example.com/reviews/25
 
 Sincerely,
-ScreenJournal Bot` + normalizeLineEndings(`
+ScreenJournal Bot
 --dummy-boundary-for-testing
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/html; charset="iso-8859-1"
+Content-Type: text/html; charset="UTF-8"
 
-`) + `<p>Hi Alice,</p>
+<p>Hi Alice,</p>
 
 <p>Frank has posted a new review of <em>The Room</em>:</p>
 
-<p><a href="https://sj.example.com/reviews/25">https://sj.example.com/reviews/25</a></p>
+<p><a href=3D"https://sj.example.com/reviews/25">https://sj.example.com/rev=
+iews/25</a></p>
 
-<p>-ScreenJournal Bot</p>` + normalizeLineEndings(`
+<p>-ScreenJournal Bot</p>
 --dummy-boundary-for-testing--
 `),
 		},

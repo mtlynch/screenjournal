@@ -3,6 +3,7 @@ package convert
 import (
 	"fmt"
 	"mime/multipart"
+	"mime/quotedprintable"
 	"net/textproto"
 	"strings"
 
@@ -39,21 +40,32 @@ func FromEmail(msg email.Message) (string, error) {
 		sb.WriteString(fmt.Sprintf("%s: %s\r\n", hdr.Name, hdr.Value))
 	}
 
-	part, err := mpw.CreatePart(textproto.MIMEHeader{"Content-Type": {"text/plain; charset=\"iso-8859-1\""}, "Content-Transfer-Encoding": {"quoted-printable"}})
+	part, err := mpw.CreatePart(textproto.MIMEHeader{"Content-Type": {"text/plain; charset=\"UTF-8\""}, "Content-Transfer-Encoding": {"quoted-printable"}})
 	if err != nil {
-		panic(err)
-	}
-	if _, err := part.Write([]byte(msg.TextBody)); err != nil {
 		panic(err)
 	}
 
-	part, err = mpw.CreatePart(textproto.MIMEHeader{"Content-Type": {"text/html; charset=\"iso-8859-1\""}, "Content-Transfer-Encoding": {"quoted-printable"}})
+	qpw := quotedprintable.NewWriter(part)
+	if _, err := qpw.Write([]byte(msg.TextBody)); err != nil {
+		panic(err)
+	}
+	if err := qpw.Close(); err != nil {
+		panic(err)
+	}
+
+	part, err = mpw.CreatePart(textproto.MIMEHeader{"Content-Type": {"text/html; charset=\"UTF-8\""}, "Content-Transfer-Encoding": {"quoted-printable"}})
 	if err != nil {
 		panic(err)
 	}
-	if _, err := part.Write([]byte(msg.HtmlBody)); err != nil {
+
+	qpw = quotedprintable.NewWriter(part)
+	if _, err := qpw.Write([]byte(msg.HtmlBody)); err != nil {
 		panic(err)
 	}
+	if err := qpw.Close(); err != nil {
+		panic(err)
+	}
+
 	if err := mpw.Close(); err != nil {
 		panic(err)
 	}

@@ -9,7 +9,7 @@ require (
 	github.com/kylelemons/godebug v1.1.0
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/mtlynch/gorilla-handlers v1.5.2
-	github.com/mtlynch/jeff v0.2.3
+	github.com/mtlynch/jeff v0.2.4
 	github.com/ryanbradynd05/go-tmdb v0.0.0-20220721194547-2ab6191c6273
 	golang.org/x/crypto v0.1.0
 )

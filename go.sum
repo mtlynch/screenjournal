@@ -22,8 +22,8 @@ github.com/mattn/go-sqlite3 v1.14.16 h1:yOQRA0RpS5PFz/oikGwBEqvAWhWg5ufRz4ETLjwp
 github.com/mattn/go-sqlite3 v1.14.16/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
 github.com/mtlynch/gorilla-handlers v1.5.2 h1:CnOI7baYzjgdumJMc7Dh192JFxqGsNgRewa7NTqq9Pc=
 github.com/mtlynch/gorilla-handlers v1.5.2/go.mod h1:qZmXSCK7pPjN71Pl9ARbQX2ec1t11FI/j8bDS+ZVbmQ=
-github.com/mtlynch/jeff v0.2.3 h1:0E0NnwW1XbjnlCJox2/l7oP4xY3uwvMc5jJgblm+MJ4=
-github.com/mtlynch/jeff v0.2.3/go.mod h1:bxdRG/C7U5XEt1nTKU282IAeVRJu2pLR2cV4dHNLkOk=
+github.com/mtlynch/jeff v0.2.4 h1:+sfnAwKZ7yO44IuaJM3n/53Tvc6lqscHeR9Z2WTbacE=
+github.com/mtlynch/jeff v0.2.4/go.mod h1:bxdRG/C7U5XEt1nTKU282IAeVRJu2pLR2cV4dHNLkOk=
 github.com/philhofer/fwd v1.1.1 h1:GdGcTjf5RNAxwS4QLsiMzJYj5KEvPJD3Abr261yRQXQ=
 github.com/philhofer/fwd v1.1.1/go.mod h1:gk3iGcWd9+svBvR0sR+KPcfE+RNWozjowpeBVG3ZVNU=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

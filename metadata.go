@@ -20,10 +20,6 @@ func (mid MovieID) String() string {
 	return strconv.FormatInt(mid.Int64(), 10)
 }
 
-func (mid MovieID) IsEmpty() bool {
-	return mid.Int64() == 0
-}
-
 func (m TmdbID) Int32() int32 {
 	return int32(m)
 }

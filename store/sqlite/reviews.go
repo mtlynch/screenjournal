@@ -45,11 +45,11 @@ func (db DB) ReadReviews(filters store.ReviewFilters) ([]screenjournal.Review, e
 	whereClauses := []string{}
 	queryArgs := []any{}
 
-	if !filters.Username.IsEmpty() {
+	if filters.Username != nil {
 		whereClauses = append(whereClauses, "review_owner = ?")
 		queryArgs = append(queryArgs, filters.Username.String())
 	}
-	if !filters.MovieID.IsEmpty() {
+	if filters.MovieID != nil {
 		whereClauses = append(whereClauses, "movie_id = ?")
 		queryArgs = append(queryArgs, filters.MovieID.Int64())
 	}

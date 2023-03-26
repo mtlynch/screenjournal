@@ -52,12 +52,14 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 			Title     string
 			Author    string
 			BaseURL   string
+			MovieID   int64
 			ReviewID  uint64
 		}{
 			Recipient: u.Username.String(),
 			Title:     r.Movie.Title.String(),
 			Author:    r.Owner.String(),
 			BaseURL:   a.baseURL,
+			MovieID:   r.Movie.ID.Int64(),
 			ReviewID:  r.ID.UInt64(),
 		})
 		bodyHtml := markdown.Render(bodyMarkdown)

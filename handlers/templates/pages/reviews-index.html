@@ -17,7 +17,7 @@
 {{ define "content" }}
   <h1>{{ .Title }}</h1>
 
-  {{ if (or (not .CollectionOwner) (eq .CollectionOwner .LoggedInUsername)) }}
+  {{ if .UserCanAddReview }}
     <a
       href="/reviews/new"
       class="btn btn-primary my-3"
@@ -31,9 +31,13 @@
 
   <div class="row row-cols-1 row-cols-md-3 g-4">
     {{ range .Reviews }}
+
+      {{ $reviewRoute := printf "/movies/%s#review%s" .Movie.ID.String .ID.String }}
+
+
       <div class="col">
         <div class="card h-100">
-          <a href="/reviews/{{ .ID }}"
+          <a href="{{ $reviewRoute }}"
             ><img
               class="card-img-top poster"
               src="{{ posterPathToURL .Movie.PosterPath }}"
@@ -41,7 +45,7 @@
           /></a>
           <div class="card-body">
             <h5 class="card-title">
-              <a href="/reviews/{{ .ID }}">{{ .Movie.Title }}</a>
+              <a href="{{ $reviewRoute }}">{{ .Movie.Title }}</a>
             </h5>
             <h6 class="card-subtitle mb-2 text-muted">
               <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> watched
@@ -69,7 +73,7 @@
             {{ end }}
             <p>
               <a
-                href="/reviews/{{ .ID }}"
+                href="{{ $reviewRoute }}"
                 class="card-link"
                 data-test-id="full-review"
                 >Full review</a

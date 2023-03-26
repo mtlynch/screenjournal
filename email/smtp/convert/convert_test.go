@@ -34,7 +34,7 @@ func TestFromEmail(t *testing.T) {
 
 Frank has posted a new review of *The Room*:
 
-https://sj.example.com/reviews/25
+https://sj.example.com/movies/1#review25
 
 Sincerely,
 ScreenJournal Bot`,
@@ -42,7 +42,7 @@ ScreenJournal Bot`,
 
 <p>Frank has posted a new review of <em>The Room</em>:</p>
 
-<p><a href="https://sj.example.com/reviews/25">https://sj.example.com/reviews/25</a></p>
+<p><a href="https://sj.example.com/movies/1#review25">https://sj.example.com/movies/1#review25</a></p>
 
 <p>-ScreenJournal Bot</p>`,
 			},
@@ -59,7 +59,7 @@ Hi Alice,
 
 Frank has posted a new review of *The Room*:
 
-https://sj.example.com/reviews/25
+https://sj.example.com/movies/1#review25
 
 Sincerely,
 ScreenJournal Bot
@@ -71,8 +71,8 @@ Content-Type: text/html; charset="UTF-8"
 
 <p>Frank has posted a new review of <em>The Room</em>:</p>
 
-<p><a href=3D"https://sj.example.com/reviews/25">https://sj.example.com/rev=
-iews/25</a></p>
+<p><a href=3D"https://sj.example.com/movies/1#review25">https://sj.example.=
+com/movies/1#review25</a></p>
 
 <p>-ScreenJournal Bot</p>
 --dummy-boundary-for-testing--

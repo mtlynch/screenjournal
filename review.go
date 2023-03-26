@@ -1,6 +1,9 @@
 package screenjournal
 
-import "time"
+import (
+	"strconv"
+	"time"
+)
 
 type (
 	ReviewID   uint64
@@ -23,6 +26,10 @@ type (
 
 func (id ReviewID) UInt64() uint64 {
 	return uint64(id)
+}
+
+func (id ReviewID) String() string {
+	return strconv.FormatUint(id.UInt64(), 10)
 }
 
 func (id ReviewID) IsZero() bool {

@@ -121,9 +121,9 @@ func (s Server) signUpGet() http.HandlerFunc {
 
 func (s Server) reviewsGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		collectionOwner, err := usernameFromRequestPath(r)
-		if err != nil {
-			collectionOwner = screenjournal.Username("")
+		var collectionOwner *screenjournal.Username
+		if username, err := usernameFromRequestPath(r); err == nil {
+			collectionOwner = &username
 		}
 
 		reviews, err := s.store.ReadReviews(store.ReviewFilters{Username: collectionOwner})
@@ -139,18 +139,18 @@ func (s Server) reviewsGet() http.HandlerFunc {
 		})
 
 		title := "Ratings"
-		if !collectionOwner.IsEmpty() {
+		if collectionOwner != nil {
 			title = fmt.Sprintf("%s's %s", collectionOwner, title)
 		}
 
 		if err := renderTemplate(w, "reviews-index.html", struct {
 			commonProps
-			Reviews         []screenjournal.Review
-			CollectionOwner screenjournal.Username
+			Reviews          []screenjournal.Review
+			UserCanAddReview bool
 		}{
-			commonProps:     makeCommonProps(title, r.Context()),
-			Reviews:         reviews,
-			CollectionOwner: collectionOwner,
+			commonProps:      makeCommonProps(title, r.Context()),
+			Reviews:          reviews,
+			UserCanAddReview: collectionOwner == nil || collectionOwner.Equal(usernameFromContext(r.Context())),
 		}, template.FuncMap{
 			"relativeWatchDate": relativeWatchDate,
 			"formatWatchDate": func(t screenjournal.WatchDate) string {
@@ -196,30 +196,41 @@ func (s Server) reviewsGet() http.HandlerFunc {
 	}
 }
 
-func (s Server) reviewsReadGet() http.HandlerFunc {
+func (s Server) moviesReadGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := reviewIDFromRequestPath(r)
+		mid, err := movieIDFromRequestPath(r)
 		if err != nil {
-			http.Error(w, "Invalid review ID", http.StatusBadRequest)
+			http.Error(w, "Invalid movie ID", http.StatusBadRequest)
 			return
 		}
 
-		review, err := s.store.ReadReview(id)
-		if err == store.ErrReviewNotFound {
-			http.Error(w, "Invalid review ID", http.StatusNotFound)
+		movie, err := s.store.ReadMovie(mid)
+		if err == store.ErrMovieNotFound {
+			http.Error(w, "Invalid movie ID", http.StatusNotFound)
 			return
 		} else if err != nil {
-			log.Printf("failed to read review: %v", err)
-			http.Error(w, "Failed to read review", http.StatusInternalServerError)
+			log.Printf("failed to read movie metadata: %v", err)
+			http.Error(w, "Failed to retrieve movie information", http.StatusInternalServerError)
 			return
 		}
 
-		if err := renderTemplate(w, "reviews-view.html", struct {
+		reviews, err := s.store.ReadReviews(store.ReviewFilters{
+			MovieID: &mid,
+		})
+		if err != nil {
+			log.Printf("failed to read movie reviews: %v", err)
+			http.Error(w, "Failed to retrieve reviews", http.StatusInternalServerError)
+			return
+		}
+
+		if err := renderTemplate(w, "movies-view.html", struct {
 			commonProps
-			Review screenjournal.Review
+			Movie   screenjournal.Movie
+			Reviews []screenjournal.Review
 		}{
-			commonProps: makeCommonProps(review.Movie.Title.String(), r.Context()),
-			Review:      review,
+			commonProps: makeCommonProps(movie.Title.String(), r.Context()),
+			Movie:       movie,
+			Reviews:     reviews,
 		}, template.FuncMap{
 			"relativeWatchDate": relativeWatchDate,
 			"formatReleaseDate": func(t screenjournal.ReleaseDate) string {

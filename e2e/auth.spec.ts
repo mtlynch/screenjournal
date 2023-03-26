@@ -126,12 +126,12 @@ test("prompts to log in if they click a link to a review before signing in", asy
 }) => {
   await populateDummyData(page);
 
-  await page.goto("/reviews/1");
+  await page.goto("/movies/1");
 
-  await expect(page).toHaveURL("/login?next=%2Freviews%2F1");
+  await expect(page).toHaveURL("/login?next=%2Fmovies%2F1");
   await page.locator("id=username").fill("userB");
   await page.locator("id=password").fill("password456");
   await page.locator("form input[type='submit']").click();
 
-  await expect(page).toHaveURL("/reviews/1");
+  await expect(page).toHaveURL("/movies/1");
 });

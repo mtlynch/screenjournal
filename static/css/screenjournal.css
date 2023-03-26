@@ -18,3 +18,7 @@ img {
 .fa-star {
   color: #ffcb3b;
 }
+
+.content .bg-light {
+  background-color: #fafffb !important;
+}

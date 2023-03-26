@@ -2,7 +2,7 @@ Hey {{ .Recipient }},
 
 {{ .Author }} just posted a new review for *{{ .Title }}*! Check it out:
 
-{{ .BaseURL }}/reviews/{{ .ReviewID }}
+{{ .BaseURL }}/movies/{{ .MovieID }}#review{{ .ReviewID }}
 
 -ScreenJournal Bot
 

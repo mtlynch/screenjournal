@@ -28,7 +28,7 @@ var (
 	scriptTagPattern = regexp.MustCompile(`(?i)<\s*/?script\s*>`)
 	minRating        = 1
 	maxRating        = 5
-	blurbMaxLength   = 3000
+	blurbMaxLength   = 9000
 )
 
 func ReviewIDFromString(raw string) (screenjournal.ReviewID, error) {

@@ -1,5 +1,9 @@
 package screenjournal
 
+import (
+	"strconv"
+)
+
 type (
 	// MovieID represents the ID for a movie in the local datastore.
 	MovieID int64
@@ -10,6 +14,10 @@ type (
 
 func (mid MovieID) Int64() int64 {
 	return int64(mid)
+}
+
+func (mid MovieID) String() string {
+	return strconv.FormatInt(mid.Int64(), 10)
 }
 
 func (mid MovieID) IsEmpty() bool {

@@ -31,9 +31,13 @@
 
   <div class="row row-cols-1 row-cols-md-3 g-4">
     {{ range .Reviews }}
+
+      {{ $reviewURL := printf "/movies/%s#review%s" .Movie.ID.String .ID.String }}
+
+
       <div class="col">
         <div class="card h-100">
-          <a href="/movies/{{ .Movie.ID }}#review{{ .ID }}"
+          <a href="{{ $reviewURL }}"
             ><img
               class="card-img-top poster"
               src="{{ posterPathToURL .Movie.PosterPath }}"
@@ -41,9 +45,7 @@
           /></a>
           <div class="card-body">
             <h5 class="card-title">
-              <a href="/movies/{{ .Movie.ID }}#review{{ .ID }}"
-                >{{ .Movie.Title }}</a
-              >
+              <a href="{{ $reviewURL }}">{{ .Movie.Title }}</a>
             </h5>
             <h6 class="card-subtitle mb-2 text-muted">
               <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> watched
@@ -71,7 +73,7 @@
             {{ end }}
             <p>
               <a
-                href="/movies/{{ .Movie.ID }}"
+                href="{{ $reviewURL }}"
                 class="card-link"
                 data-test-id="full-review"
                 >Full review</a

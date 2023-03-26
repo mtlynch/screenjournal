@@ -297,8 +297,8 @@ func TestBlurb(t *testing.T) {
 			parse.ErrInvalidBlurb,
 		},
 		{
-			"blurb with more than 3000 characters is invalid",
-			strings.Repeat("A", 3001),
+			"blurb with more than 9000 characters is invalid",
+			strings.Repeat("A", 9001),
 			screenjournal.Blurb(""),
 			parse.ErrInvalidBlurb,
 		},

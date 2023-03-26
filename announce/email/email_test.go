@@ -78,7 +78,7 @@ func TestAnnounceNewReview(t *testing.T) {
 
 bob just posted a new review for *The Matrix*! Check it out:
 
-https://dev.thescreenjournal.com/reviews/123
+https://dev.thescreenjournal.com/movies/123#review456
 
 -ScreenJournal Bot
 
@@ -88,7 +88,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 
 <p>bob just posted a new review for <em>The Matrix</em>! Check it out:</p>
 
-<p><a href="https://dev.thescreenjournal.com/reviews/123">https://dev.thescreenjournal.com/reviews/123</a></p>
+<p><a href="https://dev.thescreenjournal.com/movies/123#review456">https://dev.thescreenjournal.com/movies/123#review456</a></p>
 
 <p>-ScreenJournal Bot</p>
 
@@ -111,7 +111,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 
 bob just posted a new review for *The Matrix*! Check it out:
 
-https://dev.thescreenjournal.com/reviews/123
+https://dev.thescreenjournal.com/movies/123#review456
 
 -ScreenJournal Bot
 
@@ -121,7 +121,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 
 <p>bob just posted a new review for <em>The Matrix</em>! Check it out:</p>
 
-<p><a href="https://dev.thescreenjournal.com/reviews/123">https://dev.thescreenjournal.com/reviews/123</a></p>
+<p><a href="https://dev.thescreenjournal.com/movies/123#review456">https://dev.thescreenjournal.com/movies/123#review456</a></p>
 
 <p>-ScreenJournal Bot</p>
 

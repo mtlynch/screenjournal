@@ -69,8 +69,10 @@ func (db DB) ReadReviews(filters store.ReviewFilters) ([]screenjournal.Review, e
 	if len(queryArgs) > 0 {
 		query += fmt.Sprintf("\n\tWHERE\n\t\t%s", strings.Join(whereClauses, "\n\t\t"))
 	}
-
-	// TODO: Order by date
+	query += `
+	ORDER BY
+		watched_date DESC,
+		created_time DESC`
 
 	rows, err := db.ctx.Query(query, queryArgs...)
 	if err != nil {

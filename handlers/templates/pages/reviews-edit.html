@@ -1,4 +1,9 @@
 {{ define "style-tags" }}
+  <style nonce="{{ .CspNonce }}">
+    .btn + .btn {
+      margin-right: 0.5rem;
+    }
+  </style>
 {{ end }}
 
 {{ define "script-tags" }}

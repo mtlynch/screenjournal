@@ -55,9 +55,10 @@ func TestAnnounceNewReview(t *testing.T) {
 				},
 			},
 			review: screenjournal.Review{
-				ID:    screenjournal.ReviewID(123),
+				ID:    screenjournal.ReviewID(456),
 				Owner: screenjournal.Username("bob"),
 				Movie: screenjournal.Movie{
+					ID:    screenjournal.MovieID(123),
 					Title: screenjournal.MediaTitle("The Matrix"),
 				},
 			},

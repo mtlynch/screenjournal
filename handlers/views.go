@@ -410,6 +410,9 @@ func relativeWatchDate(t screenjournal.WatchDate) string {
 		return fmt.Sprintf("%d weeks ago", weeksAgo)
 	}
 	monthsAgo := int(daysAgo / 30)
+	if monthsAgo == 1 {
+		return "1 month ago"
+	}
 	return fmt.Sprintf("%d months ago", monthsAgo)
 }
 

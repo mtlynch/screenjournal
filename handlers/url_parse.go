@@ -9,6 +9,10 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 )
 
+func movieIDFromRequestPath(r *http.Request) (screenjournal.MovieID, error) {
+	return parse.MovieIDFromString(mux.Vars(r)["movieID"])
+}
+
 func reviewIDFromRequestPath(r *http.Request) (screenjournal.ReviewID, error) {
 	return parse.ReviewIDFromString(mux.Vars(r)["reviewID"])
 }

@@ -12,6 +12,10 @@ func (mid MovieID) Int64() int64 {
 	return int64(mid)
 }
 
+func (mid MovieID) IsEmpty() bool {
+	return mid.Int64() == 0
+}
+
 func (m TmdbID) Int32() int32 {
 	return int32(m)
 }

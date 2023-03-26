@@ -1,0 +1,75 @@
+{{ define "style-tags" }}
+  <style nonce="{{ .CspNonce }}">
+    @media screen and (min-width: 768px) {
+      .poster {
+        max-width: 250px;
+      }
+    }
+
+    .release-year {
+      font-size: 0.85em;
+    }
+
+    .review {
+      border: 1px solid gray;
+      padding: 1rem;
+      max-width: 70ch;
+      background-color: #fafffb;
+    }
+
+    .review + .review {
+      margin-top: 2rem;
+    }
+
+    .review p {
+      max-width: 100%;
+    }
+  </style>
+{{ end }}
+
+{{ define "script-tags" }}
+{{ end }}
+
+{{ define "custom-elements" }}
+{{ end }}
+
+{{ define "content" }}
+  {{ with .Movie }}
+    <h1>{{ .Title }}</h1>
+    <img
+      class="card-img-top poster"
+      src="{{ posterPathToURL .PosterPath }}"
+      alt="Movie poster for {{ .Title }}"
+    />
+    <p class="release-date">Released: {{ formatReleaseDate .ReleaseDate }}</p>
+  {{ end }}
+
+  {{ range .Reviews }}
+    <div class="review" id="review{{ .ID }}">
+      <h6 class="card-subtitle mb-2 text-muted">
+        <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> watched this
+        <span data-test-id="watch-date" title="{{ formatWatchDate .Watched }}"
+          >{{ relativeWatchDate .Watched }}</span
+        >
+      </h6>
+      <div data-test-id="rating">
+        {{ range iterate .Rating.UInt8 }}
+          <i class="fa-solid fa-star"></i>
+        {{ end }}
+        {{ range iterate (minus 5 .Rating.UInt8) }}
+          <i class="fa-regular fa-star"></i>
+        {{ end }}
+      </div>
+
+      {{ with .Blurb }}
+        <p data-test-id="blurb">
+          {{ range .String | splitByNewline }}
+            {{ . }}<br />
+          {{ end }}
+        </p>
+      {{ end }}
+    </div>
+  {{ end }}
+{{ end }}
+
+{{ template "base.html" }}

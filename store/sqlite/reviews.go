@@ -3,7 +3,9 @@ package sqlite
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
@@ -40,6 +42,18 @@ func (db DB) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, error)
 }
 
 func (db DB) ReadReviews(filters store.ReviewFilters) ([]screenjournal.Review, error) {
+	whereClauses := []string{}
+	queryArgs := []any{}
+
+	if !filters.Username.IsEmpty() {
+		whereClauses = append(whereClauses, "review_owner = ?")
+		queryArgs = append(queryArgs, filters.Username.String())
+	}
+	if !filters.MovieID.IsEmpty() {
+		whereClauses = append(whereClauses, "movie_id = ?")
+		queryArgs = append(queryArgs, filters.MovieID.Int64())
+	}
+
 	query := `
 	SELECT
 		id,
@@ -52,13 +66,10 @@ func (db DB) ReadReviews(filters store.ReviewFilters) ([]screenjournal.Review, e
 		last_modified_time
 	FROM
 		reviews`
-	if !filters.Username.IsEmpty() {
-		query += `
-	WHERE
-		review_owner = ?
-		`
+	if len(queryArgs) > 0 {
+		query += fmt.Sprintf("\n\tWHERE\n\t\t%s", strings.Join(whereClauses, "\n\t\t"))
 	}
-	rows, err := db.ctx.Query(query, filters.Username)
+	rows, err := db.ctx.Query(query, queryArgs...)
 	if err != nil {
 		return []screenjournal.Review{}, err
 	}

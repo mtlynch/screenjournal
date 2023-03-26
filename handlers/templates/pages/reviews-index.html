@@ -33,7 +33,7 @@
     {{ range .Reviews }}
       <div class="col">
         <div class="card h-100">
-          <a href="/reviews/{{ .ID }}"
+          <a href="/movies/{{ .Movie.ID }}#review{{ .ID }}"
             ><img
               class="card-img-top poster"
               src="{{ posterPathToURL .Movie.PosterPath }}"
@@ -41,7 +41,9 @@
           /></a>
           <div class="card-body">
             <h5 class="card-title">
-              <a href="/reviews/{{ .ID }}">{{ .Movie.Title }}</a>
+              <a href="/movies/{{ .Movie.ID }}#review{{ .ID }}"
+                >{{ .Movie.Title }}</a
+              >
             </h5>
             <h6 class="card-subtitle mb-2 text-muted">
               <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> watched
@@ -69,7 +71,7 @@
             {{ end }}
             <p>
               <a
-                href="/reviews/{{ .ID }}"
+                href="/movies/{{ .Movie.ID }}"
                 class="card-link"
                 data-test-id="full-review"
                 >Full review</a

@@ -9,6 +9,7 @@ import (
 type (
 	ReviewFilters struct {
 		Username screenjournal.Username
+		MovieID  screenjournal.MovieID
 	}
 
 	Store interface {

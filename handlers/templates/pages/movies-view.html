@@ -11,10 +11,8 @@
     }
 
     .review {
-      border: 1px solid gray;
       padding: 1rem;
       max-width: 70ch;
-      background-color: #fafffb;
     }
 
     .review + .review {
@@ -45,7 +43,7 @@
   {{ end }}
 
   {{ range .Reviews }}
-    <div class="review" id="review{{ .ID }}">
+    <div class="review border bg-light" id="review{{ .ID }}">
       <h6 class="card-subtitle mb-2 text-muted">
         <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> watched this
         <span data-test-id="watch-date" title="{{ formatWatchDate .Watched }}"

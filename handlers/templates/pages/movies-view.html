@@ -45,11 +45,11 @@
     <div class="review border bg-light p-2" id="review{{ .ID }}">
       <h6 class="card-subtitle mb-2 text-muted">
         <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> watched this
-        <span data-test-id="watch-date" title="{{ formatWatchDate .Watched }}"
+        <span data-testid="watch-date" title="{{ formatWatchDate .Watched }}"
           >{{ relativeWatchDate .Watched }}</span
         >
       </h6>
-      <div data-test-id="rating">
+      <div data-testid="rating">
         {{ range iterate .Rating.UInt8 }}
           <i class="fa-solid fa-star"></i>
         {{ end }}
@@ -59,7 +59,7 @@
       </div>
 
       {{ with .Blurb }}
-        <p data-test-id="blurb" class="mb-0">
+        <p data-testid="blurb" class="mb-0">
           {{ range .String | splitByNewline }}
             {{ . }}<br />
           {{ end }}

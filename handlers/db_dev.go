@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
@@ -42,8 +44,14 @@ func (s Server) populateDummyData() http.HandlerFunc {
 	}
 	movies := []screenjournal.Movie{
 		{
-			ID:    screenjournal.MovieID(1),
-			Title: screenjournal.MediaTitle("The Waterboy"),
+			ID:          screenjournal.MovieID(1),
+			TmdbID:      screenjournal.TmdbID(10663),
+			ImdbID:      screenjournal.ImdbID("tt0120484"),
+			Title:       screenjournal.MediaTitle("The Waterboy"),
+			ReleaseDate: mustParseReleaseDate("1998-11-06"),
+			PosterPath: url.URL{
+				Path: "/miT42qWYC4D0n2mXNzJ9VfhheWW.jpg",
+			},
 		},
 	}
 	reviews := []screenjournal.Review{
@@ -54,7 +62,7 @@ func (s Server) populateDummyData() http.HandlerFunc {
 			Movie: screenjournal.Movie{
 				ID: screenjournal.MovieID(1),
 			},
-			Watched: screenjournal.WatchDate(time.Date(2020, time.October, 5, 20, 18, 55, 0, time.Local)),
+			Watched: mustParseWatchDate("2020-10-05T20:18:55-04:00"),
 			Blurb:   screenjournal.Blurb("I love water!"),
 		},
 	}
@@ -90,4 +98,20 @@ func (s Server) wipeDB() http.HandlerFunc {
 		}
 		sqlStore.Clear()
 	}
+}
+
+func mustParseReleaseDate(s string) screenjournal.ReleaseDate {
+	d, err := time.Parse("2006-01-02", s)
+	if err != nil {
+		log.Fatalf("failed to parse release date: %s", s)
+	}
+	return screenjournal.ReleaseDate(d)
+}
+
+func mustParseWatchDate(s string) screenjournal.WatchDate {
+	wd, err := parse.WatchDate(s)
+	if err != nil {
+		log.Fatalf("failed to parse watch date: %s", s)
+	}
+	return wd
 }

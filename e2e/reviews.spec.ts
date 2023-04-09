@@ -330,8 +330,6 @@ test("editing another user's review fails", async ({ page, browser }) => {
 });
 
 test("views an existing review and adds to it", async ({ page }) => {
-  await loginAsUserB(page);
-
   await page
     .getByRole("heading", { name: "The Waterboy" })
     .getByRole("link")
@@ -340,4 +338,20 @@ test("views an existing review and adds to it", async ({ page }) => {
   await expect(page).toHaveURL("/movies/1#review1");
 
   await page.getByTestId("add-rating").click();
+
+  await expect(page).toHaveURL("/reviews/new?movieId=1");
+
+  await expect(
+    page.getByRole("heading", { name: "The Waterboy" })
+  ).toBeVisible();
+
+  await expect(page.locator("title-search")).not.toBeVisible();
+
+  await page.locator("#rating-select").selectOption({ label: "5" });
+  await page.locator("#watched-date").fill("2023-01-05");
+  await page.locator("#blurb").fill("Relevant as ever");
+
+  await page.locator("form input[type='submit']").click();
+
+  await expect(page).toHaveURL("/reviews");
 });

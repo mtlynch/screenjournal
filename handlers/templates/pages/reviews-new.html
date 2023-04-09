@@ -49,7 +49,14 @@
 
             addReview(reviewFromForm())
               .then(() => {
-                window.location.pathname = `/reviews`;
+                let newLocation = new URL(window.location.href);
+                newLocation.search = (() => {
+                  let s = new URLSearchParams(newLocation.search);
+                  s.delete("movieId");
+                  return s.toString();
+                })();
+                newLocation.pathname = "/reviews";
+                window.location = newLocation;
               })
               .catch((error) => {
                 errorAlert.innerText = error;

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -9,12 +10,19 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 )
 
+var ErrMoveIDNotProvided = errors.New("no movie ID in query parameters")
+
 func movieIDFromRequestPath(r *http.Request) (screenjournal.MovieID, error) {
 	return parse.MovieIDFromString(mux.Vars(r)["movieID"])
 }
 
 func movieIDFromQueryParams(r *http.Request) (screenjournal.MovieID, error) {
-	return parse.MovieIDFromString(r.URL.Query().Get("movieId"))
+	raw := r.URL.Query().Get("movieId")
+	if raw == "" {
+		return screenjournal.MovieID(0), ErrMoveIDNotProvided
+	}
+
+	return parse.MovieIDFromString(raw)
 }
 
 func reviewIDFromRequestPath(r *http.Request) (screenjournal.ReviewID, error) {

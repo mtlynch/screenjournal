@@ -149,7 +149,7 @@
 
               const spanEl = document.createElement("span");
               spanEl.classList.add("title");
-              spanEl.innerText = `${m.title} (${d.getFullYear()})`;
+              spanEl.innerText = `${m.title} (${d.getUTCFullYear()})`;
 
               const anchorEl = document.createElement("a");
               anchorEl.href = "#";

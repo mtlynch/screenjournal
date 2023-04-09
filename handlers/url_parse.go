@@ -13,6 +13,10 @@ func movieIDFromRequestPath(r *http.Request) (screenjournal.MovieID, error) {
 	return parse.MovieIDFromString(mux.Vars(r)["movieID"])
 }
 
+func movieIDFromQueryParams(r *http.Request) (screenjournal.MovieID, error) {
+	return parse.MovieIDFromString(r.URL.Query().Get("movieID"))
+}
+
 func reviewIDFromRequestPath(r *http.Request) (screenjournal.ReviewID, error) {
 	return parse.ReviewIDFromString(mux.Vars(r)["reviewID"])
 }

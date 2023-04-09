@@ -8,7 +8,13 @@
     import { tzOffsetString } from "/js/lib/time.js";
 
     function reviewFromForm() {
-      const tmdbId = parseInt(document.querySelector("title-search").value);
+      const tmdbId = (() => {
+        const tmdbEl = document.getElementById("tmdb-id");
+        if (tmdbEl) {
+          return parseInt(tmdbEl.value);
+        }
+        return parseInt(document.querySelector("title-search").value);
+      })();
 
       const rating = parseInt(document.getElementById("rating-select").value);
 
@@ -67,10 +73,20 @@
 {{ define "content" }}
   <h1>Add Rating</h1>
 
+  {{ if .MediaTitle }}
+    <h2>{{ .MediaTitle }}</h2>
+  {{ end }}
+
+
   <form id="add-rating" class="my-5">
-    <div class="mb-3">
-      <title-search></title-search>
-    </div>
+    {{ if .MediaTitle }}
+      <input type="hidden" id="tmdb-id" value="{{ .TmdbID }}" />
+    {{ else }}
+      <div class="mb-3">
+        <title-search></title-search>
+      </div>
+    {{ end }}
+
 
     <div class="mb-3">
       <label for="rating-select" class="form-label">Rating</label>

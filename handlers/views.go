@@ -322,12 +322,37 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 
 func (s Server) reviewsNewGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var mediaTitle string
+		var tmdbID int32
+		if mid, err := movieIDFromQueryParams(r); err == nil {
+			movie, err := s.store.ReadMovie(mid)
+			if err == store.ErrMovieNotFound {
+				http.Error(w, "Invalid movie ID", http.StatusNotFound)
+				return
+			} else if err != nil {
+				log.Printf("failed to read movie metadata: %v", err)
+				http.Error(w, "Failed to retrieve movie information", http.StatusInternalServerError)
+				return
+			}
+			mediaTitle = movie.Title.String()
+			tmdbID = movie.TmdbID.Int32()
+		} else if err == ErrMoveIDNotProvided {
+			// Movie ID is optional for this view.
+		} else {
+			http.Error(w, "Invalid movie ID", http.StatusBadRequest)
+			return
+		}
+
 		if err := renderTemplate(w, "reviews-new.html", struct {
 			commonProps
+			MediaTitle    string
+			TmdbID        int32
 			RatingOptions []int
 			Today         time.Time
 		}{
 			commonProps:   makeCommonProps("Add Review", r.Context()),
+			MediaTitle:    mediaTitle,
+			TmdbID:        tmdbID,
 			RatingOptions: []int{1, 2, 3, 4, 5},
 			Today:         time.Now(),
 		}, template.FuncMap{

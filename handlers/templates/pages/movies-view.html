@@ -41,6 +41,14 @@
     <p class="release-date">Released: {{ formatReleaseDate .ReleaseDate }}</p>
   {{ end }}
 
+
+  <a
+    href="/reviews/new?movieId={{ .Movie.ID }}"
+    class="btn btn-primary my-3"
+    data-testid="add-rating"
+    >Add Rating</a
+  >
+
   {{ range .Reviews }}
     <div class="review border bg-light p-2" id="review{{ .ID }}">
       <h6 class="card-subtitle mb-2 text-muted">

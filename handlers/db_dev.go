@@ -62,7 +62,7 @@ func (s Server) populateDummyData() http.HandlerFunc {
 			Movie: screenjournal.Movie{
 				ID: screenjournal.MovieID(1),
 			},
-			Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+			Watched: mustParseWatchDate("2020-10-05T20:18:55-04:00"),
 			Blurb:   screenjournal.Blurb("I love water!"),
 		},
 	}

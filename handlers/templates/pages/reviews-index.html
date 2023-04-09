@@ -18,10 +18,7 @@
   <h1>{{ .Title }}</h1>
 
   {{ if .UserCanAddReview }}
-    <a
-      href="/reviews/new"
-      class="btn btn-primary my-3"
-      data-test-id="add-rating"
+    <a href="/reviews/new" class="btn btn-primary my-3" data-testid="add-rating"
       >Add Rating</a
     >
   {{ end }}
@@ -51,12 +48,12 @@
               <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> watched
               this
               <span
-                data-test-id="watch-date"
+                data-testid="watch-date"
                 title="{{ formatWatchDate .Watched }}"
                 >{{ relativeWatchDate .Watched }}</span
               >
             </h6>
-            <div data-test-id="rating">
+            <div data-testid="rating">
               {{ range iterate .Rating.UInt8 }}
                 <i class="fa-solid fa-star"></i>
               {{ end }}
@@ -75,14 +72,14 @@
               <a
                 href="{{ $reviewRoute }}"
                 class="card-link"
-                data-test-id="full-review"
+                data-testid="full-review"
                 >Full review</a
               >
               {{ if (eq .Owner $loggedInUsername) }}
                 <a
                   href="/reviews/{{ .ID }}/edit"
                   class="card-link"
-                  data-test-id="edit-rating"
+                  data-testid="edit-rating"
                   >Edit</a
                 >
               {{ end }}

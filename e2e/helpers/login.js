@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 async function loginAsUser(page, username, password) {
   await page.goto("/");
 
-  await page.locator("data-test-id=sign-in-btn").click();
+  await page.getByTestId("sign-in-btn").click();
 
   await expect(page).toHaveURL("/login");
   await page.locator("id=username").fill(username);

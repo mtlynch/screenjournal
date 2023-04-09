@@ -10,7 +10,7 @@ test.beforeEach(async ({ page }) => {
 
 test("notifications page reflects the backend store", async ({ page }) => {
   await page.locator("#account-dropdown").click();
-  await page.locator("data-test-id=notification-prefs-btn").click();
+  await page.getByTestId("notification-prefs-btn").click();
 
   await expect(page).toHaveURL("/account/notifications");
 

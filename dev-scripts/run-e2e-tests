@@ -25,10 +25,4 @@ if [[ "${REBUILD}" == "true" ]]; then
   ./dev-scripts/build-backend dev
 fi
 
-# Load dev environment vars.
-set +x
-# shellcheck disable=SC1091
-. .env.dev
-set -x
-
 npx playwright test "$@"

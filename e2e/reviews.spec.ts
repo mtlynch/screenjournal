@@ -11,7 +11,7 @@ test.beforeEach(async ({ page }) => {
 test("adds a new rating and fills in only required fields", async ({
   page,
 }) => {
-  await page.locator("data-test-id=add-rating").click();
+  await page.getByTestId("add-rating").click();
 
   await page.locator("title-search #media-title").fill("slow lear");
   const matchingTitle = await page.locator(
@@ -38,13 +38,13 @@ test("adds a new rating and fills in only required fields", async ({
     { useInnerText: true }
   );
   await expect(
-    reviewCard.locator(".card-subtitle [data-test-id='watch-date']")
+    reviewCard.locator(".card-subtitle [data-testid='watch-date']")
   ).toHaveAttribute("title", "2022-10-21");
   await expect(
-    reviewCard.locator("[data-test-id='rating'] .fa-star.fa-solid")
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
   ).toHaveCount(1);
   await expect(
-    reviewCard.locator("[data-test-id='rating'] .fa-star.fa-regular")
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(4);
   await expect(reviewCard.locator(".card-text")).toHaveCount(0);
 });
@@ -52,7 +52,7 @@ test("adds a new rating and fills in only required fields", async ({
 test("adds a new rating that's too long to display in a card", async ({
   page,
 }) => {
-  await page.locator("data-test-id=add-rating").click();
+  await page.getByTestId("add-rating").click();
 
   await page
     .locator("title-search #media-title")
@@ -91,13 +91,13 @@ You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, o
     { useInnerText: true }
   );
   await expect(
-    reviewCard.locator(".card-subtitle [data-test-id='watch-date']")
+    reviewCard.locator(".card-subtitle [data-testid='watch-date']")
   ).toHaveAttribute("title", "2022-11-11");
   await expect(
-    reviewCard.locator("[data-test-id='rating'] .fa-star.fa-solid")
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
   ).toHaveCount(5);
   await expect(
-    reviewCard.locator("[data-test-id='rating'] .fa-star.fa-regular")
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(0);
 
   await expect(reviewCard.locator(".card-text")).toHaveText(
@@ -105,7 +105,7 @@ You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, o
 
 If you think of Weird Al as just a parody music guy, give it a chance. I was never that excited about his parody music, but I always e...`
   );
-  await reviewCard.locator("data-test-id=full-review").click();
+  await reviewCard.getByTestId("full-review").click();
 
   await expect(page.locator("h1")).toHaveText("Weird: The Al Yankovic Story");
   await expect(page.locator(".poster")).toHaveAttribute(
@@ -119,13 +119,13 @@ If you think of Weird Al as just a parody music guy, give it a chance. I was nev
   );
 
   await expect(
-    page.locator("[data-test-id='rating'] .fa-star.fa-solid")
+    page.locator("[data-testid='rating'] .fa-star.fa-solid")
   ).toHaveCount(5);
   await expect(
-    page.locator("[data-test-id='rating'] .fa-star.fa-regular")
+    page.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(0);
 
-  await expect(page.locator("data-test-id=blurb")).toHaveText(
+  await expect(page.getByTestId("blurb")).toHaveText(
     `Instant movie of the year for me. It's such a delightful and creative way to play with the genre of musical biopics.
 
 If you think of Weird Al as just a parody music guy, give it a chance. I was never that excited about his parody music, but I always enjoy seeing him in TV and movies.
@@ -137,7 +137,7 @@ You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, o
 });
 
 test("adds a new rating and fills all fields", async ({ page }) => {
-  await page.locator("data-test-id=add-rating").click();
+  await page.getByTestId("add-rating").click();
 
   await page.locator("title-search #media-title").fill("eternal sunshine");
   const matchingTitle = await page.locator(
@@ -170,13 +170,13 @@ test("adds a new rating and fills all fields", async ({ page }) => {
     { useInnerText: true }
   );
   await expect(
-    reviewCard.locator(".card-subtitle [data-test-id='watch-date']")
+    reviewCard.locator(".card-subtitle [data-testid='watch-date']")
   ).toHaveAttribute("title", "2022-10-29");
   await expect(
-    reviewCard.locator("[data-test-id='rating'] .fa-star.fa-solid")
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
   ).toHaveCount(5);
   await expect(
-    reviewCard.locator("[data-test-id='rating'] .fa-star.fa-regular")
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(0);
   await expect(reviewCard.locator(".card-text")).toHaveText(
     "My favorite movie!"
@@ -184,7 +184,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
 });
 
 test("adds a new rating and edits the details", async ({ page }) => {
-  await page.locator("data-test-id=add-rating").click();
+  await page.getByTestId("add-rating").click();
 
   await page.locator("title-search #media-title").fill("something about ma");
   const matchingTitle = await page.locator(
@@ -208,7 +208,7 @@ test("adds a new rating and edits the details", async ({ page }) => {
 
   const reviewCard = await page.locator(":nth-match(.card, 1)");
 
-  await reviewCard.locator("data-test-id=edit-rating").click();
+  await reviewCard.getByTestId("edit-rating").click();
 
   await expect(page.locator("h1")).toHaveText(
     "There's Something About Mary (1998)"
@@ -232,13 +232,13 @@ test("adds a new rating and edits the details", async ({ page }) => {
     { useInnerText: true }
   );
   await expect(
-    reviewCard.locator(".card-subtitle [data-test-id='watch-date']")
+    reviewCard.locator(".card-subtitle [data-testid='watch-date']")
   ).toHaveAttribute("title", "2022-10-22");
   await expect(
-    reviewCard.locator("[data-test-id='rating'] .fa-star.fa-solid")
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
   ).toHaveCount(4);
   await expect(
-    reviewCard.locator("[data-test-id='rating'] .fa-star.fa-regular")
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(1);
   await expect(reviewCard.locator(".card-text")).toHaveText(
     "Not as good as I remembered"
@@ -246,7 +246,7 @@ test("adds a new rating and edits the details", async ({ page }) => {
 });
 
 test("adds a new rating and cancels the edit", async ({ page }) => {
-  await page.locator("data-test-id=add-rating").click();
+  await page.getByTestId("add-rating").click();
 
   await page.locator("title-search #media-title").fill("the english pati");
   const matchingTitle = await page.locator(
@@ -268,14 +268,14 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
 
   const reviewCard = await page.locator(":nth-match(.card, 1)");
 
-  await reviewCard.locator("data-test-id=edit-rating").click();
+  await reviewCard.getByTestId("edit-rating").click();
 
   // Make edits that will be ignored when we cancel the edit.
   await page.locator("#rating-select").selectOption({ label: "1" });
   await page.locator("#watched-date").fill("2022-10-22");
   await page.locator("#blurb").fill("Ignore this edit");
 
-  await page.locator("data-test-id=cancel-edit").click();
+  await page.getByTestId("cancel-edit").click();
 
   await expect(page).toHaveURL("/reviews");
 
@@ -284,13 +284,13 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
     { useInnerText: true }
   );
   await expect(
-    reviewCard.locator(".card-subtitle [data-test-id='watch-date']")
+    reviewCard.locator(".card-subtitle [data-testid='watch-date']")
   ).toHaveAttribute("title", "2022-10-29");
   await expect(
-    reviewCard.locator("[data-test-id='rating'] .fa-star.fa-solid")
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
   ).toHaveCount(4);
   await expect(
-    reviewCard.locator("[data-test-id='rating'] .fa-star.fa-regular")
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(1);
   await expect(reviewCard.locator(".card-text")).toHaveText(
     "What an English patient he was!"
@@ -298,7 +298,7 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
 });
 
 test("editing another user's review fails", async ({ page, browser }) => {
-  await page.locator("data-test-id=add-rating").click();
+  await page.getByTestId("add-rating").click();
 
   await page.locator("title-search #media-title").fill("the english pati");
   const matchingTitle = await page.locator(

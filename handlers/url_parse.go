@@ -14,7 +14,7 @@ func movieIDFromRequestPath(r *http.Request) (screenjournal.MovieID, error) {
 }
 
 func movieIDFromQueryParams(r *http.Request) (screenjournal.MovieID, error) {
-	return parse.MovieIDFromString(r.URL.Query().Get("movieID"))
+	return parse.MovieIDFromString(r.URL.Query().Get("movieId"))
 }
 
 func reviewIDFromRequestPath(r *http.Request) (screenjournal.ReviewID, error) {

@@ -57,7 +57,7 @@ func (s Server) populateDummyData() http.HandlerFunc {
 	reviews := []screenjournal.Review{
 		{
 			ID:     screenjournal.ReviewID(1),
-			Owner:  screenjournal.Username("userA"),
+			Owner:  screenjournal.Username("userB"),
 			Rating: screenjournal.Rating(5),
 			Movie: screenjournal.Movie{
 				ID: screenjournal.MovieID(1),

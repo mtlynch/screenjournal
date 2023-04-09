@@ -329,7 +329,9 @@ test("editing another user's review fails", async ({ page, browser }) => {
   await guestContext.close();
 });
 
-test("views an existing review and adds to it", async ({ page, browser }) => {
+test("views an existing review and adds to it", async ({ page }) => {
+  await loginAsUserB(page);
+
   await page
     .getByRole("heading", { name: "The Waterboy" })
     .getByRole("link")

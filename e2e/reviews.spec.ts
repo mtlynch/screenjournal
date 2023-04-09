@@ -328,3 +328,14 @@ test("editing another user's review fails", async ({ page, browser }) => {
 
   await guestContext.close();
 });
+
+test("views an existing review and adds to it", async ({ page, browser }) => {
+  await page
+    .getByRole("heading", { name: "The Waterboy" })
+    .getByRole("link")
+    .click();
+
+  await expect(page).toHaveURL("/movies/1#review1");
+
+  await page.getByTestId("add-rating").click();
+});

@@ -9,6 +9,25 @@
 {{ end }}
 
 {{ define "script-tags" }}
+  <script type="module" nonce="{{ .CspNonce }}">
+    function setPageSort(sortByField) {
+      let newLocation = new URL(window.location.href);
+      newLocation.search = (() => {
+        let s = new URLSearchParams(newLocation.search);
+        s.set("sort-by", sortByField);
+        return s.toString();
+      })();
+      window.location = newLocation;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const sortBySelect = document.getElementById("sort-by");
+      sortBySelect.addEventListener("change", (evt) => {
+        const sortByField = evt.target.value;
+        setPageSort(sortByField);
+      });
+    });
+  </script>
 {{ end }}
 
 {{ define "custom-elements" }}
@@ -22,6 +41,19 @@
       >Add Rating</a
     >
   {{ end }}
+
+
+  <select id="sort-by" class="form-select">
+    <option
+      {{ if (eq .SortOrder "watch-date") }}selected{{ end }}
+      value="watch-date"
+    >
+      By watch date
+    </option>
+    <option {{ if (eq .SortOrder "rating") }}selected{{ end }} value="rating">
+      By rating
+    </option>
+  </select>
 
   {{ $loggedInUsername := .LoggedInUsername }}
 

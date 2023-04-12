@@ -44,6 +44,10 @@ func (r Rating) UInt8() uint8 {
 	return uint8(r)
 }
 
+func (r Rating) LessThan(o Rating) bool {
+	return r.UInt8() < o.UInt8()
+}
+
 func (wd WatchDate) Time() time.Time {
 	return time.Time(wd)
 }

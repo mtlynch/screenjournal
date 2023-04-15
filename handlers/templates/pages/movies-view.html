@@ -78,6 +78,12 @@
           </p>
         {{ end }}
       </div>
+      {{ range .Comments }}
+        <div>
+          <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> commented
+          <p>{{ .Comment }}</p>
+        </div>
+      {{ end }}
       <comment-form data-review-id="{{ .ID }}"></comment-form>
     </div>
   {{ end }}

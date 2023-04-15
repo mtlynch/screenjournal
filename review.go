@@ -21,13 +21,16 @@ type (
 		Created  time.Time
 		Modified time.Time
 		Movie    Movie
+		Comments []ReviewComment
 	}
 
 	ReviewComment struct {
-		ID      CommentID
-		Review  Review
-		Owner   Username
-		Comment Comment
+		ID       CommentID
+		Owner    Username
+		Comment  Comment
+		Created  time.Time
+		Modified time.Time
+		Review   Review
 	}
 )
 

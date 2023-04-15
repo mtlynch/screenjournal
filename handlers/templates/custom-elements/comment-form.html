@@ -77,8 +77,13 @@
           this._elements.cancelBtn.addEventListener("click", () => {
             this.state = this.states.HIDDEN;
           });
-          this._elements.form.addEventListener("submit", () => {
-            commentPost(this.reviewId, this._elements.commentBody.value);
+          this._elements.form.addEventListener("submit", (evt) => {
+            evt.preventDefault();
+            commentPost(this.reviewId, this._elements.commentBody.value).then(
+              () => {
+                window.location.reload();
+              }
+            );
           });
         }
 

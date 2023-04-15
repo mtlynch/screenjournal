@@ -223,6 +223,16 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			return
 		}
 
+		for i, review := range reviews {
+			cc, err := s.store.ReadComments(review.ID)
+			if err != nil {
+				log.Printf("failed to read reviews comments: %v", err)
+				http.Error(w, "Failed to retrieve comments", http.StatusInternalServerError)
+				return
+			}
+			reviews[i].Comments = cc
+		}
+
 		if err := renderTemplate(w, "movies-view.html", struct {
 			commonProps
 			Movie   screenjournal.Movie

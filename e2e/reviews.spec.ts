@@ -183,10 +183,44 @@ test("adds a new rating and fills all fields", async ({ page }) => {
   );
 });
 
+test("HTML tags in reviews are encoded properly", async ({ page }) => {
+  await page.getByTestId("add-rating").click();
+
+  await page.locator("title-search #media-title").fill("eternal sunshine");
+  const matchingTitle = await page.locator(
+    "#search-results-list li:first-child span"
+  );
+  await expect(matchingTitle).toHaveText(
+    "Eternal Sunshine of the Spotless Mind (2004)"
+  );
+  await matchingTitle.click();
+  await expect(page.locator("title-search #media-title")).toHaveValue(
+    "Eternal Sunshine of the Spotless Mind"
+  );
+
+  await page.locator("#rating-select").selectOption({ label: "5" });
+
+  await page.locator("#watched-date").fill("2022-10-29");
+
+  await page.locator("#blurb").fill("This is the <b>best</b> movie ever!");
+
+  await page.locator("form input[type='submit']").click();
+
+  await expect(page).toHaveURL("/reviews");
+
+  const reviewCard = await page.locator(":nth-match(.card, 1)");
+  await expect(reviewCard.locator(".card-title")).toHaveText(
+    "Eternal Sunshine of the Spotless Mind"
+  );
+  await expect(
+    (await reviewCard.locator(".card-text").innerHTML()).trim()
+  ).toEqual("This is the &lt;b&gt;best&lt;/b&gt; movie ever!<br>");
+});
+
 test("adds a new rating and edits the details", async ({ page }) => {
   await page.getByTestId("add-rating").click();
 
-  await page.locator("title-search #media-title").fill("something about ma");
+  await page.locator("title-search #media-title").fill("something about mary");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );

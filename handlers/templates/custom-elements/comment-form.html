@@ -30,9 +30,12 @@
     <form id="comment-form">
       <textarea class="form-control my-2"></textarea>
       <div class="d-flex justify-content-start mt-1 flex-row-reverse">
-        <button type="button" id="post-btn" class="btn btn-primary">
-          Post
-        </button>
+        <input
+          type="submit"
+          id="post-btn"
+          class="btn btn-primary"
+          value="Post"
+        />
         <button type="button" id="cancel-btn" class="btn btn-light mx-2">
           Cancel
         </button>
@@ -42,7 +45,7 @@
 </template>
 
 <script type="module" nonce="{{ .CspNonce }}">
-  import { reviewCommentPost } from "/js/controllers/comment.js";
+  import { commentPost } from "/js/controllers/comments.js";
   (function () {
     const template = document.querySelector("#comment-form-template");
 
@@ -62,9 +65,10 @@
           this.state = this.states.HIDDEN;
 
           this._elements = {
+            commentBody: this.shadowRoot.querySelector("textarea"),
             commentBtn: this.shadowRoot.getElementById("comment-btn"),
             cancelBtn: this.shadowRoot.getElementById("cancel-btn"),
-            postBtn: this.shadowRoot.querySelector("form input[type='submit']"),
+            form: this.shadowRoot.querySelector("form"),
           };
 
           this._elements.commentBtn.addEventListener("click", () => {
@@ -72,6 +76,9 @@
           });
           this._elements.cancelBtn.addEventListener("click", () => {
             this.state = this.states.HIDDEN;
+          });
+          this._elements.form.addEventListener("submit", () => {
+            commentPost(5, this._elements.commentBody.value);
           });
         }
 

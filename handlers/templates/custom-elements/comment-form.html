@@ -73,6 +73,7 @@
 
           this._elements.commentBtn.addEventListener("click", () => {
             this.state = this.states.EDITING;
+            this._elements.commentBody.focus();
           });
           this._elements.cancelBtn.addEventListener("click", () => {
             this.state = this.states.HIDDEN;
@@ -81,6 +82,7 @@
             evt.preventDefault();
             commentPost(this.reviewId, this._elements.commentBody.value).then(
               () => {
+                // TODO: Go to hash for comment ID.
                 window.location.reload();
               }
             );

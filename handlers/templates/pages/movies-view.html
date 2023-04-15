@@ -21,6 +21,10 @@
     .review p {
       max-width: 100%;
     }
+
+    .comment {
+      background-color: lightgreen;
+    }
   </style>
 {{ end }}
 
@@ -78,12 +82,25 @@
           </p>
         {{ end }}
       </div>
-      {{ range .Comments }}
-        <div>
-          <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> commented
-          <p>{{ .Comment }}</p>
+
+      <div class="d-flex justify-content-end">
+        <div class="w-75">
+          <div>
+            {{ range .Comments }}
+              <div id="comment{{ .ID }}" class="border comment my-1 p-2">
+                <p class="mb-2">
+                  <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b>
+                </p>
+                <p class="mb-0">
+                  {{ range .Comment.String | splitByNewline }}
+                    {{ . }}<br />
+                  {{ end }}
+                </p>
+              </div>
+            {{ end }}
+          </div>
         </div>
-      {{ end }}
+      </div>
       <comment-form data-review-id="{{ .ID }}"></comment-form>
     </div>
   {{ end }}

@@ -5,7 +5,7 @@
   <script type="module" nonce="{{ .CspNonce }}">
     import { showElement, hideElement } from "/js/lib/bootstrap.js";
     import { disableElement, enableElement } from "/js/lib/ui.js";
-    import { notificationsPut } from "/js/controllers/notifications.js";
+    import { notificationsPost } from "/js/controllers/notifications.js";
 
     document.addEventListener(
       "DOMContentLoaded",
@@ -35,7 +35,7 @@
 
             const isSubscribed = newReviewsCheckbox.checked;
 
-            notificationsPut(isSubscribed)
+            notificationsPost(isSubscribed)
               .then(() => {
                 showElement(successAlert);
                 disableElement(submitBtn);

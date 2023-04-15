@@ -19,7 +19,7 @@ func (db DB) ReadComments(rid screenjournal.ReviewID) ([]screenjournal.ReviewCom
 	SELECT
 		id,
 		comment_owner,
-		comment,
+		comment_text,
 		created_time,
 		last_modified_time
 	FROM
@@ -59,7 +59,7 @@ func (db DB) InsertComment(rc screenjournal.ReviewComment) (screenjournal.Commen
 	(
 		review_id,
 		comment_owner,
-		comment,
+		comment_text,
 		created_time,
 		last_modified_time
 	)

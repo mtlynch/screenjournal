@@ -25,9 +25,11 @@
 {{ end }}
 
 {{ define "script-tags" }}
+  <script type="module" nonce="{{ .CspNonce }}"></script>
 {{ end }}
 
 {{ define "custom-elements" }}
+  {{ template "comment-form.html" . }}
 {{ end }}
 
 {{ define "content" }}
@@ -50,29 +52,33 @@
   >
 
   {{ range .Reviews }}
-    <div class="review border bg-light p-2" id="review{{ .ID }}">
-      <h6 class="card-subtitle mb-2 text-muted">
-        <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> watched this
-        <span data-testid="watch-date" title="{{ formatWatchDate .Watched }}"
-          >{{ relativeWatchDate .Watched }}</span
-        >
-      </h6>
-      <div data-testid="rating">
-        {{ range iterate .Rating.UInt8 }}
-          <i class="fa-solid fa-star"></i>
-        {{ end }}
-        {{ range iterate (minus 5 .Rating.UInt8) }}
-          <i class="fa-regular fa-star"></i>
+    <div class="review mb-5">
+      <div class="border bg-light p-2" id="review{{ .ID }}">
+        <h6 class="card-subtitle mb-2 text-muted">
+          <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> watched
+          this
+          <span data-testid="watch-date" title="{{ formatWatchDate .Watched }}"
+            >{{ relativeWatchDate .Watched }}</span
+          >
+        </h6>
+        <div data-testid="rating">
+          {{ range iterate .Rating.UInt8 }}
+            <i class="fa-solid fa-star"></i>
+          {{ end }}
+          {{ range iterate (minus 5 .Rating.UInt8) }}
+            <i class="fa-regular fa-star"></i>
+          {{ end }}
+        </div>
+
+        {{ with .Blurb }}
+          <p data-testid="blurb" class="mb-0">
+            {{ range .String | splitByNewline }}
+              {{ . }}<br />
+            {{ end }}
+          </p>
         {{ end }}
       </div>
-
-      {{ with .Blurb }}
-        <p data-testid="blurb" class="mb-0">
-          {{ range .String | splitByNewline }}
-            {{ . }}<br />
-          {{ end }}
-        </p>
-      {{ end }}
+      <comment-form></comment-form>
     </div>
   {{ end }}
 {{ end }}

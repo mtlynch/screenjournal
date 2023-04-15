@@ -20,6 +20,7 @@ func (s *Server) routes() {
 	authenticatedApis.HandleFunc("/search", s.searchGet()).Methods(http.MethodGet)
 	authenticatedApis.HandleFunc("/reviews", s.reviewsPost()).Methods(http.MethodPost)
 	authenticatedApis.HandleFunc("/reviews/{reviewID}", s.reviewsPut()).Methods(http.MethodPut)
+	authenticatedApis.HandleFunc("/reviews/{reviewID}/comment", s.commentsPost()).Methods(http.MethodPost)
 
 	static := s.router.PathPrefix("/").Subrouter()
 	static.PathPrefix("/css/").HandlerFunc(serveStaticResource()).Methods(http.MethodGet)

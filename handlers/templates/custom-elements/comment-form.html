@@ -78,8 +78,12 @@
             this.state = this.states.HIDDEN;
           });
           this._elements.form.addEventListener("submit", () => {
-            commentPost(5, this._elements.commentBody.value);
+            commentPost(this.reviewId, this._elements.commentBody.value);
           });
+        }
+
+        get reviewId() {
+          return parseInt(this.getAttribute("data-review-id"));
         }
 
         get state() {

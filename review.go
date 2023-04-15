@@ -22,6 +22,13 @@ type (
 		Modified time.Time
 		Movie    Movie
 	}
+
+	ReviewComment struct {
+		ID      CommentID
+		Review  Review
+		Owner   Username
+		Comment Comment
+	}
 )
 
 func (id ReviewID) UInt64() uint64 {

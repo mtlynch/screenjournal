@@ -17,6 +17,7 @@ type (
 		ReadReviews(ReviewFilters) ([]screenjournal.Review, error)
 		InsertReview(screenjournal.Review) (screenjournal.ReviewID, error)
 		UpdateReview(screenjournal.Review) error
+		InsertComment(screenjournal.ReviewComment) (screenjournal.CommentID, error)
 		ReadMovie(screenjournal.MovieID) (screenjournal.Movie, error)
 		ReadMovieByTmdbID(screenjournal.TmdbID) (screenjournal.Movie, error)
 		InsertMovie(screenjournal.Movie) (screenjournal.MovieID, error)

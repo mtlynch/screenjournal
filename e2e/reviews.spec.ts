@@ -186,7 +186,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
 test("adds a new rating and edits the details", async ({ page }) => {
   await page.getByTestId("add-rating").click();
 
-  await page.locator("title-search #media-title").fill("something about ma");
+  await page.locator("title-search #media-title").fill("something about mary");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );

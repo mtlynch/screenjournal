@@ -21,6 +21,7 @@ import (
 // addDevRoutes adds debug routes that we only use during development or e2e
 // tests.
 func (s *Server) addDevRoutes() {
+	s.router.Use(assignSessionDB)
 	s.router.HandleFunc("/api/debug/db/populate-dummy-data", s.populateDummyData()).Methods(http.MethodGet)
 	s.router.HandleFunc("/api/debug/db/per-session", dbPerSessionPost()).Methods(http.MethodPost)
 }
@@ -125,7 +126,7 @@ var (
 
 func (s Server) getDB(r *http.Request) store.Store {
 	if !sharedDBSettings.IsolateBySession() {
-		return s.getDB(r)
+		return s.store
 	}
 	c, err := r.Cookie(dbTokenCookieName)
 	if err != nil {

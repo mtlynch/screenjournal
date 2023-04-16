@@ -17,7 +17,7 @@ set -x
 set -o pipefail
 
 full_test=""
-go_test_flags=()
+go_test_flags=("--tags='dev'")
 readonly COVERAGE_FILE_RAW=".coverage.out"
 readonly COVERAGE_FILE_HTML=".coverage.html"
 if [[ "$1" = "--full" ]]; then
@@ -47,7 +47,7 @@ if [[ -n "$full_test" ]]; then
   go tool cover -html "${COVERAGE_FILE_RAW}" -o "${COVERAGE_FILE_HTML}"
 fi
 
-go vet ./...
+go vet --tags='dev' ./...
 
 # Install staticcheck if it's not present.
 STATICCHECK_PATH="$(go env GOPATH)/bin/staticcheck"

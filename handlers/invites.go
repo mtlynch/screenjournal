@@ -22,7 +22,7 @@ func (s Server) invitesPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.store.InsertSignupInvitation(screenjournal.SignupInvitation{
+		if err := s.getDB(r).InsertSignupInvitation(screenjournal.SignupInvitation{
 			Invitee:    req.Invitee,
 			InviteCode: screenjournal.NewInviteCode(),
 		}); err != nil {

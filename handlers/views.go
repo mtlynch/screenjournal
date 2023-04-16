@@ -78,7 +78,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 
 		var invite screenjournal.SignupInvitation
 		if !inviteCode.Empty() {
-			invite, err = s.store.ReadSignupInvitation(inviteCode)
+			invite, err = s.getDB(r).ReadSignupInvitation(inviteCode)
 			if err != nil {
 				log.Printf("invalid invite code: %v", err)
 				http.Error(w, "Invalid invite code", http.StatusUnauthorized)
@@ -86,7 +86,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 			}
 		}
 
-		uc, err := s.store.CountUsers()
+		uc, err := s.getDB(r).CountUsers()
 		if err != nil {
 			log.Printf("failed to count users: %v", err)
 			http.Error(w, "Failed to load signup template", http.StatusInternalServerError)
@@ -126,7 +126,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			collectionOwner = &username
 		}
 
-		reviews, err := s.store.ReadReviews(store.ReviewFilters{Username: collectionOwner})
+		reviews, err := s.getDB(r).ReadReviews(store.ReviewFilters{Username: collectionOwner})
 		if err != nil {
 			log.Printf("failed to read reviews: %v", err)
 			http.Error(w, "Failed to read reviews", http.StatusInternalServerError)
@@ -204,7 +204,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			return
 		}
 
-		movie, err := s.store.ReadMovie(mid)
+		movie, err := s.getDB(r).ReadMovie(mid)
 		if err == store.ErrMovieNotFound {
 			http.Error(w, "Invalid movie ID", http.StatusNotFound)
 			return
@@ -214,7 +214,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			return
 		}
 
-		reviews, err := s.store.ReadReviews(store.ReviewFilters{
+		reviews, err := s.getDB(r).ReadReviews(store.ReviewFilters{
 			MovieID: &mid,
 		})
 		if err != nil {
@@ -269,7 +269,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.store.ReadReview(id)
+		review, err := s.getDB(r).ReadReview(id)
 		if err == store.ErrReviewNotFound {
 			http.Error(w, "Invalid review ID", http.StatusNotFound)
 			return
@@ -325,7 +325,7 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 		var mediaTitle string
 		var tmdbID int32
 		if mid, err := movieIDFromQueryParams(r); err == nil {
-			movie, err := s.store.ReadMovie(mid)
+			movie, err := s.getDB(r).ReadMovie(mid)
 			if err == store.ErrMovieNotFound {
 				http.Error(w, "Invalid movie ID", http.StatusNotFound)
 				return
@@ -368,7 +368,7 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 
 func (s Server) invitesGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		invites, err := s.store.ReadSignupInvitations()
+		invites, err := s.getDB(r).ReadSignupInvitations()
 		if err != nil {
 			log.Printf("failed to read signup invitations: %v", err)
 			http.Error(w, "Failed to read signup invitations", http.StatusInternalServerError)
@@ -402,7 +402,7 @@ func (s Server) invitesNewGet() http.HandlerFunc {
 
 func (s Server) accountNotificationsGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		prefs, err := s.store.ReadNotificationPreferences(usernameFromContext(r.Context()))
+		prefs, err := s.getDB(r).ReadNotificationPreferences(usernameFromContext(r.Context()))
 		if err != nil {
 			log.Printf("failed to read notification preferences: %v", err)
 			http.Error(w, fmt.Sprintf("failed to read notification preferences: %v", err), http.StatusInternalServerError)

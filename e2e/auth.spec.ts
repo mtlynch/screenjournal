@@ -1,9 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { populateDummyData, wipeDB } from "./helpers/db.js";
-
-test.beforeEach(async ({ page }) => {
-  await wipeDB(page);
-});
+import { populateDummyData } from "./helpers/db.js";
 
 test("signs up and logs out and signs in again", async ({ page }) => {
   await page.goto("/");

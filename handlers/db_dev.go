@@ -7,18 +7,22 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
-	"github.com/mtlynch/screenjournal/v2/store/sqlite"
+
+	"github.com/mtlynch/screenjournal/v2/random"
+	"github.com/mtlynch/screenjournal/v2/store"
+	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
 // addDevRoutes adds debug routes that we only use during development or e2e
 // tests.
 func (s *Server) addDevRoutes() {
 	s.router.HandleFunc("/api/debug/db/populate-dummy-data", s.populateDummyData()).Methods(http.MethodGet)
-	s.router.HandleFunc("/api/debug/db/wipe", s.wipeDB()).Methods(http.MethodGet)
+	s.router.HandleFunc("/api/debug/db/per-session", dbPerSessionPost()).Methods(http.MethodPost)
 }
 
 func (s Server) populateDummyData() http.HandlerFunc {
@@ -69,19 +73,19 @@ func (s Server) populateDummyData() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		for _, u := range users {
-			if err := s.store.InsertUser(u); err != nil {
+			if err := s.getDB(r).InsertUser(u); err != nil {
 				http.Error(w, fmt.Sprintf("Failed to insert user: %v", err), http.StatusInternalServerError)
 				return
 			}
 		}
 		for _, movie := range movies {
-			if _, err := s.store.InsertMovie(movie); err != nil {
+			if _, err := s.getDB(r).InsertMovie(movie); err != nil {
 				http.Error(w, fmt.Sprintf("Failed to insert movie: %v", err), http.StatusInternalServerError)
 				return
 			}
 		}
 		for _, review := range reviews {
-			if _, err := s.store.InsertReview(review); err != nil {
+			if _, err := s.getDB(r).InsertReview(review); err != nil {
 				http.Error(w, fmt.Sprintf("Failed to insert review: %v", err), http.StatusInternalServerError)
 				return
 			}
@@ -89,14 +93,50 @@ func (s Server) populateDummyData() http.HandlerFunc {
 	}
 }
 
-// wipeDB wipes the database back to a freshly initialized state.
-func (s Server) wipeDB() http.HandlerFunc {
+const dbTokenCookieName = "db-token"
+
+type (
+	dbToken string
+
+	dbSettings struct {
+		isolateBySession bool
+		lock             sync.RWMutex
+	}
+)
+
+func (dbs *dbSettings) IsolateBySession() bool {
+	dbs.lock.RLock()
+	isolate := dbs.isolateBySession
+	dbs.lock.RUnlock()
+	return isolate
+}
+
+func (dbs *dbSettings) SetIsolateBySession(isolate bool) {
+	dbs.lock.Lock()
+	dbs.isolateBySession = isolate
+	dbs.lock.Unlock()
+	log.Printf("per-session database = %v", isolate)
+}
+
+var (
+	sharedDBSettings dbSettings
+	tokenToDB        map[dbToken]store.Store = map[dbToken]store.Store{}
+)
+
+func (s Server) getDB(r *http.Request) store.Store {
+	if !sharedDBSettings.IsolateBySession() {
+		return s.getDB(r)
+	}
+	c, err := r.Cookie(dbTokenCookieName)
+	if err != nil {
+		panic(err)
+	}
+	return tokenToDB[dbToken(c.Value)]
+}
+
+func dbPerSessionPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		sqlStore, ok := s.store.(*sqlite.DB)
-		if !ok {
-			log.Fatalf("store is not SQLite, can't wipe database")
-		}
-		sqlStore.Clear()
+		sharedDBSettings.SetIsolateBySession(true)
 	}
 }
 
@@ -114,4 +154,29 @@ func mustParseWatchDate(s string) screenjournal.WatchDate {
 		log.Fatalf("failed to parse watch date: %s", s)
 	}
 	return wd
+}
+
+// assignSessionDB provisions a session-specific database if per-session
+// databases are enabled. If per-session databases are not enabled (the default)
+// this is a no-op.
+func assignSessionDB(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if sharedDBSettings.IsolateBySession() {
+			if _, err := r.Cookie(dbTokenCookieName); err != nil {
+				token := dbToken(random.String(30, []rune("abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")))
+				log.Printf("provisioning a new private database with token %s", token)
+				createDBCookie(token, w)
+				tokenToDB[token] = test_sqlite.New()
+			}
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
+func createDBCookie(token dbToken, w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:  dbTokenCookieName,
+		Value: string(token),
+		Path:  "/",
+	})
 }

@@ -17,7 +17,7 @@ set -x
 set -o pipefail
 
 full_test=""
-go_test_flags=("--tags='dev'")
+go_test_flags=()
 readonly COVERAGE_FILE_RAW=".coverage.out"
 readonly COVERAGE_FILE_HTML=".coverage.html"
 if [[ "$1" = "--full" ]]; then
@@ -47,7 +47,7 @@ if [[ -n "$full_test" ]]; then
   go tool cover -html "${COVERAGE_FILE_RAW}" -o "${COVERAGE_FILE_HTML}"
 fi
 
-go vet --tags='dev' ./...
+go vet ./...
 
 # Install staticcheck if it's not present.
 STATICCHECK_PATH="$(go env GOPATH)/bin/staticcheck"
@@ -56,7 +56,7 @@ readonly STATICCHECK_VERSION="v0.4.3"
 if [[ ! -f "${STATICCHECK_PATH}" ]]; then
     go install "honnef.co/go/tools/cmd/staticcheck@${STATICCHECK_VERSION}"
 fi
-"${STATICCHECK_PATH}" --tags='dev' ./...
+"${STATICCHECK_PATH}" ./...
 
 # Install errcheck if it's not present.
 ERRCHECK_PATH="$(go env GOPATH)/bin/errcheck"
@@ -65,4 +65,4 @@ readonly ERRCHECK_VERSION="v1.6.2"
 if [[ ! -f "${ERRCHECK_PATH}" ]]; then
     go install "github.com/kisielk/errcheck@${ERRCHECK_VERSION}"
 fi
-"${ERRCHECK_PATH}" --tags='dev' -ignoretests ./...
+"${ERRCHECK_PATH}" -ignoretests ./...

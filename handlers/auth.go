@@ -28,7 +28,7 @@ func (s Server) authPost() http.HandlerFunc {
 			return
 		}
 
-		user, err := s.authenticator.Authenticate(username, password)
+		user, err := s.getAuthenticator(r).Authenticate(username, password)
 		if err != nil {
 			log.Printf("auth failed for user %s: %v", username, err)
 			http.Error(w, "Invalid credentials", http.StatusUnauthorized)

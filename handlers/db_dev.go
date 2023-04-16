@@ -13,6 +13,8 @@ import (
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 
+	"github.com/mtlynch/screenjournal/v2/auth"
+	simple_auth "github.com/mtlynch/screenjournal/v2/auth/simple"
 	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/store"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
@@ -133,6 +135,13 @@ func (s Server) getDB(r *http.Request) store.Store {
 		panic(err)
 	}
 	return tokenToDB[dbToken(c.Value)]
+}
+
+func (s Server) getAuthenticator(r *http.Request) auth.Authenticator {
+	if !sharedDBSettings.IsolateBySession() {
+		return s.authenticator
+	}
+	return simple_auth.New(s.getDB(r))
 }
 
 func dbPerSessionPost() http.HandlerFunc {

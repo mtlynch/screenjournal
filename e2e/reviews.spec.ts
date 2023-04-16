@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { populateDummyData } from "./helpers/db.js";
+import { populateDummyData, readDbTokenCookie } from "./helpers/db.js";
 import { loginAsUserA, loginAsUserB } from "./helpers/login.js";
 
 test.beforeEach(async ({ page }) => {
@@ -353,6 +353,11 @@ test("editing another user's review fails", async ({ page, browser }) => {
 
   // Switch to other user.
   const guestContext = await browser.newContext();
+
+  // Share database across users.
+  await guestContext.addCookies([
+    readDbTokenCookie(await page.context().cookies()),
+  ]);
   const guestPage = await guestContext.newPage();
   await loginAsUserB(guestPage);
 

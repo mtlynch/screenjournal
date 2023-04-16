@@ -103,15 +103,19 @@ type (
 
 	dbSettings struct {
 		isolateBySession bool
+		tokenToDB        map[dbToken]store.Store
 		lock             sync.RWMutex
 	}
 )
 
+var sharedDBSettings = dbSettings{
+	tokenToDB: map[dbToken]store.Store{},
+}
+
 func (dbs *dbSettings) IsolateBySession() bool {
 	dbs.lock.RLock()
-	isolate := dbs.isolateBySession
 	dbs.lock.RUnlock()
-	return isolate
+	return dbs.isolateBySession
 }
 
 func (dbs *dbSettings) SetIsolateBySession(isolate bool) {
@@ -121,10 +125,17 @@ func (dbs *dbSettings) SetIsolateBySession(isolate bool) {
 	log.Printf("per-session database = %v", isolate)
 }
 
-var (
-	sharedDBSettings dbSettings
-	tokenToDB        map[dbToken]store.Store = map[dbToken]store.Store{}
-)
+func (dbs *dbSettings) GetDB(token dbToken) store.Store {
+	dbs.lock.RLock()
+	defer dbs.lock.RUnlock()
+	return dbs.tokenToDB[token]
+}
+
+func (dbs *dbSettings) SaveDB(token dbToken, db store.Store) {
+	dbs.lock.Lock()
+	defer dbs.lock.Unlock()
+	dbs.tokenToDB[token] = db
+}
 
 func (s Server) getDB(r *http.Request) store.Store {
 	if !sharedDBSettings.IsolateBySession() {
@@ -134,7 +145,7 @@ func (s Server) getDB(r *http.Request) store.Store {
 	if err != nil {
 		panic(err)
 	}
-	return tokenToDB[dbToken(c.Value)]
+	return sharedDBSettings.GetDB(dbToken(c.Value))
 }
 
 func (s Server) getAuthenticator(r *http.Request) auth.Authenticator {
@@ -176,7 +187,7 @@ func assignSessionDB(h http.Handler) http.Handler {
 				token := dbToken(random.String(30, []rune("abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")))
 				log.Printf("provisioning a new private database with token %s", token)
 				createDBCookie(token, w)
-				tokenToDB[token] = test_sqlite.New()
+				sharedDBSettings.SaveDB(token, test_sqlite.New())
 			}
 		}
 		h.ServeHTTP(w, r)

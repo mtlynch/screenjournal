@@ -49,7 +49,7 @@ func (db DB) ReadComments(rid screenjournal.ReviewID) ([]screenjournal.ReviewCom
 }
 
 func (db DB) InsertComment(rc screenjournal.ReviewComment) (screenjournal.CommentID, error) {
-	log.Printf("inserting new comment from %v on %v's of %s", rc.Owner, rc.Review.Owner, rc.Review.Movie.Title)
+	log.Printf("inserting new comment from %v on %v's review of %s", rc.Owner, rc.Review.Owner, rc.Review.Movie.Title)
 
 	now := time.Now()
 

@@ -81,8 +81,9 @@
           this._elements.form.addEventListener("submit", (evt) => {
             evt.preventDefault();
             commentPost(this.reviewId, this._elements.commentBody.value).then(
-              () => {
-                // TODO: Go to hash for comment ID.
+              (commentId) => {
+                window.location.hash = "#comment" + commentId;
+                // We need to reload to re-render the page with the new comment.
                 window.location.reload();
               }
             );

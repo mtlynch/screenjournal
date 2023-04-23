@@ -153,9 +153,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			UserCanAddReview: collectionOwner == nil || collectionOwner.Equal(usernameFromContext(r.Context())),
 		}, template.FuncMap{
 			"relativeWatchDate": relativeWatchDate,
-			"formatWatchDate": func(t screenjournal.WatchDate) string {
-				return t.Time().Format("2006-01-02")
-			},
+			"formatWatchDate":   formatWatchDate,
 			"iterate": func(n uint8) []uint8 {
 				var arr []uint8
 				var i uint8
@@ -242,13 +240,13 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			Movie:       movie,
 			Reviews:     reviews,
 		}, template.FuncMap{
-			"relativeWatchDate": relativeWatchDate,
+			"relativeCommentDate": relativeCommentDate,
+			"relativeWatchDate":   relativeWatchDate,
 			"formatReleaseDate": func(t screenjournal.ReleaseDate) string {
 				return t.Time().Format("1/2/2006")
 			},
-			"formatWatchDate": func(t screenjournal.WatchDate) string {
-				return t.Time().Format("2006-01-02")
-			},
+			"formatWatchDate":   formatWatchDate,
+			"formatCommentTime": formatIso8601Datetime,
 			"iterate": func(n uint8) []uint8 {
 				var arr []uint8
 				var i uint8
@@ -306,9 +304,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			Review:        review,
 			Today:         time.Now(),
 		}, template.FuncMap{
-			"formatWatchDate": func(t screenjournal.WatchDate) string {
-				return t.Time().Format("2006-01-02")
-			},
+			"formatWatchDate": formatWatchDate,
 			"iterate": func(n uint8) []uint8 {
 				var arr []uint8
 				var i uint8
@@ -449,6 +445,49 @@ func relativeWatchDate(t screenjournal.WatchDate) string {
 		return "1 month ago"
 	}
 	return fmt.Sprintf("%d months ago", monthsAgo)
+}
+
+func formatWatchDate(t screenjournal.WatchDate) string {
+	return t.Time().Format("2006-01-02")
+}
+
+func relativeCommentDate(t time.Time) string {
+	minutesAgo := int(time.Since(t).Minutes())
+	if minutesAgo < 1 {
+		return "just now"
+	}
+	if minutesAgo == 1 {
+		return "a minute ago"
+	}
+	hoursAgo := int(time.Since(t).Hours())
+	if hoursAgo < 1 {
+		return fmt.Sprintf("%d minutes ago", minutesAgo)
+	}
+	if hoursAgo == 1 {
+		return "an hour ago"
+	}
+	if hoursAgo < 24 {
+		return fmt.Sprintf("%d hours ago", hoursAgo)
+	}
+
+	daysAgo := int(time.Since(t).Hours() / 24)
+	weeksAgo := int(daysAgo / 7)
+	if daysAgo == 1 {
+		return "yesterday"
+	} else if daysAgo <= 14 {
+		return fmt.Sprintf("%d days ago", daysAgo)
+	} else if weeksAgo < 8 {
+		return fmt.Sprintf("%d weeks ago", weeksAgo)
+	}
+	monthsAgo := int(daysAgo / 30)
+	if monthsAgo == 1 {
+		return "1 month ago"
+	}
+	return fmt.Sprintf("%d months ago", monthsAgo)
+}
+
+func formatIso8601Datetime(t time.Time) string {
+	return t.Format("2006-01-02 3:04 pm")
 }
 
 func posterPathToURL(pp url.URL) string {

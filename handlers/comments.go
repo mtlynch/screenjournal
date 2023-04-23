@@ -54,6 +54,12 @@ func (s Server) commentsPost() http.HandlerFunc {
 
 		log.Printf("created new comment with ID=%v", rc.ID)
 
+		respondJSON(w, struct {
+			ID uint64 `json:"id"`
+		}{
+			ID: rc.ID.UInt64(),
+		})
+
 		// TODO: Announce comment
 	}
 }

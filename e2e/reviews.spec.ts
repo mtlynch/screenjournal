@@ -395,3 +395,17 @@ test("views a movie with an existing review and adds a new review", async ({
 
   await expect(page).toHaveURL("/reviews");
 });
+
+test("adds a comment to an existing review", async ({ page }) => {
+  await page
+    .getByRole("heading", { name: "The Waterboy" })
+    .getByRole("link")
+    .click();
+  await page.locator("comment-form:first");
+  await expect(page).toHaveURL("/movies/1#review1");
+  await page.locator("#comment-btn").click();
+  await page.keyboard.type("You sure do!");
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL("/movies/1#comment2");
+});

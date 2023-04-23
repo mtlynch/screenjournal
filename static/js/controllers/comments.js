@@ -1,4 +1,4 @@
-import { processPlaintextResponse } from "./common.js";
+import { processJsonResponse } from "./common.js";
 
 export function commentPost(reviewId, comment) {
   return fetch(`/api/reviews/${reviewId}/comment`, {
@@ -8,5 +8,9 @@ export function commentPost(reviewId, comment) {
       Accept: "application/json",
     },
     body: JSON.stringify({ comment }),
-  }).then(processPlaintextResponse);
+  })
+    .then(processJsonResponse)
+    .then((result) => {
+      return Promise.resolve(result.id);
+    });
 }

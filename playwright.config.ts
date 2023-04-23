@@ -9,8 +9,8 @@ const config: PlaywrightTestConfig = {
   },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: undefined,
+  retries: 0,
+  workers: 1,
   reporter: "html",
   globalSetup: require.resolve("./e2e/helpers/global-setup"),
   use: {

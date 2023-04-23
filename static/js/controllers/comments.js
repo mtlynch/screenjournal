@@ -7,7 +7,7 @@ export function commentPost(reviewId, comment) {
     headers: {
       Accept: "application/json",
     },
-    body: JSON.stringify({ comment }),
+    body: JSON.stringify({ comment: comment.trim() }),
   })
     .then(processJsonResponse)
     .then((result) => {

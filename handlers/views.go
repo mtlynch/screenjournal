@@ -222,7 +222,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 		}
 
 		for i, review := range reviews {
-			cc, err := s.store.ReadComments(review.ID)
+			cc, err := s.getDB(r).ReadComments(review.ID)
 			if err != nil {
 				log.Printf("failed to read reviews comments: %v", err)
 				http.Error(w, "Failed to retrieve comments", http.StatusInternalServerError)

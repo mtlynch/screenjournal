@@ -87,11 +87,13 @@
                 <p class="mb-2">
                   <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b>
                   &mdash;
-                  <span title="{{ formatCommentTime .Created }}"
+                  <span
+                    data-testid="relative-time"
+                    title="{{ formatCommentTime .Created }}"
                     >{{ relativeCommentDate .Created }}</span
                   >
                 </p>
-                <p class="mb-0">
+                <p class="mb-0" data-testid="comment-body">
                   {{ range .Comment.String | splitByNewline }}
                     {{ . }}<br />
                   {{ end }}

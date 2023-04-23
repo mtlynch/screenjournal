@@ -24,7 +24,7 @@ func (s Server) commentsPost() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.store.ReadReview(rid)
+		review, err := s.getDB(r).ReadReview(rid)
 		if err == store.ErrReviewNotFound {
 			http.Error(w, "Review not found", http.StatusNotFound)
 			return
@@ -45,7 +45,7 @@ func (s Server) commentsPost() http.HandlerFunc {
 			Comment: req.Comment,
 		}
 
-		rc.ID, err = s.store.InsertComment(rc)
+		rc.ID, err = s.getDB(r).InsertComment(rc)
 		if err != nil {
 			log.Printf("failed to save comment: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to save comment: %v", err), http.StatusInternalServerError)

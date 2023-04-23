@@ -408,4 +408,11 @@ test("adds a comment to an existing review", async ({ page }) => {
   await page.keyboard.press("Tab");
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL("/movies/1#comment2");
+
+  const reviewDiv = await page.locator("#comment2");
+  await expect(reviewDiv.getByRole("link")).toHaveText("userA");
+  await expect(reviewDiv.getByTestId("relative-time")).toHaveText("just now");
+  await expect(reviewDiv.getByTestId("comment-body")).toHaveText(
+    "You sure do!"
+  );
 });

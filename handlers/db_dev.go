@@ -118,7 +118,7 @@ func (dbs *dbSettings) IsSessionIsolationEnabled() bool {
 	return dbs.isolateBySession
 }
 
-func (dbs *dbSettings) SetIsSessionIsolationEnabled(isolate bool) {
+func (dbs *dbSettings) EnableSessionIsolation(isolate bool) {
 	dbs.lock.Lock()
 	dbs.isolateBySession = isolate
 	dbs.lock.Unlock()
@@ -157,7 +157,7 @@ func (s Server) getAuthenticator(r *http.Request) auth.Authenticator {
 
 func dbPerSessionPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		sharedDBSettings.SetIsSessionIsolationEnabled(true)
+		sharedDBSettings.EnableSessionIsolation(true)
 	}
 }
 

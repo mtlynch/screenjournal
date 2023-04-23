@@ -26,7 +26,7 @@ func (s Server) accountNotificationsPost() http.HandlerFunc {
 		}
 
 		user := mustGetUserFromContext(r.Context())
-		err = s.store.UpdateNotificationPreferences(user.Username, prefs)
+		err = s.getDB(r).UpdateNotificationPreferences(user.Username, prefs)
 		if err != nil {
 			log.Printf("failed to save notification preferences: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to save notification preferences: %v", err), http.StatusInternalServerError)

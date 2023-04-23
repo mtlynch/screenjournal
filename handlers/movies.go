@@ -13,7 +13,7 @@ func (s Server) repopulateMoviesGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("repopulating movies metadata")
 
-		rr, err := s.store.ReadReviews(store.ReviewFilters{})
+		rr, err := s.getDB(r).ReadReviews(store.ReviewFilters{})
 		if err != nil {
 			log.Printf("failed to read reviews: %v", err)
 			http.Error(w, fmt.Sprintf("failed to read reviews: %v", err), http.StatusInternalServerError)
@@ -36,7 +36,7 @@ func (s Server) repopulateMoviesGet() http.HandlerFunc {
 			newMovie := metadata.MovieFromMovieInfo(movieInfo)
 			newMovie.ID = rev.Movie.ID
 
-			if err := s.store.UpdateMovie(newMovie); err != nil {
+			if err := s.getDB(r).UpdateMovie(newMovie); err != nil {
 				log.Printf("failed to get metadata for %s (tmdb ID=%v): %v", newMovie.Title, newMovie.TmdbID, err)
 				http.Error(w, fmt.Sprintf("Failed to save updated movie metadata: %v", err), http.StatusInternalServerError)
 				return

@@ -64,6 +64,20 @@ func (s Server) commentsPost() http.HandlerFunc {
 	}
 }
 
+func (s Server) commentsPut() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// TODO
+		http.Error(w, "Not implemented yet", http.StatusNotImplemented)
+	}
+}
+
+func (s Server) commentsDelete() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// TODO
+		http.Error(w, "Not implemented yet", http.StatusNotImplemented)
+	}
+}
+
 func newCommentFromRequest(r *http.Request) (commentPostRequest, error) {
 	var payload struct {
 		Comment string `json:"comment"`

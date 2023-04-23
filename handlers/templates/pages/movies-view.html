@@ -33,6 +33,8 @@
 {{ end }}
 
 {{ define "content" }}
+  {{ $loggedInUsername := .LoggedInUsername }}
+
   {{ with .Movie }}
     <h1>{{ .Title }}</h1>
     <img
@@ -98,6 +100,10 @@
                     {{ . }}<br />
                   {{ end }}
                 </p>
+
+                {{ if (eq .Owner $loggedInUsername) }}
+                  <a href="#" data-testid="edit-comment">Edit</a>
+                {{ end }}
               </div>
             {{ end }}
           </div>

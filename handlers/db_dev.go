@@ -118,11 +118,11 @@ func (dbs *dbSettings) IsSessionIsolationEnabled() bool {
 	return dbs.isolateBySession
 }
 
-func (dbs *dbSettings) EnableSessionIsolation(isolate bool) {
+func (dbs *dbSettings) EnableSessionIsolation() {
 	dbs.lock.Lock()
-	dbs.isolateBySession = isolate
+	dbs.isolateBySession = true
 	dbs.lock.Unlock()
-	log.Printf("per-session database = %v", isolate)
+	log.Print("per-session database = on")
 }
 
 func (dbs *dbSettings) GetDB(token dbToken) store.Store {
@@ -157,7 +157,7 @@ func (s Server) getAuthenticator(r *http.Request) auth.Authenticator {
 
 func dbPerSessionPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		sharedDBSettings.EnableSessionIsolation(true)
+		sharedDBSettings.EnableSessionIsolation()
 	}
 }
 

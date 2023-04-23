@@ -29,7 +29,7 @@ func (s Server) reviewsPost() http.HandlerFunc {
 		owner := mustGetUserFromContext(r.Context())
 		req.Review.Owner = owner.Username
 
-		req.Review.Movie, err = s.moviefromTmdbID(req.TmdbID)
+		req.Review.Movie, err = s.moviefromTmdbID(s.getDB(r), req.TmdbID)
 		if err == store.ErrMovieNotFound {
 			http.Error(w, fmt.Sprintf("Could not find movie with TMDB ID: %v", req.TmdbID), http.StatusNotFound)
 			return
@@ -39,7 +39,7 @@ func (s Server) reviewsPost() http.HandlerFunc {
 			return
 		}
 
-		req.Review.ID, err = s.store.InsertReview(req.Review)
+		req.Review.ID, err = s.getDB(r).InsertReview(req.Review)
 		if err != nil {
 			log.Printf("failed to save review: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to save review: %v", err), http.StatusInternalServerError)
@@ -58,7 +58,7 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.store.ReadReview(id)
+		review, err := s.getDB(r).ReadReview(id)
 		if err == store.ErrReviewNotFound {
 			http.Error(w, "Review not found", http.StatusNotFound)
 			return
@@ -78,7 +78,7 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
-		if err := s.store.UpdateReview(review); err != nil {
+		if err := s.getDB(r).UpdateReview(review); err != nil {
 			log.Printf("failed to update review: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to update review: %v", err), http.StatusInternalServerError)
 			return
@@ -159,8 +159,8 @@ func updateReviewFromRequest(r *http.Request, review *screenjournal.Review) erro
 	return nil
 }
 
-func (s Server) moviefromTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movie, error) {
-	movie, err := s.store.ReadMovieByTmdbID(tmdbID)
+func (s Server) moviefromTmdbID(db store.Store, tmdbID screenjournal.TmdbID) (screenjournal.Movie, error) {
+	movie, err := db.ReadMovieByTmdbID(tmdbID)
 	if err != nil && err != store.ErrMovieNotFound {
 		return screenjournal.Movie{}, err
 	} else if err == nil {
@@ -173,7 +173,7 @@ func (s Server) moviefromTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movi
 	}
 
 	movie = metadata.MovieFromMovieInfo(mi)
-	movie.ID, err = s.store.InsertMovie(movie)
+	movie.ID, err = db.InsertMovie(movie)
 	if err != nil {
 		return screenjournal.Movie{}, err
 	}

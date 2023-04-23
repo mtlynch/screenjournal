@@ -1,9 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { loginAsAdmin } from "./helpers/login.js";
-import { populateDummyData, wipeDB } from "./helpers/db.js";
+import { populateDummyData, readDbTokenCookie } from "./helpers/db.js";
 
 test.beforeEach(async ({ page }) => {
-  await wipeDB(page);
   await populateDummyData(page);
   await loginAsAdmin(page);
 });
@@ -29,6 +28,12 @@ test("signing up with an valid invite code succeeds", async ({
     (await page.getByTestId("invite-link").getAttribute("href")) || "";
 
   const guestContext = await browser.newContext();
+
+  // Share database across users.
+  await guestContext.addCookies([
+    readDbTokenCookie(await page.context().cookies()),
+  ]);
+
   const guestPage = await guestContext.newPage();
   await guestPage.goto(inviteLink);
 
@@ -64,6 +69,12 @@ test("signing up with an invalid invite code fails", async ({
   await expect(page).toHaveURL("/admin/invites");
 
   const guestContext = await browser.newContext();
+
+  // Share database across users.
+  await guestContext.addCookies([
+    readDbTokenCookie(await page.context().cookies()),
+  ]);
+
   const guestPage = await guestContext.newPage();
   const response = await guestPage.goto("/sign-up?invite=222333");
   await expect(response?.status()).toBe(401);

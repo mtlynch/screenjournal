@@ -1,10 +1,13 @@
 package handlers_test
 
 import (
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/auth/simple"
@@ -21,9 +24,12 @@ func TestCommentsPost(t *testing.T) {
 		payload          string
 		sessionToken     string
 		sessions         []mockSession
-		expectedComments screenjournal.ReviewComment
+		movies           []screenjournal.Movie
+		reviews          []screenjournal.Review
+		expectedComments []screenjournal.ReviewComment
 		status           int
 	}{
+		// TODO: Refactor this. With builder pattern?
 		{
 			description: "allows user to comment on an existing review",
 			route:       "/api/reviews/1/comment",
@@ -41,12 +47,87 @@ func TestCommentsPost(t *testing.T) {
 					},
 				},
 			},
-			expectedComments: screenjournal.ReviewComment{
-				Comment: screenjournal.Comment("Good insights!"),
+			movies: []screenjournal.Movie{
+				{
+					ID:          screenjournal.MovieID(1),
+					Title:       screenjournal.MediaTitle("The Waterboy"),
+					ReleaseDate: mustParseReleaseDate("1998-11-06"),
+				},
+			},
+			reviews: []screenjournal.Review{
+				{
+					ID:     screenjournal.ReviewID(1),
+					Owner:  screenjournal.Username("userB"),
+					Rating: screenjournal.Rating(5),
+					Movie: screenjournal.Movie{
+						ID:    screenjournal.MovieID(1),
+						Title: screenjournal.MediaTitle("The Waterboy"),
+					},
+					Watched: mustParseWatchDate("2020-10-05T20:18:55-04:00"),
+					Blurb:   screenjournal.Blurb("I love water!"),
+				},
+			},
+			expectedComments: []screenjournal.ReviewComment{
+				{
+					ID:      screenjournal.CommentID(1),
+					Owner:   screenjournal.Username("userA"),
+					Comment: screenjournal.Comment("Good insights!"),
+					Review: screenjournal.Review{
+						ID:     screenjournal.ReviewID(1),
+						Owner:  screenjournal.Username("userB"),
+						Rating: screenjournal.Rating(5),
+						Movie: screenjournal.Movie{
+							ID:          screenjournal.MovieID(1),
+							Title:       screenjournal.MediaTitle("The Waterboy"),
+							ReleaseDate: mustParseReleaseDate("1998-11-06"),
+						},
+						Watched: mustParseWatchDate("2020-10-05T20:18:55-04:00"),
+						Blurb:   screenjournal.Blurb("I love water!"),
+					},
+				},
 			},
 			status: http.StatusOK,
 		},
-		// TODO: Test comment on non-existent review
+		{
+			description: "allows user to comment on an existing review",
+			route:       "/api/reviews/105/comment",
+			payload: `{
+					"comment": "Good insights!"
+				}`,
+			sessionToken: "abc123",
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("userA"),
+						},
+					},
+				},
+			},
+			movies: []screenjournal.Movie{
+				{
+					ID:          screenjournal.MovieID(1),
+					Title:       screenjournal.MediaTitle("The Waterboy"),
+					ReleaseDate: mustParseReleaseDate("1998-11-06"),
+				},
+			},
+			reviews: []screenjournal.Review{
+				{
+					ID:     screenjournal.ReviewID(1),
+					Owner:  screenjournal.Username("userB"),
+					Rating: screenjournal.Rating(5),
+					Movie: screenjournal.Movie{
+						ID:    screenjournal.MovieID(1),
+						Title: screenjournal.MediaTitle("The Waterboy"),
+					},
+					Watched: mustParseWatchDate("2020-10-05T20:18:55-04:00"),
+					Blurb:   screenjournal.Blurb("I love water!"),
+				},
+			},
+			expectedComments: []screenjournal.ReviewComment{},
+			status:           http.StatusNotFound,
+		},
 		{
 			description: "rejects comment update if user is not authenticated",
 			route:       "/api/reviews/1/comment",
@@ -59,18 +140,29 @@ func TestCommentsPost(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
+			store := test_sqlite.New()
 
 			// Populate datastore with dummy users.
 			for _, s := range tt.sessions {
-				dataStore.InsertUser(s.session.User)
+				store.InsertUser(s.session.User)
 			}
 
-			authenticator := simple.New(dataStore)
+			for _, movie := range tt.movies {
+				if _, err := store.InsertMovie(movie); err != nil {
+					panic(err)
+				}
+			}
+			for _, review := range tt.reviews {
+				if _, err := store.InsertReview(review); err != nil {
+					panic(err)
+				}
+			}
+
+			authenticator := simple.New(store)
 			var nilMetadataFinder metadata.Finder
 			sessionManager := newMockSessionManager(tt.sessions)
 
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, nilMetadataFinder)
 
 			req, err := http.NewRequest("POST", tt.route, strings.NewReader(tt.payload))
 			if err != nil {
@@ -93,13 +185,35 @@ func TestCommentsPost(t *testing.T) {
 				return
 			}
 
-			/*prefs, err := dataStore.ReadComments(tt.sessions[0].session.User.Username)
+			comments, err := store.ReadComments(screenjournal.ReviewID(1))
 			if err != nil {
-				t.Fatalf("failed to read notification preferences from datastore for %s: %v", tt.sessions[0].session.User.Username, err)
+				t.Fatalf("failed to read comments from datastore: %v", err)
 			}
-			if got, want := prefs, tt.expectedPrefs; got != want {
-				t.Errorf("notificationPreferences=%+v, got=%+v", got, want)
-			}*/
+			if got, want := comments, tt.expectedComments; !reviewCommentsEqual(got, want) {
+				t.Errorf("comments=%+v, got=%+v", got, want)
+			}
 		})
 	}
+}
+
+func mustParseReleaseDate(s string) screenjournal.ReleaseDate {
+	d, err := time.Parse("2006-01-02", s)
+	if err != nil {
+		log.Fatalf("failed to parse release date: %s", s)
+	}
+	return screenjournal.ReleaseDate(d)
+}
+
+func reviewCommentsEqual(a, b []screenjournal.ReviewComment) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		a[i].Created, b[i].Created = time.Time{}, time.Time{}
+		a[i].Modified, b[i].Modified = time.Time{}, time.Time{}
+		a[i].Review.Created, b[i].Review.Created = time.Time{}, time.Time{}
+		a[i].Review.Modified, b[i].Review.Modified = time.Time{}, time.Time{}
+	}
+
+	return reflect.DeepEqual(a, b)
 }

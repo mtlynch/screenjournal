@@ -112,13 +112,13 @@ var sharedDBSettings = dbSettings{
 	tokenToDB: map[dbToken]store.Store{},
 }
 
-func (dbs *dbSettings) IsolateBySession() bool {
+func (dbs *dbSettings) IsSessionIsolationEnabled() bool {
 	dbs.lock.RLock()
 	dbs.lock.RUnlock()
 	return dbs.isolateBySession
 }
 
-func (dbs *dbSettings) SetIsolateBySession(isolate bool) {
+func (dbs *dbSettings) SetIsSessionIsolationEnabled(isolate bool) {
 	dbs.lock.Lock()
 	dbs.isolateBySession = isolate
 	dbs.lock.Unlock()
@@ -138,7 +138,7 @@ func (dbs *dbSettings) SaveDB(token dbToken, db store.Store) {
 }
 
 func (s Server) getDB(r *http.Request) store.Store {
-	if !sharedDBSettings.IsolateBySession() {
+	if !sharedDBSettings.IsSessionIsolationEnabled() {
 		return s.store
 	}
 	c, err := r.Cookie(dbTokenCookieName)
@@ -149,7 +149,7 @@ func (s Server) getDB(r *http.Request) store.Store {
 }
 
 func (s Server) getAuthenticator(r *http.Request) auth.Authenticator {
-	if !sharedDBSettings.IsolateBySession() {
+	if !sharedDBSettings.IsSessionIsolationEnabled() {
 		return s.authenticator
 	}
 	return simple_auth.New(s.getDB(r))
@@ -157,7 +157,7 @@ func (s Server) getAuthenticator(r *http.Request) auth.Authenticator {
 
 func dbPerSessionPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		sharedDBSettings.SetIsolateBySession(true)
+		sharedDBSettings.SetIsSessionIsolationEnabled(true)
 	}
 }
 
@@ -182,7 +182,7 @@ func mustParseWatchDate(s string) screenjournal.WatchDate {
 // this is a no-op.
 func assignSessionDB(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if sharedDBSettings.IsolateBySession() {
+		if sharedDBSettings.IsSessionIsolationEnabled() {
 			if _, err := r.Cookie(dbTokenCookieName); err != nil {
 				token := dbToken(random.String(30, []rune("abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")))
 				log.Printf("provisioning a new private database with token %s", token)

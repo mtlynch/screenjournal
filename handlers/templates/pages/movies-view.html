@@ -36,16 +36,16 @@
             .querySelector("[data-sj-purpose='delete']")
             .addEventListener("click", (evt) => {
               evt.preventDefault();
-              const reviewId = parseInt(
-                commentDiv
-                  .closest("[data-review-id]")
-                  .getAttribute("data-review-id")
-              );
               const commentId = parseInt(
                 commentDiv.getAttribute("data-comment-id")
               );
-              commentDelete(reviewId, commentId).then(() => {
-                // TODO: Find parent review ID and change hash to that.
+              commentDelete(commentId).then(() => {
+                const reviewId = parseInt(
+                  commentDiv
+                    .closest("[data-review-id]")
+                    .getAttribute("data-review-id")
+                );
+                document.location.hash = "#review" + reviewId;
                 document.location.reload();
               });
             });

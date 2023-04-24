@@ -1,13 +1,16 @@
 import { processJsonResponse, processPlaintextResponse } from "./common.js";
 
 export function commentPost(reviewId, comment) {
-  return fetch(`/api/reviews/${reviewId}/comment`, {
+  return fetch(`/api/comments`, {
     method: "POST",
     credentials: "include",
     headers: {
       Accept: "application/json",
     },
-    body: JSON.stringify({ comment: comment.trim() }),
+    body: JSON.stringify({
+      reviewId: reviewId,
+      comment: comment.trim(),
+    }),
   })
     .then(processJsonResponse)
     .then((result) => {
@@ -15,8 +18,8 @@ export function commentPost(reviewId, comment) {
     });
 }
 
-export function commentDelete(reviewId, commentId) {
-  return fetch(`/api/reviews/${reviewId}/comment/${commentId}`, {
+export function commentDelete(commentId) {
+  return fetch(`/api/comments/${commentId}`, {
     method: "DELETE",
     credentials: "include",
   }).then(processPlaintextResponse);

@@ -18,24 +18,18 @@ type commentPostRequest struct {
 
 func (s Server) commentsPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		rid, err := reviewIDFromRequestPath(r)
+		req, err := newCommentFromRequest(r)
 		if err != nil {
-			http.Error(w, "Invalid review ID", http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			return
 		}
 
-		review, err := s.getDB(r).ReadReview(rid)
+		review, err := s.getDB(r).ReadReview(req.ReviewID)
 		if err == store.ErrReviewNotFound {
 			http.Error(w, "Review not found", http.StatusNotFound)
 			return
 		} else if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to read review: %v", err), http.StatusInternalServerError)
-			return
-		}
-
-		req, err := newCommentFromRequest(r)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			return
 		}
 
@@ -89,11 +83,17 @@ func (s Server) commentsDelete() http.HandlerFunc {
 
 func newCommentFromRequest(r *http.Request) (commentPostRequest, error) {
 	var payload struct {
-		Comment string `json:"comment"`
+		ReviewID uint64 `json:"reviewId"`
+		Comment  string `json:"comment"`
 	}
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		log.Printf("failed to decode JSON request: %v", err)
+		return commentPostRequest{}, err
+	}
+
+	rid, err := parse.ReviewID(payload.ReviewID)
+	if err != nil {
 		return commentPostRequest{}, err
 	}
 
@@ -103,6 +103,7 @@ func newCommentFromRequest(r *http.Request) (commentPostRequest, error) {
 	}
 
 	return commentPostRequest{
-		Comment: comment,
+		ReviewID: rid,
+		Comment:  comment,
 	}, nil
 }

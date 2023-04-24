@@ -20,7 +20,6 @@ import (
 func TestCommentsPost(t *testing.T) {
 	for _, tt := range []struct {
 		description      string
-		route            string
 		payload          string
 		sessionToken     string
 		sessions         []mockSession
@@ -32,8 +31,9 @@ func TestCommentsPost(t *testing.T) {
 		// TODO: Refactor this. With builder pattern?
 		{
 			description: "allows user to comment on an existing review",
-			route:       "/api/reviews/1/comment",
+
 			payload: `{
+					"reviewId": 1,
 					"comment": "Good insights!"
 				}`,
 			sessionToken: "abc123",
@@ -90,8 +90,8 @@ func TestCommentsPost(t *testing.T) {
 		},
 		{
 			description: "allows user to comment on an existing review",
-			route:       "/api/reviews/105/comment",
 			payload: `{
+					"reviewId": 105,
 					"comment": "Good insights!"
 				}`,
 			sessionToken: "abc123",
@@ -130,8 +130,8 @@ func TestCommentsPost(t *testing.T) {
 		},
 		{
 			description: "rejects comment update if user is not authenticated",
-			route:       "/api/reviews/1/comment",
 			payload: `{
+					"reviewId": 1,
 					"comment": "I haven't logged in, but I'm commenting anyway!"
 				}`,
 			sessionToken: "dummy-invalid-token",
@@ -164,7 +164,7 @@ func TestCommentsPost(t *testing.T) {
 
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, nilMetadataFinder)
 
-			req, err := http.NewRequest("POST", tt.route, strings.NewReader(tt.payload))
+			req, err := http.NewRequest("POST", "/api/comments", strings.NewReader(tt.payload))
 			if err != nil {
 				t.Fatal(err)
 			}

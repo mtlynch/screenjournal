@@ -84,6 +84,15 @@ func (db DB) InsertComment(rc screenjournal.ReviewComment) (screenjournal.Commen
 	return screenjournal.CommentID(lastID), nil
 }
 
+func (db DB) DeleteComment(cid screenjournal.CommentID) error {
+	log.Printf("deleting comment ID=%v", cid)
+	_, err := db.ctx.Exec(`DELETE FROM review_comments WHERE id = ?`, cid.String())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func reviewCommentFromRow(row rowScanner) (screenjournal.ReviewComment, error) {
 	var id int
 	var owner string

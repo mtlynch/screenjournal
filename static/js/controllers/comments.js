@@ -1,4 +1,4 @@
-import { processJsonResponse } from "./common.js";
+import { processJsonResponse, processPlaintextResponse } from "./common.js";
 
 export function commentPost(reviewId, comment) {
   return fetch(`/api/reviews/${reviewId}/comment`, {
@@ -13,4 +13,11 @@ export function commentPost(reviewId, comment) {
     .then((result) => {
       return Promise.resolve(result.id);
     });
+}
+
+export function commentDelete(reviewId, commentId) {
+  return fetch(`/api/reviews/${reviewId}/comment/${commentId}`, {
+    method: "DELETE",
+    credentials: "include",
+  }).then(processPlaintextResponse);
 }

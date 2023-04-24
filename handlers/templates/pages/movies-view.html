@@ -25,7 +25,35 @@
 {{ end }}
 
 {{ define "script-tags" }}
-  <script type="module" nonce="{{ .CspNonce }}"></script>
+  <script type="module" nonce="{{ .CspNonce }}">
+    import { commentDelete } from "/js/controllers/comments.js";
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      function () {
+        document.querySelectorAll("[data-comment-id]").forEach((commentDiv) => {
+          const deleteBtn = commentDiv
+            .querySelector("[data-sj-purpose='delete']")
+            .addEventListener("click", (evt) => {
+              evt.preventDefault();
+              const reviewId = parseInt(
+                commentDiv
+                  .closest("[data-review-id]")
+                  .getAttribute("data-review-id")
+              );
+              const commentId = parseInt(
+                commentDiv.getAttribute("data-comment-id")
+              );
+              commentDelete(reviewId, commentId).then(() => {
+                // TODO: Find parent review ID and change hash to that.
+                document.location.reload();
+              });
+            });
+        });
+      },
+      false
+    );
+  </script>
 {{ end }}
 
 {{ define "custom-elements" }}
@@ -54,7 +82,7 @@
   >
 
   {{ range .Reviews }}
-    <div class="review mb-5">
+    <div class="review mb-5" data-review-id="{{ .ID }}">
       <div class="border bg-light p-2" id="review{{ .ID }}">
         <h6 class="card-subtitle mb-2 text-muted">
           <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> watched
@@ -85,7 +113,11 @@
         <div class="w-75">
           <div>
             {{ range .Comments }}
-              <div id="comment{{ .ID }}" class="border my-1 p-2">
+              <div
+                id="comment{{ .ID }}"
+                data-comment-id="{{ .ID }}"
+                class="border my-1 p-2"
+              >
                 <p class="mb-2">
                   <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b>
                   &mdash;
@@ -103,6 +135,7 @@
 
                 {{ if (eq .Owner $loggedInUsername) }}
                   <a href="#" data-testid="edit-comment">Edit</a>
+                  <a href="#" data-sj-purpose="delete">Delete</a>
                 {{ end }}
               </div>
             {{ end }}

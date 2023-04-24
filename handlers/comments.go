@@ -73,8 +73,17 @@ func (s Server) commentsPut() http.HandlerFunc {
 
 func (s Server) commentsDelete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// TODO
-		http.Error(w, "Not implemented yet", http.StatusNotImplemented)
+		cid, err := commentIDFromRequestPath(r)
+		if err != nil {
+			http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+			return
+		}
+
+		if err := s.getDB(r).DeleteComment(cid); err != nil {
+			log.Printf("failed to delete comment id=%v: %v", cid, err)
+			http.Error(w, "Failed to delete comment: %v", http.StatusInternalServerError)
+			return
+		}
 	}
 }
 

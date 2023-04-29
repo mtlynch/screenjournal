@@ -31,21 +31,25 @@
     document.addEventListener(
       "DOMContentLoaded",
       function () {
-        const commentsDiv = document.querySelector(".comments");
         document
-          .getElementById("comment-btn")
-          .addEventListener("click", (evt) => {
-            evt.preventDefault();
-            const commentForm = document.createElement("comment-form");
-            commentForm.setAttribute("data-review-id", "todo"); // TODO: Set based on ID
+          .querySelectorAll(".comment-thread")
+          .forEach((commentThreadDiv) => {
+            commentThreadDiv
+              .querySelector(".comment-btn")
+              .addEventListener("click", (evt) => {
+                evt.preventDefault();
+                const commentForm = document.createElement("comment-form");
+                commentForm.setAttribute("data-review-id", "todo"); // TODO: Set based on ID
 
-            commentForm.addEventListener("cancel", (evt) => {
-              evt.target.parentElement.removeChild(evt.target);
-            });
+                commentForm.addEventListener("cancel", (evt) => {
+                  evt.target.parentElement.removeChild(evt.target);
+                });
 
-            commentsDiv.appendChild(commentForm);
-            commentForm.value = "some comment";
+                commentThreadDiv.appendChild(commentForm);
+                commentForm.value = "some comment";
+              });
           });
+
         document.querySelectorAll("[data-comment-id]").forEach((commentDiv) => {
           const deleteBtn = commentDiv
             .querySelector("[data-sj-purpose='delete']")
@@ -125,7 +129,7 @@
       </div>
 
       <div class="d-flex justify-content-start ms-3">
-        <div class="comments w-75">
+        <div class="comment-thread w-75">
           <div>
             {{ range .Comments }}
               <div
@@ -156,11 +160,7 @@
             {{ end }}
           </div>
           <div class="d-flex justify-content-end">
-            <button
-              type="button"
-              id="comment-btn"
-              class="btn btn-secondary mt-2"
-            >
+            <button type="button" class="comment-btn btn btn-secondary mt-2">
               Comment
             </button>
           </div>

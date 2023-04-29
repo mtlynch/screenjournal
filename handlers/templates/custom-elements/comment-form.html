@@ -4,28 +4,6 @@
     type="text/css"
     href="/third-party/bootstrap@5.2.2/css/bootstrap.min.css"
   />
-  <style nonce="{{ .CspNonce }}">
-    #comment-btn {
-      display: block;
-    }
-
-    #comment-form {
-      display: none;
-    }
-
-    :host([state="editing"]) #comment-btn {
-      display: none;
-    }
-
-    :host([state="editing"]) #comment-form {
-      display: block;
-    }
-  </style>
-  <div class="d-flex justify-content-end">
-    <button type="button" id="comment-btn" class="btn btn-secondary mt-2">
-      Comment
-    </button>
-  </div>
   <div class="d-flex justify-content-end mt-2">
     <form id="comment-form">
       <textarea class="form-control my-2"></textarea>
@@ -65,21 +43,13 @@
     customElements.define(
       "comment-form",
       class extends HTMLElement {
-        states = {
-          HIDDEN: "hidden",
-          EDITING: "editing",
-          COMPLETE: "complete",
-        };
-
         connectedCallback() {
           this.attachShadow({ mode: "open" }).appendChild(
             template.content.cloneNode(true)
           );
-          this.state = this.states.HIDDEN;
 
           this._elements = {
             commentBody: this.shadowRoot.querySelector("textarea"),
-            commentBtn: this.shadowRoot.getElementById("comment-btn"),
             cancelBtn: this.shadowRoot.getElementById("cancel-btn"),
             postBtn: this.shadowRoot.getElementById("post-btn"),
             form: this.shadowRoot.querySelector("form"),
@@ -87,15 +57,12 @@
             errorAlert: this.shadowRoot.getElementById("error"),
           };
 
-          this._elements.commentBtn.addEventListener("click", () => {
-            this.state = this.states.EDITING;
-            this._elements.commentBody.focus();
-          });
+          this._elements.commentBody.focus();
           this._elements.cancelBtn.addEventListener("click", () => {
-            this.state = this.states.HIDDEN;
+            this._emitCustomEvent("cancel");
           });
-          // TODO: Emit an event fot this instead.
           this._elements.form.addEventListener("submit", (evt) => {
+            // TODO: Emit an event fot this instead.
             evt.preventDefault();
 
             disableElement(this._elements.cancelBtn);
@@ -126,12 +93,17 @@
           return parseInt(this.getAttribute("data-review-id"));
         }
 
-        get state() {
-          return this.getAttribute("state");
+        set value(newValue) {
+          this._elements.commentBody.value = newValue;
         }
 
-        set state(newValue) {
-          this.setAttribute("state", newValue);
+        _emitCustomEvent(eventId) {
+          this.dispatchEvent(
+            new CustomEvent(eventId, {
+              bubbles: true,
+              composed: true,
+            })
+          );
         }
       }
     );

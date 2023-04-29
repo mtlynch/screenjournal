@@ -21,16 +21,12 @@
     .review p {
       max-width: 100%;
     }
-
-    .hidden {
-      display: none;
-    }
   </style>
 {{ end }}
 
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
-    import { hideElement } from "/js/lib/bootstrap.js";
+    import { hideElement, showElement } from "/js/lib/bootstrap.js";
 
     import { commentDelete } from "/js/controllers/comments.js";
 
@@ -64,6 +60,7 @@
                 });
 
                 commentThreadDiv.appendChild(commentForm);
+                commentForm.focus();
 
                 hideElement(commentBtn);
               });
@@ -84,7 +81,18 @@
                 const commentEditForm = commentDiv.parentElement.querySelector(
                   `comment-form[data-comment-id="${commentId}"]`
                 );
-                commentEditForm.classList.remove("hidden");
+
+                commentEditForm.addEventListener("comment-updated", (evt) => {
+                  const commentId = evt.detail.commentId;
+                  window.location.hash = "#comment" + commentId;
+                  // We need to reload to re-render the page with the updated
+                  // comment.
+                  window.location.reload();
+                });
+
+                showElement(commentEditForm);
+                commentEditForm.focus();
+                hideElement(commentDiv);
               });
 
             commentDiv
@@ -188,7 +196,7 @@
               </div>
               {{ if (eq .Owner $loggedInUsername) }}
                 <comment-form
-                  class="hidden"
+                  class="d-none"
                   data-comment-id="{{ .ID }}"
                   value="{{ .Comment.String }}"
                 ></comment-form>

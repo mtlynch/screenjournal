@@ -16,6 +16,11 @@ type commentPostRequest struct {
 	Comment  screenjournal.Comment
 }
 
+type commentPutRequest struct {
+	CommentID screenjournal.CommentID
+	Comment   screenjournal.Comment
+}
+
 func (s Server) commentsPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := newCommentFromRequest(r)
@@ -46,8 +51,6 @@ func (s Server) commentsPost() http.HandlerFunc {
 			return
 		}
 
-		log.Printf("created new comment with ID=%v", rc.ID)
-
 		respondJSON(w, struct {
 			ID uint64 `json:"id"`
 		}{
@@ -60,8 +63,34 @@ func (s Server) commentsPost() http.HandlerFunc {
 
 func (s Server) commentsPut() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// TODO
-		http.Error(w, "Not implemented yet", http.StatusNotImplemented)
+		req, err := commentFromPutRequest(r)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
+			return
+		}
+
+		db := s.getDB(r)
+
+		rc, err := db.ReadComment(req.CommentID)
+		if err == store.ErrCommentNotFound {
+			http.Error(w, "Comment not found", http.StatusNotFound)
+			return
+		} else if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to read comment: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		if mustGetUserFromContext(r.Context()).Username != rc.Owner {
+			http.Error(w, "Can't edit another user's comment", http.StatusForbidden)
+			return
+		}
+
+		rc.Comment = req.Comment
+		if err := db.UpdateComment(rc); err != nil {
+			log.Printf("failed to update comment: %v", err)
+			http.Error(w, fmt.Sprintf("Failed to update comment: %v", err), http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
@@ -86,8 +115,7 @@ func newCommentFromRequest(r *http.Request) (commentPostRequest, error) {
 		ReviewID uint64 `json:"reviewId"`
 		Comment  string `json:"comment"`
 	}
-	err := json.NewDecoder(r.Body).Decode(&payload)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		log.Printf("failed to decode JSON request: %v", err)
 		return commentPostRequest{}, err
 	}
@@ -105,5 +133,30 @@ func newCommentFromRequest(r *http.Request) (commentPostRequest, error) {
 	return commentPostRequest{
 		ReviewID: rid,
 		Comment:  comment,
+	}, nil
+}
+
+func commentFromPutRequest(r *http.Request) (commentPutRequest, error) {
+	cid, err := commentIDFromRequestPath(r)
+	if err != nil {
+		return commentPutRequest{}, err
+	}
+
+	var payload struct {
+		Comment string `json:"comment"`
+	}
+	if err = json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		log.Printf("failed to decode JSON request: %v", err)
+		return commentPutRequest{}, err
+	}
+
+	comment, err := parse.Comment(payload.Comment)
+	if err != nil {
+		return commentPutRequest{}, err
+	}
+
+	return commentPutRequest{
+		CommentID: cid,
+		Comment:   comment,
 	}, nil
 }

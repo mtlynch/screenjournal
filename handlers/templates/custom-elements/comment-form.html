@@ -46,7 +46,7 @@
   } from "/js/lib/bootstrap.js";
   import { disableElement, enableElement } from "/js/lib/ui.js";
 
-  import { commentPost } from "/js/controllers/comments.js";
+  import { commentPost, commentPut } from "/js/controllers/comments.js";
   (function () {
     const template = document.querySelector("#comment-form-template");
 
@@ -68,7 +68,6 @@
             errorAlert: this.shadowRoot.getElementById("error"),
           };
 
-          this._elements.commentBody.focus();
           const value = this.getAttribute("value");
           if (value !== null) {
             console.log(value);
@@ -88,10 +87,30 @@
             makeInvisible(this._elements.errorAlert);
             makeVisible(this._elements.submitSpinner);
 
-            commentPost(this.reviewId, this._elements.commentBody.value)
+            let fn = null;
+            let successEventId = null;
+            if (value === null) {
+              fn = () => {
+                return commentPost(
+                  this.reviewId,
+                  this._elements.commentBody.value
+                );
+              };
+              successEventId = "comment-created";
+            } else {
+              fn = () => {
+                return commentPut(
+                  this.commentId,
+                  this._elements.commentBody.value
+                );
+              };
+              successEventId = "comment-updated";
+            }
+
+            fn()
               .then((commentId) => {
-                this._emitCustomEvent("comment-created", {
-                  commentId: commentId,
+                this._emitCustomEvent(successEventId, {
+                  commentId,
                 });
               })
               .catch((error) => {
@@ -111,8 +130,16 @@
           return parseInt(this.getAttribute("data-review-id"));
         }
 
+        get commentId() {
+          return parseInt(this.getAttribute("data-comment-id"));
+        }
+
         set value(newValue) {
           this._elements.commentBody.value = newValue;
+        }
+
+        focus() {
+          this._elements.commentBody.focus();
         }
 
         _emitCustomEvent(eventId, detail) {

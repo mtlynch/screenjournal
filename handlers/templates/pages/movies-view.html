@@ -39,10 +39,19 @@
               .addEventListener("click", (evt) => {
                 evt.preventDefault();
                 const commentForm = document.createElement("comment-form");
-                commentForm.setAttribute("data-review-id", "todo"); // TODO: Set based on ID
+                commentForm.setAttribute(
+                  "data-review-id",
+                  evt.target.getAttribute("data-review-id")
+                );
 
                 commentForm.addEventListener("cancel", (evt) => {
                   evt.target.parentElement.removeChild(evt.target);
+                });
+                commentForm.addEventListener("comment-created", (evt) => {
+                  const commentId = evt.detail.commentId;
+                  window.location.hash = "#comment" + commentId;
+                  // We need to reload to re-render the page with the new comment.
+                  window.location.reload();
                 });
 
                 commentThreadDiv.appendChild(commentForm);
@@ -51,7 +60,7 @@
           });
 
         document.querySelectorAll("[data-comment-id]").forEach((commentDiv) => {
-          const deleteBtn = commentDiv
+          commentDiv
             .querySelector("[data-sj-purpose='delete']")
             .addEventListener("click", (evt) => {
               evt.preventDefault();
@@ -160,7 +169,11 @@
             {{ end }}
           </div>
           <div class="d-flex justify-content-end">
-            <button type="button" class="comment-btn btn btn-secondary mt-2">
+            <button
+              type="button"
+              class="comment-btn btn btn-secondary mt-2"
+              data-review-id="{{ .ID }}"
+            >
               Comment
             </button>
           </div>

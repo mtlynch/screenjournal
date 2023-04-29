@@ -72,9 +72,9 @@
 
             commentPost(this.reviewId, this._elements.commentBody.value)
               .then((commentId) => {
-                window.location.hash = "#comment" + commentId;
-                // We need to reload to re-render the page with the new comment.
-                window.location.reload();
+                this._emitCustomEvent("comment-created", {
+                  commentId: commentId,
+                });
               })
               .catch((error) => {
                 this._elements.errorAlert.innerText = error;
@@ -97,9 +97,10 @@
           this._elements.commentBody.value = newValue;
         }
 
-        _emitCustomEvent(eventId) {
+        _emitCustomEvent(eventId, detail) {
           this.dispatchEvent(
             new CustomEvent(eventId, {
+              detail,
               bubbles: true,
               composed: true,
             })

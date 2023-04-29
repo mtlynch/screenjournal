@@ -69,9 +69,7 @@ func (s Server) commentsPut() http.HandlerFunc {
 			return
 		}
 
-		db := s.getDB(r)
-
-		rc, err := db.ReadComment(req.CommentID)
+		rc, err := s.getDB(r).ReadComment(req.CommentID)
 		if err == store.ErrCommentNotFound {
 			http.Error(w, "Comment not found", http.StatusNotFound)
 			return
@@ -86,7 +84,7 @@ func (s Server) commentsPut() http.HandlerFunc {
 		}
 
 		rc.Comment = req.Comment
-		if err := db.UpdateComment(rc); err != nil {
+		if err := s.getDB(r).UpdateComment(rc); err != nil {
 			log.Printf("failed to update comment: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to update comment: %v", err), http.StatusInternalServerError)
 			return

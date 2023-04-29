@@ -6,6 +6,6 @@ export function makeVisible(el) {
   el.classList.remove("invisible");
 }
 
-export function reallyHideElement(el) {
+export function hideElement(el) {
   el.classList.add("d-none");
 }

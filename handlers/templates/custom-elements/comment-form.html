@@ -39,11 +39,7 @@
 </template>
 
 <script type="module" nonce="{{ .CspNonce }}">
-  import {
-    showElement,
-    hideElement,
-    reallyHideElement,
-  } from "/js/lib/bootstrap.js";
+  import { showElement, hideElement, hideElement } from "/js/lib/bootstrap.js";
   import { disableElement, enableElement } from "/js/lib/ui.js";
 
   import { commentPost } from "/js/controllers/comments.js";
@@ -73,9 +69,9 @@
           if (value !== null) {
             console.log(value);
             this._elements.commentBody.value = value;
-            reallyHideElement(this._elements.postBtn);
+            hideElement(this._elements.postBtn);
           } else {
-            reallyHideElement(this._elements.saveBtn);
+            hideElement(this._elements.saveBtn);
           }
           this._elements.cancelBtn.addEventListener("click", () => {
             this._emitCustomEvent("cancel");

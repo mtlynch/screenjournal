@@ -9,3 +9,7 @@ export function makeVisible(el) {
 export function hideElement(el) {
   el.classList.add("d-none");
 }
+
+export function showElement(el) {
+  el.classList.remove("d-none");
+}

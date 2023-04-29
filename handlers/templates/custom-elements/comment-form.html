@@ -39,7 +39,11 @@
 </template>
 
 <script type="module" nonce="{{ .CspNonce }}">
-  import { showElement, hideElement, hideElement } from "/js/lib/bootstrap.js";
+  import {
+    makeInvisible,
+    makeVisible,
+    hideElement,
+  } from "/js/lib/bootstrap.js";
   import { disableElement, enableElement } from "/js/lib/ui.js";
 
   import { commentPost } from "/js/controllers/comments.js";
@@ -81,8 +85,8 @@
 
             disableElement(this._elements.cancelBtn);
             disableElement(this._elements.postBtn);
-            hideElement(this._elements.errorAlert);
-            showElement(this._elements.submitSpinner);
+            makeInvisible(this._elements.errorAlert);
+            makeVisible(this._elements.submitSpinner);
 
             commentPost(this.reviewId, this._elements.commentBody.value)
               .then((commentId) => {
@@ -92,13 +96,13 @@
               })
               .catch((error) => {
                 this._elements.errorAlert.innerText = error;
-                showElement(this._elements.errorAlert);
+                makeVisible(this._elements.errorAlert);
 
                 enableElement(this._elements.cancelBtn);
                 enableElement(this._elements.postBtn);
               })
               .finally(() => {
-                hideElement(this._elements.submitSpinner);
+                makeInvisible(this._elements.submitSpinner);
               });
           });
         }

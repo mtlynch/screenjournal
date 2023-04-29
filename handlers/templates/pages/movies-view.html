@@ -30,15 +30,9 @@
 
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
+    import { hideElement } from "/js/lib/bootstrap.js";
+
     import { commentDelete } from "/js/controllers/comments.js";
-
-    function hideElement(el) {
-      el.style.display = "none";
-    }
-
-    function showElement(el) {
-      el.style.display = "block";
-    }
 
     document.addEventListener(
       "DOMContentLoaded",

@@ -83,7 +83,6 @@
                 );
 
                 commentEditForm.addEventListener("comment-updated", (evt) => {
-                  const commentId = evt.detail.commentId;
                   window.location.hash = "#comment" + commentId;
                   // We need to reload to re-render the page with the updated
                   // comment.

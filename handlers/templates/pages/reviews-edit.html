@@ -9,7 +9,7 @@
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
     import { updateReview } from "/js/controllers/reviews.js";
-    import { showElement, hideElement } from "/js/lib/bootstrap.js";
+    import { makeVisible, makeInvisible } from "/js/lib/bootstrap.js";
     import { tzOffsetString } from "/js/lib/time.js";
 
     function reviewFromForm() {
@@ -40,8 +40,8 @@
             evt.preventDefault();
 
             submitBtn.disabled = true;
-            hideElement(errorAlert);
-            showElement(submitSpinner);
+            makeInvisible(errorAlert);
+            makeVisible(submitSpinner);
 
             const id = parseInt(document.getElementById("review-id").value);
 
@@ -51,10 +51,10 @@
               })
               .catch((error) => {
                 errorAlert.innerText = error;
-                showElement(errorAlert);
+                makeVisible(errorAlert);
               })
               .finally(() => {
-                hideElement(submitSpinner);
+                makeInvisible(submitSpinner);
                 submitBtn.disabled = false;
               });
           });

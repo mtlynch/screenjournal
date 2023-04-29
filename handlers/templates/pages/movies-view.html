@@ -99,6 +99,11 @@
               .addEventListener("click", (evt) => {
                 evt.preventDefault();
                 commentDelete(commentId).then(() => {
+                  const reviewId = parseInt(
+                    commentDiv
+                      .closest("[data-review-id]")
+                      .getAttribute("data-review-id")
+                  );
                   document.location.hash = "#review" + reviewId;
                   document.location.reload();
                 });

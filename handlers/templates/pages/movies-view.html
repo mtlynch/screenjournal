@@ -21,6 +21,10 @@
     .review p {
       max-width: 100%;
     }
+
+    .hidden {
+      display: none;
+    }
   </style>
 {{ end }}
 
@@ -66,31 +70,39 @@
                 });
 
                 commentThreadDiv.appendChild(commentForm);
-                commentForm.value = "some comment";
 
                 hideElement(commentBtn);
               });
           });
 
-        document.querySelectorAll("[data-comment-id]").forEach((commentDiv) => {
-          commentDiv
-            .querySelector("[data-sj-purpose='delete']")
-            .addEventListener("click", (evt) => {
-              evt.preventDefault();
-              const commentId = parseInt(
-                commentDiv.getAttribute("data-comment-id")
-              );
-              commentDelete(commentId).then(() => {
-                const reviewId = parseInt(
-                  commentDiv
-                    .closest("[data-review-id]")
-                    .getAttribute("data-review-id")
+        document
+          .querySelectorAll("[data-sj-purpose='comment']")
+          .forEach((commentDiv) => {
+            const commentId = parseInt(
+              commentDiv.getAttribute("data-comment-id")
+            );
+
+            commentDiv
+              .querySelector("[data-sj-purpose='edit']")
+              .addEventListener("click", (evt) => {
+                evt.preventDefault();
+
+                const commentEditForm = commentDiv.parentElement.querySelector(
+                  `comment-form[data-comment-id="${commentId}"]`
                 );
-                document.location.hash = "#review" + reviewId;
-                document.location.reload();
+                commentEditForm.classList.remove("hidden");
               });
-            });
-        });
+
+            commentDiv
+              .querySelector("[data-sj-purpose='delete']")
+              .addEventListener("click", (evt) => {
+                evt.preventDefault();
+                commentDelete(commentId).then(() => {
+                  document.location.hash = "#review" + reviewId;
+                  document.location.reload();
+                });
+              });
+          });
       },
       false
     );
@@ -156,6 +168,7 @@
             {{ range .Comments }}
               <div
                 id="comment{{ .ID }}"
+                data-sj-purpose="comment"
                 data-comment-id="{{ .ID }}"
                 class="border my-1 p-2"
               >
@@ -168,17 +181,24 @@
                     >{{ relativeCommentDate .Created }}</span
                   >
                 </p>
-                <p class="mb-0" data-testid="comment-body">
+                <p class="mb-0" data-sj-purpose="body">
                   {{ range .Comment.String | splitByNewline }}
                     {{ . }}<br />
                   {{ end }}
                 </p>
 
                 {{ if (eq .Owner $loggedInUsername) }}
-                  <a href="#" data-testid="edit-comment">Edit</a>
+                  <a href="#" data-sj-purpose="edit">Edit</a>
                   <a href="#" data-sj-purpose="delete">Delete</a>
                 {{ end }}
               </div>
+              {{ if (eq .Owner $loggedInUsername) }}
+                <comment-form
+                  class="hidden"
+                  data-comment-id="{{ .ID }}"
+                  value="{{ .Comment.String }}"
+                ></comment-form>
+              {{ end }}
             {{ end }}
           </div>
           <div class="d-flex justify-content-end">

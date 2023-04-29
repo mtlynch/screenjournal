@@ -412,7 +412,7 @@ test("adds a comment to an existing review", async ({ page }) => {
   const reviewDiv = await page.locator("#comment2");
   await expect(reviewDiv.getByRole("link")).toHaveText("userA");
   await expect(reviewDiv.getByTestId("relative-time")).toHaveText("just now");
-  await expect(reviewDiv.getByTestId("comment-body")).toHaveText(
+  await expect(reviewDiv.locator("[data-sj-purpose='body']")).toHaveText(
     "You sure do!"
   );
 });
@@ -440,7 +440,7 @@ test("removes leading and trailing whitespace from comments", async ({
   const reviewDiv = await page.locator("#comment2");
   await expect(reviewDiv.getByRole("link")).toHaveText("userA");
   await expect(reviewDiv.getByTestId("relative-time")).toHaveText("just now");
-  await expect(reviewDiv.getByTestId("comment-body")).toHaveText(
+  await expect(reviewDiv.locator("[data-sj-purpose='body']")).toHaveText(
     "Yes, but can you strip my whitespace?",
     { useInnerText: true }
   );

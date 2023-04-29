@@ -14,6 +14,12 @@
           class="btn btn-primary"
           value="Post"
         />
+        <input
+          type="submit"
+          id="save-btn"
+          class="btn btn-primary"
+          value="Save"
+        />
         <button type="button" id="cancel-btn" class="btn btn-light mx-2">
           Cancel
         </button>
@@ -33,7 +39,11 @@
 </template>
 
 <script type="module" nonce="{{ .CspNonce }}">
-  import { showElement, hideElement } from "/js/lib/bootstrap.js";
+  import {
+    showElement,
+    hideElement,
+    reallyHideElement,
+  } from "/js/lib/bootstrap.js";
   import { disableElement, enableElement } from "/js/lib/ui.js";
 
   import { commentPost } from "/js/controllers/comments.js";
@@ -52,17 +62,25 @@
             commentBody: this.shadowRoot.querySelector("textarea"),
             cancelBtn: this.shadowRoot.getElementById("cancel-btn"),
             postBtn: this.shadowRoot.getElementById("post-btn"),
+            saveBtn: this.shadowRoot.getElementById("save-btn"),
             form: this.shadowRoot.querySelector("form"),
             submitSpinner: this.shadowRoot.getElementById("submit-spinner"),
             errorAlert: this.shadowRoot.getElementById("error"),
           };
 
           this._elements.commentBody.focus();
+          const value = this.getAttribute("value");
+          if (value !== null) {
+            console.log(value);
+            this._elements.commentBody.value = value;
+            reallyHideElement(this._elements.postBtn);
+          } else {
+            reallyHideElement(this._elements.saveBtn);
+          }
           this._elements.cancelBtn.addEventListener("click", () => {
             this._emitCustomEvent("cancel");
           });
           this._elements.form.addEventListener("submit", (evt) => {
-            // TODO: Emit an event fot this instead.
             evt.preventDefault();
 
             disableElement(this._elements.cancelBtn);

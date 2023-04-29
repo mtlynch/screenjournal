@@ -28,6 +28,14 @@
   <script type="module" nonce="{{ .CspNonce }}">
     import { commentDelete } from "/js/controllers/comments.js";
 
+    function hideElement(el) {
+      el.style.display = "none";
+    }
+
+    function showElement(el) {
+      el.style.display = "block";
+    }
+
     document.addEventListener(
       "DOMContentLoaded",
       function () {
@@ -38,6 +46,8 @@
               .querySelector(".comment-btn")
               .addEventListener("click", (evt) => {
                 evt.preventDefault();
+                const commentBtn = evt.target;
+
                 const commentForm = document.createElement("comment-form");
                 commentForm.setAttribute(
                   "data-review-id",
@@ -46,6 +56,7 @@
 
                 commentForm.addEventListener("cancel", (evt) => {
                   evt.target.parentElement.removeChild(evt.target);
+                  showElement(commentBtn);
                 });
                 commentForm.addEventListener("comment-created", (evt) => {
                   const commentId = evt.detail.commentId;
@@ -56,6 +67,8 @@
 
                 commentThreadDiv.appendChild(commentForm);
                 commentForm.value = "some comment";
+
+                hideElement(commentBtn);
               });
           });
 

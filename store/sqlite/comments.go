@@ -103,44 +103,21 @@ func (db DB) InsertComment(rc screenjournal.ReviewComment) (screenjournal.Commen
 
 func (db DB) UpdateComment(rc screenjournal.ReviewComment) error {
 	log.Printf("updating comment %v from %v", rc.ID, rc.Owner)
-	log.Printf("new text = '%v'", rc.Comment.String()) // DEBUG
 
 	_, err := db.ctx.Exec(`
-	UPDATE review_comments
-	SET
-		comment_text = ?,
-		last_modified_time = ?
-	WHERE
-		id = ?
-	`,
+		UPDATE review_comments
+		SET
+			comment_text = ?,
+			last_modified_time = ?
+		WHERE
+			id = ?;
+		`,
 		rc.Comment.String(),
 		formatTime(time.Now()),
-		rc.Review.ID.UInt64())
+		rc.ID.UInt64())
 	if err != nil {
 		return err
 	}
-
-	// DEBUG
-
-	row := db.ctx.QueryRow(`
-	SELECT
-		comment_text
-	FROM
-		review_comments
-	WHERE
-		id = ?
-	`, rc.ID)
-
-	var comment string
-
-	if err := row.Scan(&comment); err != nil {
-		log.Printf("failed to read: %v", err)
-		return err
-	}
-
-	log.Printf("comment_text=%s", comment)
-
-	// DEBUG
 
 	return nil
 }

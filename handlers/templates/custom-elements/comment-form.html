@@ -68,13 +68,28 @@
             errorAlert: this.shadowRoot.getElementById("error"),
           };
 
+          let onSubmit = null;
+          let successEventId = null;
           const value = this.getAttribute("value");
           if (value !== null) {
-            console.log(value);
             this._elements.commentBody.value = value;
             hideElement(this._elements.postBtn);
+            onSubmit = () => {
+              return commentPut(
+                this.commentId,
+                this._elements.commentBody.value
+              );
+            };
+            successEventId = "comment-updated";
           } else {
             hideElement(this._elements.saveBtn);
+            onSubmit = () => {
+              return commentPost(
+                this.reviewId,
+                this._elements.commentBody.value
+              );
+            };
+            successEventId = "comment-created";
           }
           this._elements.cancelBtn.addEventListener("click", () => {
             this._emitCustomEvent("cancel");
@@ -87,27 +102,7 @@
             makeInvisible(this._elements.errorAlert);
             makeVisible(this._elements.submitSpinner);
 
-            let fn = null;
-            let successEventId = null;
-            if (value === null) {
-              fn = () => {
-                return commentPost(
-                  this.reviewId,
-                  this._elements.commentBody.value
-                );
-              };
-              successEventId = "comment-created";
-            } else {
-              fn = () => {
-                return commentPut(
-                  this.commentId,
-                  this._elements.commentBody.value
-                );
-              };
-              successEventId = "comment-updated";
-            }
-
-            fn()
+            onSubmit()
               .then((commentId) => {
                 this._emitCustomEvent(successEventId, {
                   commentId,

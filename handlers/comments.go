@@ -61,7 +61,7 @@ func (s Server) commentsPost() http.HandlerFunc {
 
 func (s Server) commentsPut() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req, err := commentFromPutRequest(r)
+		req, err := parseCommentPutRequest(r)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			return
@@ -132,7 +132,7 @@ func parseCommentPostRequest(r *http.Request) (commentPostRequest, error) {
 	}, nil
 }
 
-func commentFromPutRequest(r *http.Request) (commentPutRequest, error) {
+func parseCommentPutRequest(r *http.Request) (commentPutRequest, error) {
 	cid, err := commentIDFromRequestPath(r)
 	if err != nil {
 		return commentPutRequest{}, err

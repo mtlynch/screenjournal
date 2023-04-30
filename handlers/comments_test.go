@@ -101,9 +101,42 @@ func TestCommentsPost(t *testing.T) {
 			},
 		},
 		{
+			description:  "rejects an invalid JSON request",
+			payload:      `{banana`,
+			sessionToken: makeCommentsTestData().sessions.userA.token,
+			sessions: []mockSession{
+				makeCommentsTestData().sessions.userA,
+			},
+			movies: []screenjournal.Movie{
+				makeCommentsTestData().movies.theWaterBoy,
+			},
+			reviews: []screenjournal.Review{
+				makeCommentsTestData().reviews.userBTheWaterBoy,
+			},
+			status: http.StatusBadRequest,
+		},
+		{
 			description: "rejects a comment with invalid content",
 			payload: `{
 					"reviewId": 1,
+					"comment": "<script>alert(1)</script>"
+				}`,
+			sessionToken: makeCommentsTestData().sessions.userA.token,
+			sessions: []mockSession{
+				makeCommentsTestData().sessions.userA,
+			},
+			movies: []screenjournal.Movie{
+				makeCommentsTestData().movies.theWaterBoy,
+			},
+			reviews: []screenjournal.Review{
+				makeCommentsTestData().reviews.userBTheWaterBoy,
+			},
+			status: http.StatusBadRequest,
+		},
+		{
+			description: "rejects a comment with invalid review ID",
+			payload: `{
+					"reviewId": "banana",
 					"comment": "<script>alert(1)</script>"
 				}`,
 			sessionToken: makeCommentsTestData().sessions.userA.token,

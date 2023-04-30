@@ -2,12 +2,63 @@ package parse_test
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"testing"
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 )
+
+func TestCommentID(t *testing.T) {
+	for _, tt := range []struct {
+		description string
+		in          string
+		id          screenjournal.CommentID
+		err         error
+	}{
+		{
+			"ID of 1 is valid",
+			"1",
+			screenjournal.CommentID(1),
+			nil,
+		},
+		{
+			"ID of MaxUint64 is valid",
+			fmt.Sprintf("%d", uint64(math.MaxUint64)),
+			screenjournal.CommentID(math.MaxUint64),
+			nil,
+		},
+		{
+			"ID of -1 is invalid",
+			"-1",
+			screenjournal.CommentID(0),
+			parse.ErrInvalidCommentID,
+		},
+		{
+			"ID of 0 is invalid",
+			"0",
+			screenjournal.CommentID(0),
+			parse.ErrInvalidCommentID,
+		},
+		{
+			"non-numeric ID is invalid",
+			"banana",
+			screenjournal.CommentID(0),
+			parse.ErrInvalidCommentID,
+		},
+	} {
+		t.Run(fmt.Sprintf("%s [%s]", tt.description, tt.in), func(t *testing.T) {
+			id, err := parse.CommentID(tt.in)
+			if got, want := err, tt.err; got != want {
+				t.Fatalf("err=%v, want=%v", got, want)
+			}
+			if got, want := id.UInt64(), tt.id.UInt64(); got != want {
+				t.Errorf("id=%d, want=%d", got, want)
+			}
+		})
+	}
+}
 
 func TestCommentText(t *testing.T) {
 	for _, tt := range []struct {

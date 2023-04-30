@@ -56,8 +56,6 @@ func (s Server) commentsPost() http.HandlerFunc {
 		}{
 			ID: rc.ID.UInt64(),
 		})
-
-		// TODO: Announce comment
 	}
 }
 

@@ -18,7 +18,7 @@ type commentPostRequest struct {
 
 func (s Server) commentsPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req, err := newCommentFromRequest(r)
+		req, err := parseCommentPostRequest(r)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			return
@@ -54,7 +54,7 @@ func (s Server) commentsPost() http.HandlerFunc {
 	}
 }
 
-func newCommentFromRequest(r *http.Request) (commentPostRequest, error) {
+func parseCommentPostRequest(r *http.Request) (commentPostRequest, error) {
 	var payload struct {
 		ReviewID uint64 `json:"reviewId"`
 		Comment  string `json:"comment"`

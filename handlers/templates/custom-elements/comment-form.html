@@ -130,6 +130,10 @@
           return parseInt(this.getAttribute("data-review-id"));
         }
 
+        get commentId() {
+          return parseInt(this.getAttribute("data-comment-id"));
+        }
+
         set value(newValue) {
           this._elements.commentBody.value = newValue;
         }

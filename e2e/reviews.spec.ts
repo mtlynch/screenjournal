@@ -424,6 +424,42 @@ test("adds a comment to an existing review", async ({ page }) => {
   );
 });
 
+test("cancels a comment to an existing review", async ({ page }) => {
+  await page
+    .getByRole("heading", { name: "The Waterboy" })
+    .getByRole("link")
+    .click();
+  await page.locator("comment-form:first");
+  await expect(page).toHaveURL("/movies/1#review1");
+
+  // Start a comment.
+  await page
+    .locator(".review", {
+      has: page.getByText("I love water!"),
+    })
+    .locator(".comment-btn")
+    .click();
+  await page.keyboard.type("Lemme think about this...");
+
+  // But then cancel.
+  await page
+    .locator(".review", {
+      has: page.getByText("I love water!"),
+    })
+    .locator("comment-form[data-review-id='1']")
+    .locator("#cancel-btn")
+    .click();
+
+  await expect(page).toHaveURL("/movies/1#review1");
+  await expect(
+    page
+      .locator(".review", {
+        has: page.getByText("I love water!"),
+      })
+      .locator(".comment-btn")
+  ).toBeVisible();
+});
+
 test("removes leading and trailing whitespace from comments", async ({
   page,
 }) => {

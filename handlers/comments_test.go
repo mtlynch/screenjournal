@@ -143,7 +143,7 @@ func TestCommentsPost(t *testing.T) {
 		{
 			description: "rejects a comment with invalid review ID",
 			payload: `{
-					"reviewId": "banana",
+					"reviewId": -1,
 					"comment": "Good insights!"
 				}`,
 			sessionToken: makeCommentsTestData().sessions.userA.token,

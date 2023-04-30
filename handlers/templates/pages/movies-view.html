@@ -207,6 +207,10 @@
                   data-comment-id="{{ .ID }}"
                   value="{{ .Comment.String }}"
                 ></comment-form>
+                <delete-comment-form
+                  class="d-none"
+                  data-comment-id="{{ .ID }}"
+                ></delete-comment-form>
               {{ end }}
             {{ end }}
           </div>

@@ -68,6 +68,9 @@
           };
           successEventId = "comment-created";
 
+          this._elements.cancelBtn.addEventListener("click", () => {
+            this._emitCustomEvent("cancel");
+          });
           this._elements.form.addEventListener("submit", (evt) => {
             evt.preventDefault();
 

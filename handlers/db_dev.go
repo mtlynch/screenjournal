@@ -67,10 +67,18 @@ func (s Server) populateDummyData() http.HandlerFunc {
 			Owner:  screenjournal.Username("userB"),
 			Rating: screenjournal.Rating(5),
 			Movie: screenjournal.Movie{
-				ID: screenjournal.MovieID(1),
+				ID:    screenjournal.MovieID(1),
+				Title: screenjournal.MediaTitle("The Waterboy"),
 			},
 			Watched: mustParseWatchDate("2020-10-05T20:18:55-04:00"),
 			Blurb:   screenjournal.Blurb("I love water!"),
+			Comments: []screenjournal.ReviewComment{
+				{
+					ID:          screenjournal.CommentID(1),
+					Owner:       screenjournal.Username("userA"),
+					CommentText: screenjournal.CommentText("You sure do!"),
+				},
+			},
 		},
 	}
 
@@ -91,6 +99,14 @@ func (s Server) populateDummyData() http.HandlerFunc {
 			if _, err := s.getDB(r).InsertReview(review); err != nil {
 				http.Error(w, fmt.Sprintf("Failed to insert review: %v", err), http.StatusInternalServerError)
 				return
+			}
+
+			for _, c := range review.Comments {
+				c.Review = review
+				if _, err := s.getDB(r).InsertComment(c); err != nil {
+					http.Error(w, fmt.Sprintf("Failed to insert comment: %v", err), http.StatusInternalServerError)
+					return
+				}
 			}
 		}
 	}

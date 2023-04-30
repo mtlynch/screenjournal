@@ -31,6 +31,14 @@ var (
 	blurbMaxLength   = 9000
 )
 
+func ReviewID(id uint64) (screenjournal.ReviewID, error) {
+	if id == 0 {
+		return screenjournal.ReviewID(0), ErrInvalidReviewID
+	}
+
+	return screenjournal.ReviewID(id), nil
+}
+
 func ReviewIDFromString(raw string) (screenjournal.ReviewID, error) {
 	id, err := strconv.ParseUint(raw, 10, 64)
 	if err != nil {
@@ -38,11 +46,7 @@ func ReviewIDFromString(raw string) (screenjournal.ReviewID, error) {
 		return screenjournal.ReviewID(0), ErrInvalidReviewID
 	}
 
-	if id == 0 {
-		return screenjournal.ReviewID(0), ErrInvalidReviewID
-	}
-
-	return screenjournal.ReviewID(id), nil
+	return ReviewID(id)
 }
 
 func MediaTitle(raw string) (screenjournal.MediaTitle, error) {

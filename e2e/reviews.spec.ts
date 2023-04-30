@@ -396,6 +396,77 @@ test("views a movie with an existing review and adds a new review", async ({
   await expect(page).toHaveURL("/reviews");
 });
 
+test("adds a comment to an existing review", async ({ page }) => {
+  await page
+    .getByRole("heading", { name: "The Waterboy" })
+    .getByRole("link")
+    .click();
+  await page.locator("comment-form:first");
+  await expect(page).toHaveURL("/movies/1#review1");
+
+  await page
+    .locator(".review", {
+      has: page.getByText("I love water!"),
+    })
+    .locator(".comment-btn")
+    .click();
+
+  await page.keyboard.type("I loved it despite my indifference to water.");
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL("/movies/1#comment2");
+
+  const reviewDiv = await page.locator("#comment2");
+  await expect(reviewDiv.getByRole("link", { name: "userA" })).toBeVisible();
+  await expect(reviewDiv.getByTestId("relative-time")).toHaveText("just now");
+  await expect(reviewDiv.locator("[data-sj-purpose='body']")).toHaveText(
+    "I loved it despite my indifference to water."
+  );
+});
+
+test("removes leading and trailing whitespace from comments", async ({
+  page,
+}) => {
+  await page
+    .getByRole("heading", { name: "The Waterboy" })
+    .getByRole("link")
+    .click();
+  await page.locator("comment-form:first");
+  await expect(page).toHaveURL("/movies/1#review1");
+
+  await page
+    .locator(".review", {
+      has: page.getByText("I love water!"),
+    })
+    .locator(".comment-btn")
+    .click();
+
+  await page.keyboard.press("Enter");
+  await page.keyboard.type("Yes, but can you strip my whitespace?");
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL("/movies/1#comment2");
+
+  const reviewDiv = await page.locator("#comment2");
+  await expect(reviewDiv.getByRole("link", { name: "userA" })).toBeVisible();
+  await expect(reviewDiv.getByTestId("relative-time")).toHaveText("just now");
+  await expect(reviewDiv.locator("[data-sj-purpose='body']")).toHaveText(
+    "Yes, but can you strip my whitespace?",
+    { useInnerText: true }
+  );
+  await expect(
+    // Strip leading whitespace from each line in inner HTML.
+    (
+      await reviewDiv.locator("[data-sj-purpose='body']").innerHTML()
+    ).replace(/^\s+/gm, "")
+  ).toEqual(
+    `
+    Yes, but can you strip my whitespace?<br>
+`.trimStart()
+  );
+});
+
 test("views reviews filtered by user", async ({ page }) => {
   await page
     .locator(".card", {

@@ -146,10 +146,12 @@ func (s Server) reviewsGet() http.HandlerFunc {
 		if err := renderTemplate(w, "reviews-index.html", struct {
 			commonProps
 			Reviews          []screenjournal.Review
+			CollectionOwner  *screenjournal.Username
 			UserCanAddReview bool
 		}{
 			commonProps:      makeCommonProps(title, r.Context()),
 			Reviews:          reviews,
+			CollectionOwner:  collectionOwner,
 			UserCanAddReview: collectionOwner == nil || collectionOwner.Equal(usernameFromContext(r.Context())),
 		}, template.FuncMap{
 			"relativeWatchDate": relativeWatchDate,

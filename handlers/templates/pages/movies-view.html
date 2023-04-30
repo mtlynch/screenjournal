@@ -204,7 +204,7 @@
                   >
                 </p>
                 <p class="mb-0" data-sj-purpose="body">
-                  {{ range .Comment.String | splitByNewline }}
+                  {{ range .CommentText.String | splitByNewline }}
                     {{ . }}<br />
                   {{ end }}
                 </p>
@@ -221,7 +221,7 @@
                 <comment-form
                   class="d-none"
                   data-comment-id="{{ .ID }}"
-                  value="{{ .Comment.String }}"
+                  value="{{ .CommentText.String }}"
                 ></comment-form>
                 <delete-comment-form
                   class="d-none"

@@ -74,9 +74,9 @@ func (s Server) populateDummyData() http.HandlerFunc {
 			Blurb:   screenjournal.Blurb("I love water!"),
 			Comments: []screenjournal.ReviewComment{
 				{
-					ID:      screenjournal.CommentID(1),
-					Owner:   screenjournal.Username("userA"),
-					Comment: screenjournal.Comment("You sure do!"),
+					ID:          screenjournal.CommentID(1),
+					Owner:       screenjournal.Username("userA"),
+					CommentText: screenjournal.CommentText("You sure do!"),
 				},
 			},
 		},

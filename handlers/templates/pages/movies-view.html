@@ -28,8 +28,6 @@
   <script type="module" nonce="{{ .CspNonce }}">
     import { hideElement, showElement } from "/js/lib/bootstrap.js";
 
-    import { commentDelete } from "/js/controllers/comments.js";
-
     document.addEventListener(
       "DOMContentLoaded",
       function () {
@@ -98,7 +96,17 @@
               .querySelector("[data-sj-purpose='delete']")
               .addEventListener("click", (evt) => {
                 evt.preventDefault();
-                commentDelete(commentId).then(() => {
+
+                const commentDeleteForm =
+                  commentDiv.parentElement.querySelector(
+                    `delete-comment-form[data-comment-id="${commentId}"]`
+                  );
+
+                commentDeleteForm.addEventListener("cancel", (evt) => {
+                  commentDiv.classList.remove("bg-danger");
+                  hideElement(commentDeleteForm);
+                });
+                commentDeleteForm.addEventListener("delete", (evt) => {
                   const reviewId = parseInt(
                     commentDiv
                       .closest("[data-review-id]")
@@ -107,6 +115,9 @@
                   document.location.hash = "#review" + reviewId;
                   document.location.reload();
                 });
+
+                showElement(commentDeleteForm);
+                commentDiv.classList.add("bg-danger");
               });
           });
       },
@@ -117,6 +128,7 @@
 
 {{ define "custom-elements" }}
   {{ template "comment-form.html" . }}
+  {{ template "delete-comment-form.html" . }}
 {{ end }}
 
 {{ define "content" }}

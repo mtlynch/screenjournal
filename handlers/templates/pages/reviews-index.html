@@ -25,6 +25,13 @@
 
   {{ $loggedInUsername := .LoggedInUsername }}
 
+  {{ if .CollectionOwner }}
+    <p data-testid="collection-count">
+      {{ .CollectionOwner.String }} has reviewed
+      <b>{{ len .Reviews }}</b> movies
+    </p>
+  {{ end }}
+
 
   <div class="row row-cols-1 row-cols-md-3 g-4">
     {{ range .Reviews }}
@@ -45,8 +52,14 @@
               <a href="{{ $reviewRoute }}">{{ .Movie.Title }}</a>
             </h5>
             <h6 class="card-subtitle mb-2 text-muted">
-              <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> watched
-              this
+              <b
+                ><a
+                  href="/reviews/by/{{ .Owner }}"
+                  data-testid="reviews-by-user"
+                  >{{ .Owner }}</a
+                ></b
+              >
+              watched this
               <span
                 data-testid="watch-date"
                 title="{{ formatWatchDate .Watched }}"

@@ -534,10 +534,8 @@ test("removes leading and trailing whitespace from comments", async ({
     .click();
 
   await page.keyboard.press("Enter");
-  await page.keyboard.press("Space");
-  await page.keyboard.type("  Yes, but can you strip my whitespace?   ");
+  await page.keyboard.type("Yes, but can you strip my whitespace?");
   await page.keyboard.press("Enter");
-  await page.keyboard.press("Space");
   await page.keyboard.press("Tab");
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL("/movies/1#comment2");
@@ -549,9 +547,17 @@ test("removes leading and trailing whitespace from comments", async ({
     "Yes, but can you strip my whitespace?",
     { useInnerText: true }
   );
+  await expect(
+    // Strip leading whitespace from each line in inner HTML.
+    (
+      await reviewDiv.locator("[data-sj-purpose='body']").innerHTML()
+    ).replace(/^\s+/gm, "")
+  ).toEqual(
+    `
+    Yes, but can you strip my whitespace?<br>
+`.trimStart()
+  );
 });
-
-// TODO: Make a comment with quotes and line breaks, and edit it
 
 test("views reviews filtered by user", async ({ page }) => {
   await page

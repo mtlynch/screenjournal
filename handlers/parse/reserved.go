@@ -1,9 +1,13 @@
 package parse
 
-var reservedWords = []string{"undefined", "null", "root", "admin", "add", "edit", "delete", "copy"}
+var reservedWords = []string{"undefined", "null"}
 
 func isReservedWord(s string) bool {
-	for _, w := range reservedWords {
+	return isWordInSlice(s, reservedWords)
+}
+
+func isWordInSlice(s string, ss []string) bool {
+	for _, w := range ss {
 		if s == w {
 			return true
 		}

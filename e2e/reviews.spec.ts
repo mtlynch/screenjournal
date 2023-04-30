@@ -395,3 +395,22 @@ test("views a movie with an existing review and adds a new review", async ({
 
   await expect(page).toHaveURL("/reviews");
 });
+
+test("views reviews filtered by user", async ({ page }) => {
+  await page
+    .locator(".card", {
+      has: page.getByRole("heading", { name: "The Waterboy" }),
+    })
+    .getByTestId("reviews-by-user")
+    .click();
+
+  await expect(page).toHaveURL("/reviews/by/userB");
+
+  await expect(
+    page.getByRole("heading", { name: "userB's ratings" })
+  ).toBeVisible();
+
+  await expect(page.getByTestId("collection-count")).toHaveText(
+    "userB has reviewed 1 movies"
+  );
+});

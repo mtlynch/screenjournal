@@ -30,25 +30,25 @@ func CommentID(raw string) (screenjournal.CommentID, error) {
 	return screenjournal.CommentID(id), nil
 }
 
-func Comment(comment string) (screenjournal.Comment, error) {
+func CommentText(comment string) (screenjournal.CommentText, error) {
 	if strings.TrimSpace(comment) != comment {
-		return screenjournal.Comment(""), ErrInvalidComment
+		return screenjournal.CommentText(""), ErrInvalidComment
 	}
 
 	if len(comment) > commentMaxLength {
-		return screenjournal.Comment(""), ErrInvalidComment
+		return screenjournal.CommentText(""), ErrInvalidComment
 	}
 
 	if isReservedWord(comment) {
-		return screenjournal.Comment(""), ErrInvalidComment
+		return screenjournal.CommentText(""), ErrInvalidComment
 	}
 	if len(comment) < 1 {
-		return screenjournal.Comment(""), ErrInvalidComment
+		return screenjournal.CommentText(""), ErrInvalidComment
 	}
 
 	if scriptTagPattern.FindString(comment) != "" {
-		return screenjournal.Comment(""), ErrInvalidComment
+		return screenjournal.CommentText(""), ErrInvalidComment
 	}
 
-	return screenjournal.Comment(comment), nil
+	return screenjournal.CommentText(comment), nil
 }

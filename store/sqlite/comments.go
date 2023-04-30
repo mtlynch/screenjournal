@@ -86,7 +86,7 @@ func (db DB) InsertComment(rc screenjournal.ReviewComment) (screenjournal.Commen
 	`,
 		rc.Review.ID,
 		rc.Owner,
-		rc.Comment,
+		rc.CommentText,
 		formatTime(now),
 		formatTime(now))
 	if err != nil {
@@ -112,7 +112,7 @@ func (db DB) UpdateComment(rc screenjournal.ReviewComment) error {
 		WHERE
 			id = ?;
 		`,
-		rc.Comment.String(),
+		rc.CommentText.String(),
 		formatTime(time.Now()),
 		rc.ID.UInt64())
 	if err != nil {
@@ -156,10 +156,10 @@ func reviewCommentFromRow(row rowScanner) (screenjournal.ReviewComment, error) {
 	}
 
 	return screenjournal.ReviewComment{
-		ID:       screenjournal.CommentID(id),
-		Owner:    screenjournal.Username(owner),
-		Comment:  screenjournal.Comment(comment),
-		Created:  ct,
-		Modified: lmt,
+		ID:          screenjournal.CommentID(id),
+		Owner:       screenjournal.Username(owner),
+		CommentText: screenjournal.CommentText(comment),
+		Created:     ct,
+		Modified:    lmt,
 	}, nil
 }

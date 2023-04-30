@@ -25,12 +25,12 @@ type (
 	}
 
 	ReviewComment struct {
-		ID       CommentID
-		Owner    Username
-		Comment  Comment
-		Created  time.Time
-		Modified time.Time
-		Review   Review
+		ID          CommentID
+		Owner       Username
+		CommentText CommentText
+		Created     time.Time
+		Modified    time.Time
+		Review      Review
 	}
 )
 

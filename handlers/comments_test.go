@@ -69,9 +69,9 @@ func TestCommentsPost(t *testing.T) {
 			},
 			expectedComments: []screenjournal.ReviewComment{
 				{
-					ID:      screenjournal.CommentID(1),
-					Owner:   screenjournal.Username("userA"),
-					Comment: screenjournal.Comment("Good insights!"),
+					ID:          screenjournal.CommentID(1),
+					Owner:       screenjournal.Username("userA"),
+					CommentText: screenjournal.CommentText("Good insights!"),
 					Review: screenjournal.Review{
 						ID:     screenjournal.ReviewID(1),
 						Owner:  screenjournal.Username("userB"),

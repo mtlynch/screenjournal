@@ -12,13 +12,13 @@ import (
 )
 
 type commentPostRequest struct {
-	ReviewID screenjournal.ReviewID
-	Comment  screenjournal.Comment
+	ReviewID    screenjournal.ReviewID
+	CommentText screenjournal.CommentText
 }
 
 type commentPutRequest struct {
-	CommentID screenjournal.CommentID
-	Comment   screenjournal.Comment
+	CommentID   screenjournal.CommentID
+	CommentText screenjournal.CommentText
 }
 
 func (s Server) commentsPost() http.HandlerFunc {
@@ -39,9 +39,9 @@ func (s Server) commentsPost() http.HandlerFunc {
 		}
 
 		rc := screenjournal.ReviewComment{
-			Review:  review,
-			Owner:   mustGetUserFromContext(r.Context()).Username,
-			Comment: req.Comment,
+			Review:      review,
+			Owner:       mustGetUserFromContext(r.Context()).Username,
+			CommentText: req.CommentText,
 		}
 
 		rc.ID, err = s.getDB(r).InsertComment(rc)
@@ -83,7 +83,7 @@ func (s Server) commentsPut() http.HandlerFunc {
 			return
 		}
 
-		rc.Comment = req.Comment
+		rc.CommentText = req.CommentText
 		if err := s.getDB(r).UpdateComment(rc); err != nil {
 			log.Printf("failed to update comment: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to update comment: %v", err), http.StatusInternalServerError)
@@ -123,14 +123,14 @@ func newCommentFromRequest(r *http.Request) (commentPostRequest, error) {
 		return commentPostRequest{}, err
 	}
 
-	comment, err := parse.Comment(payload.Comment)
+	comment, err := parse.CommentText(payload.Comment)
 	if err != nil {
 		return commentPostRequest{}, err
 	}
 
 	return commentPostRequest{
-		ReviewID: rid,
-		Comment:  comment,
+		ReviewID:    rid,
+		CommentText: comment,
 	}, nil
 }
 
@@ -148,13 +148,13 @@ func commentFromPutRequest(r *http.Request) (commentPutRequest, error) {
 		return commentPutRequest{}, err
 	}
 
-	comment, err := parse.Comment(payload.Comment)
+	comment, err := parse.CommentText(payload.Comment)
 	if err != nil {
 		return commentPutRequest{}, err
 	}
 
 	return commentPutRequest{
-		CommentID: cid,
-		Comment:   comment,
+		CommentID:   cid,
+		CommentText: comment,
 	}, nil
 }

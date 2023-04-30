@@ -194,8 +194,11 @@
                 </p>
 
                 {{ if (eq .Owner $loggedInUsername) }}
-                  <a href="#" data-sj-purpose="edit">Edit</a>
-                  <a href="#" data-sj-purpose="delete">Delete</a>
+                  <div class="mt-3 small">
+                    <a href="#" data-sj-purpose="edit">Edit</a>
+                    &bull;
+                    <a href="#" data-sj-purpose="delete">Delete</a>
+                  </div>
                 {{ end }}
               </div>
               {{ if (eq .Owner $loggedInUsername) }}

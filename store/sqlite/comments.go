@@ -93,7 +93,7 @@ func reviewCommentFromRow(row rowScanner) (screenjournal.ReviewComment, error) {
 
 	err := row.Scan(&id, &owner, &comment, &createdTimeRaw, &lastModifiedTimeRaw)
 	if err == sql.ErrNoRows {
-		return screenjournal.ReviewComment{}, store.ErrReviewNotFound
+		return screenjournal.ReviewComment{}, store.ErrCommentNotFound
 	} else if err != nil {
 		return screenjournal.ReviewComment{}, err
 	}

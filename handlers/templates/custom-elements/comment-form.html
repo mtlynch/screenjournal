@@ -40,7 +40,7 @@
   } from "/js/lib/bootstrap.js";
   import { disableElement, enableElement } from "/js/lib/ui.js";
 
-  import { commentPost, commentPut } from "/js/controllers/comments.js";
+  import { commentPost } from "/js/controllers/comments.js";
   (function () {
     const template = document.querySelector("#comment-form-template");
 
@@ -63,7 +63,6 @@
           let onSubmit = null;
           let successEventId = null;
           this._elements.submitBtn = this.shadowRoot.getElementById("post-btn");
-          hideElement(this.shadowRoot.getElementById("save-btn"));
           onSubmit = () => {
             return commentPost(this.reviewId, this._elements.commentBody.value);
           };

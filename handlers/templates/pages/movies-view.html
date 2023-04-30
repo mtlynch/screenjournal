@@ -80,6 +80,10 @@
                   `comment-form[data-comment-id="${commentId}"]`
                 );
 
+                commentEditForm.addEventListener("cancel", (evt) => {
+                  hideElement(commentEditForm);
+                  showElement(commentDiv);
+                });
                 commentEditForm.addEventListener("comment-updated", (evt) => {
                   window.location.hash = "#comment" + commentId;
                   // We need to reload to re-render the page with the updated

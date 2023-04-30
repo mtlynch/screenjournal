@@ -411,7 +411,7 @@ test("adds a comment to an existing review", async ({ page }) => {
     .locator(".comment-btn")
     .click();
 
-  await page.keyboard.type("You sure do!");
+  await page.keyboard.type("I loved it despite my indifference to water.");
   await page.keyboard.press("Tab");
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL("/movies/1#comment2");
@@ -420,8 +420,100 @@ test("adds a comment to an existing review", async ({ page }) => {
   await expect(reviewDiv.getByRole("link", { name: "userA" })).toBeVisible();
   await expect(reviewDiv.getByTestId("relative-time")).toHaveText("just now");
   await expect(reviewDiv.locator("[data-sj-purpose='body']")).toHaveText(
-    "You sure do!"
+    "I loved it despite my indifference to water."
   );
+});
+
+test("adds, edits, and deletes a comment on an existing review", async ({
+  page,
+}) => {
+  await page
+    .getByRole("heading", { name: "The Waterboy" })
+    .getByRole("link")
+    .click();
+  await page.locator("comment-form:first");
+
+  // Use a separate scope for variables on the current page.
+  {
+    await expect(page).toHaveURL("/movies/1#review1");
+    const reviewDiv = await page.locator(".review", {
+      has: page.getByText("I love water!"),
+    });
+    await reviewDiv.locator(".comment-btn").click();
+
+    await page.keyboard.type("We must ask ourselves...");
+    await page.keyboard.press("Enter");
+    await page.keyboard.press("Enter");
+    await page.keyboard.type(`What is "movie?"`);
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL("/movies/1#comment2");
+
+    const commentDiv = await page.locator("#comment2");
+    await expect(commentDiv.getByRole("link", { name: "userA" })).toBeVisible();
+    await expect(commentDiv.getByTestId("relative-time")).toHaveText(
+      "just now"
+    );
+    await expect(
+      // Strip leading whitespace from each line in inner HTML.
+      (
+        await commentDiv.locator("[data-sj-purpose='body']").innerHTML()
+      ).replace(/^\s+/gm, "")
+    ).toEqual(
+      `
+We must ask ourselves...<br>
+<br>
+What is "movie?"<br>
+`.trimStart()
+    );
+
+    await commentDiv.locator("[data-sj-purpose='edit']").click();
+
+    // Select all in text field, and delete it.
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+
+    await page.keyboard.type("Actually, I thought this was meh.");
+    await reviewDiv
+      .locator("comment-form")
+      .getByRole("button", { name: "Save" })
+      .click();
+  }
+
+  // Use a separate scope for variables on the current page.
+  {
+    await expect(page).toHaveURL("/movies/1#comment2");
+    await expect(page.locator("#comment2 [data-sj-purpose='body']")).toHaveText(
+      "Actually, I thought this was meh."
+    );
+
+    const commentDiv = await page.locator("#comment2");
+
+    // Start to delete but then cancel.
+    await commentDiv.locator("[data-sj-purpose='delete']").click();
+    await expect(
+      page.locator("delete-comment-form[data-comment-id='2']")
+    ).toBeVisible();
+    await page
+      .locator("delete-comment-form[data-comment-id='2'] #cancel-btn")
+      .click();
+    await expect(
+      page.locator("delete-comment-form[data-comment-id='2']")
+    ).not.toBeVisible();
+
+    // Delete for real.
+    await commentDiv.locator("[data-sj-purpose='delete']").click();
+    await expect(
+      page.locator("delete-comment-form[data-comment-id='2']")
+    ).toBeVisible();
+    await page
+      .locator("delete-comment-form[data-comment-id='2'] #delete-btn")
+      .click();
+  }
+
+  // Verify comment2 is deleted.
+  await expect(page).toHaveURL("/movies/1#review1");
+  await expect(await page.locator("#comment2").count()).toBe(0);
 });
 
 test("removes leading and trailing whitespace from comments", async ({

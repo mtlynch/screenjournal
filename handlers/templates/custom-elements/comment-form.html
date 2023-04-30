@@ -70,9 +70,10 @@
           let successEventId = null;
           const value = this.getAttribute("value");
           if (value !== null) {
+            // Comment exists, so this is an edit form.
             this._elements.submitBtn =
-              this.shadowRoot.getElementById("post-btn");
-            hideElement(this.shadowRoot.getElementById("save-btn"));
+              this.shadowRoot.getElementById("save-btn");
+            hideElement(this.shadowRoot.getElementById("post-btn"));
             this._elements.commentBody.value = value;
             onSubmit = () => {
               return commentPut(
@@ -82,9 +83,10 @@
             };
             successEventId = "comment-updated";
           } else {
+            // Comment exists, so this is a new comment form.
             this._elements.submitBtn =
-              this.shadowRoot.getElementById("save-btn");
-            hideElement(this.shadowRoot.getElementById("post-btn"));
+              this.shadowRoot.getElementById("post-btn");
+            hideElement(this.shadowRoot.getElementById("save-btn"));
             onSubmit = () => {
               return commentPost(
                 this.reviewId,

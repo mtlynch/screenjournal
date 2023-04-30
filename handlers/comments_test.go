@@ -307,6 +307,44 @@ func TestCommentsPut(t *testing.T) {
 			status: http.StatusNotFound,
 		},
 		{
+			description:  "prevents a user from updating with invalid JSON",
+			route:        "/api/comments/1",
+			payload:      `{banana`,
+			sessionToken: makeCommentsTestData().sessions.userA.token,
+			sessions: []mockSession{
+				makeCommentsTestData().sessions.userA,
+			},
+			comments: []screenjournal.ReviewComment{
+				{
+					ID:          screenjournal.CommentID(1),
+					Owner:       makeCommentsTestData().users.userA.Username,
+					CommentText: screenjournal.CommentText("Good insights!"),
+					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
+				},
+			},
+			status: http.StatusBadRequest,
+		},
+		{
+			description: "prevents a user from updating an invalid comment ID",
+			route:       "/api/comments/banana",
+			payload: `{
+					"comment": "So-so insights"
+				}`,
+			sessionToken: makeCommentsTestData().sessions.userA.token,
+			sessions: []mockSession{
+				makeCommentsTestData().sessions.userA,
+			},
+			comments: []screenjournal.ReviewComment{
+				{
+					ID:          screenjournal.CommentID(1),
+					Owner:       makeCommentsTestData().users.userA.Username,
+					CommentText: screenjournal.CommentText("Good insights!"),
+					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
+				},
+			},
+			status: http.StatusBadRequest,
+		},
+		{
 			description: "prevents a user from updating their comment with invalid content",
 			route:       "/api/comments/1",
 			payload: `{
@@ -470,6 +508,23 @@ func TestCommentsDelete(t *testing.T) {
 				},
 			},
 			status: http.StatusNotFound,
+		},
+		{
+			description:  "prevents a user from deleting an invalid comment ID",
+			route:        "/api/comments/banana",
+			sessionToken: makeCommentsTestData().sessions.userA.token,
+			sessions: []mockSession{
+				makeCommentsTestData().sessions.userA,
+			},
+			comments: []screenjournal.ReviewComment{
+				{
+					ID:          screenjournal.CommentID(1),
+					Owner:       makeCommentsTestData().users.userA.Username,
+					CommentText: screenjournal.CommentText("Good insights!"),
+					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
+				},
+			},
+			status: http.StatusBadRequest,
 		},
 		{
 			description:  "prevents a user from deleting someone else's comment",

@@ -403,14 +403,21 @@ test("adds a comment to an existing review", async ({ page }) => {
     .click();
   await page.locator("comment-form:first");
   await expect(page).toHaveURL("/movies/1#review1");
-  await page.locator("#comment-btn").click();
+
+  await page
+    .locator(".review", {
+      has: page.getByText("I love water!"),
+    })
+    .locator(".comment-btn")
+    .click();
+
   await page.keyboard.type("You sure do!");
   await page.keyboard.press("Tab");
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL("/movies/1#comment2");
 
   const reviewDiv = await page.locator("#comment2");
-  await expect(reviewDiv.getByRole("link")).toHaveText("userA");
+  await expect(reviewDiv.getByRole("link", { name: "userA" })).toBeVisible();
   await expect(reviewDiv.getByTestId("relative-time")).toHaveText("just now");
   await expect(reviewDiv.locator("[data-sj-purpose='body']")).toHaveText(
     "You sure do!"
@@ -426,7 +433,13 @@ test("removes leading and trailing whitespace from comments", async ({
     .click();
   await page.locator("comment-form:first");
   await expect(page).toHaveURL("/movies/1#review1");
-  await page.locator("#comment-btn").click();
+
+  await page
+    .locator(".review", {
+      has: page.getByText("I love water!"),
+    })
+    .locator(".comment-btn")
+    .click();
 
   await page.keyboard.press("Enter");
   await page.keyboard.press("Space");
@@ -438,7 +451,7 @@ test("removes leading and trailing whitespace from comments", async ({
   await expect(page).toHaveURL("/movies/1#comment2");
 
   const reviewDiv = await page.locator("#comment2");
-  await expect(reviewDiv.getByRole("link")).toHaveText("userA");
+  await expect(reviewDiv.getByRole("link", { name: "userA" })).toBeVisible();
   await expect(reviewDiv.getByTestId("relative-time")).toHaveText("just now");
   await expect(reviewDiv.locator("[data-sj-purpose='body']")).toHaveText(
     "Yes, but can you strip my whitespace?",

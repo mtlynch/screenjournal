@@ -17,6 +17,52 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
+type commentsTestData struct {
+	users struct {
+		userA screenjournal.User
+		userB screenjournal.User
+	}
+	sessions struct {
+		userA mockSession
+	}
+	movies struct {
+		theWaterBoy screenjournal.Movie
+	}
+	reviews struct {
+		userBTheWaterBoy screenjournal.Review
+	}
+}
+
+func makeCommentsTestData() commentsTestData {
+	td := commentsTestData{}
+	td.users.userA = screenjournal.User{
+		Username: screenjournal.Username("userA"),
+	}
+	td.sessions.userA = mockSession{
+		token: "abc123",
+		session: sessions.Session{
+			User: td.users.userA,
+		},
+	}
+	td.users.userB = screenjournal.User{
+		Username: screenjournal.Username("userB"),
+	}
+	td.movies.theWaterBoy = screenjournal.Movie{
+		ID:          screenjournal.MovieID(1),
+		Title:       screenjournal.MediaTitle("The Waterboy"),
+		ReleaseDate: mustParseReleaseDate("1998-11-06"),
+	}
+	td.reviews.userBTheWaterBoy = screenjournal.Review{
+		ID:      screenjournal.ReviewID(1),
+		Owner:   td.users.userB.Username,
+		Rating:  screenjournal.Rating(5),
+		Movie:   td.movies.theWaterBoy,
+		Watched: mustParseWatchDate("2020-10-05T20:18:55-04:00"),
+		Blurb:   screenjournal.Blurb("I love water!"),
+	}
+	return td
+}
+
 func TestCommentsPost(t *testing.T) {
 	for _, tt := range []struct {
 		description      string
@@ -25,108 +71,71 @@ func TestCommentsPost(t *testing.T) {
 		sessions         []mockSession
 		movies           []screenjournal.Movie
 		reviews          []screenjournal.Review
-		expectedComments []screenjournal.ReviewComment
 		status           int
+		expectedComments []screenjournal.ReviewComment
 	}{
-		// TODO: Refactor this. With builder pattern?
 		{
 			description: "allows user to comment on an existing review",
-
 			payload: `{
 					"reviewId": 1,
 					"comment": "Good insights!"
 				}`,
-			sessionToken: "abc123",
+			sessionToken: makeCommentsTestData().sessions.userA.token,
 			sessions: []mockSession{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
-						},
-					},
-				},
+				makeCommentsTestData().sessions.userA,
 			},
 			movies: []screenjournal.Movie{
-				{
-					ID:          screenjournal.MovieID(1),
-					Title:       screenjournal.MediaTitle("The Waterboy"),
-					ReleaseDate: mustParseReleaseDate("1998-11-06"),
-				},
+				makeCommentsTestData().movies.theWaterBoy,
 			},
 			reviews: []screenjournal.Review{
-				{
-					ID:     screenjournal.ReviewID(1),
-					Owner:  screenjournal.Username("userB"),
-					Rating: screenjournal.Rating(5),
-					Movie: screenjournal.Movie{
-						ID:    screenjournal.MovieID(1),
-						Title: screenjournal.MediaTitle("The Waterboy"),
-					},
-					Watched: mustParseWatchDate("2020-10-05T20:18:55-04:00"),
-					Blurb:   screenjournal.Blurb("I love water!"),
-				},
+				makeCommentsTestData().reviews.userBTheWaterBoy,
 			},
+			status: http.StatusOK,
 			expectedComments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
-					Owner:       screenjournal.Username("userA"),
+					Owner:       makeCommentsTestData().users.userA.Username,
 					CommentText: screenjournal.CommentText("Good insights!"),
-					Review: screenjournal.Review{
-						ID:     screenjournal.ReviewID(1),
-						Owner:  screenjournal.Username("userB"),
-						Rating: screenjournal.Rating(5),
-						Movie: screenjournal.Movie{
-							ID:          screenjournal.MovieID(1),
-							Title:       screenjournal.MediaTitle("The Waterboy"),
-							ReleaseDate: mustParseReleaseDate("1998-11-06"),
-						},
-						Watched: mustParseWatchDate("2020-10-05T20:18:55-04:00"),
-						Blurb:   screenjournal.Blurb("I love water!"),
-					},
+					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
 				},
 			},
-			status: http.StatusOK,
 		},
 		{
-			description: "allows user to comment on an existing review",
+			description: "rejects a comment with invalid content",
 			payload: `{
-					"reviewId": 105,
-					"comment": "Good insights!"
+					"reviewId": 1,
+					"comment": "<script>alert(1)</script>"
 				}`,
-			sessionToken: "abc123",
+			sessionToken: makeCommentsTestData().sessions.userA.token,
 			sessions: []mockSession{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
-						},
-					},
-				},
+				makeCommentsTestData().sessions.userA,
 			},
 			movies: []screenjournal.Movie{
-				{
-					ID:          screenjournal.MovieID(1),
-					Title:       screenjournal.MediaTitle("The Waterboy"),
-					ReleaseDate: mustParseReleaseDate("1998-11-06"),
-				},
+				makeCommentsTestData().movies.theWaterBoy,
 			},
 			reviews: []screenjournal.Review{
-				{
-					ID:     screenjournal.ReviewID(1),
-					Owner:  screenjournal.Username("userB"),
-					Rating: screenjournal.Rating(5),
-					Movie: screenjournal.Movie{
-						ID:    screenjournal.MovieID(1),
-						Title: screenjournal.MediaTitle("The Waterboy"),
-					},
-					Watched: mustParseWatchDate("2020-10-05T20:18:55-04:00"),
-					Blurb:   screenjournal.Blurb("I love water!"),
-				},
+				makeCommentsTestData().reviews.userBTheWaterBoy,
 			},
-			expectedComments: []screenjournal.ReviewComment{},
+			status: http.StatusBadRequest,
+		},
+		{
+			description: "returns 404 if user attempts to comment on non-existent review",
+			payload: `{
+					"reviewId": 999,
+					"comment": "Good insights!"
+				}`,
+			sessionToken: makeCommentsTestData().sessions.userA.token,
+			sessions: []mockSession{
+				makeCommentsTestData().sessions.userA,
+			},
+			movies: []screenjournal.Movie{
+				makeCommentsTestData().movies.theWaterBoy,
+			},
+			reviews: []screenjournal.Review{
+				makeCommentsTestData().reviews.userBTheWaterBoy,
+			},
 			status:           http.StatusNotFound,
+			expectedComments: []screenjournal.ReviewComment{},
 		},
 		{
 			description: "rejects comment update if user is not authenticated",
@@ -135,8 +144,10 @@ func TestCommentsPost(t *testing.T) {
 					"comment": "I haven't logged in, but I'm commenting anyway!"
 				}`,
 			sessionToken: "dummy-invalid-token",
-			sessions:     []mockSession{},
-			status:       http.StatusUnauthorized,
+			sessions: []mockSession{
+				makeCommentsTestData().sessions.userA,
+			},
+			status: http.StatusUnauthorized,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {

@@ -254,6 +254,26 @@ func TestCommentsPut(t *testing.T) {
 			},
 		},
 		{
+			description: "prevents a user from updating a non-existent comment",
+			route:       "/api/comments/999",
+			payload: `{
+					"comment": "So-so insights"
+				}`,
+			sessionToken: makeCommentsTestData().sessions.userA.token,
+			sessions: []mockSession{
+				makeCommentsTestData().sessions.userA,
+			},
+			comments: []screenjournal.ReviewComment{
+				{
+					ID:          screenjournal.CommentID(1),
+					Owner:       makeCommentsTestData().users.userA.Username,
+					CommentText: screenjournal.CommentText("Good insights!"),
+					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
+				},
+			},
+			status: http.StatusNotFound,
+		},
+		{
 			description: "prevents a user from updating their comment with invalid content",
 			route:       "/api/comments/1",
 			payload: `{
@@ -342,6 +362,145 @@ func TestCommentsPut(t *testing.T) {
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, nilMetadataFinder)
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "text/json")
+			req.AddCookie(&http.Cookie{
+				Name:  "token",
+				Value: tt.sessionToken,
+			})
+
+			w := httptest.NewRecorder()
+			s.Router().ServeHTTP(w, req)
+
+			if got, want := w.Code, tt.status; got != want {
+				t.Fatalf("httpStatus=%v, want=%v", got, want)
+			}
+
+			if tt.status != http.StatusOK {
+				return
+			}
+
+			comments, err := store.ReadComments(screenjournal.ReviewID(1))
+			if err != nil {
+				t.Fatalf("failed to read comments from datastore: %v", err)
+			}
+			if got, want := comments, tt.expectedComments; !reviewCommentsEqual(got, want) {
+				t.Errorf("comments=%+v, got=%+v", got, want)
+			}
+		})
+	}
+}
+
+func TestCommentsDelete(t *testing.T) {
+	for _, tt := range []struct {
+		description      string
+		route            string
+		sessionToken     string
+		sessions         []mockSession
+		comments         []screenjournal.ReviewComment
+		status           int
+		expectedComments []screenjournal.ReviewComment
+	}{
+		{
+			description:  "allows a user to delete their own comment",
+			route:        "/api/comments/1",
+			sessionToken: makeCommentsTestData().sessions.userA.token,
+			sessions: []mockSession{
+				makeCommentsTestData().sessions.userA,
+			},
+			comments: []screenjournal.ReviewComment{
+				{
+					ID:          screenjournal.CommentID(1),
+					Owner:       makeCommentsTestData().users.userA.Username,
+					CommentText: screenjournal.CommentText("Good insights!"),
+					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
+				},
+			},
+			status:           http.StatusOK,
+			expectedComments: []screenjournal.ReviewComment{},
+		},
+		{
+			description:  "prevents a user from deleting a non-existent comment",
+			route:        "/api/comments/999",
+			sessionToken: makeCommentsTestData().sessions.userA.token,
+			sessions: []mockSession{
+				makeCommentsTestData().sessions.userA,
+			},
+			comments: []screenjournal.ReviewComment{
+				{
+					ID:          screenjournal.CommentID(1),
+					Owner:       makeCommentsTestData().users.userA.Username,
+					CommentText: screenjournal.CommentText("Good insights!"),
+					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
+				},
+			},
+			status: http.StatusNotFound,
+		},
+		{
+			description:  "prevents a user from deleting someone else's comment",
+			route:        "/api/comments/1",
+			sessionToken: makeCommentsTestData().sessions.userB.token,
+			sessions: []mockSession{
+				makeCommentsTestData().sessions.userB,
+			},
+			comments: []screenjournal.ReviewComment{
+				{
+					ID:          screenjournal.CommentID(1),
+					Owner:       makeCommentsTestData().users.userA.Username,
+					CommentText: screenjournal.CommentText("Good insights!"),
+					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
+				},
+			},
+			status: http.StatusForbidden,
+		},
+		{
+			description:  "prevents an unauthenticated user from deleting any comment",
+			route:        "/api/comments/1",
+			sessionToken: "",
+			sessions: []mockSession{
+				makeCommentsTestData().sessions.userB,
+			},
+			comments: []screenjournal.ReviewComment{
+				{
+					ID:          screenjournal.CommentID(1),
+					Owner:       makeCommentsTestData().users.userA.Username,
+					CommentText: screenjournal.CommentText("Good insights!"),
+					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
+				},
+			},
+			status: http.StatusUnauthorized,
+		},
+	} {
+		t.Run(tt.description, func(t *testing.T) {
+			store := test_sqlite.New()
+
+			// Populate datastore with dummy users.
+			for _, s := range tt.sessions {
+				store.InsertUser(s.session.User)
+			}
+
+			if _, err := store.InsertMovie(makeCommentsTestData().movies.theWaterBoy); err != nil {
+				panic(err)
+			}
+
+			if _, err := store.InsertReview(makeCommentsTestData().reviews.userBTheWaterBoy); err != nil {
+				panic(err)
+			}
+			for _, comment := range tt.comments {
+				if _, err := store.InsertComment(comment); err != nil {
+					panic(err)
+				}
+			}
+
+			authenticator := simple.New(store)
+			var nilMetadataFinder metadata.Finder
+			sessionManager := newMockSessionManager(tt.sessions)
+
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, nilMetadataFinder)
+
+			req, err := http.NewRequest("DELETE", tt.route, strings.NewReader(""))
 			if err != nil {
 				t.Fatal(err)
 			}

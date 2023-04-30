@@ -98,6 +98,20 @@ func (s Server) commentsDelete() http.HandlerFunc {
 			return
 		}
 
+		rc, err := s.getDB(r).ReadComment(cid)
+		if err == store.ErrCommentNotFound {
+			http.Error(w, "Comment not found", http.StatusNotFound)
+			return
+		} else if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to read comment: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		if mustGetUserFromContext(r.Context()).Username != rc.Owner {
+			http.Error(w, "Can't delete another user's comment", http.StatusForbidden)
+			return
+		}
+
 		if err := s.getDB(r).DeleteComment(cid); err != nil {
 			log.Printf("failed to delete comment id=%v: %v", cid, err)
 			http.Error(w, "Failed to delete comment: %v", http.StatusInternalServerError)

@@ -33,13 +33,11 @@ func (s Server) commentsPost() http.HandlerFunc {
 			return
 		}
 
-		rc := screenjournal.ReviewComment{
+		id, err := s.getDB(r).InsertComment(screenjournal.ReviewComment{
 			Review:      review,
 			Owner:       mustGetUserFromContext(r.Context()).Username,
 			CommentText: req.CommentText,
-		}
-
-		rc.ID, err = s.getDB(r).InsertComment(rc)
+		})
 		if err != nil {
 			log.Printf("failed to save comment: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to save comment: %v", err), http.StatusInternalServerError)
@@ -49,7 +47,7 @@ func (s Server) commentsPost() http.HandlerFunc {
 		respondJSON(w, struct {
 			ID uint64 `json:"id"`
 		}{
-			ID: rc.ID.UInt64(),
+			ID: id.UInt64(),
 		})
 	}
 }

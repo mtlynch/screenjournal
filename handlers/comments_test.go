@@ -250,6 +250,9 @@ func reviewCommentsEqual(a, b []screenjournal.ReviewComment) bool {
 	if len(a) != len(b) {
 		return false
 	}
+
+	// Clear timestamps from the comments because we don't want to compare based
+	// on times.
 	for i := range a {
 		a[i].Created, b[i].Created = time.Time{}, time.Time{}
 		a[i].Modified, b[i].Modified = time.Time{}, time.Time{}

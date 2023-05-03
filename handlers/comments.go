@@ -29,6 +29,7 @@ func (s Server) commentsPost() http.HandlerFunc {
 			http.Error(w, "Review not found", http.StatusNotFound)
 			return
 		} else if err != nil {
+			log.Printf("Failed to read review: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to read review: %v", err), http.StatusInternalServerError)
 			return
 		}

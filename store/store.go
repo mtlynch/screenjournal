@@ -18,7 +18,10 @@ type (
 		InsertReview(screenjournal.Review) (screenjournal.ReviewID, error)
 		UpdateReview(screenjournal.Review) error
 		ReadComments(screenjournal.ReviewID) ([]screenjournal.ReviewComment, error)
+		ReadComment(screenjournal.CommentID) (screenjournal.ReviewComment, error)
 		InsertComment(screenjournal.ReviewComment) (screenjournal.CommentID, error)
+		UpdateComment(screenjournal.ReviewComment) error
+		DeleteComment(screenjournal.CommentID) error
 		ReadMovie(screenjournal.MovieID) (screenjournal.Movie, error)
 		ReadMovieByTmdbID(screenjournal.TmdbID) (screenjournal.Movie, error)
 		InsertMovie(screenjournal.Movie) (screenjournal.MovieID, error)

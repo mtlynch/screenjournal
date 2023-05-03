@@ -14,6 +14,12 @@
           class="btn btn-primary"
           value="Post"
         />
+        <input
+          type="submit"
+          id="save-btn"
+          class="btn btn-primary"
+          value="Save"
+        />
         <button type="button" id="cancel-btn" class="btn btn-light mx-2">
           Cancel
         </button>
@@ -40,7 +46,7 @@
   } from "/js/lib/bootstrap.js";
   import { disableElement, enableElement } from "/js/lib/ui.js";
 
-  import { commentPost } from "/js/controllers/comments.js";
+  import { commentPost, commentPut } from "/js/controllers/comments.js";
   (function () {
     const template = document.querySelector("#comment-form-template");
 
@@ -62,11 +68,33 @@
 
           let onSubmit = null;
           let successEventId = null;
-          this._elements.submitBtn = this.shadowRoot.getElementById("post-btn");
-          onSubmit = () => {
-            return commentPost(this.reviewId, this._elements.commentBody.value);
-          };
-          successEventId = "comment-created";
+          const value = this.getAttribute("value");
+          if (value !== null) {
+            // Comment exists, so this is an edit form.
+            this._elements.submitBtn =
+              this.shadowRoot.getElementById("save-btn");
+            hideElement(this.shadowRoot.getElementById("post-btn"));
+            this._elements.commentBody.value = value;
+            onSubmit = () => {
+              return commentPut(
+                this.commentId,
+                this._elements.commentBody.value
+              );
+            };
+            successEventId = "comment-updated";
+          } else {
+            // Comment exists, so this is a new comment form.
+            this._elements.submitBtn =
+              this.shadowRoot.getElementById("post-btn");
+            hideElement(this.shadowRoot.getElementById("save-btn"));
+            onSubmit = () => {
+              return commentPost(
+                this.reviewId,
+                this._elements.commentBody.value
+              );
+            };
+            successEventId = "comment-created";
+          }
 
           this._elements.cancelBtn.addEventListener("click", () => {
             this._emitCustomEvent("cancel");
@@ -100,6 +128,10 @@
 
         get reviewId() {
           return parseInt(this.getAttribute("data-review-id"));
+        }
+
+        get commentId() {
+          return parseInt(this.getAttribute("data-comment-id"));
         }
 
         set value(newValue) {

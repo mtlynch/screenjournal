@@ -48,6 +48,23 @@ func (db DB) ReadComments(rid screenjournal.ReviewID) ([]screenjournal.ReviewCom
 	return comments, nil
 }
 
+func (db DB) ReadComment(cid screenjournal.CommentID) (screenjournal.ReviewComment, error) {
+	row := db.ctx.QueryRow(`
+	SELECT
+		id,
+		comment_owner,
+		comment_text,
+		created_time,
+		last_modified_time
+	FROM
+		review_comments
+	WHERE
+		id = ?
+	`, cid)
+
+	return reviewCommentFromRow(row)
+}
+
 func (db DB) InsertComment(rc screenjournal.ReviewComment) (screenjournal.CommentID, error) {
 	log.Printf("inserting new comment from %v on %v's review of %s", rc.Owner, rc.Review.Owner, rc.Review.Movie.Title)
 
@@ -82,6 +99,36 @@ func (db DB) InsertComment(rc screenjournal.ReviewComment) (screenjournal.Commen
 	}
 
 	return screenjournal.CommentID(lastID), nil
+}
+
+func (db DB) UpdateComment(rc screenjournal.ReviewComment) error {
+	log.Printf("updating comment %v from %v", rc.ID, rc.Owner)
+
+	_, err := db.ctx.Exec(`
+		UPDATE review_comments
+		SET
+			comment_text = ?,
+			last_modified_time = ?
+		WHERE
+			id = ?;
+		`,
+		rc.CommentText.String(),
+		formatTime(time.Now()),
+		rc.ID.UInt64())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db DB) DeleteComment(cid screenjournal.CommentID) error {
+	log.Printf("deleting comment ID=%v", cid)
+	_, err := db.ctx.Exec(`DELETE FROM review_comments WHERE id = ?`, cid.String())
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func reviewCommentFromRow(row rowScanner) (screenjournal.ReviewComment, error) {

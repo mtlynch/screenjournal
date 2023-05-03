@@ -1,4 +1,4 @@
-import { processJsonResponse } from "./common.js";
+import { processJsonResponse, processPlaintextResponse } from "./common.js";
 
 export function commentPost(reviewId, comment) {
   return fetch("/api/comments", {
@@ -16,4 +16,22 @@ export function commentPost(reviewId, comment) {
     .then((result) => {
       return Promise.resolve(result.id);
     });
+}
+
+export function commentPut(commentId, comment) {
+  return fetch(`/api/comments/${commentId}`, {
+    method: "PUT",
+    credentials: "include",
+    body: JSON.stringify({
+      commentId,
+      comment: comment.trim(),
+    }),
+  }).then(processPlaintextResponse);
+}
+
+export function commentDelete(commentId) {
+  return fetch(`/api/comments/${commentId}`, {
+    method: "DELETE",
+    credentials: "include",
+  }).then(processPlaintextResponse);
 }

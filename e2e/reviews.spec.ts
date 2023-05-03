@@ -401,7 +401,6 @@ test("adds a comment to an existing review", async ({ page }) => {
     .getByRole("heading", { name: "The Waterboy" })
     .getByRole("link")
     .click();
-  await page.locator("comment-form:first");
   await expect(page).toHaveURL("/movies/1#review1");
 
   await page
@@ -429,7 +428,6 @@ test("cancels a comment to an existing review", async ({ page }) => {
     .getByRole("heading", { name: "The Waterboy" })
     .getByRole("link")
     .click();
-  await page.locator("comment-form:first");
   await expect(page).toHaveURL("/movies/1#review1");
 
   // Start a comment.
@@ -559,7 +557,6 @@ test("removes leading and trailing whitespace from comments", async ({
     .getByRole("heading", { name: "The Waterboy" })
     .getByRole("link")
     .click();
-  await page.locator("comment-form:first");
   await expect(page).toHaveURL("/movies/1#review1");
 
   await page
@@ -579,10 +576,6 @@ test("removes leading and trailing whitespace from comments", async ({
   const reviewDiv = await page.locator("#comment2");
   await expect(reviewDiv.getByRole("link", { name: "userA" })).toBeVisible();
   await expect(reviewDiv.getByTestId("relative-time")).toHaveText("just now");
-  await expect(reviewDiv.locator("[data-sj-purpose='body']")).toHaveText(
-    "Yes, but can you strip my whitespace?",
-    { useInnerText: true }
-  );
   await expect(
     // Strip leading whitespace from each line in inner HTML.
     (

@@ -34,17 +34,16 @@ func (s Server) commentsPost() http.HandlerFunc {
 			http.Error(w, "Review not found", http.StatusNotFound)
 			return
 		} else if err != nil {
+			log.Printf("Failed to read review: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to read review: %v", err), http.StatusInternalServerError)
 			return
 		}
 
-		rc := screenjournal.ReviewComment{
+		cid, err := s.getDB(r).InsertComment(screenjournal.ReviewComment{
 			Review:      review,
 			Owner:       mustGetUserFromContext(r.Context()).Username,
 			CommentText: req.CommentText,
-		}
-
-		rc.ID, err = s.getDB(r).InsertComment(rc)
+		})
 		if err != nil {
 			log.Printf("failed to save comment: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to save comment: %v", err), http.StatusInternalServerError)
@@ -54,7 +53,7 @@ func (s Server) commentsPost() http.HandlerFunc {
 		respondJSON(w, struct {
 			ID uint64 `json:"id"`
 		}{
-			ID: rc.ID.UInt64(),
+			ID: cid.UInt64(),
 		})
 	}
 }

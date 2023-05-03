@@ -193,11 +193,9 @@ func TestCommentsPost(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			store := test_sqlite.New()
 
-			// Populate datastore with dummy users.
 			for _, s := range tt.sessions {
 				store.InsertUser(s.session.User)
 			}
-
 			for _, movie := range tt.movies {
 				if _, err := store.InsertMovie(movie); err != nil {
 					panic(err)
@@ -632,6 +630,9 @@ func reviewCommentsEqual(a, b []screenjournal.ReviewComment) bool {
 	if len(a) != len(b) {
 		return false
 	}
+
+	// Clear timestamps from the comments because we don't want to compare based
+	// on times.
 	for i := range a {
 		a[i].Created, b[i].Created = time.Time{}, time.Time{}
 		a[i].Modified, b[i].Modified = time.Time{}, time.Time{}

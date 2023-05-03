@@ -465,7 +465,6 @@ test("adds, edits, and deletes a comment on an existing review", async ({
     .getByRole("heading", { name: "The Waterboy" })
     .getByRole("link")
     .click();
-  await page.locator("comment-form:first");
 
   // Use a separate scope for variables on the current page.
   {

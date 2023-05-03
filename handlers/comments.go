@@ -39,7 +39,7 @@ func (s Server) commentsPost() http.HandlerFunc {
 			return
 		}
 
-		cid, err := s.getDB(r).InsertComment(screenjournal.ReviewComment{
+		id, err := s.getDB(r).InsertComment(screenjournal.ReviewComment{
 			Review:      review,
 			Owner:       mustGetUserFromContext(r.Context()).Username,
 			CommentText: req.CommentText,
@@ -53,7 +53,7 @@ func (s Server) commentsPost() http.HandlerFunc {
 		respondJSON(w, struct {
 			ID uint64 `json:"id"`
 		}{
-			ID: cid.UInt64(),
+			ID: id.UInt64(),
 		})
 	}
 }

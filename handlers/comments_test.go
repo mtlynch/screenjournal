@@ -208,9 +208,8 @@ func TestCommentsPost(t *testing.T) {
 			}
 
 			authenticator := simple.New(store)
-			var nilMetadataFinder metadata.Finder
 			sessionManager := newMockSessionManager(tt.sessions)
-
+			var nilMetadataFinder metadata.Finder
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, nilMetadataFinder)
 
 			req, err := http.NewRequest("POST", "/api/comments", strings.NewReader(tt.payload))
@@ -425,9 +424,8 @@ func TestCommentsPut(t *testing.T) {
 			}
 
 			authenticator := simple.New(store)
-			var nilMetadataFinder metadata.Finder
 			sessionManager := newMockSessionManager(tt.sessions)
-
+			var nilMetadataFinder metadata.Finder
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, nilMetadataFinder)
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
@@ -562,15 +560,12 @@ func TestCommentsDelete(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			store := test_sqlite.New()
 
-			// Populate datastore with dummy users.
 			for _, s := range tt.sessions {
 				store.InsertUser(s.session.User)
 			}
-
 			if _, err := store.InsertMovie(makeCommentsTestData().movies.theWaterBoy); err != nil {
 				panic(err)
 			}
-
 			if _, err := store.InsertReview(makeCommentsTestData().reviews.userBTheWaterBoy); err != nil {
 				panic(err)
 			}
@@ -581,9 +576,8 @@ func TestCommentsDelete(t *testing.T) {
 			}
 
 			authenticator := simple.New(store)
-			var nilMetadataFinder metadata.Finder
 			sessionManager := newMockSessionManager(tt.sessions)
-
+			var nilMetadataFinder metadata.Finder
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, nilMetadataFinder)
 
 			req, err := http.NewRequest("DELETE", tt.route, strings.NewReader(""))

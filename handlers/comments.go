@@ -71,6 +71,7 @@ func (s Server) commentsPut() http.HandlerFunc {
 			http.Error(w, "Comment not found", http.StatusNotFound)
 			return
 		} else if err != nil {
+			log.Printf("failed to read comment: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to read comment: %v", err), http.StatusInternalServerError)
 			return
 		}
@@ -102,6 +103,7 @@ func (s Server) commentsDelete() http.HandlerFunc {
 			http.Error(w, "Comment not found", http.StatusNotFound)
 			return
 		} else if err != nil {
+			log.Printf("failed to read comment: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to read comment: %v", err), http.StatusInternalServerError)
 			return
 		}

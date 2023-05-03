@@ -186,11 +186,9 @@ func TestCommentsPost(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			store := test_sqlite.New()
 
-			// Populate datastore with dummy users.
 			for _, s := range tt.sessions {
 				store.InsertUser(s.session.User)
 			}
-
 			for _, movie := range tt.movies {
 				if _, err := store.InsertMovie(movie); err != nil {
 					panic(err)

@@ -108,13 +108,11 @@ func (s Server) populateDummyData() http.HandlerFunc {
 				panic(err)
 			}
 		}
-		log.Printf("now time to insert movies")
 		for _, movie := range movies {
 			if _, err := s.getDB(r).InsertMovie(movie); err != nil {
 				panic(err)
 			}
 		}
-		log.Printf("now time to insert reviews")
 		for _, review := range reviews {
 			if _, err := s.getDB(r).InsertReview(review); err != nil {
 				panic(err)

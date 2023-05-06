@@ -3,7 +3,6 @@
 package handlers
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -85,27 +84,23 @@ func (s Server) populateDummyData() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		for _, u := range users {
 			if err := s.getDB(r).InsertUser(u); err != nil {
-				http.Error(w, fmt.Sprintf("Failed to insert user: %v", err), http.StatusInternalServerError)
-				return
+				panic(err)
 			}
 		}
 		for _, movie := range movies {
 			if _, err := s.getDB(r).InsertMovie(movie); err != nil {
-				http.Error(w, fmt.Sprintf("Failed to insert movie: %v", err), http.StatusInternalServerError)
-				return
+				panic(err)
 			}
 		}
 		for _, review := range reviews {
 			if _, err := s.getDB(r).InsertReview(review); err != nil {
-				http.Error(w, fmt.Sprintf("Failed to insert review: %v", err), http.StatusInternalServerError)
-				return
+				panic(err)
 			}
 
 			for _, c := range review.Comments {
 				c.Review = review
 				if _, err := s.getDB(r).InsertComment(c); err != nil {
-					http.Error(w, fmt.Sprintf("Failed to insert comment: %v", err), http.StatusInternalServerError)
-					return
+					panic(err)
 				}
 			}
 		}

@@ -86,8 +86,11 @@ func (db DB) ReadReviews(filters store.ReviewFilters) ([]screenjournal.Review, e
 			return []screenjournal.Review{}, err
 		}
 
-		review.Movie, err = db.ReadMovie(review.Movie.ID)
-		if err != nil {
+		if review.Movie, err = db.ReadMovie(review.Movie.ID); err != nil {
+			return []screenjournal.Review{}, err
+		}
+
+		if review.Comments, err = db.ReadComments(review.ID); err != nil {
 			return []screenjournal.Review{}, err
 		}
 

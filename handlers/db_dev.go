@@ -3,7 +3,6 @@
 package handlers
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -60,6 +59,16 @@ func (s Server) populateDummyData() http.HandlerFunc {
 				Path: "/miT42qWYC4D0n2mXNzJ9VfhheWW.jpg",
 			},
 		},
+		{
+			ID:          screenjournal.MovieID(2),
+			TmdbID:      screenjournal.TmdbID(11017),
+			ImdbID:      screenjournal.ImdbID("tt0112508"),
+			Title:       screenjournal.MediaTitle("Billy Madison"),
+			ReleaseDate: mustParseReleaseDate("1995-02-10"),
+			PosterPath: url.URL{
+				Path: "/iwk9pWR6MwTInEQc8Vw5vGHjeQ0.jpg",
+			},
+		},
 	}
 	reviews := []screenjournal.Review{
 		{
@@ -80,32 +89,41 @@ func (s Server) populateDummyData() http.HandlerFunc {
 				},
 			},
 		},
+		{
+			ID:     screenjournal.ReviewID(2),
+			Owner:  screenjournal.Username("userB"),
+			Rating: screenjournal.Rating(2),
+			Movie: screenjournal.Movie{
+				ID:    screenjournal.MovieID(2),
+				Title: screenjournal.MediaTitle("Billy Madison"),
+			},
+			Watched: mustParseWatchDate("2023-02-05T20:18:55-04:00"),
+			Blurb:   screenjournal.Blurb("A staggering lack of water."),
+		},
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		for _, u := range users {
 			if err := s.getDB(r).InsertUser(u); err != nil {
-				http.Error(w, fmt.Sprintf("Failed to insert user: %v", err), http.StatusInternalServerError)
-				return
+				panic(err)
 			}
 		}
+		log.Printf("now time to insert movies")
 		for _, movie := range movies {
 			if _, err := s.getDB(r).InsertMovie(movie); err != nil {
-				http.Error(w, fmt.Sprintf("Failed to insert movie: %v", err), http.StatusInternalServerError)
-				return
+				panic(err)
 			}
 		}
+		log.Printf("now time to insert reviews")
 		for _, review := range reviews {
 			if _, err := s.getDB(r).InsertReview(review); err != nil {
-				http.Error(w, fmt.Sprintf("Failed to insert review: %v", err), http.StatusInternalServerError)
-				return
+				panic(err)
 			}
 
 			for _, c := range review.Comments {
 				c.Review = review
 				if _, err := s.getDB(r).InsertComment(c); err != nil {
-					http.Error(w, fmt.Sprintf("Failed to insert comment: %v", err), http.StatusInternalServerError)
-					return
+					panic(err)
 				}
 			}
 		}

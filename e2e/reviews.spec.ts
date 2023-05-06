@@ -7,6 +7,52 @@ test.beforeEach(async ({ page }) => {
   await loginAsUserA(page);
 });
 
+test("index page renders card for review with comments", async ({ page }) => {
+  const reviewCard = await page.locator(".card", {
+    has: page.getByRole("heading", { name: "The Waterboy" }),
+  });
+  await expect(reviewCard.locator(".card-subtitle")).toHaveText(
+    /userB watched this .+ ago/,
+    { useInnerText: true }
+  );
+  await expect(
+    reviewCard.locator(".card-subtitle [data-testid='watch-date']")
+  ).toHaveAttribute("title", "2020-10-05");
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
+  ).toHaveCount(5);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
+  ).toHaveCount(0);
+  await expect(reviewCard.locator(".card-text")).toHaveText("I love water!");
+  await expect(reviewCard.getByTestId("comment-count")).toHaveText(" 1");
+});
+
+test("index page renders card for review without comments", async ({
+  page,
+}) => {
+  const reviewCard = await page.locator(".card", {
+    has: page.getByRole("heading", { name: "Billy Madison" }),
+  });
+  await expect(reviewCard.locator(".card-subtitle")).toHaveText(
+    /userB watched this .+ ago/,
+    { useInnerText: true }
+  );
+  await expect(
+    reviewCard.locator(".card-subtitle [data-testid='watch-date']")
+  ).toHaveAttribute("title", "2023-02-05");
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
+  ).toHaveCount(2);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
+  ).toHaveCount(3);
+  await expect(reviewCard.locator(".card-text")).toHaveText(
+    "A staggering lack of water."
+  );
+  await expect(reviewCard.getByTestId("comment-count")).toHaveCount(0);
+});
+
 test("adds a new rating and fills in only required fields", async ({
   page,
 }) => {

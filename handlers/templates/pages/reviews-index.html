@@ -88,7 +88,15 @@
                 data-testid="full-review"
                 >Full review</a
               >
+
+              {{ if len .Comments }}
+                &bull;
+                <a href="{{ $reviewRoute }}" data-testid="comment-count"
+                  ><i class="fa-solid fa-comment"></i> {{ len .Comments }}</a
+                >
+              {{ end }}
               {{ if (eq .Owner $loggedInUsername) }}
+                &bull;
                 <a
                   href="/reviews/{{ .ID }}/edit"
                   class="card-link"

@@ -7,6 +7,52 @@ test.beforeEach(async ({ page }) => {
   await loginAsUserA(page);
 });
 
+test("index page renders card for review with comments", async ({ page }) => {
+  const reviewCard = await page.locator(".card", {
+    has: page.getByRole("heading", { name: "The Waterboy" }),
+  });
+  await expect(reviewCard.locator(".card-subtitle")).toHaveText(
+    /userB watched this .+ ago/,
+    { useInnerText: true }
+  );
+  await expect(
+    reviewCard.locator(".card-subtitle [data-testid='watch-date']")
+  ).toHaveAttribute("title", "2020-10-05");
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
+  ).toHaveCount(5);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
+  ).toHaveCount(0);
+  await expect(reviewCard.locator(".card-text")).toHaveText("I love water!");
+  await expect(reviewCard.getByTestId("comment-count")).toHaveText(" 1");
+});
+
+test("index page renders card for review without comments", async ({
+  page,
+}) => {
+  const reviewCard = await page.locator(".card", {
+    has: page.getByRole("heading", { name: "Billy Madison" }),
+  });
+  await expect(reviewCard.locator(".card-subtitle")).toHaveText(
+    /userB watched this .+ ago/,
+    { useInnerText: true }
+  );
+  await expect(
+    reviewCard.locator(".card-subtitle [data-testid='watch-date']")
+  ).toHaveAttribute("title", "2023-02-05");
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
+  ).toHaveCount(2);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
+  ).toHaveCount(3);
+  await expect(reviewCard.locator(".card-text")).toHaveText(
+    "A staggering lack of water."
+  );
+  await expect(reviewCard.getByTestId("comment-count")).toHaveCount(0);
+});
+
 test("adds a new rating and fills in only required fields", async ({
   page,
 }) => {
@@ -30,8 +76,9 @@ test("adds a new rating and fills in only required fields", async ({
 
   await expect(page).toHaveURL("/reviews");
 
-  const reviewCard = await page.locator(":nth-match(.card, 1)");
-  await expect(reviewCard.locator(".card-title")).toHaveText("Slow Learners");
+  const reviewCard = await page.locator(".card", {
+    has: page.getByRole("heading", { name: "Slow Learners" }),
+  });
   await expect(reviewCard.locator(".card-subtitle")).toHaveText(
     /userA watched this .+ ago/,
     { useInnerText: true }
@@ -81,10 +128,9 @@ You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, o
 
   await expect(page).toHaveURL("/reviews");
 
-  const reviewCard = await page.locator(":nth-match(.card, 1)");
-  await expect(reviewCard.locator(".card-title")).toHaveText(
-    "Weird: The Al Yankovic Story"
-  );
+  const reviewCard = await page.locator(".card", {
+    has: page.getByRole("heading", { name: "Weird: The Al Yankovic Story" }),
+  });
   await expect(reviewCard.locator(".card-subtitle")).toHaveText(
     /userA watched this .+ ago/,
     { useInnerText: true }
@@ -160,10 +206,11 @@ test("adds a new rating and fills all fields", async ({ page }) => {
 
   await expect(page).toHaveURL("/reviews");
 
-  const reviewCard = await page.locator(":nth-match(.card, 1)");
-  await expect(reviewCard.locator(".card-title")).toHaveText(
-    "Eternal Sunshine of the Spotless Mind"
-  );
+  const reviewCard = await page.locator(".card", {
+    has: page.getByRole("heading", {
+      name: "Eternal Sunshine of the Spotless Mind",
+    }),
+  });
   await expect(reviewCard.locator(".card-subtitle")).toHaveText(
     /userA watched this .+ ago/,
     { useInnerText: true }
@@ -207,10 +254,11 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
 
   await expect(page).toHaveURL("/reviews");
 
-  const reviewCard = await page.locator(":nth-match(.card, 1)");
-  await expect(reviewCard.locator(".card-title")).toHaveText(
-    "Eternal Sunshine of the Spotless Mind"
-  );
+  const reviewCard = await page.locator(".card", {
+    has: page.getByRole("heading", {
+      name: "Eternal Sunshine of the Spotless Mind",
+    }),
+  });
   await expect(
     (await reviewCard.locator(".card-text").innerHTML()).trim()
   ).toEqual("This is the &lt;b&gt;best&lt;/b&gt; movie ever!<br>");
@@ -239,8 +287,9 @@ test("adds a new rating and edits the details", async ({ page }) => {
 
   await expect(page).toHaveURL("/reviews");
 
-  const reviewCard = await page.locator(":nth-match(.card, 1)");
-
+  const reviewCard = await page.locator(".card", {
+    has: page.getByRole("heading", { name: "There's something About Mary" }),
+  });
   await reviewCard.getByTestId("edit-rating").click();
 
   await expect(page.locator("h1")).toHaveText(
@@ -299,8 +348,9 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
 
   await expect(page).toHaveURL("/reviews");
 
-  const reviewCard = await page.locator(":nth-match(.card, 1)");
-
+  const reviewCard = await page.locator(".card", {
+    has: page.getByRole("heading", { name: "The English Patient" }),
+  });
   await reviewCard.getByTestId("edit-rating").click();
 
   // Make edits that will be ignored when we cancel the edit.
@@ -361,7 +411,7 @@ test("editing another user's review fails", async ({ page, browser }) => {
   const guestPage = await guestContext.newPage();
   await loginAsUserB(guestPage);
 
-  const response = await guestPage.goto("/reviews/2/edit");
+  const response = await guestPage.goto("/reviews/3/edit");
   await expect(response?.status()).toBe(403);
 
   await guestContext.close();
@@ -602,6 +652,6 @@ test("views reviews filtered by user", async ({ page }) => {
   ).toBeVisible();
 
   await expect(page.getByTestId("collection-count")).toHaveText(
-    "userB has reviewed 1 movies"
+    "userB has reviewed 2 movies"
   );
 });

@@ -163,6 +163,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
+				Comments: []screenjournal.ReviewComment{},
 			},
 		},
 		{
@@ -205,6 +206,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 					Title:       "Dirty Work",
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
 				},
+				Comments: []screenjournal.ReviewComment{},
 			},
 		},
 		{
@@ -246,6 +248,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 					Title:       "Eternal Sunshine of the Spotless Mind",
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
+				Comments: []screenjournal.ReviewComment{},
 			},
 		},
 	} {
@@ -293,7 +296,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 
 			clearUnpredictableReviewProperties(&rr[0])
 			if !reflect.DeepEqual(rr[0], tt.expected) {
-				t.Errorf("did not find expected review: %s, datastore reviews=%+v", tt.expected.Movie.Title, rr)
+				t.Errorf("did not find expected review of %s - %v", tt.expected.Movie.Title, deep.Equal(rr[0], tt.expected))
 			}
 
 			if got, want := len(announcer.announcedReviews), 1; got != want {
@@ -302,7 +305,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 
 			clearUnpredictableReviewProperties(&announcer.announcedReviews[0])
 			if !reflect.DeepEqual(announcer.announcedReviews[0], tt.expected) {
-				t.Errorf("did not find expected review: %s, announced reviews=%+v", tt.expected.Movie.Title, rr)
+				t.Errorf("did not find expected review of %s - %v", tt.expected.Movie.Title, deep.Equal(announcer.announcedReviews[0], tt.expected))
 			}
 		})
 	}
@@ -489,6 +492,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					Title:       "Eternal Sunshine of the Spotless Mind",
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
+				Comments: []screenjournal.ReviewComment{},
 			},
 		},
 		{
@@ -551,6 +555,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					Title:       "Dirty Work",
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
 				},
+				Comments: []screenjournal.ReviewComment{},
 			},
 		},
 	} {

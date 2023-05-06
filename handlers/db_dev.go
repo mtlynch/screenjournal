@@ -59,6 +59,16 @@ func (s Server) populateDummyData() http.HandlerFunc {
 				Path: "/miT42qWYC4D0n2mXNzJ9VfhheWW.jpg",
 			},
 		},
+		{
+			ID:          screenjournal.MovieID(2),
+			TmdbID:      screenjournal.TmdbID(11017),
+			ImdbID:      screenjournal.ImdbID("tt0112508"),
+			Title:       screenjournal.MediaTitle("Billy Madison"),
+			ReleaseDate: mustParseReleaseDate("1995-02-10"),
+			PosterPath: url.URL{
+				Path: "/iwk9pWR6MwTInEQc8Vw5vGHjeQ0.jpg",
+			},
+		},
 	}
 	reviews := []screenjournal.Review{
 		{
@@ -78,6 +88,17 @@ func (s Server) populateDummyData() http.HandlerFunc {
 					CommentText: screenjournal.CommentText("You sure do!"),
 				},
 			},
+		},
+		{
+			ID:     screenjournal.ReviewID(2),
+			Owner:  screenjournal.Username("userB"),
+			Rating: screenjournal.Rating(2),
+			Movie: screenjournal.Movie{
+				ID:    screenjournal.MovieID(2),
+				Title: screenjournal.MediaTitle("Billy Madison"),
+			},
+			Watched: mustParseWatchDate("2023-02-05T20:18:55-04:00"),
+			Blurb:   screenjournal.Blurb("A staggering lack of water."),
 		},
 	}
 

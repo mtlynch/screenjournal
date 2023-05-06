@@ -118,9 +118,10 @@ func newReviewFromRequest(r *http.Request) (reviewPostRequest, error) {
 
 	return reviewPostRequest{
 		Review: screenjournal.Review{
-			Rating:  rating,
-			Blurb:   blurb,
-			Watched: watchDate,
+			Rating:   rating,
+			Blurb:    blurb,
+			Watched:  watchDate,
+			Comments: []screenjournal.ReviewComment{},
 		},
 		TmdbID: tmdbID,
 	}, nil

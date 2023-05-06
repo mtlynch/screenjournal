@@ -82,10 +82,7 @@
               </p>
             {{ end }}
             <p>
-              <a
-                href="{{ $reviewRoute }}"
-                class="card-link"
-                data-testid="full-review"
+              <a href="{{ $reviewRoute }}" data-testid="full-review"
                 >Full review</a
               >
 
@@ -97,10 +94,7 @@
               {{ end }}
               {{ if (eq .Owner $loggedInUsername) }}
                 &bull;
-                <a
-                  href="/reviews/{{ .ID }}/edit"
-                  class="card-link"
-                  data-testid="edit-rating"
+                <a href="/reviews/{{ .ID }}/edit" data-testid="edit-rating"
                   >Edit</a
                 >
               {{ end }}

@@ -291,7 +291,8 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				t.Fatalf("reviewCountInStore=%d, want=%d", got, want)
 			}
 
-			if !reviewContentsEqual(rr[0], tt.expected) {
+			clearUnpredictableReviewProperties(&rr[0])
+			if !reflect.DeepEqual(rr[0], tt.expected) {
 				t.Errorf("did not find expected review: %s, datastore reviews=%+v", tt.expected.Movie.Title, rr)
 			}
 
@@ -299,7 +300,8 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				t.Fatalf("reviewCountAnnounced=%d, want=%d", got, want)
 			}
 
-			if !reviewContentsEqual(announcer.announcedReviews[0], tt.expected) {
+			clearUnpredictableReviewProperties(&announcer.announcedReviews[0])
+			if !reflect.DeepEqual(announcer.announcedReviews[0], tt.expected) {
 				t.Errorf("did not find expected review: %s, announced reviews=%+v", tt.expected.Movie.Title, rr)
 			}
 		})
@@ -445,7 +447,6 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			},
 			priorReviews: []screenjournal.Review{
 				{
-					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(5),
 					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
@@ -477,7 +478,6 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				}`,
 			sessionToken: "abc123",
 			expected: screenjournal.Review{
-				ID:      screenjournal.ReviewID(1),
 				Owner:   screenjournal.Username("userA"),
 				Rating:  screenjournal.Rating(4),
 				Watched: mustParseWatchDate("2022-10-30T00:00:00-04:00"),
@@ -509,7 +509,6 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			},
 			priorReviews: []screenjournal.Review{
 				{
-					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(4),
 					Watched: mustParseWatchDate("2022-10-21T00:00:00-04:00"),
@@ -541,7 +540,6 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				}`,
 			sessionToken: "abc123",
 			expected: screenjournal.Review{
-				ID:      screenjournal.ReviewID(1),
 				Owner:   screenjournal.Username("userA"),
 				Rating:  screenjournal.Rating(3),
 				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
@@ -601,7 +599,8 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				t.Fatalf("unexpected review count: got %v, want %v", got, want)
 			}
 
-			if !reviewContentsEqual(rr[0], tt.expected) {
+			clearUnpredictableReviewProperties(&rr[0])
+			if !reflect.DeepEqual(rr[0], tt.expected) {
 				t.Error(deep.Equal(rr[0], tt.expected))
 			}
 		})
@@ -1023,13 +1022,10 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 	}
 }
 
-func reviewContentsEqual(a, b screenjournal.Review) bool {
-	a.ID, b.ID = screenjournal.ReviewID(0), screenjournal.ReviewID(0)
-	a.Created, b.Created = time.Time{}, time.Time{}
-	a.Modified, b.Modified = time.Time{}, time.Time{}
-
-	return reflect.DeepEqual(a, b)
-
+func clearUnpredictableReviewProperties(r *screenjournal.Review) {
+	r.ID = screenjournal.ReviewID(0)
+	r.Created = time.Time{}
+	r.Modified = time.Time{}
 }
 
 func mustParseWatchDate(s string) screenjournal.WatchDate {

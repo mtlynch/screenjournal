@@ -6,13 +6,11 @@ import (
 	"github.com/mtlynch/screenjournal/v2"
 )
 
-func (db DB) ReadNotificationSubscribers() ([]screenjournal.User, error) {
+func (db DB) ReadNotificationSubscribers() ([]screenjournal.EmailSubscriber, error) {
 	rows, err := db.ctx.Query(`
 	SELECT
 		users.username AS username,
-		users.is_admin AS is_admin,
-		users.email AS email,
-		users.password_hash AS password_hash
+		users.email AS email
 	FROM
 		users, notification_preferences
 	WHERE
@@ -20,20 +18,20 @@ func (db DB) ReadNotificationSubscribers() ([]screenjournal.User, error) {
 		notification_preferences.new_reviews = 1`)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return []screenjournal.User{}, nil
+			return []screenjournal.EmailSubscriber{}, nil
 		}
-		return []screenjournal.User{}, err
+		return []screenjournal.EmailSubscriber{}, err
 	}
 
-	users := []screenjournal.User{}
+	subscribers := []screenjournal.EmailSubscriber{}
 	for rows.Next() {
-		user, err := userFromRow(rows)
+		subscriber, err := emailSubscriberFromRow(rows)
 		if err != nil {
-			return []screenjournal.User{}, err
+			return []screenjournal.EmailSubscriber{}, err
 		}
-		users = append(users, user)
+		subscribers = append(subscribers, subscriber)
 	}
-	return users, nil
+	return subscribers, nil
 }
 
 func (db DB) ReadNotificationPreferences(username screenjournal.Username) (screenjournal.NotificationPreferences, error) {
@@ -65,4 +63,16 @@ func (db DB) UpdateNotificationPreferences(username screenjournal.Username, pref
 	}
 
 	return nil
+}
+
+func emailSubscriberFromRow(row rowScanner) (screenjournal.EmailSubscriber, error) {
+	var username string
+	var email string
+	if err := row.Scan(&username, &email); err != nil {
+		return screenjournal.EmailSubscriber{}, err
+	}
+	return screenjournal.EmailSubscriber{
+		Username: screenjournal.Username(username),
+		Email:    screenjournal.Email(email),
+	}, nil
 }

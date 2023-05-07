@@ -11,6 +11,13 @@ type (
 	Username string
 	Password string
 
+	// EmailSubscriber represents a user or entity that subscribes to events via
+	// email notifications.
+	EmailSubscriber struct {
+		Username Username
+		Email    Email
+	}
+
 	PasswordHash struct {
 		bytes []byte
 	}

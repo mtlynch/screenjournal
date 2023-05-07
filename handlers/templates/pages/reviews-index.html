@@ -5,6 +5,12 @@
         max-height: 300px;
       }
     }
+
+    @media screen and (min-width: 768px) {
+      #sort-by {
+        max-width: 18ch;
+      }
+    }
   </style>
 {{ end }}
 
@@ -46,24 +52,35 @@
     </p>
   {{ end }}
 
-  {{ if .UserCanAddReview }}
-    <a href="/reviews/new" class="btn btn-primary my-3" data-testid="add-rating"
-      >Add Rating</a
-    >
-  {{ end }}
+
+  <div class="d-flex justify-content-between">
+    {{ if .UserCanAddReview }}
+      <a
+        href="/reviews/new"
+        class="btn btn-primary my-3"
+        data-testid="add-rating"
+        >Add Rating</a
+      >
+    {{ end }}
 
 
-  <select id="sort-by" class="form-select">
-    <option
-      {{ if (eq .SortOrder "watch-date") }}selected{{ end }}
-      value="watch-date"
-    >
-      By watch date
-    </option>
-    <option {{ if (eq .SortOrder "rating") }}selected{{ end }} value="rating">
-      By rating
-    </option>
-  </select>
+    <div class="align-self-center">
+      <select id="sort-by" class="form-select">
+        <option
+          {{ if (eq .SortOrder "watch-date") }}selected{{ end }}
+          value="watch-date"
+        >
+          By watch date
+        </option>
+        <option
+          {{ if (eq .SortOrder "rating") }}selected{{ end }}
+          value="rating"
+        >
+          By rating
+        </option>
+      </select>
+    </div>
+  </div>
 
   <div class="row row-cols-1 row-cols-md-3 g-4">
     {{ range .Reviews }}

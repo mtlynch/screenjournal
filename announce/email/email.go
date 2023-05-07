@@ -98,19 +98,21 @@ func (a announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 			continue
 		}
 		bodyMarkdown := mustRenderTemplate("new-comment.tmpl.txt", struct {
-			Recipient string
-			Title     string
-			Author    string
-			BaseURL   string
-			MovieID   int64
-			CommentID uint64
+			Recipient     string
+			Title         string
+			CommentAuthor string
+			ReviewAuthor  string
+			BaseURL       string
+			MovieID       int64
+			CommentID     uint64
 		}{
-			Recipient: u.Username.String(),
-			Title:     rc.Review.Movie.Title.String(),
-			Author:    rc.Owner.String(),
-			BaseURL:   a.baseURL,
-			MovieID:   rc.Review.Movie.ID.Int64(),
-			CommentID: rc.ID.UInt64(),
+			Recipient:     u.Username.String(),
+			Title:         rc.Review.Movie.Title.String(),
+			CommentAuthor: rc.Owner.String(),
+			ReviewAuthor:  rc.Review.Owner.String(),
+			BaseURL:       a.baseURL,
+			MovieID:       rc.Review.Movie.ID.Int64(),
+			CommentID:     rc.ID.UInt64(),
 		})
 		bodyHtml := markdown.Render(bodyMarkdown)
 		msg := email.Message{
@@ -124,7 +126,7 @@ func (a announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 					Address: u.Email.String(),
 				},
 			},
-			Subject:  fmt.Sprintf("%s added a new comment on %s's review of %s", rc.Owner.String(), rc.Review.Owner, rc.Review.Movie.Title),
+			Subject:  fmt.Sprintf("%s commented on %s's review of %s", rc.Owner.String(), rc.Review.Owner, rc.Review.Movie.Title),
 			TextBody: bodyMarkdown,
 			HtmlBody: bodyHtml,
 		}

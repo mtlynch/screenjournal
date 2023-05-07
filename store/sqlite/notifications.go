@@ -35,7 +35,31 @@ func (db DB) ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error) {
 }
 
 func (db DB) ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error) {
-	panic("TODO")
+	rows, err := db.ctx.Query(`
+	SELECT
+		users.username AS username,
+		users.email AS email
+	FROM
+		users, notification_preferences
+	WHERE
+		users.username = notification_preferences.username AND
+		notification_preferences.all_new_comments = 1`)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return []screenjournal.EmailSubscriber{}, nil
+		}
+		return []screenjournal.EmailSubscriber{}, err
+	}
+
+	subscribers := []screenjournal.EmailSubscriber{}
+	for rows.Next() {
+		subscriber, err := emailSubscriberFromRow(rows)
+		if err != nil {
+			return []screenjournal.EmailSubscriber{}, err
+		}
+		subscribers = append(subscribers, subscriber)
+	}
+	return subscribers, nil
 }
 
 func (db DB) ReadNotificationPreferences(username screenjournal.Username) (screenjournal.NotificationPreferences, error) {

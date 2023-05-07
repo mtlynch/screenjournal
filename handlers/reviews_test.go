@@ -32,11 +32,16 @@ func (a mockAuthenticator) Authenticate(screenjournal.Username, screenjournal.Pa
 }
 
 type mockAnnouncer struct {
-	announcedReviews []screenjournal.Review
+	announcedReviews  []screenjournal.Review
+	announcedComments []screenjournal.ReviewComment
 }
 
 func (a *mockAnnouncer) AnnounceNewReview(r screenjournal.Review) {
 	a.announcedReviews = append(a.announcedReviews, r)
+}
+
+func (a *mockAnnouncer) AnnounceNewComment(rc screenjournal.ReviewComment) {
+	a.announcedComments = append(a.announcedComments, rc)
 }
 
 type mockSession struct {

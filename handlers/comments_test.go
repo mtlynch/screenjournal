@@ -207,10 +207,11 @@ func TestCommentsPost(t *testing.T) {
 				}
 			}
 
+			announcer := mockAnnouncer{}
 			authenticator := simple.New(store)
 			sessionManager := newMockSessionManager(tt.sessions)
 			var nilMetadataFinder metadata.Finder
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, nilMetadataFinder)
+			s := handlers.New(authenticator, &announcer, &sessionManager, store, nilMetadataFinder)
 
 			req, err := http.NewRequest("POST", "/api/comments", strings.NewReader(tt.payload))
 			if err != nil {

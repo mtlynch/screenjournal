@@ -1,6 +1,6 @@
 Hey {{ .Recipient }},
 
-{{ .Author }} just added a comment a new review for *{{ .Title }}*! Check it out:
+{{ .CommentAuthor }} just commented on {{ .ReviewAuthor }}'s review for *{{ .Title }}*! Check it out:
 
 {{ .BaseURL }}/movies/{{ .MovieID }}#comment{{ .CommentID }}
 

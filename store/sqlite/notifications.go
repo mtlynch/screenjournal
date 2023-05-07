@@ -34,7 +34,7 @@ func (db DB) ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error) {
 	return subscribers, nil
 }
 
-func (db DB) ReadCommentSubscribers() ([]screenjournal.User, error) {
+func (db DB) ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error) {
 	panic("TODO")
 }
 

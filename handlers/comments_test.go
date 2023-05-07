@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-test/deep"
+
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/auth/simple"
 	"github.com/mtlynch/screenjournal/v2/handlers"

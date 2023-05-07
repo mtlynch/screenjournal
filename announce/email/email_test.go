@@ -15,7 +15,7 @@ type mockNotificationsStore struct {
 	subscribers []screenjournal.EmailSubscriber
 }
 
-func (ns mockNotificationsStore) ReadNotificationSubscribers() ([]screenjournal.EmailSubscriber, error) {
+func (ns mockNotificationsStore) ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error) {
 	return ns.subscribers, nil
 }
 

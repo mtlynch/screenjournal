@@ -17,7 +17,7 @@ import (
 
 type (
 	NotificationsStore interface {
-		ReadNotificationSubscribers() ([]screenjournal.EmailSubscriber, error)
+		ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error)
 	}
 
 	announcer struct {
@@ -37,7 +37,7 @@ func New(baseURL string, sender email.Sender, store NotificationsStore) announce
 
 func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 	log.Printf("announcing new review from user %s of %s", r.Owner.String(), r.Movie.Title)
-	subscribers, err := a.store.ReadNotificationSubscribers()
+	subscribers, err := a.store.ReadReviewSubscribers()
 	if err != nil {
 		log.Printf("failed to read announcement recipients from store: %v", err)
 	}

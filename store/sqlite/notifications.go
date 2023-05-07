@@ -6,7 +6,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2"
 )
 
-func (db DB) ReadNotificationSubscribers() ([]screenjournal.EmailSubscriber, error) {
+func (db DB) ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error) {
 	rows, err := db.ctx.Query(`
 	SELECT
 		users.username AS username,

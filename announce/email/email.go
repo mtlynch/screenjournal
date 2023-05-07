@@ -17,7 +17,8 @@ import (
 
 type (
 	NotificationsStore interface {
-		ReadNotificationSubscribers() ([]screenjournal.User, error)
+		ReadReviewSubscribers() ([]screenjournal.User, error)
+		ReadCommentSubscribers() ([]screenjournal.User, error)
 	}
 
 	announcer struct {
@@ -37,7 +38,7 @@ func New(baseURL string, sender email.Sender, store NotificationsStore) announce
 
 func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 	log.Printf("announcing new review from user %s of %s", r.Owner.String(), r.Movie.Title)
-	users, err := a.store.ReadNotificationSubscribers()
+	users, err := a.store.ReadReviewSubscribers()
 	if err != nil {
 		log.Printf("failed to read announcement recipients from store: %v", err)
 	}
@@ -75,6 +76,55 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 				},
 			},
 			Subject:  fmt.Sprintf("%s posted a new review: %s", r.Owner.String(), r.Movie.Title),
+			TextBody: bodyMarkdown,
+			HtmlBody: bodyHtml,
+		}
+		if err := a.sender.Send(msg); err != nil {
+			log.Printf("failed to send message [%s] to recipient [%s]", msg.Subject, msg.To[0].String())
+		}
+	}
+}
+
+func (a announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
+	log.Printf("announcing new comment from %s about %s's review of %s", rc.Owner, rc.Review.Owner, rc.Review.Movie.Title)
+	users, err := a.store.ReadCommentSubscribers()
+	if err != nil {
+		log.Printf("failed to read announcement recipients from store: %v", err)
+	}
+	log.Printf("%d user(s) subscribed to new review notifications", len(users))
+	for _, u := range users {
+		// Don't send a notification to the review author.
+		if u.Username == rc.Owner {
+			continue
+		}
+		bodyMarkdown := mustRenderTemplate("new-comment.tmpl.txt", struct {
+			Recipient string
+			Title     string
+			Author    string
+			BaseURL   string
+			MovieID   int64
+			CommentID uint64
+		}{
+			Recipient: u.Username.String(),
+			Title:     rc.Review.Movie.Title.String(),
+			Author:    rc.Owner.String(),
+			BaseURL:   a.baseURL,
+			MovieID:   rc.Review.Movie.ID.Int64(),
+			CommentID: rc.ID.UInt64(),
+		})
+		bodyHtml := markdown.Render(bodyMarkdown)
+		msg := email.Message{
+			From: mail.Address{
+				Name:    "ScreenJournal",
+				Address: "activity@thescreenjournal.com",
+			},
+			To: []mail.Address{
+				{
+					Name:    u.Username.String(),
+					Address: u.Email.String(),
+				},
+			},
+			Subject:  fmt.Sprintf("%s added a new comment on %s's review of %s", rc.Owner.String(), rc.Review.Owner, rc.Review.Movie.Title),
 			TextBody: bodyMarkdown,
 			HtmlBody: bodyHtml,
 		}

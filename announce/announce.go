@@ -6,4 +6,5 @@ import (
 
 type Announcer interface {
 	AnnounceNewReview(screenjournal.Review)
+	AnnounceNewComment(screenjournal.ReviewComment)
 }

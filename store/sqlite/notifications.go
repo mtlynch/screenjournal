@@ -6,7 +6,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2"
 )
 
-func (db DB) ReadNotificationSubscribers() ([]screenjournal.User, error) {
+func (db DB) ReadReviewSubscribers() ([]screenjournal.User, error) {
 	rows, err := db.ctx.Query(`
 	SELECT
 		users.username AS username,
@@ -34,6 +34,10 @@ func (db DB) ReadNotificationSubscribers() ([]screenjournal.User, error) {
 		users = append(users, user)
 	}
 	return users, nil
+}
+
+func (db DB) ReadCommentSubscribers() ([]screenjournal.User, error) {
+	panic("TODO")
 }
 
 func (db DB) ReadNotificationPreferences(username screenjournal.Username) (screenjournal.NotificationPreferences, error) {

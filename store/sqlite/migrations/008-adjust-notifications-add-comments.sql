@@ -6,5 +6,4 @@ UPDATE
     notification_preferences
 SET
     all_new_comments = 1,
-    comments_on_my_reviews = 1
-;
+    comments_on_my_reviews = 1;

@@ -15,15 +15,10 @@
 {{ end }}
 
 {{ define "content" }}
-  <h1>{{ .Title }}</h1>
-
-  {{ if .UserCanAddReview }}
-    <a href="/reviews/new" class="btn btn-primary my-3" data-testid="add-rating"
-      >Add Rating</a
-    >
-  {{ end }}
-
   {{ $loggedInUsername := .LoggedInUsername }}
+
+
+  <h1>{{ .Title }}</h1>
 
   {{ if .CollectionOwner }}
     <p data-testid="collection-count">
@@ -32,10 +27,15 @@
     </p>
   {{ end }}
 
+  {{ if .UserCanAddReview }}
+    <a href="/reviews/new" class="btn btn-primary my-3" data-testid="add-rating"
+      >Add Rating</a
+    >
+  {{ end }}
+
 
   <div class="row row-cols-1 row-cols-md-3 g-4">
     {{ range .Reviews }}
-
       {{ $reviewRoute := printf "/movies/%s#review%s" .Movie.ID.String .ID.String }}
 
 

@@ -11,6 +11,7 @@ import (
 )
 
 var ErrMoveIDNotProvided = errors.New("no movie ID in query parameters")
+var ErrSortOrderNotProvided = errors.New("no sort order in query parameters")
 
 func movieIDFromRequestPath(r *http.Request) (screenjournal.MovieID, error) {
 	return parse.MovieIDFromString(mux.Vars(r)["movieID"])
@@ -43,4 +44,18 @@ func inviteCodeFromQueryParams(r *http.Request) (screenjournal.InviteCode, error
 		return screenjournal.InviteCode(""), nil
 	}
 	return parse.InviteCode(raw)
+}
+
+func sortOrderFromQueryParams(r *http.Request) (screenjournal.SortOrder, error) {
+	raw := r.URL.Query().Get("sort-by")
+	if raw == "" {
+		return screenjournal.SortOrder(""), ErrSortOrderNotProvided
+	}
+
+	if raw == string(screenjournal.ByRating) {
+		return screenjournal.ByRating, nil
+	} else if raw == string(screenjournal.ByWatchDate) {
+		return screenjournal.ByWatchDate, nil
+	}
+	return screenjournal.SortOrder(""), errors.New("unrecognized sort order")
 }

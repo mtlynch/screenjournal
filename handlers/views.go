@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"path"
 	"regexp"
-	"sort"
 	"strings"
 	"time"
 
@@ -135,17 +134,18 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			queryOptions = append(queryOptions, store.FilterReviewsByUsername(username))
 		}
 
+		var sortOrder = screenjournal.ByWatchDate
+		if sort, err := sortOrderFromQueryParams(r); err == nil {
+			sortOrder = sort
+			queryOptions = append(queryOptions, store.SortReviews(sort))
+		}
+
 		reviews, err := s.getDB(r).ReadReviews(queryOptions...)
 		if err != nil {
 			log.Printf("failed to read reviews: %v", err)
 			http.Error(w, "Failed to read reviews", http.StatusInternalServerError)
 			return
 		}
-
-		// Sort reviews starting with most recent watch dates.
-		sort.Slice(reviews, func(i, j int) bool {
-			return reviews[i].Watched.Time().After(reviews[j].Watched.Time())
-		})
 
 		title := "Ratings"
 		if collectionOwner != nil {
@@ -155,11 +155,13 @@ func (s Server) reviewsGet() http.HandlerFunc {
 		if err := renderTemplate(w, "reviews-index.html", struct {
 			commonProps
 			Reviews          []screenjournal.Review
+			SortOrder        screenjournal.SortOrder
 			CollectionOwner  *screenjournal.Username
 			UserCanAddReview bool
 		}{
 			commonProps:      makeCommonProps(title, r.Context()),
 			Reviews:          reviews,
+			SortOrder:        sortOrder,
 			CollectionOwner:  collectionOwner,
 			UserCanAddReview: collectionOwner == nil || collectionOwner.Equal(usernameFromContext(r.Context())),
 		}, template.FuncMap{

@@ -5,10 +5,41 @@
         max-height: 300px;
       }
     }
+
+    @media screen and (min-width: 768px) {
+      #sort-by {
+        max-width: 18ch;
+      }
+    }
   </style>
 {{ end }}
 
 {{ define "script-tags" }}
+  <script type="module" nonce="{{ .CspNonce }}">
+    function setPageSort(sortByField) {
+      let newLocation = new URL(window.location.href);
+      newLocation.search = (() => {
+        let s = new URLSearchParams(newLocation.search);
+        s.set("sort-by", sortByField);
+        return s.toString();
+      })();
+      window.location = newLocation;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const sortBtn = document.getElementById("sort-btn");
+      const sortBySelect = document.getElementById("sort-by");
+
+      sortBtn.addEventListener("click", () => {
+        sortBySelect.classList.toggle("d-none");
+      });
+
+      sortBySelect.addEventListener("change", (evt) => {
+        const sortByField = evt.target.value;
+        setPageSort(sortByField);
+      });
+    });
+  </script>
 {{ end }}
 
 {{ define "custom-elements" }}
@@ -27,12 +58,41 @@
     </p>
   {{ end }}
 
-  {{ if .UserCanAddReview }}
-    <a href="/reviews/new" class="btn btn-primary my-3" data-testid="add-rating"
-      >Add Rating</a
-    >
-  {{ end }}
 
+  <div class="d-flex justify-content-between">
+    {{ if .UserCanAddReview }}
+      <a
+        href="/reviews/new"
+        class="btn btn-primary my-3"
+        data-testid="add-rating"
+        >Add Rating</a
+      >
+    {{ end }}
+
+
+    <div class="d-flex flex-row align-self-center">
+      <div class="me-2">
+        <select id="sort-by" class="d-none form-select">
+          <option
+            {{ if (eq .SortOrder "watch-date") }}selected{{ end }}
+            value="watch-date"
+          >
+            By watch date
+          </option>
+          <option
+            {{ if (eq .SortOrder "rating") }}selected{{ end }}
+            value="rating"
+          >
+            By rating
+          </option>
+        </select>
+      </div>
+
+      <a id="sort-btn" class="btn btn-light">
+        <i class="fa-solid fa-sort"></i>
+      </a>
+    </div>
+  </div>
 
   <div class="row row-cols-1 row-cols-md-3 g-4">
     {{ range .Reviews }}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"net/url"
@@ -11,7 +12,6 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"text/template"
 	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
@@ -28,6 +28,13 @@ type commonProps struct {
 
 func (s Server) indexGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Redirect logged in users to the reviews index instead of the landing
+		// page.
+		if isAuthenticated(r.Context()) {
+			http.Redirect(w, r, "/reviews", http.StatusTemporaryRedirect)
+			return
+		}
+
 		if err := renderTemplate(w, "index.html", struct {
 			commonProps
 		}{
@@ -78,7 +85,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 
 		var invite screenjournal.SignupInvitation
 		if !inviteCode.Empty() {
-			invite, err = s.store.ReadSignupInvitation(inviteCode)
+			invite, err = s.getDB(r).ReadSignupInvitation(inviteCode)
 			if err != nil {
 				log.Printf("invalid invite code: %v", err)
 				http.Error(w, "Invalid invite code", http.StatusUnauthorized)
@@ -86,7 +93,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 			}
 		}
 
-		uc, err := s.store.CountUsers()
+		uc, err := s.getDB(r).CountUsers()
 		if err != nil {
 			log.Printf("failed to count users: %v", err)
 			http.Error(w, "Failed to load signup template", http.StatusInternalServerError)
@@ -131,7 +138,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			sortOrder = sort
 		}
 
-		reviews, err := s.store.ReadReviews(store.ReviewFilters{Username: collectionOwner})
+		reviews, err := s.getDB(r).ReadReviews(store.ReviewFilters{Username: collectionOwner})
 		if err != nil {
 			log.Printf("failed to read reviews: %v", err)
 			http.Error(w, "Failed to read reviews", http.StatusInternalServerError)
@@ -159,17 +166,17 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			commonProps
 			Reviews          []screenjournal.Review
 			SortOrder        screenjournal.SortOrder
+			CollectionOwner  *screenjournal.Username
 			UserCanAddReview bool
 		}{
 			commonProps:      makeCommonProps(title, r.Context()),
 			Reviews:          reviews,
 			SortOrder:        sortOrder,
+			CollectionOwner:  collectionOwner,
 			UserCanAddReview: collectionOwner == nil || collectionOwner.Equal(usernameFromContext(r.Context())),
 		}, template.FuncMap{
 			"relativeWatchDate": relativeWatchDate,
-			"formatWatchDate": func(t screenjournal.WatchDate) string {
-				return t.Time().Format("2006-01-02")
-			},
+			"formatWatchDate":   formatWatchDate,
 			"iterate": func(n uint8) []uint8 {
 				var arr []uint8
 				var i uint8
@@ -218,7 +225,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			return
 		}
 
-		movie, err := s.store.ReadMovie(mid)
+		movie, err := s.getDB(r).ReadMovie(mid)
 		if err == store.ErrMovieNotFound {
 			http.Error(w, "Invalid movie ID", http.StatusNotFound)
 			return
@@ -228,13 +235,23 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			return
 		}
 
-		reviews, err := s.store.ReadReviews(store.ReviewFilters{
+		reviews, err := s.getDB(r).ReadReviews(store.ReviewFilters{
 			MovieID: &mid,
 		})
 		if err != nil {
 			log.Printf("failed to read movie reviews: %v", err)
 			http.Error(w, "Failed to retrieve reviews", http.StatusInternalServerError)
 			return
+		}
+
+		for i, review := range reviews {
+			cc, err := s.getDB(r).ReadComments(review.ID)
+			if err != nil {
+				log.Printf("failed to read reviews comments: %v", err)
+				http.Error(w, "Failed to retrieve comments", http.StatusInternalServerError)
+				return
+			}
+			reviews[i].Comments = cc
 		}
 
 		if err := renderTemplate(w, "movies-view.html", struct {
@@ -246,13 +263,13 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			Movie:       movie,
 			Reviews:     reviews,
 		}, template.FuncMap{
-			"relativeWatchDate": relativeWatchDate,
+			"relativeCommentDate": relativeCommentDate,
+			"relativeWatchDate":   relativeWatchDate,
 			"formatReleaseDate": func(t screenjournal.ReleaseDate) string {
 				return t.Time().Format("1/2/2006")
 			},
-			"formatWatchDate": func(t screenjournal.WatchDate) string {
-				return t.Time().Format("2006-01-02")
-			},
+			"formatWatchDate":   formatWatchDate,
+			"formatCommentTime": formatIso8601Datetime,
 			"iterate": func(n uint8) []uint8 {
 				var arr []uint8
 				var i uint8
@@ -283,7 +300,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.store.ReadReview(id)
+		review, err := s.getDB(r).ReadReview(id)
 		if err == store.ErrReviewNotFound {
 			http.Error(w, "Invalid review ID", http.StatusNotFound)
 			return
@@ -310,9 +327,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			Review:        review,
 			Today:         time.Now(),
 		}, template.FuncMap{
-			"formatWatchDate": func(t screenjournal.WatchDate) string {
-				return t.Time().Format("2006-01-02")
-			},
+			"formatWatchDate": formatWatchDate,
 			"iterate": func(n uint8) []uint8 {
 				var arr []uint8
 				var i uint8
@@ -339,7 +354,7 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 		var mediaTitle string
 		var tmdbID int32
 		if mid, err := movieIDFromQueryParams(r); err == nil {
-			movie, err := s.store.ReadMovie(mid)
+			movie, err := s.getDB(r).ReadMovie(mid)
 			if err == store.ErrMovieNotFound {
 				http.Error(w, "Invalid movie ID", http.StatusNotFound)
 				return
@@ -382,7 +397,7 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 
 func (s Server) invitesGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		invites, err := s.store.ReadSignupInvitations()
+		invites, err := s.getDB(r).ReadSignupInvitations()
 		if err != nil {
 			log.Printf("failed to read signup invitations: %v", err)
 			http.Error(w, "Failed to read signup invitations", http.StatusInternalServerError)
@@ -416,7 +431,7 @@ func (s Server) invitesNewGet() http.HandlerFunc {
 
 func (s Server) accountNotificationsGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		prefs, err := s.store.ReadNotificationPreferences(usernameFromContext(r.Context()))
+		prefs, err := s.getDB(r).ReadNotificationPreferences(usernameFromContext(r.Context()))
 		if err != nil {
 			log.Printf("failed to read notification preferences: %v", err)
 			http.Error(w, fmt.Sprintf("failed to read notification preferences: %v", err), http.StatusInternalServerError)
@@ -453,6 +468,49 @@ func relativeWatchDate(t screenjournal.WatchDate) string {
 		return "1 month ago"
 	}
 	return fmt.Sprintf("%d months ago", monthsAgo)
+}
+
+func formatWatchDate(t screenjournal.WatchDate) string {
+	return t.Time().Format("2006-01-02")
+}
+
+func relativeCommentDate(t time.Time) string {
+	minutesAgo := int(time.Since(t).Minutes())
+	if minutesAgo < 1 {
+		return "just now"
+	}
+	if minutesAgo == 1 {
+		return "a minute ago"
+	}
+	hoursAgo := int(time.Since(t).Hours())
+	if hoursAgo < 1 {
+		return fmt.Sprintf("%d minutes ago", minutesAgo)
+	}
+	if hoursAgo == 1 {
+		return "an hour ago"
+	}
+	if hoursAgo < 24 {
+		return fmt.Sprintf("%d hours ago", hoursAgo)
+	}
+
+	daysAgo := int(time.Since(t).Hours() / 24)
+	weeksAgo := int(daysAgo / 7)
+	if daysAgo == 1 {
+		return "yesterday"
+	} else if daysAgo <= 14 {
+		return fmt.Sprintf("%d days ago", daysAgo)
+	} else if weeksAgo < 8 {
+		return fmt.Sprintf("%d weeks ago", weeksAgo)
+	}
+	monthsAgo := int(daysAgo / 30)
+	if monthsAgo == 1 {
+		return "1 month ago"
+	}
+	return fmt.Sprintf("%d months ago", monthsAgo)
+}
+
+func formatIso8601Datetime(t time.Time) string {
+	return t.Format("2006-01-02 3:04 pm")
 }
 
 func posterPathToURL(pp url.URL) string {

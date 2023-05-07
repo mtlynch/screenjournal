@@ -4,7 +4,7 @@
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
     import { createInvite } from "/js/controllers/invites.js";
-    import { showElement, hideElement } from "/js/lib/bootstrap.js";
+    import { makeVisible, makeInvisible } from "/js/lib/bootstrap.js";
 
     document.addEventListener(
       "DOMContentLoaded",
@@ -22,8 +22,8 @@
             evt.preventDefault();
 
             submitBtn.disabled = true;
-            hideElement(errorAlert);
-            showElement(submitSpinner);
+            makeInvisible(errorAlert);
+            makeVisible(submitSpinner);
 
             createInvite(inviteeInput.value)
               .then(() => {
@@ -31,10 +31,10 @@
               })
               .catch((error) => {
                 errorAlert.innerText = error;
-                showElement(errorAlert);
+                makeVisible(errorAlert);
               })
               .finally(() => {
-                hideElement(submitSpinner);
+                makeInvisible(submitSpinner);
                 submitBtn.disabled = false;
               });
           });

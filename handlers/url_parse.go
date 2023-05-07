@@ -30,6 +30,10 @@ func reviewIDFromRequestPath(r *http.Request) (screenjournal.ReviewID, error) {
 	return parse.ReviewIDFromString(mux.Vars(r)["reviewID"])
 }
 
+func commentIDFromRequestPath(r *http.Request) (screenjournal.CommentID, error) {
+	return parse.CommentID(mux.Vars(r)["commentID"])
+}
+
 func usernameFromRequestPath(r *http.Request) (screenjournal.Username, error) {
 	return parse.Username(mux.Vars(r)["username"])
 }

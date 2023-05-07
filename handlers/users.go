@@ -27,7 +27,7 @@ func (s Server) usersPut() http.HandlerFunc {
 			return
 		}
 
-		c, err := s.store.CountUsers()
+		c, err := s.getDB(r).CountUsers()
 		if err != nil {
 			log.Printf("failed to query user count: %v", err)
 			http.Error(w, "Failed to query user count", http.StatusInternalServerError)
@@ -42,14 +42,14 @@ func (s Server) usersPut() http.HandlerFunc {
 		}
 
 		if c >= 1 {
-			if _, err := s.store.ReadSignupInvitation(req.InviteCode); err != nil {
+			if _, err := s.getDB(r).ReadSignupInvitation(req.InviteCode); err != nil {
 				log.Printf("invalid invite code: %v", err)
 				http.Error(w, "Invalid invite code", http.StatusForbidden)
 				return
 			}
 		}
 
-		if err := s.store.InsertUser(user); err != nil {
+		if err := s.getDB(r).InsertUser(user); err != nil {
 			if err == store.ErrEmailAssociatedWithAnotherAccount {
 				http.Error(w, "Failed to add new user", http.StatusConflict)
 			} else if err == store.ErrUsernameNotAvailable {
@@ -67,7 +67,7 @@ func (s Server) usersPut() http.HandlerFunc {
 		}
 
 		if !req.InviteCode.Empty() {
-			if err := s.store.DeleteSignupInvitation(req.InviteCode); err != nil {
+			if err := s.getDB(r).DeleteSignupInvitation(req.InviteCode); err != nil {
 				log.Printf("failed to delete used signup invitation code: %v", err)
 			}
 		}

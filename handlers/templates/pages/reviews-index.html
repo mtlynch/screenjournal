@@ -34,7 +34,17 @@
 {{ end }}
 
 {{ define "content" }}
+  {{ $loggedInUsername := .LoggedInUsername }}
+
+
   <h1>{{ .Title }}</h1>
+
+  {{ if .CollectionOwner }}
+    <p data-testid="collection-count">
+      {{ .CollectionOwner.String }} has reviewed
+      <b>{{ len .Reviews }}</b> movies
+    </p>
+  {{ end }}
 
   {{ if .UserCanAddReview }}
     <a href="/reviews/new" class="btn btn-primary my-3" data-testid="add-rating"
@@ -55,12 +65,8 @@
     </option>
   </select>
 
-  {{ $loggedInUsername := .LoggedInUsername }}
-
-
   <div class="row row-cols-1 row-cols-md-3 g-4">
     {{ range .Reviews }}
-
       {{ $reviewRoute := printf "/movies/%s#review%s" .Movie.ID.String .ID.String }}
 
 
@@ -77,8 +83,14 @@
               <a href="{{ $reviewRoute }}">{{ .Movie.Title }}</a>
             </h5>
             <h6 class="card-subtitle mb-2 text-muted">
-              <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b> watched
-              this
+              <b
+                ><a
+                  href="/reviews/by/{{ .Owner }}"
+                  data-testid="reviews-by-user"
+                  >{{ .Owner }}</a
+                ></b
+              >
+              watched this
               <span
                 data-testid="watch-date"
                 title="{{ formatWatchDate .Watched }}"
@@ -101,17 +113,19 @@
               </p>
             {{ end }}
             <p>
-              <a
-                href="{{ $reviewRoute }}"
-                class="card-link"
-                data-testid="full-review"
+              <a href="{{ $reviewRoute }}" data-testid="full-review"
                 >Full review</a
               >
+
+              {{ if len .Comments }}
+                &bull;
+                <a href="{{ $reviewRoute }}" data-testid="comment-count"
+                  ><i class="fa-solid fa-comment"></i> {{ len .Comments }}</a
+                >
+              {{ end }}
               {{ if (eq .Owner $loggedInUsername) }}
-                <a
-                  href="/reviews/{{ .ID }}/edit"
-                  class="card-link"
-                  data-testid="edit-rating"
+                &bull;
+                <a href="/reviews/{{ .ID }}/edit" data-testid="edit-rating"
                   >Edit</a
                 >
               {{ end }}

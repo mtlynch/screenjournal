@@ -3,9 +3,9 @@
 
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
-    import { showElement, hideElement } from "/js/lib/bootstrap.js";
+    import { makeVisible, makeInvisible } from "/js/lib/bootstrap.js";
     import { disableElement, enableElement } from "/js/lib/ui.js";
-    import { notificationsPut } from "/js/controllers/notifications.js";
+    import { notificationsPost } from "/js/controllers/notifications.js";
 
     document.addEventListener(
       "DOMContentLoaded",
@@ -29,25 +29,25 @@
             evt.preventDefault();
 
             disableElement(submitBtn);
-            hideElement(successAlert);
-            hideElement(errorAlert);
-            showElement(submitSpinner);
+            makeInvisible(successAlert);
+            makeInvisible(errorAlert);
+            makeVisible(submitSpinner);
 
             const isSubscribed = newReviewsCheckbox.checked;
 
-            notificationsPut(isSubscribed)
+            notificationsPost(isSubscribed)
               .then(() => {
-                showElement(successAlert);
+                makeVisible(successAlert);
                 disableElement(submitBtn);
               })
               .catch((error) => {
                 errorAlert.innerText = error;
-                showElement(errorAlert);
+                makeVisible(errorAlert);
 
                 enableElement(submitBtn);
               })
               .finally(() => {
-                hideElement(submitSpinner);
+                makeInvisible(submitSpinner);
               });
           });
       },

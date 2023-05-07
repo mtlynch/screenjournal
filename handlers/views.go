@@ -28,6 +28,13 @@ type commonProps struct {
 
 func (s Server) indexGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Redirect logged in users to the reviews index instead of the landing
+		// page.
+		if isAuthenticated(r.Context()) {
+			http.Redirect(w, r, "/reviews", http.StatusTemporaryRedirect)
+			return
+		}
+
 		if err := renderTemplate(w, "index.html", struct {
 			commonProps
 		}{

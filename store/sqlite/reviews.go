@@ -41,17 +41,21 @@ func (db DB) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, error)
 	return review, nil
 }
 
-func (db DB) ReadReviews(filters store.ReviewFilters) ([]screenjournal.Review, error) {
+func (db DB) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Review, error) {
+	params := store.ReadReviewsParams{}
+	for _, o := range opts {
+		o(&params)
+	}
 	whereClauses := []string{}
 	queryArgs := []any{}
 
-	if filters.Username != nil {
+	if params.Filters.Username != nil {
 		whereClauses = append(whereClauses, "review_owner = ?")
-		queryArgs = append(queryArgs, filters.Username.String())
+		queryArgs = append(queryArgs, params.Filters.Username.String())
 	}
-	if filters.MovieID != nil {
+	if params.Filters.MovieID != nil {
 		whereClauses = append(whereClauses, "movie_id = ?")
-		queryArgs = append(queryArgs, filters.MovieID.Int64())
+		queryArgs = append(queryArgs, params.Filters.MovieID.Int64())
 	}
 
 	query := `

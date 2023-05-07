@@ -129,11 +129,13 @@ func (s Server) signUpGet() http.HandlerFunc {
 func (s Server) reviewsGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var collectionOwner *screenjournal.Username
+		queryOptions := []store.ReadReviewsOption{}
 		if username, err := usernameFromRequestPath(r); err == nil {
 			collectionOwner = &username
+			queryOptions = append(queryOptions, store.FilterReviewsByUsername(username))
 		}
 
-		reviews, err := s.getDB(r).ReadReviews(store.ReviewFilters{Username: collectionOwner})
+		reviews, err := s.getDB(r).ReadReviews(queryOptions...)
 		if err != nil {
 			log.Printf("failed to read reviews: %v", err)
 			http.Error(w, "Failed to read reviews", http.StatusInternalServerError)
@@ -221,9 +223,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			return
 		}
 
-		reviews, err := s.getDB(r).ReadReviews(store.ReviewFilters{
-			MovieID: &mid,
-		})
+		reviews, err := s.getDB(r).ReadReviews(store.FilterReviewsByMovieID(mid))
 		if err != nil {
 			log.Printf("failed to read movie reviews: %v", err)
 			http.Error(w, "Failed to retrieve reviews", http.StatusInternalServerError)

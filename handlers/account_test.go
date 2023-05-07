@@ -24,9 +24,10 @@ func TestAccountNotificationsPost(t *testing.T) {
 		status        int
 	}{
 		{
-			description: "allows user to subscribe to new reviews",
+			description: "allows user to subscribe to new reviews and comments",
 			payload: `{
-					"isSubscribedToNewReviews":true
+					"isSubscribedToNewReviews":true,
+					"isSubscribedToAllComments":true
 				}`,
 			sessionToken: "abc123",
 			sessions: []mockSession{
@@ -40,14 +41,16 @@ func TestAccountNotificationsPost(t *testing.T) {
 				},
 			},
 			expectedPrefs: screenjournal.NotificationPreferences{
-				NewReviews: true,
+				NewReviews:     true,
+				AllNewComments: true,
 			},
 			status: http.StatusOK,
 		},
 		{
-			description: "allows user to unsubscribe to new reviews",
+			description: "allows user to unsubscribe to new reviews but subscribe to comments",
 			payload: `{
-					"isSubscribedToNewReviews":false
+					"isSubscribedToNewReviews":false,
+					"isSubscribedToAllComments":true
 				}`,
 			sessionToken: "abc123",
 			sessions: []mockSession{
@@ -61,14 +64,16 @@ func TestAccountNotificationsPost(t *testing.T) {
 				},
 			},
 			expectedPrefs: screenjournal.NotificationPreferences{
-				NewReviews: false,
+				NewReviews:     false,
+				AllNewComments: true,
 			},
 			status: http.StatusOK,
 		},
 		{
-			description: "rejects non-bool value for subscription status",
+			description: "rejects non-bool value for review subscription status",
 			payload: `{
-					"isSubscribedToNewReviews":"banana"
+					"isSubscribedToNewReviews":"banana",
+					"isSubscribedToAllComments":true
 				}`,
 			sessionToken: "abc123",
 			sessions: []mockSession{
@@ -86,7 +91,8 @@ func TestAccountNotificationsPost(t *testing.T) {
 		{
 			description: "rejects subscription update if user is not authenticated",
 			payload: `{
-					"isSubscribedToNewReviews":true
+					"isSubscribedToNewReviews":true,
+					"isSubscribedToAllComments":true
 				}`,
 			sessionToken: "dummy-invalid-token",
 			sessions:     []mockSession{},

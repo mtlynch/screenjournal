@@ -13,6 +13,9 @@
         const newReviewsCheckbox = document.getElementById(
           "new-reviews-checkbox"
         );
+        const allCommentsCheckbox = document.getElementById(
+          "all-comments-checkbox"
+        );
 
         const errorAlert = document.getElementById("error");
         const successAlert = document.getElementById("success");
@@ -20,6 +23,9 @@
         const submitBtn = document.querySelector("form .btn-primary");
 
         newReviewsCheckbox.addEventListener("change", () => {
+          enableElement(submitBtn);
+        });
+        allCommentsCheckbox.addEventListener("change", () => {
           enableElement(submitBtn);
         });
 
@@ -33,9 +39,13 @@
             makeInvisible(errorAlert);
             makeVisible(submitSpinner);
 
-            const isSubscribed = newReviewsCheckbox.checked;
+            const isSubscribedToNewReviews = newReviewsCheckbox.checked;
+            const isSubscribedToAllComments = allCommentsCheckbox.checked;
 
-            notificationsPost(isSubscribed)
+            notificationsPost(
+              isSubscribedToNewReviews,
+              isSubscribedToAllComments
+            )
               .then(() => {
                 makeVisible(successAlert);
                 disableElement(submitBtn);
@@ -63,7 +73,7 @@
   <h1>Manage Notifications</h1>
 
   <form id="notifications-form" class="my-4">
-    <div class="form-check my-4">
+    <div class="form-check my-2">
       <input
         class="form-check-input"
         type="checkbox"
@@ -71,11 +81,22 @@
         {{ if .ReceivesReviewNotices }}checked{{ end }}
       />
       <label class="form-check-label" for="new-reviews-checkbox">
-        Email me when other users post reviews
+        Email me when users post reviews
+      </label>
+    </div>
+    <div class="form-check my-2">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        id="all-comments-checkbox"
+        {{ if .ReceivesAllCommentNotices }}checked{{ end }}
+      />
+      <label class="form-check-label" for="all-comments-checkbox">
+        Email me when users add comments
       </label>
     </div>
 
-    <button class="btn btn-primary" value="Save" disabled>
+    <button class="btn btn-primary my-3" value="Save" disabled>
       <i class="fa-solid fa-floppy-disk"></i>
       Save
     </button>

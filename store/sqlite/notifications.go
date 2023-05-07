@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"database/sql"
+	"log"
 
 	"github.com/mtlynch/screenjournal/v2"
 )
@@ -64,29 +65,34 @@ func (db DB) ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error) {
 
 func (db DB) ReadNotificationPreferences(username screenjournal.Username) (screenjournal.NotificationPreferences, error) {
 	var newReviews bool
+	var allNewComments bool
 	err := db.ctx.QueryRow(`
 	SELECT
-		new_reviews
+		new_reviews,
+		all_new_comments
 	FROM
 		notification_preferences
 	WHERE
-		username = ?`, username.String()).Scan(&newReviews)
+		username = ?`, username.String()).Scan(&newReviews, &allNewComments)
 	if err != nil {
 		return screenjournal.NotificationPreferences{}, err
 	}
 
 	return screenjournal.NotificationPreferences{
-		NewReviews: newReviews,
+		NewReviews:     newReviews,
+		AllNewComments: allNewComments,
 	}, nil
 }
 
 func (db DB) UpdateNotificationPreferences(username screenjournal.Username, prefs screenjournal.NotificationPreferences) error {
+	log.Printf("new prefs=%+v", prefs) // DEBUG
 	if _, err := db.ctx.Exec(`
 	UPDATE notification_preferences
 	SET
-		new_reviews = ?
+		new_reviews = ?,
+		all_new_comments = ?
 	WHERE
-		username = ?`, prefs.NewReviews, username); err != nil {
+		username = ?`, prefs.NewReviews, prefs.AllNewComments, username); err != nil {
 		return err
 	}
 

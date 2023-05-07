@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { populateDummyData } from "./helpers/db.js";
+import { loginAsUserA } from "./helpers/login.js";
 
 test("signs up and logs out and signs in again", async ({ page }) => {
   await page.goto("/");
@@ -130,4 +131,13 @@ test("prompts to log in if they click a link to a review before signing in", asy
   await page.locator("form input[type='submit']").click();
 
   await expect(page).toHaveURL("/movies/1");
+});
+
+test("root route redirects a logged in user to the reviews index", async ({
+  page,
+}) => {
+  await populateDummyData(page);
+  await loginAsUserA(page);
+  await page.goto("/");
+  await expect(page).toHaveURL("/reviews");
 });

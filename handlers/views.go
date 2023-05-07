@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"path"
 	"regexp"
-	"sort"
 	"strings"
 	"time"
 
@@ -138,6 +137,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 		var sortOrder = screenjournal.ByWatchDate
 		if sort, err := sortOrderFromQueryParams(r); err == nil {
 			sortOrder = sort
+			queryOptions = append(queryOptions, store.SortReviews(sort))
 		}
 
 		reviews, err := s.getDB(r).ReadReviews(queryOptions...)
@@ -145,18 +145,6 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			log.Printf("failed to read reviews: %v", err)
 			http.Error(w, "Failed to read reviews", http.StatusInternalServerError)
 			return
-		}
-
-		if sortOrder == screenjournal.ByWatchDate {
-			// Sort reviews starting with most recent watch dates.
-			sort.Slice(reviews, func(i, j int) bool {
-				return reviews[i].Watched.Time().After(reviews[j].Watched.Time())
-			})
-		} else if sortOrder == screenjournal.ByRating {
-			// Sort from highest to lowest rating.
-			sort.Slice(reviews, func(i, j int) bool {
-				return reviews[j].Rating.LessThan(reviews[i].Rating)
-			})
 		}
 
 		title := "Ratings"

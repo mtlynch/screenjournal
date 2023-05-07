@@ -14,6 +14,7 @@ type (
 
 	ReadReviewsParams struct {
 		Filters reviewFilters
+		Order   *screenjournal.SortOrder
 	}
 
 	ReadReviewsOption func(*ReadReviewsParams)
@@ -63,5 +64,11 @@ func FilterReviewsByUsername(u screenjournal.Username) func(*ReadReviewsParams) 
 func FilterReviewsByMovieID(id screenjournal.MovieID) func(*ReadReviewsParams) {
 	return func(p *ReadReviewsParams) {
 		p.Filters.MovieID = &id
+	}
+}
+
+func SortReviews(order screenjournal.SortOrder) func(*ReadReviewsParams) {
+	return func(p *ReadReviewsParams) {
+		p.Order = &order
 	}
 }

@@ -41,6 +41,7 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 	subscribers, err := a.store.ReadReviewSubscribers()
 	if err != nil {
 		log.Printf("failed to read announcement recipients from store: %v", err)
+		return
 	}
 	log.Printf("%d user(s) subscribed to new review notifications", len(subscribers))
 	for _, subscriber := range subscribers {
@@ -81,6 +82,7 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 		}
 		if err := a.sender.Send(msg); err != nil {
 			log.Printf("failed to send message [%s] to recipient [%s]", msg.Subject, msg.To[0].String())
+			continue
 		}
 	}
 }
@@ -90,6 +92,7 @@ func (a announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 	users, err := a.store.ReadCommentSubscribers()
 	if err != nil {
 		log.Printf("failed to read announcement recipients from store: %v", err)
+		return
 	}
 	log.Printf("%d user(s) subscribed to new review notifications", len(users))
 	for _, u := range users {
@@ -132,6 +135,7 @@ func (a announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 		}
 		if err := a.sender.Send(msg); err != nil {
 			log.Printf("failed to send message [%s] to recipient [%s]", msg.Subject, msg.To[0].String())
+			continue
 		}
 	}
 }

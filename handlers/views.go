@@ -31,7 +31,7 @@ func (s Server) indexGet() http.HandlerFunc {
 		// Redirect logged in users to the reviews index instead of the landing
 		// page.
 		if isAuthenticated(r.Context()) {
-			http.Redirect(w, r, "//"+r.Host+"/reviews", http.StatusTemporaryRedirect)
+			http.Redirect(w, r, "/reviews", http.StatusTemporaryRedirect)
 			return
 		}
 

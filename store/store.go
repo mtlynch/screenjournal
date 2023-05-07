@@ -7,13 +7,13 @@ import (
 )
 
 type (
-	ReviewFilters struct {
+	reviewFilters struct {
 		Username *screenjournal.Username
 		MovieID  *screenjournal.MovieID
 	}
 
 	ReadReviewsParams struct {
-		Filters ReviewFilters
+		Filters reviewFilters
 	}
 
 	ReadReviewsOption func(*ReadReviewsParams)

@@ -17,8 +17,8 @@ import (
 
 type (
 	NotificationsStore interface {
-		ReadReviewSubscribers() ([]screenjournal.User, error)
-		ReadCommentSubscribers() ([]screenjournal.User, error)
+		ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error)
+		ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error)
 	}
 
 	announcer struct {
@@ -38,14 +38,14 @@ func New(baseURL string, sender email.Sender, store NotificationsStore) announce
 
 func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 	log.Printf("announcing new review from user %s of %s", r.Owner.String(), r.Movie.Title)
-	users, err := a.store.ReadReviewSubscribers()
+	subscribers, err := a.store.ReadReviewSubscribers()
 	if err != nil {
 		log.Printf("failed to read announcement recipients from store: %v", err)
 	}
-	log.Printf("%d user(s) subscribed to new review notifications", len(users))
-	for _, u := range users {
+	log.Printf("%d user(s) subscribed to new review notifications", len(subscribers))
+	for _, subscriber := range subscribers {
 		// Don't send a notification to the review author.
-		if u.Username == r.Owner {
+		if subscriber.Username.Equal(r.Owner) {
 			continue
 		}
 		bodyMarkdown := mustRenderTemplate("new-review.tmpl.txt", struct {
@@ -56,7 +56,7 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 			MovieID   int64
 			ReviewID  uint64
 		}{
-			Recipient: u.Username.String(),
+			Recipient: subscriber.Username.String(),
 			Title:     r.Movie.Title.String(),
 			Author:    r.Owner.String(),
 			BaseURL:   a.baseURL,
@@ -71,8 +71,8 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 			},
 			To: []mail.Address{
 				{
-					Name:    u.Username.String(),
-					Address: u.Email.String(),
+					Name:    subscriber.Username.String(),
+					Address: subscriber.Email.String(),
 				},
 			},
 			Subject:  fmt.Sprintf("%s posted a new review: %s", r.Owner.String(), r.Movie.Title),

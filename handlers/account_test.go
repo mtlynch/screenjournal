@@ -70,6 +70,29 @@ func TestAccountNotificationsPost(t *testing.T) {
 			status: http.StatusOK,
 		},
 		{
+			description: "allows user to subscribe to new reviews but unsubscribe from comments",
+			payload: `{
+					"isSubscribedToNewReviews":true,
+					"isSubscribedToAllComments":false
+				}`,
+			sessionToken: "abc123",
+			sessions: []mockSession{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						User: screenjournal.User{
+							Username: screenjournal.Username("userA"),
+						},
+					},
+				},
+			},
+			expectedPrefs: screenjournal.NotificationPreferences{
+				NewReviews:     true,
+				AllNewComments: false,
+			},
+			status: http.StatusOK,
+		},
+		{
 			description: "rejects non-bool value for review subscription status",
 			payload: `{
 					"isSubscribedToNewReviews":"banana",

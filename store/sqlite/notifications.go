@@ -85,7 +85,7 @@ func (db DB) ReadNotificationPreferences(username screenjournal.Username) (scree
 }
 
 func (db DB) UpdateNotificationPreferences(username screenjournal.Username, prefs screenjournal.NotificationPreferences) error {
-	log.Printf("new prefs=%+v", prefs) // DEBUG
+	log.Printf("updating notifications preferences for %s: newReviews=%v, allNewComments=%v", username, prefs.NewReviews, prefs.AllNewComments)
 	if _, err := db.ctx.Exec(`
 	UPDATE notification_preferences
 	SET

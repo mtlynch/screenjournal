@@ -37,7 +37,7 @@ func TestAnnounceNewReview(t *testing.T) {
 		expectedEmails []email.Message
 	}{
 		{
-			description: "announces new review to everyne except the author",
+			description: "announces new review to everyone except the author",
 			store: mockNotificationsStore{
 				subscribers: []screenjournal.EmailSubscriber{
 					{

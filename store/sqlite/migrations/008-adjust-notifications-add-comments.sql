@@ -1,4 +1,3 @@
-
 ALTER TABLE notification_preferences ADD COLUMN all_new_comments INTEGER;
 ALTER TABLE notification_preferences ADD COLUMN comments_on_my_reviews INTEGER;
 

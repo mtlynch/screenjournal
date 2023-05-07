@@ -41,7 +41,7 @@ type (
 		ReadSignupInvitation(screenjournal.InviteCode) (screenjournal.SignupInvitation, error)
 		ReadSignupInvitations() ([]screenjournal.SignupInvitation, error)
 		DeleteSignupInvitation(screenjournal.InviteCode) error
-		ReadNotificationSubscribers() ([]screenjournal.User, error)
+		ReadNotificationSubscribers() ([]screenjournal.EmailSubscriber, error)
 		ReadNotificationPreferences(screenjournal.Username) (screenjournal.NotificationPreferences, error)
 		UpdateNotificationPreferences(screenjournal.Username, screenjournal.NotificationPreferences) error
 	}

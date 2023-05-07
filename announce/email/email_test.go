@@ -12,11 +12,11 @@ import (
 )
 
 type mockNotificationsStore struct {
-	users []screenjournal.User
+	subscribers []screenjournal.EmailSubscriber
 }
 
-func (ns mockNotificationsStore) ReadNotificationSubscribers() ([]screenjournal.User, error) {
-	return ns.users, nil
+func (ns mockNotificationsStore) ReadNotificationSubscribers() ([]screenjournal.EmailSubscriber, error) {
+	return ns.subscribers, nil
 }
 
 type mockEmailSender struct {
@@ -39,7 +39,7 @@ func TestAnnounceNewReview(t *testing.T) {
 		{
 			description: "announces new review to everyne except the author",
 			store: mockNotificationsStore{
-				users: []screenjournal.User{
+				subscribers: []screenjournal.EmailSubscriber{
 					{
 						Username: screenjournal.Username("alice"),
 						Email:    screenjournal.Email("alice.amberson@example.com"),
@@ -134,7 +134,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 		{
 			description: "sends no emails when no users exist except the author",
 			store: mockNotificationsStore{
-				users: []screenjournal.User{
+				subscribers: []screenjournal.EmailSubscriber{
 					{
 						Username: screenjournal.Username("bob"),
 						Email:    screenjournal.Email("bob.bobberton@example.com"),

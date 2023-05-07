@@ -7,14 +7,20 @@ import (
 )
 
 type (
-	ReviewFilters struct {
+	reviewFilters struct {
 		Username *screenjournal.Username
 		MovieID  *screenjournal.MovieID
 	}
 
+	ReadReviewsParams struct {
+		Filters reviewFilters
+	}
+
+	ReadReviewsOption func(*ReadReviewsParams)
+
 	Store interface {
 		ReadReview(screenjournal.ReviewID) (screenjournal.Review, error)
-		ReadReviews(ReviewFilters) ([]screenjournal.Review, error)
+		ReadReviews(...ReadReviewsOption) ([]screenjournal.Review, error)
 		InsertReview(screenjournal.Review) (screenjournal.ReviewID, error)
 		UpdateReview(screenjournal.Review) error
 		ReadComments(screenjournal.ReviewID) ([]screenjournal.ReviewComment, error)
@@ -47,3 +53,15 @@ var (
 	ErrUsernameNotAvailable              = errors.New("username is not available")
 	ErrEmailAssociatedWithAnotherAccount = errors.New("email address is associated with another account")
 )
+
+func FilterReviewsByUsername(u screenjournal.Username) func(*ReadReviewsParams) {
+	return func(p *ReadReviewsParams) {
+		p.Filters.Username = &u
+	}
+}
+
+func FilterReviewsByMovieID(id screenjournal.MovieID) func(*ReadReviewsParams) {
+	return func(p *ReadReviewsParams) {
+		p.Filters.MovieID = &id
+	}
+}

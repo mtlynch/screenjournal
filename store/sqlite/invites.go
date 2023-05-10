@@ -80,6 +80,7 @@ func (d DB) ReadSignupInvitations() ([]screenjournal.SignupInvitation, error) {
 }
 
 func (d DB) DeleteSignupInvitation(code screenjournal.InviteCode) error {
+	log.Printf("deleting signup code: %s", code)
 	_, err := d.ctx.Exec(`DELETE FROM invites WHERE code = ?`, code.String())
 	if err != nil {
 		return err

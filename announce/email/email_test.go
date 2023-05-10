@@ -83,7 +83,7 @@ func TestAnnounceNewReview(t *testing.T) {
 					Subject: "bob posted a new review: The Matrix",
 					TextBody: `Hey alice,
 
-bob just posted a new review for *The Matrix*! Check it out:
+bob just posted a new review of *The Matrix*! Check it out:
 
 https://dev.thescreenjournal.com/movies/123#review456
 
@@ -93,7 +93,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 `,
 					HtmlBody: `<p>Hey alice,</p>
 
-<p>bob just posted a new review for <em>The Matrix</em>! Check it out:</p>
+<p>bob just posted a new review of <em>The Matrix</em>! Check it out:</p>
 
 <p><a href="https://dev.thescreenjournal.com/movies/123#review456">https://dev.thescreenjournal.com/movies/123#review456</a></p>
 
@@ -116,7 +116,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 					Subject: "bob posted a new review: The Matrix",
 					TextBody: `Hey charlie,
 
-bob just posted a new review for *The Matrix*! Check it out:
+bob just posted a new review of *The Matrix*! Check it out:
 
 https://dev.thescreenjournal.com/movies/123#review456
 
@@ -126,7 +126,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 `,
 					HtmlBody: `<p>Hey charlie,</p>
 
-<p>bob just posted a new review for <em>The Matrix</em>! Check it out:</p>
+<p>bob just posted a new review of <em>The Matrix</em>! Check it out:</p>
 
 <p><a href="https://dev.thescreenjournal.com/movies/123#review456">https://dev.thescreenjournal.com/movies/123#review456</a></p>
 
@@ -237,7 +237,7 @@ func TestAnnounceNewComment(t *testing.T) {
 					Subject: "alice commented on bob's review of The Matrix",
 					TextBody: `Hey bob,
 
-alice just commented on bob's review for *The Matrix*! Check it out:
+alice just commented on bob's review of *The Matrix*! Check it out:
 
 https://dev.thescreenjournal.com/movies/123#comment707
 
@@ -247,7 +247,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 `,
 					HtmlBody: `<p>Hey bob,</p>
 
-<p>alice just commented on bob's review for <em>The Matrix</em>! Check it out:</p>
+<p>alice just commented on bob's review of <em>The Matrix</em>! Check it out:</p>
 
 <p><a href="https://dev.thescreenjournal.com/movies/123#comment707">https://dev.thescreenjournal.com/movies/123#comment707</a></p>
 
@@ -270,7 +270,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 					Subject: "alice commented on bob's review of The Matrix",
 					TextBody: `Hey charlie,
 
-alice just commented on bob's review for *The Matrix*! Check it out:
+alice just commented on bob's review of *The Matrix*! Check it out:
 
 https://dev.thescreenjournal.com/movies/123#comment707
 
@@ -280,7 +280,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 `,
 					HtmlBody: `<p>Hey charlie,</p>
 
-<p>alice just commented on bob's review for <em>The Matrix</em>! Check it out:</p>
+<p>alice just commented on bob's review of <em>The Matrix</em>! Check it out:</p>
 
 <p><a href="https://dev.thescreenjournal.com/movies/123#comment707">https://dev.thescreenjournal.com/movies/123#comment707</a></p>
 

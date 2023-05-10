@@ -10,7 +10,8 @@ import (
 )
 
 type accountNotificationsPostRequest struct {
-	NewReviews bool
+	NewReviews  bool
+	AllComments bool
 }
 
 func (s Server) accountNotificationsPost() http.HandlerFunc {
@@ -23,7 +24,8 @@ func (s Server) accountNotificationsPost() http.HandlerFunc {
 
 		user := mustGetUserFromContext(r.Context())
 		if err = s.getDB(r).UpdateNotificationPreferences(user.Username, screenjournal.NotificationPreferences{
-			NewReviews: req.NewReviews,
+			NewReviews:     req.NewReviews,
+			AllNewComments: req.AllComments,
 		}); err != nil {
 			log.Printf("failed to save notification preferences: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to save notification preferences: %v", err), http.StatusInternalServerError)
@@ -34,7 +36,8 @@ func (s Server) accountNotificationsPost() http.HandlerFunc {
 
 func notificationPreferencesFromRequest(r *http.Request) (accountNotificationsPostRequest, error) {
 	var payload struct {
-		NewReviews bool `json:"isSubscribedToNewReviews"`
+		NewReviews  bool `json:"isSubscribedToNewReviews"`
+		AllComments bool `json:"isSubscribedToAllComments"`
 	}
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
@@ -43,6 +46,7 @@ func notificationPreferencesFromRequest(r *http.Request) (accountNotificationsPo
 	}
 
 	return accountNotificationsPostRequest{
-		NewReviews: payload.NewReviews,
+		NewReviews:  payload.NewReviews,
+		AllComments: payload.AllComments,
 	}, nil
 }

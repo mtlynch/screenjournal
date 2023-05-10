@@ -136,10 +136,12 @@ func (db DB) InsertUser(user screenjournal.User) error {
 		notification_preferences
 	(
 		username,
-		new_reviews
+		new_reviews,
+		all_new_comments,
+		comments_on_my_reviews
 	)
 	VALUES (
-		?, 1
+		?, 1, 1, 1
 	)
 	`,
 		user.Username.String()); err != nil {

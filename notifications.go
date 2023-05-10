@@ -1,5 +1,6 @@
 package screenjournal
 
 type NotificationPreferences struct {
-	NewReviews bool
+	NewReviews     bool
+	AllNewComments bool
 }

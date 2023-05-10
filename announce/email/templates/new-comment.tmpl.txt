@@ -1,0 +1,9 @@
+Hey {{ .Recipient }},
+
+{{ .CommentAuthor }} just commented on {{ .ReviewAuthor }}'s review of *{{ .Title }}*! Check it out:
+
+{{ .BaseURL }}/movies/{{ .MovieID }}#comment{{ .CommentID }}
+
+-ScreenJournal Bot
+
+To manage your notifications, visit {{ .BaseURL }}/account/notifications

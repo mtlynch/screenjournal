@@ -18,6 +18,7 @@ import (
 type (
 	NotificationsStore interface {
 		ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error)
+		ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error)
 	}
 
 	announcer struct {
@@ -40,6 +41,7 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 	subscribers, err := a.store.ReadReviewSubscribers()
 	if err != nil {
 		log.Printf("failed to read announcement recipients from store: %v", err)
+		return
 	}
 	log.Printf("%d user(s) subscribed to new review notifications", len(subscribers))
 	for _, subscriber := range subscribers {
@@ -80,6 +82,60 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 		}
 		if err := a.sender.Send(msg); err != nil {
 			log.Printf("failed to send message [%s] to recipient [%s]", msg.Subject, msg.To[0].String())
+			continue
+		}
+	}
+}
+
+func (a announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
+	log.Printf("announcing new comment from %s about %s's review of %s", rc.Owner, rc.Review.Owner, rc.Review.Movie.Title)
+	users, err := a.store.ReadCommentSubscribers()
+	if err != nil {
+		log.Printf("failed to read announcement recipients from store: %v", err)
+		return
+	}
+	log.Printf("%d user(s) subscribed to new review notifications", len(users))
+	for _, u := range users {
+		// Don't send a notification to the review author.
+		if u.Username == rc.Owner {
+			continue
+		}
+		bodyMarkdown := mustRenderTemplate("new-comment.tmpl.txt", struct {
+			Recipient     string
+			Title         string
+			CommentAuthor string
+			ReviewAuthor  string
+			BaseURL       string
+			MovieID       int64
+			CommentID     uint64
+		}{
+			Recipient:     u.Username.String(),
+			Title:         rc.Review.Movie.Title.String(),
+			CommentAuthor: rc.Owner.String(),
+			ReviewAuthor:  rc.Review.Owner.String(),
+			BaseURL:       a.baseURL,
+			MovieID:       rc.Review.Movie.ID.Int64(),
+			CommentID:     rc.ID.UInt64(),
+		})
+		bodyHtml := markdown.Render(bodyMarkdown)
+		msg := email.Message{
+			From: mail.Address{
+				Name:    "ScreenJournal",
+				Address: "activity@thescreenjournal.com",
+			},
+			To: []mail.Address{
+				{
+					Name:    u.Username.String(),
+					Address: u.Email.String(),
+				},
+			},
+			Subject:  fmt.Sprintf("%s commented on %s's review of %s", rc.Owner.String(), rc.Review.Owner, rc.Review.Movie.Title),
+			TextBody: bodyMarkdown,
+			HtmlBody: bodyHtml,
+		}
+		if err := a.sender.Send(msg); err != nil {
+			log.Printf("failed to send message [%s] to recipient [%s]", msg.Subject, msg.To[0].String())
+			continue
 		}
 	}
 }

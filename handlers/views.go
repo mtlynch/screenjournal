@@ -428,10 +428,12 @@ func (s Server) accountNotificationsGet() http.HandlerFunc {
 
 		if err := renderTemplate(w, "account-notifications.html", struct {
 			commonProps
-			ReceivesReviewNotices bool
+			ReceivesReviewNotices     bool
+			ReceivesAllCommentNotices bool
 		}{
-			commonProps:           makeCommonProps("Manage Notifications", r.Context()),
-			ReceivesReviewNotices: prefs.NewReviews,
+			commonProps:               makeCommonProps("Manage Notifications", r.Context()),
+			ReceivesReviewNotices:     prefs.NewReviews,
+			ReceivesAllCommentNotices: prefs.AllNewComments,
 		}, template.FuncMap{}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

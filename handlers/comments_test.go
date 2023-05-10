@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-test/deep"
+
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/auth/simple"
 	"github.com/mtlynch/screenjournal/v2/handlers"
@@ -207,10 +209,11 @@ func TestCommentsPost(t *testing.T) {
 				}
 			}
 
+			announcer := mockAnnouncer{}
 			authenticator := simple.New(store)
 			sessionManager := newMockSessionManager(tt.sessions)
 			var nilMetadataFinder metadata.Finder
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, nilMetadataFinder)
+			s := handlers.New(authenticator, &announcer, &sessionManager, store, nilMetadataFinder)
 
 			req, err := http.NewRequest("POST", "/api/comments", strings.NewReader(tt.payload))
 			if err != nil {
@@ -239,6 +242,16 @@ func TestCommentsPost(t *testing.T) {
 			}
 			if got, want := comments, tt.expectedComments; !reviewCommentsEqual(got, want) {
 				t.Errorf("comments=%+v, got=%+v", got, want)
+			}
+
+			if got, want := len(announcer.announcedComments), 1; got != want {
+				t.Fatalf("commentCountAnnounced=%d, want=%d", got, want)
+			}
+
+			clearUnpredictableReviewProperties(&announcer.announcedComments[0].Review)
+			clearUnpredictableReviewProperties(&tt.expectedComments[0].Review)
+			if !reflect.DeepEqual(announcer.announcedComments, tt.expectedComments) {
+				t.Errorf("did not find expected announced comments: %v", deep.Equal(announcer.announcedComments, tt.expectedComments))
 			}
 		})
 	}

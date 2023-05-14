@@ -1,6 +1,9 @@
+import { expect } from "@playwright/test";
+
 export async function populateDummyData(page) {
   await page.goto("/"); // hack to populate the DB cookie
-  await page.goto("/api/debug/db/populate-dummy-data");
+  const response = await page.goto("/api/debug/db/populate-dummy-data");
+  await expect(response?.status()).toBe(200);
 }
 
 export function readDbTokenCookie(cookies) {

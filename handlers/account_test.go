@@ -142,7 +142,7 @@ func TestAccountNotificationsPost(t *testing.T) {
 			}
 			req.Header.Add("Content-Type", "text/json")
 			req.AddCookie(&http.Cookie{
-				Name:  "token",
+				Name:  mockSessionTokenName,
 				Value: tt.sessionToken,
 			})
 

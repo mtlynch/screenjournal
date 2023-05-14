@@ -221,7 +221,7 @@ func TestCommentsPost(t *testing.T) {
 			}
 			req.Header.Add("Content-Type", "text/json")
 			req.AddCookie(&http.Cookie{
-				Name:  "token",
+				Name:  mockSessionTokenName,
 				Value: tt.sessionToken,
 			})
 
@@ -447,7 +447,7 @@ func TestCommentsPut(t *testing.T) {
 			}
 			req.Header.Add("Content-Type", "text/json")
 			req.AddCookie(&http.Cookie{
-				Name:  "token",
+				Name:  mockSessionTokenName,
 				Value: tt.sessionToken,
 			})
 
@@ -599,7 +599,7 @@ func TestCommentsDelete(t *testing.T) {
 			}
 			req.Header.Add("Content-Type", "text/json")
 			req.AddCookie(&http.Cookie{
-				Name:  "token",
+				Name:  mockSessionTokenName,
 				Value: tt.sessionToken,
 			})
 

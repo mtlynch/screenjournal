@@ -53,6 +53,8 @@ type mockSessionManager struct {
 	sessions map[string]sessions.Session
 }
 
+const mockSessionTokenName = "mock-session-token"
+
 func newMockSessionManager(mockSessions []mockSession) mockSessionManager {
 	sessions := make(map[string]sessions.Session, len(mockSessions))
 	for _, ms := range mockSessions {
@@ -69,14 +71,14 @@ func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, r *http.Reque
 		User: user,
 	}
 	http.SetCookie(w, &http.Cookie{
-		Name:  "token",
+		Name:  mockSessionTokenName,
 		Value: token,
 	})
 	return nil
 }
 
 func (sm mockSessionManager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
-	token, err := r.Cookie("token")
+	token, err := r.Cookie(mockSessionTokenName)
 	if err != nil {
 		return sessions.Session{}, errors.New("mock session manager: no token cookie found")
 	}
@@ -277,7 +279,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			}
 			req.Header.Add("Content-Type", "text/json")
 			req.AddCookie(&http.Cookie{
-				Name:  "token",
+				Name:  mockSessionTokenName,
 				Value: tt.sessionToken,
 			})
 
@@ -407,7 +409,7 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 			}
 			req.Header.Add("Content-Type", "text/json")
 			req.AddCookie(&http.Cookie{
-				Name:  "token",
+				Name:  mockSessionTokenName,
 				Value: tt.sessionToken,
 			})
 
@@ -587,7 +589,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			}
 			req.Header.Add("Content-Type", "text/json")
 			req.AddCookie(&http.Cookie{
-				Name:  "token",
+				Name:  mockSessionTokenName,
 				Value: tt.sessionToken,
 			})
 
@@ -1017,7 +1019,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			}
 			req.Header.Add("Content-Type", "text/json")
 			req.AddCookie(&http.Cookie{
-				Name:  "token",
+				Name:  mockSessionTokenName,
 				Value: tt.sessionToken,
 			})
 

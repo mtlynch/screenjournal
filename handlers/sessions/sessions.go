@@ -12,6 +12,9 @@ type (
 		CreateSession(http.ResponseWriter, *http.Request, screenjournal.User) error
 		SessionFromRequest(*http.Request) (Session, error)
 		EndSession(*http.Request, http.ResponseWriter)
+		// WrapRequest wraps the given handler, adding the Session object (if
+		// there's an active session) to the request context before passing control
+		// to the next handler.
 		WrapRequest(http.Handler) http.Handler
 	}
 

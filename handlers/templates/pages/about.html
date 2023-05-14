@@ -2,6 +2,18 @@
 {{ end }}
 
 {{ define "script-tags" }}
+  <script type="module" nonce="{{ .CspNonce }}">
+    import Litedom from "//unpkg.com/litedom";
+
+    Litedom({
+      // The target element
+      el: "#helloWidget",
+      // The reactive data
+      data: {
+        name: "Litedom",
+      },
+    });
+  </script>
 {{ end }}
 
 {{ define "custom-elements" }}
@@ -9,6 +21,11 @@
 
 {{ define "content" }}
   <h1>About</h1>
+
+  <div id="helloWidget">
+    <div>Hello {this.name}</div>
+    <div>Today's date: {new Date().toISOString().slice(0, 10)}</div>
+  </div>
 
   <p>
     ScreenJournal is a way to share and discuss movie recommendations with your

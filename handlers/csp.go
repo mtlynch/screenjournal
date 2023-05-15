@@ -33,6 +33,7 @@ func enforceContentSecurityPolicy(next http.Handler) http.Handler {
 					"'self'",
 					"'nonce-" + nonce + "'",
 					"https://cdn.jsdelivr.net",
+					"https://unpkg.com",
 				},
 			},
 			{

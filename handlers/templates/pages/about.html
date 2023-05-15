@@ -2,20 +2,41 @@
 {{ end }}
 
 {{ define "script-tags" }}
-  <script type="module" nonce="{{ .CspNonce }}">
-    import Ponys from "//cdn.jsdelivr.net/gh/jhuddle/ponys/miniature-ponys.js";
-    Ponys.defineAll();
+  <script src="https://unpkg.com/sberry@0.0.0-alpha.1/dist/sb.min.js"></script>
+  <script nonce="{{ .CspNonce }}">
+    const data = sb.init();
+    data.counter = 0;
+
+    data.message = () => `Clicked ${data.counter} times`;
   </script>
 {{ end }}
 
 {{ define "custom-elements" }}
-  <template name="hello-world"> Hello, <slot>world</slot>! </template>
+  <template name="cool-button">
+    <style nonce="{{ .CspNonce }}">
+      #foo {
+        padding: 0.5rem 1rem;
+        border: 2px solid black;
+        border-radius: 0px;
+        box-shadow: 4px 4px 0px gray;
+      }
+    </style>
+    <button id="foo">
+      <slot />
+    </button>
+  </template>
 {{ end }}
 
 {{ define "content" }}
   <h1>About</h1>
-  <hello-world>everyone</hello-world>
 
+  <cool-button sb-mark="message"> loading... </cool-button>
+
+  <script nonce="{{ .CspNonce }}">
+    document.querySelector("cool-button").addEventListener("click", () => {
+      data.counter += 1;
+    });
+  </script>
   <p>
     ScreenJournal is a way to share and discuss movie recommendations with your
     friends.

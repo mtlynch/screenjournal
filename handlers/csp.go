@@ -32,6 +32,7 @@ func enforceContentSecurityPolicy(next http.Handler) http.Handler {
 				values: []string{
 					"'self'",
 					"'nonce-" + nonce + "'",
+					"https://cdn.jsdelivr.net",
 				},
 			},
 			{
@@ -56,7 +57,7 @@ func enforceContentSecurityPolicy(next http.Handler) http.Handler {
 		}
 		policy := strings.Join(policyParts, "; ") + ";"
 
-		w.Header().Set("Not-Really-Content-Security-Policy", policy)
+		w.Header().Set("Content-Security-Policy", policy)
 
 		ctx := context.WithValue(r.Context(), contextKeyCSPNonce, nonce)
 		next.ServeHTTP(w, r.WithContext(ctx))

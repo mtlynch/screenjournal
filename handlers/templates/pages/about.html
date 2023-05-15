@@ -3,29 +3,18 @@
 
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
-    import Litedom from "//unpkg.com/litedom";
-
-    Litedom({
-      // The target element
-      el: "#helloWidget",
-      // The reactive data
-      data: {
-        name: "Litedom",
-      },
-    });
+    import Ponys from "//cdn.jsdelivr.net/gh/jhuddle/ponys/miniature-ponys.js";
+    Ponys.defineAll();
   </script>
 {{ end }}
 
 {{ define "custom-elements" }}
+  <template name="hello-world"> Hello, <slot>world</slot>! </template>
 {{ end }}
 
 {{ define "content" }}
   <h1>About</h1>
-
-  <div id="helloWidget">
-    <div>Hello {this.name}</div>
-    <div>Today's date: {new Date().toISOString().slice(0, 10)}</div>
-  </div>
+  <hello-world>everyone</hello-world>
 
   <p>
     ScreenJournal is a way to share and discuss movie recommendations with your

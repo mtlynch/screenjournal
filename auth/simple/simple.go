@@ -1,35 +1,43 @@
 package simple
 
 import (
-	"github.com/mtlynch/screenjournal/v2"
+	"log"
+
 	"github.com/mtlynch/screenjournal/v2/auth"
 )
 
 type (
-	UserStore interface {
-		ReadUser(screenjournal.Username) (screenjournal.User, error)
+	AuthStore interface {
+		//InsertUser(username, password string) error
+		ReadPasswordHash(username string) (auth.PasswordHash, error)
 	}
 
 	authenticator struct {
-		store UserStore
+		store AuthStore
 	}
 )
 
-func New(store UserStore) auth.Authenticator {
+func New(store AuthStore) auth.Authenticator {
 	return authenticator{
 		store: store,
 	}
 }
 
-func (a authenticator) Authenticate(username screenjournal.Username, password screenjournal.Password) (screenjournal.User, error) {
-	u, err := a.store.ReadUser(username)
+func (a authenticator) Authenticate(username, password string) error {
+	h, err := a.store.ReadPasswordHash(username)
 	if err != nil {
-		return screenjournal.User{}, err
+		return err
 	}
 
-	if err := u.PasswordHash.MatchesPlaintext(password); err != nil {
-		return screenjournal.User{}, err
+	log.Printf("attempted password = %s", password) // DEBUG
+	log.Printf("existing hash = %s", h.String())    // DEBUG
+
+	if err := h.MatchesPlaintext(password); err != nil {
+		log.Printf("plaintext doesn't match, returning %s", err) // DEBUG
+		return err
 	}
 
-	return u, nil
+	log.Printf("plaintext matches!") // DEBUG
+
+	return nil
 }

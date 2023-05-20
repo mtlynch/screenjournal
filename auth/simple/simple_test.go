@@ -1,92 +1,124 @@
 package simple_test
 
 import (
+	"bytes"
+	"errors"
 	"testing"
 
 	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/auth/simple"
 )
 
-type mockUserStore struct {
-	users []screenjournal.User
+type (
+	mockPasswordHash struct {
+		data []byte
+	}
+
+	mockAuthEntry struct {
+		Username     string
+		PasswordHash auth.PasswordHash
+	}
+
+	mockAuthStore struct {
+		entries []mockAuthEntry
+	}
+)
+
+func newMockPasswordHash(password string) auth.PasswordHash {
+	return mockPasswordHash{
+		// We're not really hashing the password, but it's okay because this is just
+		// mock data for testing.
+		data: []byte(password),
+	}
 }
 
-func (us mockUserStore) ReadUser(username screenjournal.Username) (screenjournal.User, error) {
-	for _, u := range us.users {
-		if u.Username.Equal(username) {
-			return u, nil
+func (h mockPasswordHash) MatchesPlaintext(plaintext string) error {
+	other := newMockPasswordHash(plaintext)
+
+	if !bytes.Equal(h.Bytes(), other.Bytes()) {
+		return auth.ErrIncorrectPassword
+	}
+	return nil
+}
+
+func (h mockPasswordHash) String() string {
+	return string(h.data)
+}
+
+func (h mockPasswordHash) Bytes() []byte {
+	return h.data
+}
+
+func (s mockAuthStore) InsertUser(username, password string) error {
+	return errors.New("not implemented")
+}
+
+func (s mockAuthStore) ReadPasswordHash(username string) (auth.PasswordHash, error) {
+	for _, entry := range s.entries {
+		if entry.Username == username {
+			return entry.PasswordHash, nil
 		}
 	}
-	return screenjournal.User{}, screenjournal.ErrUserNotFound
+	return nil, screenjournal.ErrUserNotFound
 }
 
 func TestAuthenticate(t *testing.T) {
 	for _, tt := range []struct {
 		description string
-		store       simple.UserStore
-		username    screenjournal.Username
-		password    screenjournal.Password
-		user        screenjournal.User
+		store       simple.AuthStore
+		username    string
+		password    string
 		err         error
 	}{
 		{
 			"authenticates when password is valid",
-			mockUserStore{
-				users: []screenjournal.User{
+			mockAuthStore{
+				entries: []mockAuthEntry{
 					{
-						Username:     screenjournal.Username("dummyuser"),
-						PasswordHash: screenjournal.NewPasswordHash("dummy-p@ssword"),
+						Username:     "dummyuser",
+						PasswordHash: newMockPasswordHash("dummy-p@ssword"),
 					},
 				},
 			},
-			screenjournal.Username("dummyuser"),
-			screenjournal.Password("dummy-p@ssword"),
-			screenjournal.User{
-				Username:     screenjournal.Username("dummyuser"),
-				PasswordHash: screenjournal.NewPasswordHash("dummy-p@ssword"),
-			},
+			"dummyuser",
+			"dummy-p@ssword",
 			nil,
 		},
 		{
 			"returns ErrIncorrectPassword when password is invalid",
-			mockUserStore{
-				users: []screenjournal.User{
+			mockAuthStore{
+				entries: []mockAuthEntry{
 					{
-						Username:     screenjournal.Username("dummyuser"),
-						PasswordHash: screenjournal.NewPasswordHash("dummy-p@ssword"),
+						Username:     "dummyuser",
+						PasswordHash: newMockPasswordHash("dummy-p@ssword"),
 					},
 				},
 			},
-			screenjournal.Username("dummyuser"),
-			screenjournal.Password("wrongpass"),
-			screenjournal.User{},
-			screenjournal.ErrIncorrectPassword,
+			"dummyuser",
+			"wrongpass",
+			auth.ErrIncorrectPassword,
 		},
 		{
 			"returns ErrUserNotFound when user is not found",
-			mockUserStore{
-				users: []screenjournal.User{
+			mockAuthStore{
+				entries: []mockAuthEntry{
 					{
-						Username:     screenjournal.Username("dummyuser"),
-						PasswordHash: screenjournal.NewPasswordHash("dummy-p@ssword"),
+						Username:     "dummyuser",
+						PasswordHash: newMockPasswordHash("dummy-p@ssword"),
 					},
 				},
 			},
-			screenjournal.Username("madeupuser"),
-			screenjournal.Password("dummy-p@ssword"),
-			screenjournal.User{},
+			"madeupuser",
+			"dummy-p@ssword",
 			screenjournal.ErrUserNotFound,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			authenticator := simple.New(tt.store)
-			user, err := authenticator.Authenticate(tt.username, tt.password)
+			err := authenticator.Authenticate(tt.username, tt.password)
 			if got, want := err, tt.err; got != want {
 				t.Fatalf("err=%v, want=%v", got, want)
-			}
-
-			if got, want := user.Username.String(), user.Username.String(); got != want {
-				t.Errorf("username=%s, want=%s", got, want)
 			}
 		})
 	}

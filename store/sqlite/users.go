@@ -157,5 +157,5 @@ func encodePasswordHash(ph screenjournal.PasswordHash) string {
 
 func decodePasswordHash(s string) screenjournal.PasswordHash {
 	b := []byte(s)
-	return screenjournal.NewPasswordHashFromBytes(b)
+	return screenjournal.NewPasswordHash(b)
 }

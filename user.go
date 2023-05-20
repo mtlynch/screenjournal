@@ -3,7 +3,7 @@ package screenjournal
 import (
 	"errors"
 
-	"golang.org/x/crypto/bcrypt"
+	"github.com/mtlynch/screenjournal/v2/auth"
 )
 
 type (
@@ -18,7 +18,9 @@ type (
 		Email    Email
 	}
 
-	PasswordHash []byte
+	PasswordHash struct {
+		hash auth.PasswordHash
+	}
 
 	User struct {
 		IsAdmin      bool
@@ -29,8 +31,8 @@ type (
 )
 
 var (
-	ErrUserNotFound      = errors.New("user not found")
-	ErrIncorrectPassword = errors.New("password does not match stored hash")
+	ErrUserNotFound = errors.New("user not found")
+	//ErrIncorrectPassword = errors.New("password does not match stored hash")
 )
 
 func (e Email) String() string {
@@ -55,34 +57,33 @@ func (pw Password) Equal(o Password) bool {
 	return pw.String() == o.String()
 }
 
+func (ph PasswordHash) MatchesPlaintext(plaintext string) error {
+	if ph.hash == nil {
+		return auth.ErrIncorrectPassword
+	}
+	return ph.hash.MatchesPlaintext(plaintext)
+}
+
+func NewPasswordHash(hash []byte) PasswordHash {
+	return PasswordHash{
+		hash: auth.NewPasswordHashFromBytes(hash),
+	}
+}
+
+func (ph PasswordHash) String() string {
+	if ph.hash == nil {
+		return ""
+	}
+	return ph.hash.String()
+}
+
+func (ph PasswordHash) Bytes() []byte {
+	if ph.hash == nil {
+		return []byte{}
+	}
+	return ph.hash.Bytes()
+}
+
 func (u User) IsEmpty() bool {
 	return u.Username == ""
-}
-
-func NewPasswordHash(plaintext Password) PasswordHash {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(plaintext.String()), bcrypt.DefaultCost)
-	if err != nil {
-		panic(err)
-	}
-	return PasswordHash(bytes)
-}
-
-func NewPasswordHashFromBytes(bytes []byte) PasswordHash {
-	return PasswordHash(bytes)
-}
-
-func (h PasswordHash) MatchesPlaintext(plaintext Password) error {
-	err := bcrypt.CompareHashAndPassword(h.Bytes(), []byte(plaintext.String()))
-	if err == bcrypt.ErrMismatchedHashAndPassword {
-		return ErrIncorrectPassword
-	}
-	return err
-}
-
-func (h PasswordHash) String() string {
-	return string(h)
-}
-
-func (h PasswordHash) Bytes() []byte {
-	return []byte(h)
 }

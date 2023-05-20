@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/mtlynch/screenjournal/v2"
-	"github.com/mtlynch/screenjournal/v2/auth/simple"
+	"github.com/mtlynch/screenjournal/v2/auth2"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
@@ -130,7 +130,7 @@ func TestAccountNotificationsPost(t *testing.T) {
 				dataStore.InsertUser(s.session.User)
 			}
 
-			authenticator := simple.New(dataStore)
+			authenticator := auth2.New(dataStore)
 			var nilMetadataFinder metadata.Finder
 			sessionManager := newMockSessionManager(tt.sessions)
 

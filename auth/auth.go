@@ -7,22 +7,34 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store"
 )
 
-type Authenticator interface {
-	Authenticate(username, password string) error
-}
+type (
+	Authenticator interface {
+		Authenticate(username screenjournal.Username, password screenjournal.Password) error
+	}
 
-type authStore struct {
-	inner store.Store
-}
+	authenticator struct {
+		inner simple.Authenticator
+	}
+
+	authStore struct {
+		inner store.Store
+	}
+)
 
 func New(store store.Store) Authenticator {
-	return simple.New(authStore{
-		inner: store,
-	})
+	return authenticator{
+		inner: simple.New(authStore{
+			inner: store,
+		}),
+	}
 }
 
-func NewPasswordHash(plaintext string) (screenjournal.PasswordHash, error) {
-	h, err := simple.NewPasswordHash(plaintext)
+func (a authenticator) Authenticate(username screenjournal.Username, password screenjournal.Password) error {
+	return a.inner.Authenticate(username.String(), password.String())
+}
+
+func NewPasswordHash(password screenjournal.Password) (screenjournal.PasswordHash, error) {
+	h, err := simple.NewPasswordHash(password.String())
 	if err != nil {
 		return screenjournal.PasswordHash{}, err
 	}

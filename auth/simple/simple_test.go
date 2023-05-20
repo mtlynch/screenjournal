@@ -33,13 +33,10 @@ func newMockPasswordHash(password string) auth.PasswordHash {
 	}
 }
 
-func (h mockPasswordHash) MatchesPlaintext(plaintext string) error {
+func (h mockPasswordHash) MatchesPlaintext(plaintext string) bool {
 	other := newMockPasswordHash(plaintext)
 
-	if !bytes.Equal(h.Bytes(), other.Bytes()) {
-		return auth.ErrIncorrectPassword
-	}
-	return nil
+	return bytes.Equal(h.Bytes(), other.Bytes())
 }
 
 func (h mockPasswordHash) String() string {

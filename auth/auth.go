@@ -14,7 +14,7 @@ type (
 	bcryptPasswordHash []byte
 
 	PasswordHash interface {
-		MatchesPlaintext(string) error
+		MatchesPlaintext(string) bool
 		String() string
 		Bytes() []byte
 	}
@@ -43,13 +43,8 @@ func NewPasswordHashFromBytes(bytes []byte) PasswordHash {
 	return bcryptPasswordHash(bytes)
 }
 
-// TODO: return bool
-func (h bcryptPasswordHash) MatchesPlaintext(plaintext string) error {
-	err := bcrypt.CompareHashAndPassword(h.Bytes(), []byte(plaintext))
-	if err == bcrypt.ErrMismatchedHashAndPassword {
-		return ErrIncorrectPassword
-	}
-	return err
+func (h bcryptPasswordHash) MatchesPlaintext(plaintext string) bool {
+	return bcrypt.CompareHashAndPassword(h.Bytes(), []byte(plaintext)) == nil
 }
 
 func (h bcryptPasswordHash) String() string {

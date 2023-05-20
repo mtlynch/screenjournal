@@ -1,14 +1,11 @@
 package simple
 
 import (
-	"log"
-
 	"github.com/mtlynch/screenjournal/v2/auth"
 )
 
 type (
 	AuthStore interface {
-		//InsertUser(username, password string) error
 		ReadPasswordHash(username string) (auth.PasswordHash, error)
 	}
 
@@ -29,15 +26,9 @@ func (a authenticator) Authenticate(username, password string) error {
 		return err
 	}
 
-	log.Printf("attempted password = %s", password) // DEBUG
-	log.Printf("existing hash = %s", h.String())    // DEBUG
-
-	if err := h.MatchesPlaintext(password); err != nil {
-		log.Printf("plaintext doesn't match, returning %s", err) // DEBUG
-		return err
+	if ok := h.MatchesPlaintext(password); !ok {
+		return auth.ErrIncorrectPassword
 	}
-
-	log.Printf("plaintext matches!") // DEBUG
 
 	return nil
 }

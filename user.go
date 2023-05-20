@@ -57,9 +57,9 @@ func (pw Password) Equal(o Password) bool {
 	return pw.String() == o.String()
 }
 
-func (ph PasswordHash) MatchesPlaintext(plaintext string) error {
+func (ph PasswordHash) MatchesPlaintext(plaintext string) bool {
 	if ph.hash == nil {
-		return auth.ErrIncorrectPassword
+		return false
 	}
 	return ph.hash.MatchesPlaintext(plaintext)
 }

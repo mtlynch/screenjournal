@@ -17,14 +17,9 @@ type authStore struct {
 }
 
 func New(store store.Store) Authenticator {
-	return simple.New(NewAuthStore(store))
-}
-
-// TODO: Refactor
-func NewAuthStore(s store.Store) simple.AuthStore {
-	return authStore{
-		inner: s,
-	}
+	return simple.New(authStore{
+		inner: store,
+	})
 }
 
 func NewPasswordHash(plaintext string) (screenjournal.PasswordHash, error) {

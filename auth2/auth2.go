@@ -7,11 +7,15 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store"
 )
 
+type Authenticator interface {
+	Authenticate(username, password string) error
+}
+
 type authStore struct {
 	inner store.Store
 }
 
-func New(store store.Store) auth.Authenticator {
+func New(store store.Store) Authenticator {
 	return simple.New(NewAuthStore(store))
 }
 

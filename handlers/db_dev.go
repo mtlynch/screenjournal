@@ -10,10 +10,9 @@ import (
 	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/auth2"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 
-	"github.com/mtlynch/screenjournal/v2/auth"
-	simple_auth "github.com/mtlynch/screenjournal/v2/auth/simple"
 	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/store"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
@@ -180,11 +179,11 @@ func (s Server) getDB(r *http.Request) store.Store {
 	return sharedDBSettings.GetDB(dbToken(c.Value))
 }
 
-func (s Server) getAuthenticator(r *http.Request) auth.Authenticator {
+func (s Server) getAuthenticator(r *http.Request) auth2.Authenticator {
 	if !sharedDBSettings.IsSessionIsolationEnabled() {
 		return s.authenticator
 	}
-	return simple_auth.New(s.getDB(r))
+	return auth2.New(s.getDB(r))
 }
 
 func dbPerSessionPost() http.HandlerFunc {

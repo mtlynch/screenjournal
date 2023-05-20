@@ -139,7 +139,7 @@ func TestAuthPost(t *testing.T) {
 }
 
 func mustCreatePasswordHash(plaintext string) screenjournal.PasswordHash {
-	h, err := auth.NewPasswordHash(plaintext)
+	h, err := auth.NewPasswordHash(screenjournal.Password(plaintext))
 	if err != nil {
 		panic(err)
 	}

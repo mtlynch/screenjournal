@@ -26,10 +26,7 @@ type (
 	}
 )
 
-var (
-	ErrUserNotFound = errors.New("user not found")
-	//ErrIncorrectPassword = errors.New("password does not match stored hash")
-)
+var ErrUserNotFound = errors.New("user not found")
 
 func (e Email) String() string {
 	return string(e)

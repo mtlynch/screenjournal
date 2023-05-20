@@ -2,7 +2,6 @@ package auth
 
 import (
 	"errors"
-	"log"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -35,7 +34,6 @@ func NewPasswordHash(plaintext string) (PasswordHash, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("password %s -> %s", plaintext, string(bytes))
 	return bcryptPasswordHash(bytes), nil
 }
 

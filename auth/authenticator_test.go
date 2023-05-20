@@ -1,4 +1,4 @@
-package simple_test
+package auth_test
 
 import (
 	"bytes"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/auth"
-	"github.com/mtlynch/screenjournal/v2/auth/simple"
 )
 
 type (
@@ -63,7 +62,7 @@ func (s mockAuthStore) ReadPasswordHash(username string) (auth.PasswordHash, err
 func TestAuthenticate(t *testing.T) {
 	for _, tt := range []struct {
 		description string
-		store       simple.AuthStore
+		store       auth.AuthStore
 		username    string
 		password    string
 		err         error
@@ -112,7 +111,7 @@ func TestAuthenticate(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			authenticator := simple.New(tt.store)
+			authenticator := auth.New(tt.store)
 			err := authenticator.Authenticate(tt.username, tt.password)
 			if got, want := err, tt.err; got != want {
 				t.Fatalf("err=%v, want=%v", got, want)

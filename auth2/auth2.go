@@ -3,7 +3,6 @@ package auth2
 import (
 	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/auth"
-	"github.com/mtlynch/screenjournal/v2/auth/simple"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/store"
 )
@@ -17,7 +16,7 @@ type authStore struct {
 }
 
 func New(store store.Store) Authenticator {
-	return simple.New(authStore{
+	return auth.New(authStore{
 		inner: store,
 	})
 }

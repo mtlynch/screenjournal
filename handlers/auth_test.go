@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/mtlynch/screenjournal/v2"
-	"github.com/mtlynch/screenjournal/v2/auth2"
+	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
@@ -100,7 +100,7 @@ func TestAuthPost(t *testing.T) {
 				}
 			}
 
-			authenticator := auth2.New(dataStore)
+			authenticator := auth.New(dataStore)
 			var nilMetadataFinder metadata.Finder
 			sessionManager := newMockSessionManager([]mockSession{})
 
@@ -139,7 +139,7 @@ func TestAuthPost(t *testing.T) {
 }
 
 func mustCreatePasswordHash(plaintext string) screenjournal.PasswordHash {
-	h, err := auth2.NewPasswordHash(plaintext)
+	h, err := auth.NewPasswordHash(plaintext)
 	if err != nil {
 		panic(err)
 	}

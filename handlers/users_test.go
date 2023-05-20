@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/mtlynch/screenjournal/v2"
-	"github.com/mtlynch/screenjournal/v2/auth2"
+	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
@@ -160,7 +160,7 @@ func TestUsersPut(t *testing.T) {
 				}
 			}
 
-			authenticator := auth2.New(dataStore)
+			authenticator := auth.New(dataStore)
 			var nilMetadataFinder metadata.Finder
 			sessionManager := newMockSessionManager([]mockSession{})
 

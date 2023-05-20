@@ -152,10 +152,9 @@ func (db DB) InsertUser(user screenjournal.User) error {
 }
 
 func encodePasswordHash(ph screenjournal.PasswordHash) string {
-	return ph.String()
+	return string(ph.Bytes())
 }
 
 func decodePasswordHash(s string) screenjournal.PasswordHash {
-	b := []byte(s)
-	return screenjournal.NewPasswordHashFromBytes(b)
+	return screenjournal.PasswordHash([]byte(s))
 }

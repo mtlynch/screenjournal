@@ -27,8 +27,8 @@ var nilAnnouncer announce.Announcer
 
 type mockAuthenticator struct{}
 
-func (a mockAuthenticator) Authenticate(screenjournal.Username, screenjournal.Password) (screenjournal.User, error) {
-	return screenjournal.User{}, nil
+func (a mockAuthenticator) Authenticate(username, password string) error {
+	return nil
 }
 
 type mockAnnouncer struct {

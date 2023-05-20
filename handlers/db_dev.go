@@ -10,10 +10,8 @@ import (
 	"time"
 
 	"github.com/mtlynch/screenjournal/v2"
-	"github.com/mtlynch/screenjournal/v2/handlers/parse"
-
 	"github.com/mtlynch/screenjournal/v2/auth"
-	simple_auth "github.com/mtlynch/screenjournal/v2/auth/simple"
+	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/store"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
@@ -31,19 +29,19 @@ func (s Server) populateDummyData() http.HandlerFunc {
 	users := []screenjournal.User{
 		{
 			Username:     screenjournal.Username("dummyadmin"),
-			PasswordHash: screenjournal.NewPasswordHash(screenjournal.Password("dummypass")),
+			PasswordHash: mustCreatePasswordHash("dummypass"),
 			IsAdmin:      true,
 			Email:        screenjournal.Email("dummyadmin@example.com"),
 		},
 		{
 			Username:     screenjournal.Username("userA"),
-			PasswordHash: screenjournal.NewPasswordHash(screenjournal.Password("password123")),
+			PasswordHash: mustCreatePasswordHash("password123"),
 			IsAdmin:      false,
 			Email:        screenjournal.Email("userA@example.com"),
 		},
 		{
 			Username:     screenjournal.Username("userB"),
-			PasswordHash: screenjournal.NewPasswordHash(screenjournal.Password("password456")),
+			PasswordHash: mustCreatePasswordHash("password456"),
 			IsAdmin:      false,
 			Email:        screenjournal.Email("userB@example.com"),
 		},
@@ -184,7 +182,7 @@ func (s Server) getAuthenticator(r *http.Request) auth.Authenticator {
 	if !sharedDBSettings.IsSessionIsolationEnabled() {
 		return s.authenticator
 	}
-	return simple_auth.New(s.getDB(r))
+	return auth.New(s.getDB(r))
 }
 
 func dbPerSessionPost() http.HandlerFunc {
@@ -232,4 +230,12 @@ func createDBCookie(token dbToken, w http.ResponseWriter) {
 		Value: string(token),
 		Path:  "/",
 	})
+}
+
+func mustCreatePasswordHash(plaintext string) screenjournal.PasswordHash {
+	h, err := auth.NewPasswordHash(plaintext)
+	if err != nil {
+		panic(err)
+	}
+	return screenjournal.PasswordHash(h.Bytes())
 }

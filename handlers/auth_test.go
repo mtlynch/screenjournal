@@ -8,25 +8,27 @@ import (
 	"testing"
 
 	"github.com/mtlynch/screenjournal/v2"
-	"github.com/mtlynch/screenjournal/v2/auth/simple"
+	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
-var userA = screenjournal.User{
-	Username:     screenjournal.Username("userA"),
-	PasswordHash: screenjournal.NewPasswordHash("dummyp@ss"),
-	Email:        screenjournal.Email("userA@example.com"),
-	IsAdmin:      true,
-}
-var userB = screenjournal.User{
-	Username:     screenjournal.Username("userB"),
-	PasswordHash: screenjournal.NewPasswordHash("p@ssw0rd123"),
-	Email:        screenjournal.Email("userB@example.com"),
-	IsAdmin:      false,
-}
+var (
+	userA = screenjournal.User{
+		Username:     screenjournal.Username("userA"),
+		PasswordHash: mustCreatePasswordHash("dummyp@ss"),
+		Email:        screenjournal.Email("userA@example.com"),
+		IsAdmin:      true,
+	}
+	userB = screenjournal.User{
+		Username:     screenjournal.Username("userB"),
+		PasswordHash: mustCreatePasswordHash("p@ssw0rd123"),
+		Email:        screenjournal.Email("userB@example.com"),
+		IsAdmin:      false,
+	}
+)
 
 func TestAuthPost(t *testing.T) {
 	for _, tt := range []struct {
@@ -98,7 +100,7 @@ func TestAuthPost(t *testing.T) {
 				}
 			}
 
-			authenticator := simple.New(dataStore)
+			authenticator := auth.New(dataStore)
 			var nilMetadataFinder metadata.Finder
 			sessionManager := newMockSessionManager([]mockSession{})
 
@@ -134,4 +136,12 @@ func TestAuthPost(t *testing.T) {
 			}
 		})
 	}
+}
+
+func mustCreatePasswordHash(plaintext string) screenjournal.PasswordHash {
+	h, err := auth.NewPasswordHash(plaintext)
+	if err != nil {
+		panic(err)
+	}
+	return screenjournal.PasswordHash(h.Bytes())
 }

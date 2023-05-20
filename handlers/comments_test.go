@@ -12,7 +12,7 @@ import (
 	"github.com/go-test/deep"
 
 	"github.com/mtlynch/screenjournal/v2"
-	"github.com/mtlynch/screenjournal/v2/auth/simple"
+	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
@@ -210,7 +210,7 @@ func TestCommentsPost(t *testing.T) {
 			}
 
 			announcer := mockAnnouncer{}
-			authenticator := simple.New(store)
+			authenticator := auth.New(store)
 			sessionManager := newMockSessionManager(tt.sessions)
 			var nilMetadataFinder metadata.Finder
 			s := handlers.New(authenticator, &announcer, &sessionManager, store, nilMetadataFinder)
@@ -436,7 +436,7 @@ func TestCommentsPut(t *testing.T) {
 				}
 			}
 
-			authenticator := simple.New(store)
+			authenticator := auth.New(store)
 			sessionManager := newMockSessionManager(tt.sessions)
 			var nilMetadataFinder metadata.Finder
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, nilMetadataFinder)
@@ -588,7 +588,7 @@ func TestCommentsDelete(t *testing.T) {
 				}
 			}
 
-			authenticator := simple.New(store)
+			authenticator := auth.New(store)
 			sessionManager := newMockSessionManager(tt.sessions)
 			var nilMetadataFinder metadata.Finder
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, nilMetadataFinder)

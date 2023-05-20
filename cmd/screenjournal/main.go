@@ -14,7 +14,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/announce"
 	email_announce "github.com/mtlynch/screenjournal/v2/announce/email"
 	"github.com/mtlynch/screenjournal/v2/announce/quiet"
-	simple_auth "github.com/mtlynch/screenjournal/v2/auth/simple"
+	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/email/smtp"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	jeff_sessions "github.com/mtlynch/screenjournal/v2/handlers/sessions/jeff"
@@ -32,7 +32,7 @@ func main() {
 	ensureDirExists(filepath.Dir(*dbPath))
 	store := sqlite.New(*dbPath, isLitestreamEnabled())
 
-	authenticator := simple_auth.New(store)
+	authenticator := auth.New(store)
 
 	sessionManager, err := jeff_sessions.New(*dbPath)
 	if err != nil {

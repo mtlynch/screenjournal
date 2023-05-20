@@ -18,9 +18,7 @@ type (
 		Email    Email
 	}
 
-	PasswordHash struct {
-		bytes []byte
-	}
+	PasswordHash []byte
 
 	User struct {
 		IsAdmin      bool
@@ -66,19 +64,15 @@ func NewPasswordHash(plaintext Password) PasswordHash {
 	if err != nil {
 		panic(err)
 	}
-	return PasswordHash{
-		bytes: bytes,
-	}
+	return PasswordHash(bytes)
 }
 
 func NewPasswordHashFromBytes(bytes []byte) PasswordHash {
-	return PasswordHash{
-		bytes: bytes,
-	}
+	return PasswordHash(bytes)
 }
 
 func (h PasswordHash) MatchesPlaintext(plaintext Password) error {
-	err := bcrypt.CompareHashAndPassword(h.bytes, []byte(plaintext.String()))
+	err := bcrypt.CompareHashAndPassword(h.Bytes(), []byte(plaintext.String()))
 	if err == bcrypt.ErrMismatchedHashAndPassword {
 		return ErrIncorrectPassword
 	}
@@ -86,9 +80,9 @@ func (h PasswordHash) MatchesPlaintext(plaintext Password) error {
 }
 
 func (h PasswordHash) String() string {
-	return string(h.bytes)
+	return string(h)
 }
 
 func (h PasswordHash) Bytes() []byte {
-	return h.bytes
+	return []byte(h)
 }

@@ -6,7 +6,6 @@ import (
 
 type PasswordHash interface {
 	MatchesPlaintext(string) bool
-	String() string
 	Bytes() []byte
 }
 

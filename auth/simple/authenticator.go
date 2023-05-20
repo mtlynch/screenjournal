@@ -1,4 +1,4 @@
-package genericauth
+package simple
 
 import "errors"
 

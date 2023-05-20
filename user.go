@@ -2,8 +2,6 @@ package screenjournal
 
 import (
 	"errors"
-
-	"github.com/mtlynch/screenjournal/v2/auth"
 )
 
 type (
@@ -18,9 +16,7 @@ type (
 		Email    Email
 	}
 
-	PasswordHash struct {
-		hash auth.PasswordHash
-	}
+	PasswordHash []byte
 
 	User struct {
 		IsAdmin      bool
@@ -57,31 +53,8 @@ func (pw Password) Equal(o Password) bool {
 	return pw.String() == o.String()
 }
 
-func (ph PasswordHash) MatchesPlaintext(plaintext string) bool {
-	if ph.hash == nil {
-		return false
-	}
-	return ph.hash.MatchesPlaintext(plaintext)
-}
-
-func NewPasswordHash(hash []byte) PasswordHash {
-	return PasswordHash{
-		hash: auth.NewPasswordHashFromBytes(hash),
-	}
-}
-
-func (ph PasswordHash) String() string {
-	if ph.hash == nil {
-		return ""
-	}
-	return ph.hash.String()
-}
-
 func (ph PasswordHash) Bytes() []byte {
-	if ph.hash == nil {
-		return []byte{}
-	}
-	return ph.hash.Bytes()
+	return []byte(ph)
 }
 
 func (u User) IsEmpty() bool {

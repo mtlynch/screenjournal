@@ -144,5 +144,5 @@ func mustCreatePasswordHash(plaintext string) screenjournal.PasswordHash {
 	if err != nil {
 		panic(err)
 	}
-	return screenjournal.NewPasswordHash(h.Bytes())
+	return screenjournal.PasswordHash(h.Bytes())
 }

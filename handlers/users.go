@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mtlynch/screenjournal/v2"
-	"github.com/mtlynch/screenjournal/v2/auth"
+	"github.com/mtlynch/screenjournal/v2/auth2"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/store"
 )
@@ -109,7 +109,7 @@ func newUserFromRequest(r *http.Request) (userPutRequest, error) {
 		}
 	}
 
-	hash, err := auth.NewPasswordHash(plaintextPassword.String())
+	hash, err := auth2.NewPasswordHash(plaintextPassword.String())
 	if err != nil {
 		return userPutRequest{}, err
 	}
@@ -117,7 +117,7 @@ func newUserFromRequest(r *http.Request) (userPutRequest, error) {
 	return userPutRequest{
 		Email:        email,
 		Username:     username,
-		PasswordHash: screenjournal.NewPasswordHash(hash.Bytes()),
+		PasswordHash: screenjournal.PasswordHash(hash.Bytes()),
 		InviteCode:   inviteCode,
 	}, nil
 }

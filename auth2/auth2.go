@@ -1,6 +1,7 @@
 package auth2
 
 import (
+	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/auth/simple"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
@@ -26,6 +27,14 @@ func NewAuthStore(s store.Store) simple.AuthStore {
 	}
 }
 
+func NewPasswordHash(plaintext string) (screenjournal.PasswordHash, error) {
+	h, err := auth.NewPasswordHash(plaintext)
+	if err != nil {
+		return screenjournal.PasswordHash{}, err
+	}
+	return screenjournal.PasswordHash(h.Bytes()), nil
+}
+
 func (s authStore) ReadPasswordHash(usernameRaw string) (auth.PasswordHash, error) {
 	username, err := parse.Username(usernameRaw)
 	if err != nil {
@@ -37,5 +46,5 @@ func (s authStore) ReadPasswordHash(usernameRaw string) (auth.PasswordHash, erro
 		return nil, err
 	}
 
-	return user.PasswordHash, nil
+	return auth.NewPasswordHashFromBytes(user.PasswordHash.Bytes()), nil
 }

@@ -98,7 +98,7 @@ test("index page sorts cards based on desired sorting", async ({ page }) => {
 test("adds a new rating and fills in only required fields", async ({
   page,
 }) => {
-  await page.getByTestId("add-rating").click();
+  await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.locator("title-search #media-title").fill("slow lear");
   const matchingTitle = await page.locator(
@@ -140,7 +140,7 @@ test("adds a new rating and fills in only required fields", async ({
 test("adds a new rating that's too long to display in a card", async ({
   page,
 }) => {
-  await page.getByTestId("add-rating").click();
+  await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page
     .locator("title-search #media-title")
@@ -224,7 +224,7 @@ You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, o
 });
 
 test("adds a new rating and fills all fields", async ({ page }) => {
-  await page.getByTestId("add-rating").click();
+  await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.locator("title-search #media-title").fill("eternal sunshine");
   const matchingTitle = await page.locator(
@@ -272,7 +272,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
 });
 
 test("HTML tags in reviews are encoded properly", async ({ page }) => {
-  await page.getByTestId("add-rating").click();
+  await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.locator("title-search #media-title").fill("eternal sunshine");
   const matchingTitle = await page.locator(
@@ -307,7 +307,7 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
 });
 
 test("adds a new rating and edits the details", async ({ page }) => {
-  await page.getByTestId("add-rating").click();
+  await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.locator("title-search #media-title").fill("something about mary");
   const matchingTitle = await page.locator(
@@ -370,7 +370,7 @@ test("adds a new rating and edits the details", async ({ page }) => {
 });
 
 test("adds a new rating and cancels the edit", async ({ page }) => {
-  await page.getByTestId("add-rating").click();
+  await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.locator("title-search #media-title").fill("the english pati");
   const matchingTitle = await page.locator(
@@ -423,7 +423,7 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
 });
 
 test("editing another user's review fails", async ({ page, browser }) => {
-  await page.getByTestId("add-rating").click();
+  await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.locator("title-search #media-title").fill("the english pati");
   const matchingTitle = await page.locator(
@@ -469,7 +469,7 @@ test("views a movie with an existing review and adds a new review", async ({
 
   await expect(page).toHaveURL("/movies/1#review1");
 
-  await page.getByTestId("add-rating").click();
+  await page.getByRole("button", { name: "Add Rating" }).click();
 
   await expect(page).toHaveURL("/reviews/new?movieId=1");
 

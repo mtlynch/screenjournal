@@ -11,7 +11,7 @@ test("notifications page reflects the backend store for new reviews", async ({
   page,
 }) => {
   await page.locator("#account-dropdown").click();
-  await page.getByTestId("notification-prefs-btn").click();
+  await page.getByRole("menuitem", { name: "Notifications" }).click();
 
   await expect(page).toHaveURL("/account/notifications");
 
@@ -47,7 +47,7 @@ test("notifications page reflects the backend store for new comments", async ({
   page,
 }) => {
   await page.locator("#account-dropdown").click();
-  await page.getByTestId("notification-prefs-btn").click();
+  await page.getByRole("menuitem", { name: "Notifications" }).click();
 
   await expect(page).toHaveURL("/account/notifications");
 

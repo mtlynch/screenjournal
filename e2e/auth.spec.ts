@@ -5,7 +5,7 @@ import { loginAsUserA } from "./helpers/login.js";
 test("signs up and logs out and signs in again", async ({ page }) => {
   await page.goto("/");
 
-  await page.getByTestId("sign-up-btn").click();
+  await page.getByRole("menuitem", { name: "Sign up" }).click();
 
   await expect(page).toHaveURL("/sign-up");
   await page.locator("id=username").fill("dummyadmin");
@@ -40,7 +40,7 @@ test("signs up and logs out and signs in again", async ({ page }) => {
 test("sign up fails if passwords are different", async ({ page }) => {
   await page.goto("/");
 
-  await page.getByTestId("sign-up-btn").click();
+  await page.getByRole("menuitem", { name: "Sign up" }).click();
 
   await expect(page).toHaveURL("/sign-up");
   await page.locator("id=username").fill("dummyadmin");
@@ -58,7 +58,7 @@ test("sign up fails if passwords are different", async ({ page }) => {
 test("sign up fails if username is invalid", async ({ page }) => {
   await page.goto("/");
 
-  await page.getByTestId("sign-up-btn").click();
+  await page.getByRole("menuitem", { name: "Sign up" }).click();
 
   await expect(page).toHaveURL("/sign-up");
   await page.locator("id=username").fill("root");
@@ -75,7 +75,7 @@ test("sign up fails if username is invalid", async ({ page }) => {
 test("sign up fails if password is too short", async ({ page }) => {
   await page.goto("/");
 
-  await page.getByTestId("sign-up-btn").click();
+  await page.getByRole("menuitem", { name: "Sign up" }).click();
 
   await expect(page).toHaveURL("/sign-up");
   await page.locator("id=username").fill("dummyadmin");
@@ -94,7 +94,7 @@ test("sign up fails if password is too short", async ({ page }) => {
 test("signs up fails after there's already an admin user", async ({ page }) => {
   await page.goto("/");
 
-  await page.getByTestId("sign-up-btn").click();
+  await page.getByRole("menuitem", { name: "Sign up" }).click();
 
   await expect(page).toHaveURL("/sign-up");
   await page.locator("id=username").fill("dummyadmin");
@@ -111,7 +111,7 @@ test("signs up fails after there's already an admin user", async ({ page }) => {
   // Attempt to sign up again
   await expect(page).toHaveURL("/");
 
-  await page.getByTestId("sign-up-btn").click();
+  await page.getByRole("menuitem", { name: "Sign up" }).click();
 
   await expect(page).toHaveURL("/sign-up");
 

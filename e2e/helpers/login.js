@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 async function loginAsUser(page, username, password) {
   await page.goto("/");
 
-  await page.getByTestId("sign-in-btn").click();
+  await page.getByRole("menuitem", { name: "Sign in" }).click();
 
   await expect(page).toHaveURL("/login");
   await page.locator("id=username").fill(username);

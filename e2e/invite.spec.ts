@@ -11,8 +11,8 @@ test("signing up with an valid invite code succeeds", async ({
   page,
   browser,
 }) => {
-  await page.locator("id=admin-dropdown").click();
-  await page.getByTestId("invites-btn").click();
+  await page.getByRole("menuitem", { name: "Admin" }).click();
+  await page.getByRole("menuitem", { name: "Invites" }).click();
 
   await expect(page).toHaveURL("/admin/invites");
   await page.getByTestId("create-invite").click();
@@ -55,8 +55,8 @@ test("signing up with an invalid invite code fails", async ({
   page,
   browser,
 }) => {
-  await page.locator("id=admin-dropdown").click();
-  await page.getByTestId("invites-btn").click();
+  await page.getByRole("menuitem", { name: "Admin" }).click();
+  await page.getByRole("menuitem", { name: "Invites" }).click();
 
   await expect(page).toHaveURL("/admin/invites");
   await page.getByTestId("create-invite").click();

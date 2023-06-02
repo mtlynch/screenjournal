@@ -21,10 +21,10 @@
     <div class="collapse navbar-collapse" id="navbar-content">
       <ul class="navbar-nav">
         <li class="nav-item">
-          <a class="nav-link" href="{{ $homeRoute }}">Home</a>
+          <a class="nav-link" href="{{ $homeRoute }}" role="menuitem">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/about">About</a>
+          <a class="nav-link" href="/about" role="menuitem">About</a>
         </li>
       </ul>
       {{ if .IsAuthenticated }}
@@ -34,7 +34,7 @@
               class="nav-link dropdown-toggle"
               href="#"
               id="account-dropdown"
-              role="button"
+              role="menuitem"
               data-bs-toggle="dropdown"
               aria-expanded="false"
             >
@@ -45,6 +45,7 @@
                 <a
                   href="/reviews/by/{{ .LoggedInUsername }}"
                   class="dropdown-item"
+                  role="menuitem"
                   >My ratings</a
                 >
               </li>
@@ -52,12 +53,17 @@
                 <a
                   href="/account/notifications"
                   class="dropdown-item"
+                  role="menuitem"
                   data-testid="notification-prefs-btn"
                   >Notifications</a
                 >
               </li>
               <li>
-                <a id="navbar-log-out" href="/logout" class="dropdown-item"
+                <a
+                  id="navbar-log-out"
+                  href="/logout"
+                  class="dropdown-item"
+                  role="menuitem"
                   >Log out</a
                 >
               </li>
@@ -93,14 +99,13 @@
             href="/sign-up"
             class="btn btn-primary btn-sm px-4 gap-3"
             role="menuitem"
-            data-testid="sign-up-btn"
           >
             Sign up
           </a>
           <a
             href="/login"
             class="btn btn-outline-secondary btn-sm px-4 gap-3"
-            data-testid="sign-in-btn"
+            role="menuitem"
           >
             Sign in
           </a>

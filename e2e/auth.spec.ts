@@ -16,8 +16,8 @@ test("signs up and logs out and signs in again", async ({ page }) => {
 
   await expect(page).toHaveURL("/reviews");
 
-  await page.locator("#account-dropdown").click();
-  await page.locator("#navbar-log-out").click();
+  await page.getByRole("menuitem", { name: "Account" }).click();
+  await page.getByRole("menuitem", { name: "Log out" }).click();
 
   // Sign in again
   await expect(page).toHaveURL("/");
@@ -30,8 +30,8 @@ test("signs up and logs out and signs in again", async ({ page }) => {
 
   await expect(page).toHaveURL("/reviews");
 
-  await page.locator("#account-dropdown").click();
-  await page.locator("#navbar-log-out").click();
+  await page.getByRole("menuitem", { name: "Account" }).click();
+  await page.getByRole("menuitem", { name: "Log out" }).click();
 
   await expect(page).toHaveURL("/");
   await expect(page.getByRole("menuitem", { name: "Sign in" })).toBeVisible();
@@ -105,8 +105,8 @@ test("signs up fails after there's already an admin user", async ({ page }) => {
 
   await expect(page).toHaveURL("/reviews");
 
-  await page.locator("#account-dropdown").click();
-  await page.locator("#navbar-log-out").click();
+  await page.getByRole("menuitem", { name: "Account" }).click();
+  await page.getByRole("menuitem", { name: "Log out" }).click();
 
   // Attempt to sign up again
   await expect(page).toHaveURL("/");

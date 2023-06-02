@@ -400,7 +400,7 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   await page.locator("#watched-date").fill("2022-10-22");
   await page.locator("#blurb").fill("Ignore this edit");
 
-  await page.getByTestId("cancel-edit").click();
+  await page.getByRole("button", { name: "Cancel" }).click();
 
   await expect(page).toHaveURL("/reviews");
 

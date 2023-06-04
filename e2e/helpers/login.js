@@ -3,12 +3,11 @@ import { expect } from "@playwright/test";
 async function loginAsUser(page, username, password) {
   await page.goto("/");
 
-  await page.getByRole("menuitem", { name: "Sign in" }).click();
+  await page.getByRole("menuitem", { name: "Log in" }).click();
 
-  await expect(page).toHaveURL("/login");
-  await page.locator("id=username").fill(username);
-  await page.locator("id=password").fill(password);
-  await page.locator("form input[type='submit']").click();
+  await page.getByRole("textbox", { name: /username/i }).fill(username);
+  await page.getByRole("textbox", { name: /password/i }).fill(password);
+  await page.getByRole("button", { name: "Log in" }).click();
 
   await expect(page).toHaveURL("/reviews");
 }

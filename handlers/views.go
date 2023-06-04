@@ -63,7 +63,7 @@ func (s Server) logInGet() http.HandlerFunc {
 		if err := renderTemplate(w, "login.html", struct {
 			commonProps
 		}{
-			commonProps: makeCommonProps("Sign In", r.Context()),
+			commonProps: makeCommonProps("Log In", r.Context()),
 		}, template.FuncMap{}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

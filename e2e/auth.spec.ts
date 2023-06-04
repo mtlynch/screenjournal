@@ -21,7 +21,7 @@ test("signs up and logs out and signs in again", async ({ page }) => {
 
   // Sign in again
   await expect(page).toHaveURL("/");
-  await page.getByRole("menuitem", { name: "Sign in" }).click();
+  await page.getByRole("menuitem", { name: "Log in" }).click();
 
   await expect(page).toHaveURL("/login");
   await page.locator("id=username").fill("dummyadmin");
@@ -34,7 +34,7 @@ test("signs up and logs out and signs in again", async ({ page }) => {
   await page.getByRole("menuitem", { name: "Log out" }).click();
 
   await expect(page).toHaveURL("/");
-  await expect(page.getByRole("menuitem", { name: "Sign in" })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "Log in" })).toBeVisible();
 });
 
 test("sign up fails if passwords are different", async ({ page }) => {

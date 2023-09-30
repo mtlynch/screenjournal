@@ -5,6 +5,7 @@ ARG TARGETPLATFORM
 COPY ./announce /app/announce
 COPY ./auth /app/auth
 COPY ./cmd /app/cmd
+COPY ./dev-scripts /app/dev-scripts
 COPY ./email /app/email
 COPY ./handlers /app/handlers
 COPY ./markdown /app/markdown
@@ -16,21 +17,7 @@ COPY ./go.* /app/
 
 WORKDIR /app
 
-RUN set -x && \
-    if [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then \
-      GOARCH="arm"; \
-    elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-      GOARCH="arm64"; \
-    else \
-      GOARCH="amd64"; \
-    fi && \
-    set -u && \
-    GOOS=linux \
-    go build \
-      -tags netgo \
-      -ldflags '-w -extldflags "-static"' \
-      -o /app/screenjournal \
-      cmd/screenjournal/main.go
+RUN TARGETPLATFORM="${TARGETPLATFORM}" ./dev-scripts/build-backend "prod"
 
 FROM debian:stable-20211011-slim AS litestream_downloader
 
@@ -64,7 +51,7 @@ FROM alpine:3.15
 
 RUN apk add --no-cache bash tzdata
 
-COPY --from=builder /app/screenjournal /app/screenjournal
+COPY --from=builder /app/bin/screenjournal /app/screenjournal
 COPY --from=litestream_downloader /litestream/litestream /app/litestream
 COPY ./docker-entrypoint /app/docker-entrypoint
 COPY ./litestream.yml /etc/litestream.yml

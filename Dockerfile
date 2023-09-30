@@ -35,7 +35,7 @@ RUN set -x && \
 FROM debian:stable-20211011-slim AS litestream_downloader
 
 ARG TARGETPLATFORM
-ARG litestream_version="v0.3.9"
+ARG litestream_version="v0.3.11"
 
 WORKDIR /litestream
 

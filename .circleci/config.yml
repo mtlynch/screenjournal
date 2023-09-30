@@ -161,7 +161,8 @@ jobs:
               .
   deploy:
     docker:
-      - image: cimg/base:2021.04
+      - image: cimg/base:stable
+    resource_class: small
     environment:
       # The flyctl changes too much to use a specific version, so use the latest for the
       # time being.

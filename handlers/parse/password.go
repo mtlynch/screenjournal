@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 type allowedCharactersLookup struct {

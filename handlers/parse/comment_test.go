@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 func TestCommentID(t *testing.T) {

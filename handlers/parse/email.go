@@ -3,7 +3,7 @@ package parse
 import (
 	"net/mail"
 
-	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 // Email parses a raw email string into an Email object, validating that it's

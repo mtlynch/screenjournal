@@ -3,7 +3,7 @@ package parse
 import (
 	"errors"
 
-	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 var (

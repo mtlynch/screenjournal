@@ -4,7 +4,7 @@ import (
 	"errors"
 	"regexp"
 
-	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 var (

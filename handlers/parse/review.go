@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 const watchDateFormat = time.RFC3339

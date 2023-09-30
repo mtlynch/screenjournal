@@ -5,7 +5,7 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 var ErrInvalidMovieID = errors.New("invalid movie ID")

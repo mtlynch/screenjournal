@@ -3,8 +3,8 @@ package quiet
 import (
 	"log"
 
-	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/announce"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 type announcer struct {

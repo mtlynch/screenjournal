@@ -3,8 +3,8 @@ package parse_test
 import (
 	"testing"
 
-	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 func TestEmailAddress(t *testing.T) {

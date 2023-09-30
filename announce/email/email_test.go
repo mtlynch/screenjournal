@@ -8,9 +8,9 @@ import (
 
 	"github.com/go-test/deep"
 	"github.com/kylelemons/godebug/diff"
-	"github.com/mtlynch/screenjournal/v2"
 	email_announce "github.com/mtlynch/screenjournal/v2/announce/email"
 	"github.com/mtlynch/screenjournal/v2/email"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 type mockNotificationsStore struct {

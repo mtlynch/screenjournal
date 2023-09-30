@@ -52,6 +52,7 @@ var (
 	ErrMovieNotFound                     = errors.New("could not find movie")
 	ErrCommentNotFound                   = errors.New("could not find comment")
 	ErrReviewNotFound                    = errors.New("could not find review")
+	ErrUserNotFound                      = errors.New("could not find user")
 	ErrUsernameNotAvailable              = errors.New("username is not available")
 	ErrEmailAssociatedWithAnotherAccount = errors.New("email address is associated with another account")
 )

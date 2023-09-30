@@ -12,7 +12,10 @@ type (
 	}
 )
 
-var ErrIncorrectPassword = errors.New("password does not match stored hash")
+var (
+	ErrUserNotFound      = errors.New("user not found")
+	ErrIncorrectPassword = errors.New("password does not match stored hash")
+)
 
 func New(store AuthStore) Authenticator {
 	return Authenticator{

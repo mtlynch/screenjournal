@@ -62,7 +62,7 @@ func (db DB) ReadUser(username screenjournal.Username) (screenjournal.User, erro
 	user, err := userFromRow(row)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return screenjournal.User{}, screenjournal.ErrUserNotFound
+			return screenjournal.User{}, store.ErrUserNotFound
 		}
 		return screenjournal.User{}, err
 	}

@@ -1,9 +1,5 @@
 package screenjournal
 
-import (
-	"errors"
-)
-
 type (
 	Email    string
 	Username string
@@ -25,8 +21,6 @@ type (
 		PasswordHash PasswordHash
 	}
 )
-
-var ErrUserNotFound = errors.New("user not found")
 
 func (e Email) String() string {
 	return string(e)

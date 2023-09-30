@@ -21,3 +21,13 @@ export function updateReview(id, review) {
     body: JSON.stringify(review),
   }).then(processPlaintextResponse);
 }
+
+export function deleteReview(id) {
+  return fetch(`/api/reviews/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: {
+      Accept: "text/plain",
+    },
+  }).then(processPlaintextResponse);
+}

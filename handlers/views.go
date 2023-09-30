@@ -363,8 +363,7 @@ func (s Server) reviewsDeleteGet() http.HandlerFunc {
 
 		if err := renderTemplate(w, "reviews-delete.html", struct {
 			commonProps
-			RatingOptions []int
-			Review        screenjournal.Review
+			Review screenjournal.Review
 		}{
 			commonProps: makeCommonProps("Delete Review", r.Context()),
 			Review:      review,

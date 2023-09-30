@@ -189,7 +189,7 @@ func (d DB) DeleteReview(id screenjournal.ReviewID) error {
 		return err
 	}
 
-	if _, err := tx.Exec(`DELETE FROM review_comments	WHERE	review_id = ?`, id.UInt64()); err != nil {
+	if _, err := tx.Exec(`DELETE FROM review_comments WHERE review_id = ?`, id.UInt64()); err != nil {
 		return err
 	}
 

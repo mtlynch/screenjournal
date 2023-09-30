@@ -23,6 +23,7 @@ func (s *Server) routes() {
 	authenticatedApis.HandleFunc("/search", s.searchGet()).Methods(http.MethodGet)
 	authenticatedApis.HandleFunc("/reviews", s.reviewsPost()).Methods(http.MethodPost)
 	authenticatedApis.HandleFunc("/reviews/{reviewID}", s.reviewsPut()).Methods(http.MethodPut)
+	authenticatedApis.HandleFunc("/reviews/{reviewID}", s.reviewsDelete()).Methods(http.MethodDelete)
 
 	static := s.router.PathPrefix("/").Subrouter()
 	static.PathPrefix("/css/").HandlerFunc(serveStaticResource()).Methods(http.MethodGet)
@@ -53,6 +54,7 @@ func (s *Server) routes() {
 	authenticatedViews.HandleFunc("/reviews/by/{username}", s.reviewsGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews/new", s.reviewsNewGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews/{reviewID}/edit", s.reviewsEditGet()).Methods(http.MethodGet)
+	authenticatedViews.HandleFunc("/reviews/{reviewID}/delete", s.reviewsDeleteGet()).Methods(http.MethodGet)
 
 	s.addDevRoutes()
 }

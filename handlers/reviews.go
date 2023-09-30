@@ -86,6 +86,37 @@ func (s Server) reviewsPut() http.HandlerFunc {
 	}
 }
 
+func (s Server) reviewsDelete() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := reviewIDFromRequestPath(r)
+		if err != nil {
+			http.Error(w, "Invalid review ID", http.StatusBadRequest)
+			return
+		}
+
+		review, err := s.getDB(r).ReadReview(id)
+		if err == store.ErrReviewNotFound {
+			http.Error(w, "Review not found", http.StatusNotFound)
+			return
+		} else if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to read review: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		loggedInUser := mustGetUserFromContext(r.Context())
+		if !review.Owner.Equal(loggedInUser.Username) {
+			http.Error(w, "You can't delete another user's review", http.StatusForbidden)
+			return
+		}
+
+		if err := s.getDB(r).DeleteReview(id); err != nil {
+			log.Printf("failed to delete review: %v", err)
+			http.Error(w, fmt.Sprintf("Failed to delete review: %v", err), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func newReviewFromRequest(r *http.Request) (reviewPostRequest, error) {
 	var payload struct {
 		TmdbID  int    `json:"tmdbId"`

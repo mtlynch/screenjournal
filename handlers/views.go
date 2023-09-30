@@ -337,6 +337,43 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) reviewsDeleteGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := reviewIDFromRequestPath(r)
+		if err != nil {
+			http.Error(w, "Invalid review ID", http.StatusBadRequest)
+			return
+		}
+
+		review, err := s.getDB(r).ReadReview(id)
+		if err == store.ErrReviewNotFound {
+			http.Error(w, "Invalid review ID", http.StatusNotFound)
+			return
+		} else if err != nil {
+			log.Printf("failed to read review: %v", err)
+			http.Error(w, "Failed to read review", http.StatusInternalServerError)
+			return
+		}
+
+		loggedInUser := mustGetUserFromContext(r.Context())
+		if !review.Owner.Equal(loggedInUser.Username) {
+			http.Error(w, "You can't delete another user's review", http.StatusForbidden)
+			return
+		}
+
+		if err := renderTemplate(w, "reviews-delete.html", struct {
+			commonProps
+			Review screenjournal.Review
+		}{
+			commonProps: makeCommonProps("Delete Review", r.Context()),
+			Review:      review,
+		}, template.FuncMap{}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func (s Server) reviewsNewGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var mediaTitle string

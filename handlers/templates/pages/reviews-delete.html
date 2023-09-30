@@ -1,0 +1,87 @@
+{{ define "style-tags" }}
+  <style nonce="{{ .CspNonce }}">
+    .btn + .btn {
+      margin-right: 0.5rem;
+    }
+  </style>
+{{ end }}
+
+{{ define "script-tags" }}
+  <script type="module" nonce="{{ .CspNonce }}">
+    import { deleteReview } from "/js/controllers/reviews.js";
+    import { makeVisible, makeInvisible } from "/js/lib/bootstrap.js";
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      function () {
+        const errorAlert = document.getElementById("error");
+        const submitSpinner = document.getElementById("submit-spinner");
+        const submitBtn = document.querySelector("form button[type='submit']");
+
+        document
+          .getElementById("delete-review-form")
+          .addEventListener("submit", (evt) => {
+            evt.preventDefault();
+
+            submitBtn.disabled = true;
+            makeInvisible(errorAlert);
+            makeVisible(submitSpinner);
+
+            const id = parseInt(document.getElementById("review-id").value);
+
+            deleteReview(id)
+              .then(() => {
+                window.location.pathname = `/reviews`;
+              })
+              .catch((error) => {
+                errorAlert.innerText = error;
+                makeVisible(errorAlert);
+              })
+              .finally(() => {
+                makeInvisible(submitSpinner);
+                submitBtn.disabled = false;
+              });
+          });
+      },
+      false
+    );
+  </script>
+{{ end }}
+
+{{ define "custom-elements" }}
+{{ end }}
+
+{{ define "content" }}
+  <h1>Delete Review</h1>
+
+  <p>Delete your review of {{ .Review.Movie.Title }}?</p>
+
+  <form id="delete-review-form" class="my-5">
+    <input id="review-id" type="hidden" value="{{ .Review.ID }}" />
+
+    <!-- Use reverse order so that tabbing from input goes to the save button
+         before the cancel button. -->
+    <div
+      class="d-flex flex-row-reverse justify-content-start"
+      style="gap: 1rem"
+    >
+      <button class="btn btn-danger" value="Delete" type="submit">
+        <i class="fa fa-trash me-1"></i>
+        Delete
+      </button>
+      <a class="btn btn-outline-secondary" role="button" href="/reviews"
+        >Cancel</a
+      >
+    </div>
+  </form>
+
+  <div id="submit-spinner" class="spinner-border invisible" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+
+  <div id="error" class="alert alert-danger invisible" role="alert">
+    Placeholder error
+  </div>
+{{ end }}
+
+{{ template "base.html" }}

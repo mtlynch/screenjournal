@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -174,6 +175,25 @@ func (d DB) UpdateReview(r screenjournal.Review) error {
 	}
 
 	return nil
+}
+
+func (d DB) DeleteReview(id screenjournal.ReviewID) error {
+	log.Printf("deleting review of movie ID %v", id)
+
+	tx, err := d.ctx.BeginTx(context.Background(), nil)
+	if err != nil {
+		return err
+	}
+
+	if _, err := tx.Exec(`DELETE FROM reviews WHERE id = ?`, id.UInt64()); err != nil {
+		return err
+	}
+
+	if _, err := tx.Exec(`DELETE FROM review_comments WHERE review_id = ?`, id.UInt64()); err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func reviewFromRow(row rowScanner) (screenjournal.Review, error) {

@@ -12,7 +12,6 @@ COPY ./metadata /app/metadata
 COPY ./random /app/random
 COPY ./screenjournal /app/screenjournal
 COPY ./store /app/store
-COPY ./*.go /app/
 COPY ./go.* /app/
 
 WORKDIR /app

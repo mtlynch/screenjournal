@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/mtlynch/screenjournal/v2/auth/simple"
-	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 type (
@@ -56,7 +55,7 @@ func (s mockAuthStore) ReadPasswordHash(username string) (simple.PasswordHash, e
 			return entry.PasswordHash, nil
 		}
 	}
-	return nil, screenjournal.ErrUserNotFound
+	return nil, simple.ErrUserNotFound
 }
 
 func TestAuthenticate(t *testing.T) {
@@ -107,7 +106,7 @@ func TestAuthenticate(t *testing.T) {
 			},
 			"madeupuser",
 			"dummy-p@ssword",
-			screenjournal.ErrUserNotFound,
+			simple.ErrUserNotFound,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {

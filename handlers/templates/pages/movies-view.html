@@ -6,7 +6,7 @@
       }
     }
 
-    .release-year {
+    .metadata {
       font-size: 0.85em;
     }
 
@@ -145,7 +145,15 @@
       src="{{ posterPathToURL .PosterPath }}"
       alt="Movie poster for {{ .Title }}"
     />
-    <p class="release-date">Released: {{ formatReleaseDate .ReleaseDate }}</p>
+    <ul class="metadata mt-2">
+      <li class="release-date">
+        Released:
+        {{ formatReleaseDate .ReleaseDate }}
+      </li>
+      <li>
+        <a href="https://www.imdb.com/title/{{ .ImdbID }}">IMDB</a>
+      </li>
+    </ul>
   {{ end }}
 
 

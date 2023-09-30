@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/mtlynch/screenjournal/v2"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 func (d DB) InsertSignupInvitation(invite screenjournal.SignupInvitation) error {

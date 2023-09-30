@@ -10,8 +10,8 @@ import (
 	"github.com/mtlynch/jeff"
 	"github.com/mtlynch/jeff/sqlite"
 
-	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 type (

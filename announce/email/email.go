@@ -9,10 +9,10 @@ import (
 	"path"
 	"text/template"
 
-	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/announce"
 	"github.com/mtlynch/screenjournal/v2/email"
 	"github.com/mtlynch/screenjournal/v2/markdown"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 type (

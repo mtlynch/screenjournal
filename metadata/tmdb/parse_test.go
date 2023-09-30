@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mtlynch/screenjournal/v2"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 func TestParseTmdbID(t *testing.T) {

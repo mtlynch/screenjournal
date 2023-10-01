@@ -41,7 +41,7 @@ func (s Server) authPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.sessionManager.CreateSession(w, r, user); err != nil {
+		if err := s.sessionManager.CreateSession(w, r, NewSimpleUser(user)); err != nil {
 			log.Printf("failed to create session for user %s: %v", user.Username.String(), err)
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
@@ -145,7 +145,7 @@ func isAdmin(ctx context.Context) bool {
 		return false
 	}
 
-	return user.IsAdmin()
+	return user.IsAdmin
 }
 
 func isAuthenticated(ctx context.Context) bool {

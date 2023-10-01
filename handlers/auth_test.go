@@ -131,7 +131,7 @@ func TestAuthPost(t *testing.T) {
 			if got, want := len(sessionsCreated), 1; got != want {
 				t.Fatalf("count(sessions)=%d, want=%d", got, want)
 			}
-			if got, want := sessionsCreated[0].User, tt.matchingUser; !reflect.DeepEqual(got, want) {
+			if got, want := sessionsCreated[0].User(), tt.matchingUser; !reflect.DeepEqual(got, want) {
 				t.Errorf("user=%+v, want=%+v", got, want)
 			}
 		})

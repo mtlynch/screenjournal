@@ -18,8 +18,8 @@ type (
 		WrapRequest(http.Handler) http.Handler
 	}
 
-	Session struct {
-		User simple.User
+	Session interface {
+		User() simple.User
 	}
 )
 

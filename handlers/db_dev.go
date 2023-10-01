@@ -30,19 +30,19 @@ func (s Server) populateDummyData() http.HandlerFunc {
 		{
 			Username:     screenjournal.Username("dummyadmin"),
 			PasswordHash: mustCreatePasswordHash("dummypass"),
-			IsAdmin_:     true,
+			IsAdmin:      true,
 			Email:        screenjournal.Email("dummyadmin@example.com"),
 		},
 		{
 			Username:     screenjournal.Username("userA"),
 			PasswordHash: mustCreatePasswordHash("password123"),
-			IsAdmin_:     false,
+			IsAdmin:      false,
 			Email:        screenjournal.Email("userA@example.com"),
 		},
 		{
 			Username:     screenjournal.Username("userB"),
 			PasswordHash: mustCreatePasswordHash("password456"),
-			IsAdmin_:     false,
+			IsAdmin:      false,
 			Email:        screenjournal.Email("userB@example.com"),
 		},
 	}

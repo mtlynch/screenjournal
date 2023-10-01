@@ -12,7 +12,6 @@ import (
 	"github.com/go-test/deep"
 
 	"github.com/mtlynch/screenjournal/v2/auth"
-	"github.com/mtlynch/screenjournal/v2/auth/simple/sessions"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -21,8 +20,8 @@ import (
 
 type commentsTestData struct {
 	users struct {
-		userA screenjournal.User
-		userB screenjournal.User
+		userA testUser
+		userB testUser
 	}
 	sessions struct {
 		userA mockSession
@@ -38,23 +37,23 @@ type commentsTestData struct {
 
 func makeCommentsTestData() commentsTestData {
 	td := commentsTestData{}
-	td.users.userA = screenjournal.User{
-		Username: screenjournal.Username("userA"),
+	td.users.userA = testUser{
+		username: "userA",
 	}
 	td.sessions.userA = mockSession{
 		token: "abc123",
-		session: sessions.Session{
-			User: td.users.userA,
+		session: testSession{
+			user: td.users.userA,
 		},
 	}
 	td.sessions.userB = mockSession{
 		token: "def456",
-		session: sessions.Session{
-			User: td.users.userB,
+		session: testSession{
+			user: td.users.userB,
 		},
 	}
-	td.users.userB = screenjournal.User{
-		Username: screenjournal.Username("userB"),
+	td.users.userB = testUser{
+		username: "userB",
 	}
 	td.movies.theWaterBoy = screenjournal.Movie{
 		ID:          screenjournal.MovieID(1),
@@ -63,7 +62,7 @@ func makeCommentsTestData() commentsTestData {
 	}
 	td.reviews.userBTheWaterBoy = screenjournal.Review{
 		ID:      screenjournal.ReviewID(1),
-		Owner:   td.users.userB.Username,
+		Owner:   screenjournal.Username(td.users.userB.Username()),
 		Rating:  screenjournal.Rating(5),
 		Movie:   td.movies.theWaterBoy,
 		Watched: mustParseWatchDate("2020-10-05T20:18:55-04:00"),
@@ -103,7 +102,7 @@ func TestCommentsPost(t *testing.T) {
 			expectedComments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
-					Owner:       makeCommentsTestData().users.userA.Username,
+					Owner:       screenjournal.Username(makeCommentsTestData().users.userA.Username()),
 					CommentText: screenjournal.CommentText("Good insights!"),
 					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
 				},
@@ -196,7 +195,10 @@ func TestCommentsPost(t *testing.T) {
 			store := test_sqlite.New()
 
 			for _, s := range tt.sessions {
-				store.InsertUser(s.session.User)
+				store.InsertUser(screenjournal.User{
+					Username: screenjournal.Username(s.session.User().Username()),
+					IsAdmin:  s.session.User().IsAdmin(),
+				})
 			}
 			for _, movie := range tt.movies {
 				if _, err := store.InsertMovie(movie); err != nil {
@@ -281,7 +283,7 @@ func TestCommentsPut(t *testing.T) {
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
-					Owner:       makeCommentsTestData().users.userA.Username,
+					Owner:       screenjournal.Username(makeCommentsTestData().users.userA.Username()),
 					CommentText: screenjournal.CommentText("Good insights!"),
 					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
 				},
@@ -290,7 +292,7 @@ func TestCommentsPut(t *testing.T) {
 			expectedComments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
-					Owner:       makeCommentsTestData().users.userA.Username,
+					Owner:       screenjournal.Username(makeCommentsTestData().users.userA.Username()),
 					CommentText: screenjournal.CommentText("So-so insights"),
 					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
 				},
@@ -309,7 +311,7 @@ func TestCommentsPut(t *testing.T) {
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
-					Owner:       makeCommentsTestData().users.userA.Username,
+					Owner:       screenjournal.Username(makeCommentsTestData().users.userA.Username()),
 					CommentText: screenjournal.CommentText("Good insights!"),
 					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
 				},
@@ -327,7 +329,7 @@ func TestCommentsPut(t *testing.T) {
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
-					Owner:       makeCommentsTestData().users.userA.Username,
+					Owner:       screenjournal.Username(makeCommentsTestData().users.userA.Username()),
 					CommentText: screenjournal.CommentText("Good insights!"),
 					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
 				},
@@ -347,7 +349,7 @@ func TestCommentsPut(t *testing.T) {
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
-					Owner:       makeCommentsTestData().users.userA.Username,
+					Owner:       screenjournal.Username(makeCommentsTestData().users.userA.Username()),
 					CommentText: screenjournal.CommentText("Good insights!"),
 					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
 				},
@@ -367,7 +369,7 @@ func TestCommentsPut(t *testing.T) {
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
-					Owner:       makeCommentsTestData().users.userA.Username,
+					Owner:       screenjournal.Username(makeCommentsTestData().users.userA.Username()),
 					CommentText: screenjournal.CommentText("Good insights!"),
 					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
 				},
@@ -387,7 +389,7 @@ func TestCommentsPut(t *testing.T) {
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
-					Owner:       makeCommentsTestData().users.userA.Username,
+					Owner:       screenjournal.Username(makeCommentsTestData().users.userA.Username()),
 					CommentText: screenjournal.CommentText("Good insights!"),
 					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
 				},
@@ -407,7 +409,7 @@ func TestCommentsPut(t *testing.T) {
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
-					Owner:       makeCommentsTestData().users.userA.Username,
+					Owner:       screenjournal.Username(makeCommentsTestData().users.userA.Username()),
 					CommentText: screenjournal.CommentText("Good insights!"),
 					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
 				},
@@ -420,7 +422,10 @@ func TestCommentsPut(t *testing.T) {
 
 			// Populate datastore with dummy users.
 			for _, s := range tt.sessions {
-				store.InsertUser(s.session.User)
+				store.InsertUser(screenjournal.User{
+					Username: screenjournal.Username(s.session.User().Username()),
+					IsAdmin:  s.session.User().IsAdmin(),
+				})
 			}
 
 			if _, err := store.InsertMovie(makeCommentsTestData().movies.theWaterBoy); err != nil {
@@ -493,7 +498,7 @@ func TestCommentsDelete(t *testing.T) {
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
-					Owner:       makeCommentsTestData().users.userA.Username,
+					Owner:       screenjournal.Username(makeCommentsTestData().users.userA.Username()),
 					CommentText: screenjournal.CommentText("Good insights!"),
 					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
 				},
@@ -511,7 +516,7 @@ func TestCommentsDelete(t *testing.T) {
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
-					Owner:       makeCommentsTestData().users.userA.Username,
+					Owner:       screenjournal.Username(makeCommentsTestData().users.userA.Username()),
 					CommentText: screenjournal.CommentText("Good insights!"),
 					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
 				},
@@ -528,7 +533,7 @@ func TestCommentsDelete(t *testing.T) {
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
-					Owner:       makeCommentsTestData().users.userA.Username,
+					Owner:       screenjournal.Username(makeCommentsTestData().users.userA.Username()),
 					CommentText: screenjournal.CommentText("Good insights!"),
 					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
 				},
@@ -545,7 +550,7 @@ func TestCommentsDelete(t *testing.T) {
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
-					Owner:       makeCommentsTestData().users.userA.Username,
+					Owner:       screenjournal.Username(makeCommentsTestData().users.userA.Username()),
 					CommentText: screenjournal.CommentText("Good insights!"),
 					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
 				},
@@ -562,7 +567,7 @@ func TestCommentsDelete(t *testing.T) {
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
-					Owner:       makeCommentsTestData().users.userA.Username,
+					Owner:       screenjournal.Username(makeCommentsTestData().users.userA.Username()),
 					CommentText: screenjournal.CommentText("Good insights!"),
 					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
 				},
@@ -574,7 +579,10 @@ func TestCommentsDelete(t *testing.T) {
 			store := test_sqlite.New()
 
 			for _, s := range tt.sessions {
-				store.InsertUser(s.session.User)
+				store.InsertUser(screenjournal.User{
+					Username: screenjournal.Username(s.session.User().Username()),
+					IsAdmin:  s.session.User().IsAdmin(),
+				})
 			}
 			if _, err := store.InsertMovie(makeCommentsTestData().movies.theWaterBoy); err != nil {
 				panic(err)

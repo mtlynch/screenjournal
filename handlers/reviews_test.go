@@ -14,6 +14,7 @@ import (
 	"github.com/go-test/deep"
 
 	"github.com/mtlynch/screenjournal/v2/announce"
+	"github.com/mtlynch/screenjournal/v2/auth/simple"
 	"github.com/mtlynch/screenjournal/v2/auth/simple/sessions"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
@@ -65,10 +66,10 @@ func newMockSessionManager(mockSessions []mockSession) mockSessionManager {
 	}
 }
 
-func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, r *http.Request, user screenjournal.User) error {
+func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, r *http.Request, user simple.User) error {
 	token := random.String(10, []rune("abcdefghijklmnopqrstuvwxyz0123456789"))
-	sm.sessions[token] = sessions.Session{
-		User: user,
+	sm.sessions[token] = testSession{
+		user: user,
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:  mockSessionTokenName,
@@ -80,11 +81,11 @@ func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, r *http.Reque
 func (sm mockSessionManager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
 	token, err := r.Cookie(mockSessionTokenName)
 	if err != nil {
-		return sessions.Session{}, errors.New("mock session manager: no token cookie found")
+		return testSession{}, errors.New("mock session manager: no token cookie found")
 	}
 	session, ok := sm.sessions[token.Value]
 	if !ok {
-		return sessions.Session{}, errors.New("mock session manager: no session associated with token")
+		return testSession{}, errors.New("mock session manager: no session associated with token")
 	}
 	return session, nil
 }
@@ -150,9 +151,9 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("dummyadmin"),
+					session: testSession{
+						user: testUser{
+							username: "dummyadmin",
 						},
 					},
 				},
@@ -193,9 +194,9 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("dummyadmin"),
+					session: testSession{
+						user: testUser{
+							username: "dummyadmin",
 						},
 					},
 				},
@@ -235,9 +236,9 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("dummyadmin"),
+					session: testSession{
+						user: testUser{
+							username: "dummyadmin",
 						},
 					},
 				},
@@ -331,9 +332,9 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
+					session: testSession{
+						user: testUser{
+							username: "userA",
 						},
 					},
 				},
@@ -346,9 +347,9 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
+					session: testSession{
+						user: testUser{
+							username: "userA",
 						},
 					},
 				},
@@ -366,9 +367,9 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
+					session: testSession{
+						user: testUser{
+							username: "userA",
 						},
 					},
 				},
@@ -386,9 +387,9 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
+					session: testSession{
+						user: testUser{
+							username: "userA",
 						},
 					},
 				},
@@ -472,9 +473,9 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
+					session: testSession{
+						user: testUser{
+							username: "userA",
 						},
 					},
 				},
@@ -535,9 +536,9 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
+					session: testSession{
+						user: testUser{
+							username: "userA",
 						},
 					},
 				},
@@ -658,9 +659,9 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
+					session: testSession{
+						user: testUser{
+							username: "userA",
 						},
 					},
 				},
@@ -702,9 +703,9 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
+					session: testSession{
+						user: testUser{
+							username: "userA",
 						},
 					},
 				},
@@ -747,9 +748,9 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
+					session: testSession{
+						user: testUser{
+							username: "userA",
 						},
 					},
 				},
@@ -791,9 +792,9 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
+					session: testSession{
+						user: testUser{
+							username: "userA",
 						},
 					},
 				},
@@ -835,9 +836,9 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
+					session: testSession{
+						user: testUser{
+							username: "userA",
 						},
 					},
 				},
@@ -879,9 +880,9 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
+					session: testSession{
+						user: testUser{
+							username: "userA",
 						},
 					},
 				},
@@ -924,9 +925,9 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
+					session: testSession{
+						user: testUser{
+							username: "userA",
 						},
 					},
 				},
@@ -969,17 +970,17 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
+					session: testSession{
+						user: testUser{
+							username: "userA",
 						},
 					},
 				},
 				{
 					token: "def456",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userB"),
+					session: testSession{
+						user: testUser{
+							username: "userB",
 						},
 					},
 				},

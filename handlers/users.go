@@ -36,7 +36,7 @@ func (s Server) usersPut() http.HandlerFunc {
 		}
 
 		user := screenjournal.User{
-			IsAdmin_:     c == 0, // First user is automatically admin
+			IsAdmin:      c == 0, // First user is automatically admin
 			Email:        req.Email,
 			Username:     req.Username,
 			PasswordHash: req.PasswordHash,
@@ -61,7 +61,7 @@ func (s Server) usersPut() http.HandlerFunc {
 			return
 		}
 
-		if err := s.sessionManager.CreateSession(w, r, user); err != nil {
+		if err := s.sessionManager.CreateSession(w, r, NewSimpleUser(user)); err != nil {
 			log.Printf("failed to create session for new user %+v: %v", user, err)
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return

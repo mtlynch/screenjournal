@@ -1,7 +1,9 @@
 package jeff
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -14,13 +16,16 @@ import (
 
 type (
 	manager struct {
-		j                *jeff.Jeff
-		userDeserializer simple.UserDeserializer
+		j *jeff.Jeff
 	}
 
 	serializableUser struct {
-		Username string `json:"username"`
-		IsAdmin  bool   `json:"isAdmin"`
+		Username_ string `json:"username"`
+		IsAdmin_  bool   `json:"isAdmin"`
+	}
+
+	session struct {
+		user simple.User
 	}
 )
 
@@ -42,7 +47,7 @@ func New(dbPath string) (sessions.Manager, error) {
 }
 
 func (m manager) CreateSession(w http.ResponseWriter, r *http.Request, user simple.User) error {
-	meta, err := user.Serialize()
+	meta, err := serializeUser(user)
 	if err != nil {
 		return err
 	}
@@ -52,16 +57,16 @@ func (m manager) CreateSession(w http.ResponseWriter, r *http.Request, user simp
 func (m manager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
 	sess := jeff.ActiveSession(r.Context())
 	if len(sess.Key) == 0 {
-		return sessions.Session{}, sessions.ErrNotAuthenticated
+		return nil, sessions.ErrNotAuthenticated
 	}
 
-	user, err := m.userDeserializer.Deserialize(sess.Meta)
+	user, err := deserializeUser(sess.Meta)
 	if err != nil {
-		return sessions.Session{}, err
+		return nil, err
 	}
 
-	return sessions.Session{
-		User: user,
+	return session{
+		user: user,
 	}, nil
 }
 
@@ -80,4 +85,37 @@ func (m manager) EndSession(r *http.Request, w http.ResponseWriter) {
 
 func (m manager) WrapRequest(next http.Handler) http.Handler {
 	return m.j.Public(next)
+}
+
+func (s session) User() simple.User {
+	return s.user
+}
+
+func (u serializableUser) Username() string {
+	return u.Username_
+}
+
+func (u serializableUser) IsAdmin() bool {
+	return u.IsAdmin_
+}
+
+func serializeUser(user simple.User) ([]byte, error) {
+	su := serializableUser{
+		Username_: user.Username(),
+		IsAdmin_:  user.IsAdmin(),
+	}
+	var b bytes.Buffer
+	if err := json.NewEncoder(&b).Encode(su); err != nil {
+		log.Fatalf("failed to serialize user to JSON: %v", err)
+	}
+	return b.Bytes(), nil
+}
+
+func deserializeUser(b []byte) (simple.User, error) {
+	var su serializableUser
+	if err := json.NewDecoder(bytes.NewReader(b)).Decode(&su); err != nil {
+		return nil, err
+	}
+
+	return &su, nil
 }

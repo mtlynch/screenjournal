@@ -79,7 +79,7 @@ func userFromRow(row rowScanner) (screenjournal.User, error) {
 		return screenjournal.User{}, err
 	}
 	return screenjournal.User{
-		IsAdmin_:     isAdmin,
+		IsAdmin:      isAdmin,
 		Username:     screenjournal.Username(username),
 		Email:        screenjournal.Email(email),
 		PasswordHash: decodePasswordHash(passwordHashEncoded),

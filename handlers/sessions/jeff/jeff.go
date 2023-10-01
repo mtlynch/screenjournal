@@ -42,12 +42,12 @@ func New(dbPath string) (sessions.Manager, error) {
 	}, nil
 }
 
-func (m manager) CreateSession(w http.ResponseWriter, r *http.Request, user screenjournal.User) error {
+func (m manager) CreateSession(w http.ResponseWriter, r *http.Request, key sessions.Key, user screenjournal.User) error {
 	meta, err := serializeUser(user)
 	if err != nil {
 		return err
 	}
-	return m.j.Set(r.Context(), w, []byte(user.Username.String()), meta)
+	return m.j.Set(r.Context(), w, key.Bytes(), meta)
 }
 
 func (m manager) SessionFromRequest(r *http.Request) (sessions.Session, error) {

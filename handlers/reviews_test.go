@@ -65,7 +65,7 @@ func newMockSessionManager(mockSessions []mockSession) mockSessionManager {
 	}
 }
 
-func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, r *http.Request, user screenjournal.User) error {
+func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, r *http.Request, key sessions.Key, user screenjournal.User) error {
 	token := random.String(10, []rune("abcdefghijklmnopqrstuvwxyz0123456789"))
 	sm.sessions[token] = sessions.Session{
 		User: user,

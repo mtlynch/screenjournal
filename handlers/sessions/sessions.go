@@ -3,13 +3,11 @@ package sessions
 import (
 	"errors"
 	"net/http"
-
-	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 type (
 	Manager interface {
-		CreateSession(http.ResponseWriter, *http.Request, Key, screenjournal.User) error
+		CreateSession(http.ResponseWriter, *http.Request, Key, Session) error
 		SessionFromRequest(*http.Request) (Session, error)
 		EndSession(*http.Request, http.ResponseWriter)
 		// WrapRequest wraps the given handler, adding the Session object (if
@@ -22,12 +20,10 @@ type (
 		key []byte
 	}
 
-	Session struct {
-		User screenjournal.User
-	}
+	Session []byte
 )
 
-var ErrNotAuthenticated = errors.New("user has no active screenjournal session")
+var ErrNotAuthenticated = errors.New("user has no active session")
 
 func KeyFromBytes(b []byte) Key {
 	return Key{

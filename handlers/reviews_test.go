@@ -18,6 +18,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
+	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -65,7 +66,19 @@ func newMockSessionManager(mockSessions []mockSessionEntry) mockSessionManager {
 }
 
 func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, r *http.Request, key sessions.Key, session sessions.Session) error {
-	return errors.New("not implemented")
+	sess, err := handlers.DeserializeSession(session)
+	if err != nil {
+		return err
+	}
+	token := random.String(10, []rune("abcdefghijklmnopqrstuvwxyz0123456789"))
+	sm.sessions[token] = handlers.Session{
+		Username: sess.Username,
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:  mockSessionTokenName,
+		Value: token,
+	})
+	return nil
 }
 
 func (sm mockSessionManager) SessionFromRequest(r *http.Request) (sessions.Session, error) {

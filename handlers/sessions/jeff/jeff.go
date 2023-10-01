@@ -11,16 +11,9 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 )
 
-type (
-	manager struct {
-		j *jeff.Jeff
-	}
-
-	serializableUser struct {
-		Username string `json:"username"`
-		IsAdmin  bool   `json:"isAdmin"`
-	}
-)
+type manager struct {
+	j *jeff.Jeff
+}
 
 func New(dbPath string) (sessions.Manager, error) {
 	db, err := sql.Open("sqlite3", dbPath)

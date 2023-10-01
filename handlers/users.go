@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mtlynch/screenjournal/v2/auth"
+	"github.com/mtlynch/screenjournal/v2/auth/simple/sessions"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store"
@@ -61,7 +62,10 @@ func (s Server) usersPut() http.HandlerFunc {
 			return
 		}
 
-		if err := s.sessionManager.CreateSession(w, r, NewSimpleUser(user)); err != nil {
+		if err := s.sessionManager.CreateSession(w, r, sessions.Metadata{
+			Username: user.Username.String(),
+			IsAdmin:  user.IsAdmin,
+		}); err != nil {
 			log.Printf("failed to create session for new user %+v: %v", user, err)
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return

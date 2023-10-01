@@ -3,13 +3,11 @@ package sessions
 import (
 	"errors"
 	"net/http"
-
-	"github.com/mtlynch/screenjournal/v2/auth/simple"
 )
 
 type (
 	Manager interface {
-		CreateSession(http.ResponseWriter, *http.Request, simple.User) error
+		CreateSession(http.ResponseWriter, *http.Request, Metadata) error
 		SessionFromRequest(*http.Request) (Session, error)
 		EndSession(*http.Request, http.ResponseWriter)
 		// WrapRequest wraps the given handler, adding the Session object (if
@@ -19,7 +17,12 @@ type (
 	}
 
 	Session interface {
-		User() simple.User
+		Metadata() Metadata
+	}
+
+	Metadata struct {
+		Username string `json:"username"`
+		IsAdmin  bool   `json:"isAdmin"`
 	}
 )
 

@@ -14,7 +14,6 @@ import (
 	"github.com/go-test/deep"
 
 	"github.com/mtlynch/screenjournal/v2/announce"
-	"github.com/mtlynch/screenjournal/v2/auth/simple"
 	"github.com/mtlynch/screenjournal/v2/auth/simple/sessions"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
@@ -66,10 +65,13 @@ func newMockSessionManager(mockSessions []mockSession) mockSessionManager {
 	}
 }
 
-func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, r *http.Request, user simple.User) error {
+func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, r *http.Request, meta sessions.Metadata) error {
 	token := random.String(10, []rune("abcdefghijklmnopqrstuvwxyz0123456789"))
 	sm.sessions[token] = testSession{
-		user: user,
+		metadata: sessions.Metadata{
+			Username: meta.Username,
+			IsAdmin:  meta.IsAdmin,
+		},
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:  mockSessionTokenName,
@@ -152,8 +154,8 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "dummyadmin",
+						metadata: sessions.Metadata{
+							Username: "dummyadmin",
 						},
 					},
 				},
@@ -195,8 +197,8 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "dummyadmin",
+						metadata: sessions.Metadata{
+							Username: "dummyadmin",
 						},
 					},
 				},
@@ -237,8 +239,9 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "dummyadmin",
+						metadata: sessions.Metadata{
+							Username: "dummyadmin",
+							IsAdmin:  true,
 						},
 					},
 				},
@@ -333,8 +336,8 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "userA",
+						metadata: sessions.Metadata{
+							Username: "userA",
 						},
 					},
 				},
@@ -348,8 +351,8 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "userA",
+						metadata: sessions.Metadata{
+							Username: "userA",
 						},
 					},
 				},
@@ -368,8 +371,8 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "userA",
+						metadata: sessions.Metadata{
+							Username: "userA",
 						},
 					},
 				},
@@ -388,8 +391,8 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "userA",
+						metadata: sessions.Metadata{
+							Username: "userA",
 						},
 					},
 				},
@@ -474,8 +477,8 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "userA",
+						metadata: sessions.Metadata{
+							Username: "userA",
 						},
 					},
 				},
@@ -537,8 +540,8 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "userA",
+						metadata: sessions.Metadata{
+							Username: "userA",
 						},
 					},
 				},
@@ -660,8 +663,8 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "userA",
+						metadata: sessions.Metadata{
+							Username: "userA",
 						},
 					},
 				},
@@ -704,8 +707,8 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "userA",
+						metadata: sessions.Metadata{
+							Username: "userA",
 						},
 					},
 				},
@@ -749,8 +752,8 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "userA",
+						metadata: sessions.Metadata{
+							Username: "userA",
 						},
 					},
 				},
@@ -793,8 +796,8 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "userA",
+						metadata: sessions.Metadata{
+							Username: "userA",
 						},
 					},
 				},
@@ -837,8 +840,8 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "userA",
+						metadata: sessions.Metadata{
+							Username: "userA",
 						},
 					},
 				},
@@ -881,8 +884,8 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "userA",
+						metadata: sessions.Metadata{
+							Username: "userA",
 						},
 					},
 				},
@@ -926,8 +929,8 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "userA",
+						metadata: sessions.Metadata{
+							Username: "userA",
 						},
 					},
 				},
@@ -971,16 +974,16 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "userA",
+						metadata: sessions.Metadata{
+							Username: "userA",
 						},
 					},
 				},
 				{
 					token: "def456",
 					session: testSession{
-						user: testUser{
-							username: "userB",
+						metadata: sessions.Metadata{
+							Username: "userB",
 						},
 					},
 				},

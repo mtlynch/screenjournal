@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/mtlynch/screenjournal/v2/auth"
-	"github.com/mtlynch/screenjournal/v2/auth/simple"
+	"github.com/mtlynch/screenjournal/v2/auth/simple/sessions"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -28,11 +28,11 @@ func (u testUser) IsAdmin() bool {
 }
 
 type testSession struct {
-	user simple.User
+	metadata sessions.Metadata
 }
 
-func (s testSession) User() simple.User {
-	return s.user
+func (s testSession) Metadata() sessions.Metadata {
+	return s.metadata
 }
 
 func TestAccountNotificationsPost(t *testing.T) {
@@ -55,8 +55,8 @@ func TestAccountNotificationsPost(t *testing.T) {
 				{
 					token: "abc123",
 					session: testSession{
-						user: testUser{
-							username: "userA",
+						metadata: sessions.Metadata{
+							Username: "userA",
 						},
 					},
 				},
@@ -149,8 +149,8 @@ func TestAccountNotificationsPost(t *testing.T) {
 			// Populate datastore with dummy users.
 			for _, s := range tt.sessions {
 				dataStore.InsertUser(screenjournal.User{
-					Username: screenjournal.Username(s.session.User().Username()),
-					IsAdmin:  s.session.User().IsAdmin(),
+					Username: screenjournal.Username(s.session.Metadata().Username),
+					IsAdmin:  s.session.Metadata().IsAdmin,
 				})
 			}
 
@@ -181,9 +181,9 @@ func TestAccountNotificationsPost(t *testing.T) {
 				return
 			}
 
-			prefs, err := dataStore.ReadNotificationPreferences(screenjournal.Username(tt.sessions[0].session.User().Username()))
+			prefs, err := dataStore.ReadNotificationPreferences(screenjournal.Username(tt.sessions[0].session.Metadata().Username))
 			if err != nil {
-				t.Fatalf("failed to read notification preferences from datastore for %s: %v", tt.sessions[0].session.User().Username(), err)
+				t.Fatalf("failed to read notification preferences from datastore for %s: %v", tt.sessions[0].session.Metadata().Username, err)
 			}
 			if got, want := prefs, tt.expectedPrefs; got != want {
 				t.Errorf("notificationPreferences=%+v, got=%+v", got, want)

@@ -3,7 +3,6 @@ package handlers_test
 import (
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"strings"
 	"testing"
 
@@ -131,8 +130,8 @@ func TestAuthPost(t *testing.T) {
 			if got, want := len(sessionsCreated), 1; got != want {
 				t.Fatalf("count(sessions)=%d, want=%d", got, want)
 			}
-			if got, want := sessionsCreated[0].User(), tt.matchingUser; !reflect.DeepEqual(got, want) {
-				t.Errorf("user=%+v, want=%+v", got, want)
+			if got, want := sessionsCreated[0].Metadata().Username, tt.matchingUser.Username.String(); got != want {
+				t.Errorf("username=%+v, want=%+v", got, want)
 			}
 		})
 	}

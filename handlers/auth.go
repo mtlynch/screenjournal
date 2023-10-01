@@ -42,7 +42,10 @@ func (s Server) authPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.sessionManager.CreateSession(w, r, NewSimpleUser(user)); err != nil {
+		if err := s.sessionManager.CreateSession(w, r, sessions.Metadata{
+			Username: user.Username.String(),
+			IsAdmin:  user.IsAdmin,
+		}); err != nil {
 			log.Printf("failed to create session for user %s: %v", user.Username.String(), err)
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
@@ -68,7 +71,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), contextKeyUser, session.User())
+		ctx := context.WithValue(r.Context(), contextKeyUser, session.Metadata())
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}))
 }
@@ -76,7 +79,6 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 func (s Server) requireAuthenticationForAPI(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if _, ok := userFromContext(r.Context()); !ok {
-			log.Printf("couldn't get user from context") // DEBUG
 			s.sessionManager.EndSession(r, w)
 			http.Error(w, "Authentication required", http.StatusUnauthorized)
 			return

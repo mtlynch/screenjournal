@@ -10,7 +10,6 @@ import (
 	"github.com/mtlynch/jeff"
 	"github.com/mtlynch/jeff/sqlite"
 
-	"github.com/mtlynch/screenjournal/v2/auth/simple"
 	"github.com/mtlynch/screenjournal/v2/auth/simple/sessions"
 )
 
@@ -19,13 +18,8 @@ type (
 		j *jeff.Jeff
 	}
 
-	serializableUser struct {
-		Username_ string `json:"username"`
-		IsAdmin_  bool   `json:"isAdmin"`
-	}
-
 	session struct {
-		user simple.User
+		metadata sessions.Metadata
 	}
 )
 
@@ -46,12 +40,12 @@ func New(dbPath string) (sessions.Manager, error) {
 	}, nil
 }
 
-func (m manager) CreateSession(w http.ResponseWriter, r *http.Request, user simple.User) error {
-	meta, err := serializeUser(user)
+func (m manager) CreateSession(w http.ResponseWriter, r *http.Request, meta sessions.Metadata) error {
+	b, err := serializeMetadata(meta)
 	if err != nil {
 		return err
 	}
-	return m.j.Set(r.Context(), w, []byte(user.Username()), meta)
+	return m.j.Set(r.Context(), w, []byte(meta.Username), b)
 }
 
 func (m manager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
@@ -60,13 +54,13 @@ func (m manager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
 		return nil, sessions.ErrNotAuthenticated
 	}
 
-	user, err := deserializeUser(sess.Meta)
+	meta, err := deserializeMetadata(sess.Meta)
 	if err != nil {
 		return nil, err
 	}
 
 	return session{
-		user: user,
+		metadata: meta,
 	}, nil
 }
 
@@ -87,35 +81,23 @@ func (m manager) WrapRequest(next http.Handler) http.Handler {
 	return m.j.Public(next)
 }
 
-func (s session) User() simple.User {
-	return s.user
+func (s session) Metadata() sessions.Metadata {
+	return s.Metadata()
 }
 
-func (u serializableUser) Username() string {
-	return u.Username_
-}
-
-func (u serializableUser) IsAdmin() bool {
-	return u.IsAdmin_
-}
-
-func serializeUser(user simple.User) ([]byte, error) {
-	su := serializableUser{
-		Username_: user.Username(),
-		IsAdmin_:  user.IsAdmin(),
-	}
+func serializeMetadata(meta sessions.Metadata) ([]byte, error) {
 	var b bytes.Buffer
-	if err := json.NewEncoder(&b).Encode(su); err != nil {
-		log.Fatalf("failed to serialize user to JSON: %v", err)
+	if err := json.NewEncoder(&b).Encode(meta); err != nil {
+		log.Fatalf("failed to serialize session metadata to JSON: %v", err)
 	}
 	return b.Bytes(), nil
 }
 
-func deserializeUser(b []byte) (simple.User, error) {
-	var su serializableUser
-	if err := json.NewDecoder(bytes.NewReader(b)).Decode(&su); err != nil {
-		return nil, err
+func deserializeMetadata(b []byte) (sessions.Metadata, error) {
+	var meta sessions.Metadata
+	if err := json.NewDecoder(bytes.NewReader(b)).Decode(&meta); err != nil {
+		return sessions.Metadata{}, err
 	}
 
-	return &su, nil
+	return meta, nil
 }

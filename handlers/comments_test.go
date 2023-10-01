@@ -12,6 +12,7 @@ import (
 	"github.com/go-test/deep"
 
 	"github.com/mtlynch/screenjournal/v2/auth"
+	"github.com/mtlynch/screenjournal/v2/auth/simple/sessions"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -43,13 +44,19 @@ func makeCommentsTestData() commentsTestData {
 	td.sessions.userA = mockSession{
 		token: "abc123",
 		session: testSession{
-			user: td.users.userA,
+			metadata: sessions.Metadata{
+				Username: td.users.userA.username,
+				IsAdmin:  td.users.userA.isAdmin,
+			},
 		},
 	}
 	td.sessions.userB = mockSession{
 		token: "def456",
 		session: testSession{
-			user: td.users.userB,
+			metadata: sessions.Metadata{
+				Username: td.users.userB.username,
+				IsAdmin:  td.users.userB.isAdmin,
+			},
 		},
 	}
 	td.users.userB = testUser{
@@ -196,8 +203,8 @@ func TestCommentsPost(t *testing.T) {
 
 			for _, s := range tt.sessions {
 				store.InsertUser(screenjournal.User{
-					Username: screenjournal.Username(s.session.User().Username()),
-					IsAdmin:  s.session.User().IsAdmin(),
+					Username: screenjournal.Username(s.session.Metadata().Username),
+					IsAdmin:  s.session.Metadata().IsAdmin,
 				})
 			}
 			for _, movie := range tt.movies {
@@ -423,8 +430,8 @@ func TestCommentsPut(t *testing.T) {
 			// Populate datastore with dummy users.
 			for _, s := range tt.sessions {
 				store.InsertUser(screenjournal.User{
-					Username: screenjournal.Username(s.session.User().Username()),
-					IsAdmin:  s.session.User().IsAdmin(),
+					Username: screenjournal.Username(s.session.Metadata().Username),
+					IsAdmin:  s.session.Metadata().IsAdmin,
 				})
 			}
 
@@ -580,8 +587,8 @@ func TestCommentsDelete(t *testing.T) {
 
 			for _, s := range tt.sessions {
 				store.InsertUser(screenjournal.User{
-					Username: screenjournal.Username(s.session.User().Username()),
-					IsAdmin:  s.session.User().IsAdmin(),
+					Username: screenjournal.Username(s.session.Metadata().Username),
+					IsAdmin:  s.session.Metadata().IsAdmin,
 				})
 			}
 			if _, err := store.InsertMovie(makeCommentsTestData().movies.theWaterBoy); err != nil {

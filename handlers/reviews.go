@@ -26,8 +26,7 @@ func (s Server) reviewsPost() http.HandlerFunc {
 			return
 		}
 
-		owner := mustGetUserFromContext(r.Context())
-		req.Review.Owner = owner.Username
+		req.Review.Owner = mustGetUsernameFromContext(r.Context())
 
 		req.Review.Movie, err = s.moviefromTmdbID(s.getDB(r), req.TmdbID)
 		if err == store.ErrMovieNotFound {
@@ -67,8 +66,8 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
-		loggedInUser := mustGetUserFromContext(r.Context())
-		if !review.Owner.Equal(loggedInUser.Username) {
+		loggedInUsername := mustGetUsernameFromContext(r.Context())
+		if !review.Owner.Equal(loggedInUsername) {
 			http.Error(w, "You can't edit another user's review", http.StatusForbidden)
 			return
 		}
@@ -103,8 +102,8 @@ func (s Server) reviewsDelete() http.HandlerFunc {
 			return
 		}
 
-		loggedInUser := mustGetUserFromContext(r.Context())
-		if !review.Owner.Equal(loggedInUser.Username) {
+		loggedInUsername := mustGetUsernameFromContext(r.Context())
+		if !review.Owner.Equal(loggedInUsername) {
 			http.Error(w, "You can't delete another user's review", http.StatusForbidden)
 			return
 		}

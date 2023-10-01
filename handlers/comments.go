@@ -41,7 +41,7 @@ func (s Server) commentsPost() http.HandlerFunc {
 
 		rc := screenjournal.ReviewComment{
 			Review:      review,
-			Owner:       mustGetUserFromContext(r.Context()).Username,
+			Owner:       mustGetUsernameFromContext(r.Context()),
 			CommentText: req.CommentText,
 		}
 
@@ -80,7 +80,7 @@ func (s Server) commentsPut() http.HandlerFunc {
 			return
 		}
 
-		if mustGetUserFromContext(r.Context()).Username != rc.Owner {
+		if !mustGetUsernameFromContext(r.Context()).Equal(rc.Owner) {
 			http.Error(w, "Can't edit another user's comment", http.StatusForbidden)
 			return
 		}
@@ -112,7 +112,7 @@ func (s Server) commentsDelete() http.HandlerFunc {
 			return
 		}
 
-		if mustGetUserFromContext(r.Context()).Username != rc.Owner {
+		if !mustGetUsernameFromContext(r.Context()).Equal(rc.Owner) {
 			http.Error(w, "Can't delete another user's comment", http.StatusForbidden)
 			return
 		}

@@ -46,9 +46,9 @@ func TestAccountNotificationsPost(t *testing.T) {
 		{
 			description: "allows user to unsubscribe to new reviews but subscribe to comments",
 			payload: `{
-						"isSubscribedToNewReviews":false,
-						"isSubscribedToAllComments":true
-					}`,
+							"isSubscribedToNewReviews":false,
+							"isSubscribedToAllComments":true
+						}`,
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -67,9 +67,9 @@ func TestAccountNotificationsPost(t *testing.T) {
 		{
 			description: "allows user to subscribe to new reviews but unsubscribe from comments",
 			payload: `{
-						"isSubscribedToNewReviews":true,
-						"isSubscribedToAllComments":false
-					}`,
+							"isSubscribedToNewReviews":true,
+							"isSubscribedToAllComments":false
+						}`,
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -88,9 +88,9 @@ func TestAccountNotificationsPost(t *testing.T) {
 		{
 			description: "rejects non-bool value for review subscription status",
 			payload: `{
-						"isSubscribedToNewReviews":"banana",
-						"isSubscribedToAllComments":true
-					}`,
+							"isSubscribedToNewReviews":"banana",
+							"isSubscribedToAllComments":true
+						}`,
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -105,9 +105,9 @@ func TestAccountNotificationsPost(t *testing.T) {
 		{
 			description: "rejects subscription update if user is not authenticated",
 			payload: `{
-						"isSubscribedToNewReviews":true,
-						"isSubscribedToAllComments":true
-					}`,
+							"isSubscribedToNewReviews":true,
+							"isSubscribedToAllComments":true
+						}`,
 			sessionToken: "dummy-invalid-token",
 			sessions:     []mockSessionEntry{},
 			status:       http.StatusUnauthorized,

@@ -163,7 +163,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			Reviews:          reviews,
 			SortOrder:        sortOrder,
 			CollectionOwner:  collectionOwner,
-			UserCanAddReview: collectionOwner == nil || collectionOwner.Equal(usernameFromContext(r.Context())),
+			UserCanAddReview: collectionOwner == nil || collectionOwner.Equal(mustGetUsernameFromContext(r.Context())),
 		}, template.FuncMap{
 			"relativeWatchDate": relativeWatchDate,
 			"formatWatchDate":   formatWatchDate,
@@ -298,8 +298,8 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			return
 		}
 
-		loggedInUser := mustGetUserFromContext(r.Context())
-		if !review.Owner.Equal(loggedInUser.Username) {
+		loggedInUsername := mustGetUsernameFromContext(r.Context())
+		if !review.Owner.Equal(loggedInUsername) {
 			http.Error(w, "You can't edit another user's review", http.StatusForbidden)
 			return
 		}
@@ -355,8 +355,8 @@ func (s Server) reviewsDeleteGet() http.HandlerFunc {
 			return
 		}
 
-		loggedInUser := mustGetUserFromContext(r.Context())
-		if !review.Owner.Equal(loggedInUser.Username) {
+		loggedInUsername := mustGetUsernameFromContext(r.Context())
+		if !review.Owner.Equal(loggedInUsername) {
 			http.Error(w, "You can't delete another user's review", http.StatusForbidden)
 			return
 		}
@@ -456,7 +456,7 @@ func (s Server) invitesNewGet() http.HandlerFunc {
 
 func (s Server) accountNotificationsGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		prefs, err := s.getDB(r).ReadNotificationPreferences(usernameFromContext(r.Context()))
+		prefs, err := s.getDB(r).ReadNotificationPreferences(mustGetUsernameFromContext(r.Context()))
 		if err != nil {
 			log.Printf("failed to read notification preferences: %v", err)
 			http.Error(w, fmt.Sprintf("failed to read notification preferences: %v", err), http.StatusInternalServerError)
@@ -548,11 +548,15 @@ func posterPathToURL(pp url.URL) string {
 }
 
 func makeCommonProps(title string, ctx context.Context) commonProps {
+	username, ok := usernameFromContext(ctx)
+	if !ok {
+		username = screenjournal.Username("")
+	}
 	return commonProps{
 		Title:            title,
 		IsAuthenticated:  isAuthenticated(ctx),
 		IsAdmin:          isAdmin(ctx),
-		LoggedInUsername: usernameFromContext(ctx),
+		LoggedInUsername: username,
 		CspNonce:         cspNonce(ctx),
 	}
 }

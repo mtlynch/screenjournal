@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/mtlynch/screenjournal/v2/auth/simple"
 	"github.com/mtlynch/screenjournal/v2/auth/simple/sessions"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -42,10 +42,14 @@ func (s Server) authPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.sessionManager.CreateSession(w, r, sessions.Metadata{
-			Username: user.Username.String(),
-			IsAdmin:  user.IsAdmin,
-		}); err != nil {
+		b, err := serializeUser(user)
+		if err != nil {
+			log.Printf("failed to serialize user %s: %v", username, err)
+			http.Error(w, "Failed to create session", http.StatusInternalServerError)
+			return
+		}
+
+		if err := s.sessionManager.CreateSession(w, r, sessions.Key(user.Username.String()), sessions.Session(b)); err != nil {
 			log.Printf("failed to create session for user %s: %v", user.Username.String(), err)
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
@@ -61,7 +65,7 @@ func (s Server) authDelete() http.HandlerFunc {
 
 func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 	return s.sessionManager.WrapRequest(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, err := s.sessionManager.SessionFromRequest(r)
+		meta, err := s.sessionManager.SessionFromRequest(r)
 		if err != nil {
 			if err != sessions.ErrNotAuthenticated {
 				log.Printf("invalid session token: %v", err)
@@ -71,7 +75,14 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), contextKeyUser, session.Metadata())
+		user, err := deserializeUser(meta)
+		if err != nil {
+			log.Printf("failed to deserialize user: %v", err)
+			http.Error(w, "Failed to create session", http.StatusInternalServerError)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), contextKeyUser, user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}))
 }
@@ -161,14 +172,8 @@ func isAuthenticated(ctx context.Context) bool {
 }
 
 func userFromContext(ctx context.Context) (screenjournal.User, bool) {
-	user, ok := ctx.Value(contextKeyUser).(simple.User)
-	if !ok {
-		return screenjournal.User{}, false
-	}
-	return screenjournal.User{
-		Username: screenjournal.Username(user.Username()),
-		IsAdmin:  user.IsAdmin(),
-	}, true
+	user, ok := ctx.Value(contextKeyUser).(screenjournal.User)
+	return user, ok
 }
 
 func usernameFromContext(ctx context.Context) screenjournal.Username {
@@ -185,4 +190,33 @@ func mustGetUserFromContext(ctx context.Context) screenjournal.User {
 		panic("No user in context in an authenticated handler")
 	}
 	return user
+}
+
+type serializableUser struct {
+	Username string `json:"username"`
+	IsAdmin  bool   `json:"isAdmin"`
+}
+
+func serializeUser(user screenjournal.User) ([]byte, error) {
+	su := serializableUser{
+		Username: user.Username.String(),
+		IsAdmin:  user.IsAdmin,
+	}
+	var b bytes.Buffer
+	if err := json.NewEncoder(&b).Encode(su); err != nil {
+		log.Fatalf("failed to serialize user to JSON: %v", err)
+	}
+	return b.Bytes(), nil
+}
+
+func deserializeUser(b []byte) (screenjournal.User, error) {
+	var su serializableUser
+	if err := json.NewDecoder(bytes.NewReader(b)).Decode(&su); err != nil {
+		return screenjournal.User{}, err
+	}
+
+	return screenjournal.User{
+		Username: screenjournal.Username(su.Username),
+		IsAdmin:  su.IsAdmin,
+	}, nil
 }

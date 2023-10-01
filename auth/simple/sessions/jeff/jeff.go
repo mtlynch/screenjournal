@@ -1,9 +1,7 @@
 package jeff
 
 import (
-	"bytes"
 	"database/sql"
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -16,10 +14,6 @@ import (
 type (
 	manager struct {
 		j *jeff.Jeff
-	}
-
-	session struct {
-		metadata sessions.Metadata
 	}
 )
 
@@ -40,12 +34,8 @@ func New(dbPath string) (sessions.Manager, error) {
 	}, nil
 }
 
-func (m manager) CreateSession(w http.ResponseWriter, r *http.Request, meta sessions.Metadata) error {
-	b, err := serializeMetadata(meta)
-	if err != nil {
-		return err
-	}
-	return m.j.Set(r.Context(), w, []byte(meta.Username), b)
+func (m manager) CreateSession(w http.ResponseWriter, r *http.Request, key sessions.Key, sess sessions.Session) error {
+	return m.j.Set(r.Context(), w, key, sess)
 }
 
 func (m manager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
@@ -54,14 +44,7 @@ func (m manager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
 		return nil, sessions.ErrNotAuthenticated
 	}
 
-	meta, err := deserializeMetadata(sess.Meta)
-	if err != nil {
-		return nil, err
-	}
-
-	return session{
-		metadata: meta,
-	}, nil
+	return sess.Meta, nil
 }
 
 func (m manager) EndSession(r *http.Request, w http.ResponseWriter) {
@@ -79,25 +62,4 @@ func (m manager) EndSession(r *http.Request, w http.ResponseWriter) {
 
 func (m manager) WrapRequest(next http.Handler) http.Handler {
 	return m.j.Public(next)
-}
-
-func (s session) Metadata() sessions.Metadata {
-	return s.Metadata()
-}
-
-func serializeMetadata(meta sessions.Metadata) ([]byte, error) {
-	var b bytes.Buffer
-	if err := json.NewEncoder(&b).Encode(meta); err != nil {
-		log.Fatalf("failed to serialize session metadata to JSON: %v", err)
-	}
-	return b.Bytes(), nil
-}
-
-func deserializeMetadata(b []byte) (sessions.Metadata, error) {
-	var meta sessions.Metadata
-	if err := json.NewDecoder(bytes.NewReader(b)).Decode(&meta); err != nil {
-		return sessions.Metadata{}, err
-	}
-
-	return meta, nil
 }

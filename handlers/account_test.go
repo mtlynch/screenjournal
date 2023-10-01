@@ -14,27 +14,6 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
-type testUser struct {
-	username string
-	isAdmin  bool
-}
-
-func (u testUser) Username() string {
-	return u.username
-}
-
-func (u testUser) IsAdmin() bool {
-	return u.isAdmin
-}
-
-type testSession struct {
-	metadata sessions.Metadata
-}
-
-func (s testSession) Metadata() sessions.Metadata {
-	return s.metadata
-}
-
 func TestAccountNotificationsPost(t *testing.T) {
 	for _, tt := range []struct {
 		description   string

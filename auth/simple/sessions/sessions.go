@@ -7,7 +7,7 @@ import (
 
 type (
 	Manager interface {
-		CreateSession(http.ResponseWriter, *http.Request, Metadata) error
+		CreateSession(http.ResponseWriter, *http.Request, Key, Session) error
 		SessionFromRequest(*http.Request) (Session, error)
 		EndSession(*http.Request, http.ResponseWriter)
 		// WrapRequest wraps the given handler, adding the Session object (if
@@ -16,14 +16,8 @@ type (
 		WrapRequest(http.Handler) http.Handler
 	}
 
-	Session interface {
-		Metadata() Metadata
-	}
-
-	Metadata struct {
-		Username string `json:"username"`
-		IsAdmin  bool   `json:"isAdmin"`
-	}
+	Key     []byte
+	Session []byte
 )
 
 var ErrNotAuthenticated = errors.New("user has no active screenjournal session")

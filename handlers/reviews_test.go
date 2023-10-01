@@ -45,8 +45,8 @@ func (a *mockAnnouncer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 }
 
 type mockSession struct {
-	token   string
-	session sessions.Session
+	token    string
+	metadata sessions.Session
 }
 
 type mockSessionManager struct {
@@ -58,21 +58,16 @@ const mockSessionTokenName = "mock-session-token"
 func newMockSessionManager(mockSessions []mockSession) mockSessionManager {
 	sessions := make(map[string]sessions.Session, len(mockSessions))
 	for _, ms := range mockSessions {
-		sessions[ms.token] = ms.session
+		sessions[ms.token] = ms.metadata
 	}
 	return mockSessionManager{
 		sessions: sessions,
 	}
 }
 
-func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, r *http.Request, meta sessions.Metadata) error {
+func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, r *http.Request, key sessions.Key, sess sessions.Session) error {
 	token := random.String(10, []rune("abcdefghijklmnopqrstuvwxyz0123456789"))
-	sm.sessions[token] = testSession{
-		metadata: sessions.Metadata{
-			Username: meta.Username,
-			IsAdmin:  meta.IsAdmin,
-		},
-	}
+	sm.sessions[token] = sess
 	http.SetCookie(w, &http.Cookie{
 		Name:  mockSessionTokenName,
 		Value: token,
@@ -83,11 +78,11 @@ func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, r *http.Reque
 func (sm mockSessionManager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
 	token, err := r.Cookie(mockSessionTokenName)
 	if err != nil {
-		return testSession{}, errors.New("mock session manager: no token cookie found")
+		return sessions.Session{}, errors.New("mock session manager: no token cookie found")
 	}
 	session, ok := sm.sessions[token.Value]
 	if !ok {
-		return testSession{}, errors.New("mock session manager: no session associated with token")
+		return sessions.Session{}, errors.New("mock session manager: no session associated with token")
 	}
 	return session, nil
 }
@@ -153,10 +148,8 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			sessions: []mockSession{
 				{
 					token: "abc123",
-					session: testSession{
-						metadata: sessions.Metadata{
-							Username: "dummyadmin",
-						},
+					metadata: sessions.Session{
+						Username: "dummyadmin",
 					},
 				},
 			},
@@ -275,7 +268,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 
 			sessionManager := newMockSessionManager(tt.sessions)
 
-			s := handlers.New(mockAuthenticator{}, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo))
+			s := handlers.New(mockAuthenticator{}, &announcer, sessionManager, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo))
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
 			if err != nil {

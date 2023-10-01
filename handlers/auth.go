@@ -41,7 +41,7 @@ func (s Server) authPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.sessionManager.CreateSession(w, r, user); err != nil {
+		if err := s.sessionManager.CreateSession(w, r, sessionKeyFromUsername(user.Username), user); err != nil {
 			log.Printf("failed to create session for user %s: %v", user.Username.String(), err)
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
@@ -178,4 +178,8 @@ func mustGetUserFromContext(ctx context.Context) screenjournal.User {
 		panic("No user in context in an authenticated handler")
 	}
 	return user
+}
+
+func sessionKeyFromUsername(username screenjournal.Username) sessions.Key {
+	return sessions.KeyFromBytes([]byte(username.String()))
 }

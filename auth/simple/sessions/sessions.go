@@ -4,12 +4,12 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/mtlynch/screenjournal/v2/screenjournal"
+	"github.com/mtlynch/screenjournal/v2/auth/simple"
 )
 
 type (
 	Manager interface {
-		CreateSession(http.ResponseWriter, *http.Request, screenjournal.User) error
+		CreateSession(http.ResponseWriter, *http.Request, simple.User) error
 		SessionFromRequest(*http.Request) (Session, error)
 		EndSession(*http.Request, http.ResponseWriter)
 		// WrapRequest wraps the given handler, adding the Session object (if
@@ -19,7 +19,7 @@ type (
 	}
 
 	Session struct {
-		User screenjournal.User
+		User simple.User
 	}
 )
 

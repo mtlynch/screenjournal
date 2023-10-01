@@ -1,5 +1,11 @@
 package screenjournal
 
+import (
+	"bytes"
+	"encoding/json"
+	"log"
+)
+
 type (
 	Email    string
 	Username string
@@ -15,10 +21,15 @@ type (
 	PasswordHash []byte
 
 	User struct {
-		IsAdmin      bool
-		Username     Username
+		IsAdmin_     bool
+		Username_    Username
 		Email        Email
 		PasswordHash PasswordHash
+	}
+
+	simpleUser struct {
+		Username string `json:"username"`
+		IsAdmin  bool   `json:"isAdmin"`
 	}
 )
 
@@ -48,6 +59,22 @@ func (ph PasswordHash) Bytes() []byte {
 	return []byte(ph)
 }
 
+func (u User) IsAdmin() bool {
+	return u.IsAdmin_
+}
+
 func (u User) IsEmpty() bool {
 	return u.Username == ""
+}
+
+func (u User) Serialize() ([]byte, error) {
+	su := simpleUser{
+		Username: u.Username.String(),
+		IsAdmin:  u.IsAdmin_,
+	}
+	var b bytes.Buffer
+	if err := json.NewEncoder(&b).Encode(su); err != nil {
+		log.Fatalf("failed to serialize user to JSON: %v", err)
+	}
+	return b.Bytes(), nil
 }

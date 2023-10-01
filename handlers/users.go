@@ -36,7 +36,7 @@ func (s Server) usersPut() http.HandlerFunc {
 		}
 
 		user := screenjournal.User{
-			IsAdmin:      c == 0, // First user is automatically admin
+			IsAdmin_:     c == 0, // First user is automatically admin
 			Email:        req.Email,
 			Username:     req.Username,
 			PasswordHash: req.PasswordHash,

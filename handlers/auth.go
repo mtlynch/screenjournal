@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/mtlynch/screenjournal/v2/auth/simple/sessions"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
@@ -145,7 +145,7 @@ func isAdmin(ctx context.Context) bool {
 		return false
 	}
 
-	return user.IsAdmin
+	return user.IsAdmin()
 }
 
 func isAuthenticated(ctx context.Context) bool {

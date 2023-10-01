@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -12,18 +11,6 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
-)
-
-type (
-	session struct {
-		Username screenjournal.Username
-		IsAdmin  bool
-	}
-
-	serializableSession struct {
-		Username string `json:"username"`
-		IsAdmin  bool   `json:"isAdmin"`
-	}
 )
 
 type contextKey struct {
@@ -54,12 +41,10 @@ func (s Server) authPost() http.HandlerFunc {
 			return
 		}
 
-		b, err := serializeSession(session{
+		if err := s.sessionManager.CreateSession(w, r, sessionKeyFromUsername(user.Username), SerializeSession(Session{
 			Username: user.Username,
 			IsAdmin:  user.IsAdmin,
-		})
-
-		if err := s.sessionManager.CreateSession(w, r, sessionKeyFromUsername(user.Username), b); err != nil {
+		})); err != nil {
 			log.Printf("failed to create session for user %s: %v", user.Username.String(), err)
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
@@ -85,7 +70,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 			return
 		}
 
-		session, err := deserializeSession(b)
+		session, err := DeserializeSession(b)
 		if err != nil {
 			log.Printf("failed to deserialize session: %v", err)
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
@@ -207,28 +192,4 @@ func mustGetUserFromContext(ctx context.Context) screenjournal.User {
 
 func sessionKeyFromUsername(username screenjournal.Username) sessions.Key {
 	return sessions.KeyFromBytes([]byte(username.String()))
-}
-
-func serializeSession(sess session) ([]byte, error) {
-	su := serializableSession{
-		Username: sess.Username.String(),
-		IsAdmin:  sess.IsAdmin,
-	}
-	var b bytes.Buffer
-	if err := json.NewEncoder(&b).Encode(su); err != nil {
-		log.Fatalf("failed to serialize user to JSON: %v", err)
-	}
-	return b.Bytes(), nil
-}
-
-func deserializeSession(b []byte) (session, error) {
-	var ss serializableSession
-	if err := json.NewDecoder(bytes.NewReader(b)).Decode(&ss); err != nil {
-		return session{}, err
-	}
-
-	return session{
-		Username: screenjournal.Username(ss.Username),
-		IsAdmin:  ss.IsAdmin,
-	}, nil
 }

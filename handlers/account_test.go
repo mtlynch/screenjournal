@@ -8,7 +8,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
@@ -19,7 +18,7 @@ func TestAccountNotificationsPost(t *testing.T) {
 		description   string
 		payload       string
 		sessionToken  string
-		sessions      []mockSession
+		sessions      []mockSessionEntry
 		expectedPrefs screenjournal.NotificationPreferences
 		status        int
 	}{
@@ -30,13 +29,11 @@ func TestAccountNotificationsPost(t *testing.T) {
 					"isSubscribedToAllComments":true
 				}`,
 			sessionToken: "abc123",
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
-						},
+					session: handlers.Session{
+						Username: screenjournal.Username("userA"),
 					},
 				},
 			},
@@ -49,17 +46,15 @@ func TestAccountNotificationsPost(t *testing.T) {
 		{
 			description: "allows user to unsubscribe to new reviews but subscribe to comments",
 			payload: `{
-					"isSubscribedToNewReviews":false,
-					"isSubscribedToAllComments":true
-				}`,
+						"isSubscribedToNewReviews":false,
+						"isSubscribedToAllComments":true
+					}`,
 			sessionToken: "abc123",
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
-						},
+					session: handlers.Session{
+						Username: screenjournal.Username("userA"),
 					},
 				},
 			},
@@ -72,17 +67,15 @@ func TestAccountNotificationsPost(t *testing.T) {
 		{
 			description: "allows user to subscribe to new reviews but unsubscribe from comments",
 			payload: `{
-					"isSubscribedToNewReviews":true,
-					"isSubscribedToAllComments":false
-				}`,
+						"isSubscribedToNewReviews":true,
+						"isSubscribedToAllComments":false
+					}`,
 			sessionToken: "abc123",
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
-						},
+					session: handlers.Session{
+						Username: screenjournal.Username("userA"),
 					},
 				},
 			},
@@ -95,17 +88,15 @@ func TestAccountNotificationsPost(t *testing.T) {
 		{
 			description: "rejects non-bool value for review subscription status",
 			payload: `{
-					"isSubscribedToNewReviews":"banana",
-					"isSubscribedToAllComments":true
-				}`,
+						"isSubscribedToNewReviews":"banana",
+						"isSubscribedToAllComments":true
+					}`,
 			sessionToken: "abc123",
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
-						User: screenjournal.User{
-							Username: screenjournal.Username("userA"),
-						},
+					session: handlers.Session{
+						Username: screenjournal.Username("userA"),
 					},
 				},
 			},
@@ -114,11 +105,11 @@ func TestAccountNotificationsPost(t *testing.T) {
 		{
 			description: "rejects subscription update if user is not authenticated",
 			payload: `{
-					"isSubscribedToNewReviews":true,
-					"isSubscribedToAllComments":true
-				}`,
+						"isSubscribedToNewReviews":true,
+						"isSubscribedToAllComments":true
+					}`,
 			sessionToken: "dummy-invalid-token",
-			sessions:     []mockSession{},
+			sessions:     []mockSessionEntry{},
 			status:       http.StatusUnauthorized,
 		},
 	} {
@@ -127,7 +118,11 @@ func TestAccountNotificationsPost(t *testing.T) {
 
 			// Populate datastore with dummy users.
 			for _, s := range tt.sessions {
-				dataStore.InsertUser(s.session.User)
+				dataStore.InsertUser(
+					screenjournal.User{
+						Username: s.session.Username,
+						IsAdmin:  s.session.IsAdmin,
+					})
 			}
 
 			authenticator := auth.New(dataStore)
@@ -157,9 +152,9 @@ func TestAccountNotificationsPost(t *testing.T) {
 				return
 			}
 
-			prefs, err := dataStore.ReadNotificationPreferences(tt.sessions[0].session.User.Username)
+			prefs, err := dataStore.ReadNotificationPreferences(tt.sessions[0].session.Username)
 			if err != nil {
-				t.Fatalf("failed to read notification preferences from datastore for %s: %v", tt.sessions[0].session.User.Username, err)
+				t.Fatalf("failed to read notification preferences from datastore for %s: %v", tt.sessions[0].session.Username, err)
 			}
 			if got, want := prefs, tt.expectedPrefs; got != want {
 				t.Errorf("notificationPreferences=%+v, got=%+v", got, want)

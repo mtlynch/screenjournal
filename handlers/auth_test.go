@@ -3,13 +3,11 @@ package handlers_test
 import (
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
@@ -102,7 +100,7 @@ func TestAuthPost(t *testing.T) {
 
 			authenticator := auth.New(dataStore)
 			var nilMetadataFinder metadata.Finder
-			sessionManager := newMockSessionManager([]mockSession{})
+			sessionManager := newMockSessionManager([]mockSessionEntry{})
 
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
 
@@ -123,7 +121,7 @@ func TestAuthPost(t *testing.T) {
 				return
 			}
 
-			sessionsCreated := []sessions.Session{}
+			sessionsCreated := []handlers.Session{}
 			for _, session := range sessionManager.sessions {
 				sessionsCreated = append(sessionsCreated, session)
 			}
@@ -131,8 +129,8 @@ func TestAuthPost(t *testing.T) {
 			if got, want := len(sessionsCreated), 1; got != want {
 				t.Fatalf("count(sessions)=%d, want=%d", got, want)
 			}
-			if got, want := sessionsCreated[0].User, tt.matchingUser; !reflect.DeepEqual(got, want) {
-				t.Errorf("user=%+v, want=%+v", got, want)
+			if got, want := sessionsCreated[0].Username, tt.matchingUser.Username; !got.Equal(want) {
+				t.Errorf("username=%+v, want=%+v", got, want)
 			}
 		})
 	}

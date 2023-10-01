@@ -61,7 +61,10 @@ func (s Server) usersPut() http.HandlerFunc {
 			return
 		}
 
-		if err := s.sessionManager.CreateSession(w, r, sessionKeyFromUsername(user.Username), user); err != nil {
+		if err := s.sessionManager.CreateSession(w, r, sessionKeyFromUsername(user.Username), SerializeSession(Session{
+			Username: user.Username,
+			IsAdmin:  user.IsAdmin,
+		})); err != nil {
 			log.Printf("failed to create session for new user %+v: %v", user, err)
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return

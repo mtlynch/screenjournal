@@ -162,7 +162,7 @@ func TestUsersPut(t *testing.T) {
 
 			authenticator := auth.New(dataStore)
 			var nilMetadataFinder metadata.Finder
-			sessionManager := newMockSessionManager([]mockSession{})
+			sessionManager := newMockSessionManager([]mockSessionEntry{})
 
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
 

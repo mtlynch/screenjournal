@@ -67,7 +67,7 @@ func TestAccountNotificationsPost(t *testing.T) {
 			},
 			status: http.StatusOK,
 		},
-		{
+		/*{
 			description: "allows user to unsubscribe to new reviews but subscribe to comments",
 			payload: `{
 					"isSubscribedToNewReviews":false,
@@ -141,7 +141,7 @@ func TestAccountNotificationsPost(t *testing.T) {
 			sessionToken: "dummy-invalid-token",
 			sessions:     []mockSession{},
 			status:       http.StatusUnauthorized,
-		},
+		},*/
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()

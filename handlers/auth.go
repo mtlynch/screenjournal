@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/mtlynch/screenjournal/v2/auth/simple"
 	"github.com/mtlynch/screenjournal/v2/auth/simple/sessions"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -67,7 +68,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), contextKeyUser, session.User)
+		ctx := context.WithValue(r.Context(), contextKeyUser, session.User())
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}))
 }
@@ -75,6 +76,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 func (s Server) requireAuthenticationForAPI(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if _, ok := userFromContext(r.Context()); !ok {
+			log.Printf("couldn't get user from context") // DEBUG
 			s.sessionManager.EndSession(r, w)
 			http.Error(w, "Authentication required", http.StatusUnauthorized)
 			return
@@ -157,11 +159,14 @@ func isAuthenticated(ctx context.Context) bool {
 }
 
 func userFromContext(ctx context.Context) (screenjournal.User, bool) {
-	user, ok := ctx.Value(contextKeyUser).(screenjournal.User)
+	user, ok := ctx.Value(contextKeyUser).(simple.User)
 	if !ok {
 		return screenjournal.User{}, false
 	}
-	return user, true
+	return screenjournal.User{
+		Username: screenjournal.Username(user.Username()),
+		IsAdmin:  user.IsAdmin(),
+	}, true
 }
 
 func usernameFromContext(ctx context.Context) screenjournal.Username {

@@ -48,46 +48,46 @@ func TestAuthPost(t *testing.T) {
 			},
 			status:       http.StatusOK,
 			matchingUser: userA,
-		}, /*
-			{
-				description: "valid credentials succeed for non-admin user",
-				payload: `{
+		},
+		{
+			description: "valid credentials succeed for non-admin user",
+			payload: `{
 						"username": "userB",
 						"password": "p@ssw0rd123"
 					}`,
-				users: []screenjournal.User{
-					userA,
-					userB,
-				},
-				status:       http.StatusOK,
-				matchingUser: userB,
+			users: []screenjournal.User{
+				userA,
+				userB,
 			},
-			{
-				description: "invalid password fails",
-				payload: `{
+			status:       http.StatusOK,
+			matchingUser: userB,
+		},
+		{
+			description: "invalid password fails",
+			payload: `{
 						"username": "userA",
 						"password": "wrongpass"
 					}`,
-				users: []screenjournal.User{
-					userA,
-					userB,
-				},
-				status:       http.StatusUnauthorized,
-				matchingUser: screenjournal.User{},
+			users: []screenjournal.User{
+				userA,
+				userB,
 			},
-			{
-				description: "invalid username fails",
-				payload: `{
+			status:       http.StatusUnauthorized,
+			matchingUser: screenjournal.User{},
+		},
+		{
+			description: "invalid username fails",
+			payload: `{
 						"username": "nouserlikeme",
 						"password": "wrongpass"
 					}`,
-				users: []screenjournal.User{
-					userA,
-					userB,
-				},
-				status:       http.StatusUnauthorized,
-				matchingUser: screenjournal.User{},
-			},*/
+			users: []screenjournal.User{
+				userA,
+				userB,
+			},
+			status:       http.StatusUnauthorized,
+			matchingUser: screenjournal.User{},
+		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()

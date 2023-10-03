@@ -60,10 +60,8 @@ func (s Server) authDelete() http.HandlerFunc {
 
 func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 	return s.sessionManager.WrapRequest(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("getting session from request") // DEBUG
 		b, err := s.sessionManager.SessionFromRequest(r)
 		if err != nil {
-			log.Printf("couldn't get session from request: %v", err) // DEBUG
 			if err != sessions.ErrNotAuthenticated {
 				log.Printf("invalid session token: %v", err)
 			}
@@ -79,8 +77,6 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 			return
 		}
 
-		log.Printf("got session from request: %+v", session) // DEBUG
-
 		ctx := context.WithValue(r.Context(), contextKeyUser, session)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}))
@@ -88,14 +84,11 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 
 func (s Server) requireAuthenticationForAPI(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("getting user from context") // DEBUG
 		if _, ok := sessionFromContext(r.Context()); !ok {
-			log.Printf("failed to get user from context") // DEBUG
 			s.sessionManager.EndSession(r, w)
 			http.Error(w, "Authentication required", http.StatusUnauthorized)
 			return
 		}
-		log.Printf("got user from context") // DEBUG
 
 		next.ServeHTTP(w, r)
 	})

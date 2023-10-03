@@ -1,6 +1,7 @@
 package handlers_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -65,7 +66,7 @@ func newMockSessionManager(mockSessions []mockSessionEntry) mockSessionManager {
 	}
 }
 
-func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, r *http.Request, key sessions.Key, session sessions.Session) error {
+func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, ctx context.Context, key sessions.Key, session sessions.Session) error {
 	sess, err := handlers.DeserializeSession(session)
 	if err != nil {
 		return err
@@ -81,7 +82,7 @@ func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, r *http.Reque
 	return nil
 }
 
-func (sm mockSessionManager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
+func (sm mockSessionManager) SessionFromRequest(ctx context.Context) (sessions.Session, error) {
 	token, err := r.Cookie(mockSessionTokenName)
 	if err != nil {
 		return sessions.Session{}, errors.New("mock session manager: no token cookie found")
@@ -94,7 +95,7 @@ func (sm mockSessionManager) SessionFromRequest(r *http.Request) (sessions.Sessi
 	return handlers.SerializeSession(session), nil
 }
 
-func (sm mockSessionManager) EndSession(*http.Request, http.ResponseWriter) {}
+func (sm mockSessionManager) EndSession(context.Context, http.ResponseWriter) {}
 
 func (sm mockSessionManager) WrapRequest(next http.Handler) http.Handler {
 	return next

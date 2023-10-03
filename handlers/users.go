@@ -61,7 +61,7 @@ func (s Server) usersPut() http.HandlerFunc {
 			return
 		}
 
-		if err := s.sessionManager.CreateSession(w, r, sessionKeyFromUsername(user.Username), SerializeSession(Session{
+		if err := s.sessionManager.CreateSession(w, r.Context(), sessionKeyFromUsername(user.Username), SerializeSession(Session{
 			Username: user.Username,
 			IsAdmin:  user.IsAdmin,
 		})); err != nil {

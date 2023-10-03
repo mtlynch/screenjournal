@@ -1,15 +1,16 @@
 package sessions
 
 import (
+	"context"
 	"errors"
 	"net/http"
 )
 
 type (
 	Manager interface {
-		CreateSession(http.ResponseWriter, *http.Request, Key, Session) error
-		SessionFromRequest(*http.Request) (Session, error)
-		EndSession(*http.Request, http.ResponseWriter)
+		CreateSession(http.ResponseWriter, context.Context, Key, Session) error
+		SessionFromRequest(context.Context) (Session, error)
+		EndSession(context.Context, http.ResponseWriter)
 		// WrapRequest wraps the given handler, adding the Session object (if
 		// there's an active session) to the request context before passing control
 		// to the next handler.

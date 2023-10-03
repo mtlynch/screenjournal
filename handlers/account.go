@@ -22,8 +22,8 @@ func (s Server) accountNotificationsPost() http.HandlerFunc {
 			return
 		}
 
-		user := mustGetUserFromContext(r.Context())
-		if err = s.getDB(r).UpdateNotificationPreferences(user.Username, screenjournal.NotificationPreferences{
+		username := mustGetUsernameFromContext(r.Context())
+		if err = s.getDB(r).UpdateNotificationPreferences(username, screenjournal.NotificationPreferences{
 			NewReviews:     req.NewReviews,
 			AllNewComments: req.AllComments,
 		}); err != nil {

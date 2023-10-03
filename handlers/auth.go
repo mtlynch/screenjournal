@@ -41,7 +41,10 @@ func (s Server) authPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.sessionManager.CreateSession(w, r, sessionKeyFromUsername(user.Username), user); err != nil {
+		if err := s.sessionManager.CreateSession(w, r, sessionKeyFromUsername(user.Username), SerializeSession(Session{
+			Username: user.Username,
+			IsAdmin:  user.IsAdmin,
+		})); err != nil {
 			log.Printf("failed to create session for user %s: %v", user.Username.String(), err)
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
@@ -57,7 +60,7 @@ func (s Server) authDelete() http.HandlerFunc {
 
 func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 	return s.sessionManager.WrapRequest(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, err := s.sessionManager.SessionFromRequest(r)
+		b, err := s.sessionManager.SessionFromRequest(r)
 		if err != nil {
 			if err != sessions.ErrNotAuthenticated {
 				log.Printf("invalid session token: %v", err)
@@ -67,14 +70,21 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), contextKeyUser, session.User)
+		session, err := DeserializeSession(b)
+		if err != nil {
+			log.Printf("failed to deserialize session: %v", err)
+			http.Error(w, "Failed to create session", http.StatusInternalServerError)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), contextKeyUser, session)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}))
 }
 
 func (s Server) requireAuthenticationForAPI(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if _, ok := userFromContext(r.Context()); !ok {
+		if _, ok := sessionFromContext(r.Context()); !ok {
 			s.sessionManager.EndSession(r, w)
 			http.Error(w, "Authentication required", http.StatusUnauthorized)
 			return
@@ -86,7 +96,7 @@ func (s Server) requireAuthenticationForAPI(next http.Handler) http.Handler {
 
 func (s Server) requireAuthenticationForView(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if _, ok := userFromContext(r.Context()); !ok {
+		if _, ok := sessionFromContext(r.Context()); !ok {
 			s.sessionManager.EndSession(r, w)
 
 			newURL := "/login?next=" + url.QueryEscape(r.URL.String())
@@ -106,7 +116,7 @@ func (s Server) requireAdmin(next http.Handler) http.Handler {
 			return
 		}
 		if !isAdmin(r.Context()) {
-			log.Printf("attempt to perform admin action by non-admin user: %v", usernameFromContext(r.Context()))
+			log.Printf("attempt to perform admin action by non-admin user: %v", mustGetUsernameFromContext(r.Context()))
 			http.Error(w, "You must be an administrative user to perform this action", http.StatusForbidden)
 			return
 		}
@@ -140,44 +150,41 @@ func credentialsFromRequest(r *http.Request) (screenjournal.Username, screenjour
 }
 
 func isAdmin(ctx context.Context) bool {
-	user, ok := userFromContext(ctx)
+	sess, ok := sessionFromContext(ctx)
 	if !ok {
 		return false
 	}
 
-	return user.IsAdmin
+	return sess.IsAdmin
 }
 
 func isAuthenticated(ctx context.Context) bool {
-	user, ok := userFromContext(ctx)
-	if !ok {
-		return false
-	}
-	return !user.IsEmpty()
+	_, ok := sessionFromContext(ctx)
+	return ok
 }
 
-func userFromContext(ctx context.Context) (screenjournal.User, bool) {
-	user, ok := ctx.Value(contextKeyUser).(screenjournal.User)
+func sessionFromContext(ctx context.Context) (Session, bool) {
+	session, ok := ctx.Value(contextKeyUser).(Session)
 	if !ok {
-		return screenjournal.User{}, false
+		return Session{}, false
 	}
-	return user, true
+	return session, true
 }
 
-func usernameFromContext(ctx context.Context) screenjournal.Username {
-	user, ok := userFromContext(ctx)
+func usernameFromContext(ctx context.Context) (screenjournal.Username, bool) {
+	sess, ok := sessionFromContext(ctx)
 	if !ok {
-		return screenjournal.Username("")
+		return screenjournal.Username(""), false
 	}
-	return user.Username
+	return sess.Username, true
 }
 
-func mustGetUserFromContext(ctx context.Context) screenjournal.User {
-	user, ok := userFromContext(ctx)
+func mustGetUsernameFromContext(ctx context.Context) screenjournal.Username {
+	username, ok := usernameFromContext(ctx)
 	if !ok {
-		panic("No user in context in an authenticated handler")
+		panic("No session in context in an authenticated handler")
 	}
-	return user
+	return username
 }
 
 func sessionKeyFromUsername(username screenjournal.Username) sessions.Key {

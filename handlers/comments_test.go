@@ -13,7 +13,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
@@ -25,8 +24,8 @@ type commentsTestData struct {
 		userB screenjournal.User
 	}
 	sessions struct {
-		userA mockSession
-		userB mockSession
+		userA mockSessionEntry
+		userB mockSessionEntry
 	}
 	movies struct {
 		theWaterBoy screenjournal.Movie
@@ -41,16 +40,16 @@ func makeCommentsTestData() commentsTestData {
 	td.users.userA = screenjournal.User{
 		Username: screenjournal.Username("userA"),
 	}
-	td.sessions.userA = mockSession{
+	td.sessions.userA = mockSessionEntry{
 		token: "abc123",
-		session: sessions.Session{
-			User: td.users.userA,
+		session: handlers.Session{
+			Username: td.users.userA.Username,
 		},
 	}
-	td.sessions.userB = mockSession{
+	td.sessions.userB = mockSessionEntry{
 		token: "def456",
-		session: sessions.Session{
-			User: td.users.userB,
+		session: handlers.Session{
+			Username: td.users.userB.Username,
 		},
 	}
 	td.users.userB = screenjournal.User{
@@ -77,7 +76,7 @@ func TestCommentsPost(t *testing.T) {
 		description      string
 		payload          string
 		sessionToken     string
-		sessions         []mockSession
+		sessions         []mockSessionEntry
 		movies           []screenjournal.Movie
 		reviews          []screenjournal.Review
 		status           int
@@ -90,7 +89,7 @@ func TestCommentsPost(t *testing.T) {
 					"comment": "Good insights!"
 				}`,
 			sessionToken: makeCommentsTestData().sessions.userA.token,
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 			},
 			movies: []screenjournal.Movie{
@@ -113,7 +112,7 @@ func TestCommentsPost(t *testing.T) {
 			description:  "rejects an invalid JSON request",
 			payload:      `{banana`,
 			sessionToken: makeCommentsTestData().sessions.userA.token,
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 			},
 			movies: []screenjournal.Movie{
@@ -131,7 +130,7 @@ func TestCommentsPost(t *testing.T) {
 					"comment": "<script>alert(1)</script>"
 				}`,
 			sessionToken: makeCommentsTestData().sessions.userA.token,
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 			},
 			movies: []screenjournal.Movie{
@@ -149,7 +148,7 @@ func TestCommentsPost(t *testing.T) {
 					"comment": "Good insights!"
 				}`,
 			sessionToken: makeCommentsTestData().sessions.userA.token,
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 			},
 			movies: []screenjournal.Movie{
@@ -167,7 +166,7 @@ func TestCommentsPost(t *testing.T) {
 					"comment": "Good insights!"
 				}`,
 			sessionToken: makeCommentsTestData().sessions.userA.token,
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 			},
 			movies: []screenjournal.Movie{
@@ -186,7 +185,7 @@ func TestCommentsPost(t *testing.T) {
 					"comment": "I haven't logged in, but I'm commenting anyway!"
 				}`,
 			sessionToken: "dummy-invalid-token",
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 			},
 			status: http.StatusUnauthorized,
@@ -196,7 +195,9 @@ func TestCommentsPost(t *testing.T) {
 			store := test_sqlite.New()
 
 			for _, s := range tt.sessions {
-				store.InsertUser(s.session.User)
+				store.InsertUser(screenjournal.User{
+					Username: s.session.Username,
+				})
 			}
 			for _, movie := range tt.movies {
 				if _, err := store.InsertMovie(movie); err != nil {
@@ -263,7 +264,7 @@ func TestCommentsPut(t *testing.T) {
 		route            string
 		payload          string
 		sessionToken     string
-		sessions         []mockSession
+		sessions         []mockSessionEntry
 		comments         []screenjournal.ReviewComment
 		status           int
 		expectedComments []screenjournal.ReviewComment
@@ -275,7 +276,7 @@ func TestCommentsPut(t *testing.T) {
 					"comment": "So-so insights"
 				}`,
 			sessionToken: makeCommentsTestData().sessions.userA.token,
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 			},
 			comments: []screenjournal.ReviewComment{
@@ -303,7 +304,7 @@ func TestCommentsPut(t *testing.T) {
 					"comment": "So-so insights"
 				}`,
 			sessionToken: makeCommentsTestData().sessions.userA.token,
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 			},
 			comments: []screenjournal.ReviewComment{
@@ -321,7 +322,7 @@ func TestCommentsPut(t *testing.T) {
 			route:        "/api/comments/1",
 			payload:      `{banana`,
 			sessionToken: makeCommentsTestData().sessions.userA.token,
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 			},
 			comments: []screenjournal.ReviewComment{
@@ -341,7 +342,7 @@ func TestCommentsPut(t *testing.T) {
 					"comment": "So-so insights"
 				}`,
 			sessionToken: makeCommentsTestData().sessions.userA.token,
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 			},
 			comments: []screenjournal.ReviewComment{
@@ -361,7 +362,7 @@ func TestCommentsPut(t *testing.T) {
 					"comment": "<script>alert(1)</script>"
 				}`,
 			sessionToken: makeCommentsTestData().sessions.userA.token,
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 			},
 			comments: []screenjournal.ReviewComment{
@@ -381,7 +382,7 @@ func TestCommentsPut(t *testing.T) {
 					"comment": "I overwrote your comment!"
 				}`,
 			sessionToken: makeCommentsTestData().sessions.userB.token,
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userB,
 			},
 			comments: []screenjournal.ReviewComment{
@@ -401,7 +402,7 @@ func TestCommentsPut(t *testing.T) {
 					"comment": "I overwrote your comment!"
 				}`,
 			sessionToken: "",
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userB,
 			},
 			comments: []screenjournal.ReviewComment{
@@ -420,7 +421,9 @@ func TestCommentsPut(t *testing.T) {
 
 			// Populate datastore with dummy users.
 			for _, s := range tt.sessions {
-				store.InsertUser(s.session.User)
+				store.InsertUser(screenjournal.User{
+					Username: s.session.Username,
+				})
 			}
 
 			if _, err := store.InsertMovie(makeCommentsTestData().movies.theWaterBoy); err != nil {
@@ -478,7 +481,7 @@ func TestCommentsDelete(t *testing.T) {
 		description      string
 		route            string
 		sessionToken     string
-		sessions         []mockSession
+		sessions         []mockSessionEntry
 		comments         []screenjournal.ReviewComment
 		status           int
 		expectedComments []screenjournal.ReviewComment
@@ -487,7 +490,7 @@ func TestCommentsDelete(t *testing.T) {
 			description:  "allows a user to delete their own comment",
 			route:        "/api/comments/1",
 			sessionToken: makeCommentsTestData().sessions.userA.token,
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 			},
 			comments: []screenjournal.ReviewComment{
@@ -505,7 +508,7 @@ func TestCommentsDelete(t *testing.T) {
 			description:  "prevents a user from deleting a non-existent comment",
 			route:        "/api/comments/999",
 			sessionToken: makeCommentsTestData().sessions.userA.token,
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 			},
 			comments: []screenjournal.ReviewComment{
@@ -522,7 +525,7 @@ func TestCommentsDelete(t *testing.T) {
 			description:  "prevents a user from deleting an invalid comment ID",
 			route:        "/api/comments/banana",
 			sessionToken: makeCommentsTestData().sessions.userA.token,
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 			},
 			comments: []screenjournal.ReviewComment{
@@ -539,7 +542,7 @@ func TestCommentsDelete(t *testing.T) {
 			description:  "prevents a user from deleting someone else's comment",
 			route:        "/api/comments/1",
 			sessionToken: makeCommentsTestData().sessions.userB.token,
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userB,
 			},
 			comments: []screenjournal.ReviewComment{
@@ -556,7 +559,7 @@ func TestCommentsDelete(t *testing.T) {
 			description:  "prevents an unauthenticated user from deleting any comment",
 			route:        "/api/comments/1",
 			sessionToken: "",
-			sessions: []mockSession{
+			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userB,
 			},
 			comments: []screenjournal.ReviewComment{
@@ -574,7 +577,9 @@ func TestCommentsDelete(t *testing.T) {
 			store := test_sqlite.New()
 
 			for _, s := range tt.sessions {
-				store.InsertUser(s.session.User)
+				store.InsertUser(screenjournal.User{
+					Username: s.session.Username,
+				})
 			}
 			if _, err := store.InsertMovie(makeCommentsTestData().movies.theWaterBoy); err != nil {
 				panic(err)

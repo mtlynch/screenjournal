@@ -10,8 +10,8 @@
     # 16.14.2 release
     nodejs_dep.url = "github:NixOS/nixpkgs/b43d3db76831cb80db01dd2ed50d66175fa2a325";
 
-    # 0.8.0 release
-    shellcheck_dep.url = "github:NixOS/nixpkgs/80c24eeb9ff46aa99617844d0c4168659e35175f";
+    # 0.9.0 release
+    shellcheck_dep.url = "github:NixOS/nixpkgs/8b5ab8341e33322e5b66fb46ce23d724050f6606";
 
     # 1.2.1 release
     sqlfluff_dep.url = "github:NixOS/nixpkgs/7cf5ccf1cdb2ba5f08f0ac29fc3d04b0b59a07e4";

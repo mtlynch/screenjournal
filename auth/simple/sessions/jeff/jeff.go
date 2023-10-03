@@ -8,7 +8,7 @@ import (
 	"github.com/mtlynch/jeff"
 	"github.com/mtlynch/jeff/sqlite"
 
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
+	"github.com/mtlynch/screenjournal/v2/auth/simple/sessions"
 )
 
 type manager struct {

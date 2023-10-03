@@ -15,9 +15,9 @@ import (
 	email_announce "github.com/mtlynch/screenjournal/v2/announce/email"
 	"github.com/mtlynch/screenjournal/v2/announce/quiet"
 	"github.com/mtlynch/screenjournal/v2/auth"
+	jeff_sessions "github.com/mtlynch/screenjournal/v2/auth/simple/sessions/jeff"
 	"github.com/mtlynch/screenjournal/v2/email/smtp"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	jeff_sessions "github.com/mtlynch/screenjournal/v2/handlers/sessions/jeff"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )

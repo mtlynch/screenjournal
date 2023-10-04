@@ -7,8 +7,8 @@
     # 1.19.1 release
     go_dep.url = "github:NixOS/nixpkgs/8ba120420fbdd9bd35b3a5366fa0206d8c99ade3";
 
-    # 16.14.2 release
-    nodejs_dep.url = "github:NixOS/nixpkgs/b43d3db76831cb80db01dd2ed50d66175fa2a325";
+    # 20.6.1 release
+    nodejs_dep.url = "github:NixOS/nixpkgs/78058d810644f5ed276804ce7ea9e82d92bee293";
 
     # 0.9.0 release
     shellcheck_dep.url = "github:NixOS/nixpkgs/8b5ab8341e33322e5b66fb46ce23d724050f6606";
@@ -31,7 +31,7 @@
           go_dep.gopls
           go_dep.gotools
           go_dep.go_1_19
-          nodejs_dep.nodejs
+          nodejs_dep.nodejs_20
           shellcheck_dep.shellcheck
           sqlfluff_dep.sqlfluff
         ];

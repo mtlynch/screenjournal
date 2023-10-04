@@ -25,7 +25,7 @@ jobs:
           command: ./dev-scripts/check-bash
   check_frontend:
     docker:
-      - image: cimg/node:16.14.2
+      - image: cimg/node:20.6.1
     steps:
       - checkout
       - run:

@@ -60,7 +60,7 @@ func (s Server) authDelete() http.HandlerFunc {
 
 func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 	return s.sessionManager.WrapRequest(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, err := s.sessionManager.SessionFromRequest(r.Context())
+		b, err := s.sessionManager.SessionFromContext(r.Context())
 		if err != nil {
 			if err != sessions.ErrNotAuthenticated {
 				log.Printf("invalid session token: %v", err)

@@ -82,7 +82,8 @@ func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, ctx context.C
 	return nil
 }
 
-func (sm mockSessionManager) SessionFromRequest(ctx context.Context) (sessions.Session, error) {
+func (sm mockSessionManager) SessionFromContext(ctx context.Context) (sessions.Session, error) {
+
 	token, err := r.Cookie(mockSessionTokenName)
 	if err != nil {
 		return sessions.Session{}, errors.New("mock session manager: no token cookie found")

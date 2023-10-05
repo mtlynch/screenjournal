@@ -9,7 +9,7 @@ import (
 type (
 	Manager interface {
 		CreateSession(http.ResponseWriter, context.Context, Key, Session) error
-		SessionFromRequest(context.Context) (Session, error)
+		SessionFromContext(context.Context) (Session, error)
 		EndSession(context.Context, http.ResponseWriter)
 		// WrapRequest wraps the given handler, adding the Session object (if
 		// there's an active session) to the request context before passing control

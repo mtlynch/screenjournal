@@ -17,7 +17,7 @@ type contextKey struct {
 	name string
 }
 
-var contextKeyUser = &contextKey{"user"}
+var contextKeySession = &contextKey{"user"}
 
 func (s Server) authPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -77,7 +77,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), contextKeyUser, session)
+		ctx := context.WithValue(r.Context(), contextKeySession, session)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}))
 }
@@ -164,7 +164,7 @@ func isAuthenticated(ctx context.Context) bool {
 }
 
 func sessionFromContext(ctx context.Context) (Session, bool) {
-	session, ok := ctx.Value(contextKeyUser).(Session)
+	session, ok := ctx.Value(contextKeySession).(Session)
 	if !ok {
 		return Session{}, false
 	}

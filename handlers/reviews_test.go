@@ -24,6 +24,12 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
+type contextKey struct {
+	name string
+}
+
+var contextKeySession = &contextKey{"session"}
+
 var nilAnnouncer announce.Announcer
 
 type mockAuthenticator struct{}
@@ -83,12 +89,11 @@ func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, ctx context.C
 }
 
 func (sm mockSessionManager) SessionFromContext(ctx context.Context) (sessions.Session, error) {
-
-	token, err := r.Cookie(mockSessionTokenName)
-	if err != nil {
-		return sessions.Session{}, errors.New("mock session manager: no token cookie found")
+	token, ok := ctx.Value(contextKeySession).(string)
+	if !ok {
+		return sessions.Session{}, nil
 	}
-	session, ok := sm.sessions[token.Value]
+	session, ok := sm.sessions[token]
 	if !ok {
 		return sessions.Session{}, errors.New("mock session manager: no session associated with token")
 	}
@@ -99,7 +104,12 @@ func (sm mockSessionManager) SessionFromContext(ctx context.Context) (sessions.S
 func (sm mockSessionManager) EndSession(context.Context, http.ResponseWriter) {}
 
 func (sm mockSessionManager) WrapRequest(next http.Handler) http.Handler {
-	return next
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if token, err := r.Cookie(mockSessionTokenName); err == nil {
+			r = r.WithContext(context.WithValue(r.Context(), contextKeySession, token.Value))
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 type mockMetadataFinder struct {

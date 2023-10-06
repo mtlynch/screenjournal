@@ -1,6 +1,7 @@
 package jeff
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"net/http"
@@ -32,12 +33,12 @@ func New(dbPath string) (sessions.Manager, error) {
 	}, nil
 }
 
-func (m manager) CreateSession(w http.ResponseWriter, r *http.Request, key sessions.Key, session sessions.Session) error {
-	return m.j.Set(r.Context(), w, key.Bytes(), session)
+func (m manager) CreateSession(w http.ResponseWriter, ctx context.Context, key sessions.Key, session sessions.Session) error {
+	return m.j.Set(ctx, w, key.Bytes(), session)
 }
 
-func (m manager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
-	sess := jeff.ActiveSession(r.Context())
+func (m manager) SessionFromContext(ctx context.Context) (sessions.Session, error) {
+	sess := jeff.ActiveSession(ctx)
 	if len(sess.Key) == 0 {
 		return sessions.Session{}, sessions.ErrNotAuthenticated
 	}
@@ -45,15 +46,15 @@ func (m manager) SessionFromRequest(r *http.Request) (sessions.Session, error) {
 	return sess.Meta, nil
 }
 
-func (m manager) EndSession(r *http.Request, w http.ResponseWriter) {
-	sess := jeff.ActiveSession(r.Context())
+func (m manager) EndSession(ctx context.Context, w http.ResponseWriter) {
+	sess := jeff.ActiveSession(ctx)
 	if len(sess.Key) > 0 {
-		if err := m.j.Delete(r.Context(), sess.Key); err != nil {
+		if err := m.j.Delete(ctx, sess.Key); err != nil {
 			log.Printf("failed to delete session: %v", err)
 		}
 	}
 
-	if err := m.j.Clear(r.Context(), w); err != nil {
+	if err := m.j.Clear(ctx, w); err != nil {
 		log.Printf("failed to clear session: %v", err)
 	}
 }

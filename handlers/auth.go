@@ -41,7 +41,7 @@ func (s Server) authPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.sessionManager.CreateSession(w, r, sessionKeyFromUsername(user.Username), SerializeSession(Session{
+		if err := s.sessionManager.CreateSession(w, r.Context(), sessionKeyFromUsername(user.Username), SerializeSession(Session{
 			Username: user.Username,
 			IsAdmin:  user.IsAdmin,
 		})); err != nil {
@@ -54,18 +54,18 @@ func (s Server) authPost() http.HandlerFunc {
 
 func (s Server) authDelete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		s.sessionManager.EndSession(r, w)
+		s.sessionManager.EndSession(r.Context(), w)
 	}
 }
 
 func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 	return s.sessionManager.WrapRequest(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, err := s.sessionManager.SessionFromRequest(r)
+		b, err := s.sessionManager.SessionFromContext(r.Context())
 		if err != nil {
 			if err != sessions.ErrNotAuthenticated {
 				log.Printf("invalid session token: %v", err)
 			}
-			s.sessionManager.EndSession(r, w)
+			s.sessionManager.EndSession(r.Context(), w)
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -85,7 +85,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 func (s Server) requireAuthenticationForAPI(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if _, ok := sessionFromContext(r.Context()); !ok {
-			s.sessionManager.EndSession(r, w)
+			s.sessionManager.EndSession(r.Context(), w)
 			http.Error(w, "Authentication required", http.StatusUnauthorized)
 			return
 		}
@@ -97,7 +97,7 @@ func (s Server) requireAuthenticationForAPI(next http.Handler) http.Handler {
 func (s Server) requireAuthenticationForView(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if _, ok := sessionFromContext(r.Context()); !ok {
-			s.sessionManager.EndSession(r, w)
+			s.sessionManager.EndSession(r.Context(), w)
 
 			newURL := "/login?next=" + url.QueryEscape(r.URL.String())
 			http.Redirect(w, r, newURL, http.StatusTemporaryRedirect)

@@ -52,9 +52,9 @@ func TestAuthPost(t *testing.T) {
 		{
 			description: "valid credentials succeed for non-admin user",
 			payload: `{
-						"username": "userB",
-						"password": "p@ssw0rd123"
-					}`,
+							"username": "userB",
+							"password": "p@ssw0rd123"
+						}`,
 			users: []screenjournal.User{
 				userA,
 				userB,
@@ -65,9 +65,9 @@ func TestAuthPost(t *testing.T) {
 		{
 			description: "invalid password fails",
 			payload: `{
-						"username": "userA",
-						"password": "wrongpass"
-					}`,
+							"username": "userA",
+							"password": "wrongpass"
+						}`,
 			users: []screenjournal.User{
 				userA,
 				userB,
@@ -78,9 +78,9 @@ func TestAuthPost(t *testing.T) {
 		{
 			description: "invalid username fails",
 			payload: `{
-						"username": "nouserlikeme",
-						"password": "wrongpass"
-					}`,
+							"username": "nouserlikeme",
+							"password": "wrongpass"
+						}`,
 			users: []screenjournal.User{
 				userA,
 				userB,

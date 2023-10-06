@@ -91,7 +91,7 @@ func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, ctx context.C
 func (sm mockSessionManager) SessionFromContext(ctx context.Context) (sessions.Session, error) {
 	token, ok := ctx.Value(contextKeySession).(string)
 	if !ok {
-		return sessions.Session{}, nil
+		return sessions.Session{}, errors.New("dummy no session in context")
 	}
 	session, ok := sm.sessions[token]
 	if !ok {

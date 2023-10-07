@@ -3,11 +3,15 @@ package auth
 import "errors"
 
 type (
+	Authenticator interface {
+		Authenticate(username, password string) error
+	}
+
 	AuthStore interface {
 		ReadPasswordHash(username string) (PasswordHash, error)
 	}
 
-	Authenticator struct {
+	authenticator struct {
 		store AuthStore
 	}
 )
@@ -18,12 +22,12 @@ var (
 )
 
 func New(store AuthStore) Authenticator {
-	return Authenticator{
+	return authenticator{
 		store: store,
 	}
 }
 
-func (a Authenticator) Authenticate(username, password string) error {
+func (a authenticator) Authenticate(username, password string) error {
 	h, err := a.store.ReadPasswordHash(username)
 	if err != nil {
 		return err

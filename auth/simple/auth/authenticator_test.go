@@ -1,11 +1,11 @@
-package simple_test
+package auth_test
 
 import (
 	"bytes"
 	"errors"
 	"testing"
 
-	"github.com/mtlynch/screenjournal/v2/auth/simple"
+	"github.com/mtlynch/screenjournal/v2/auth/simple/auth"
 )
 
 type (
@@ -15,7 +15,7 @@ type (
 
 	mockAuthEntry struct {
 		Username     string
-		PasswordHash simple.PasswordHash
+		PasswordHash auth.PasswordHash
 	}
 
 	mockAuthStore struct {
@@ -23,7 +23,7 @@ type (
 	}
 )
 
-func newMockPasswordHash(password string) simple.PasswordHash {
+func newMockPasswordHash(password string) auth.PasswordHash {
 	return mockPasswordHash{
 		// We're not really hashing the password, but it's okay because this is just
 		// mock data for testing.
@@ -49,19 +49,19 @@ func (s mockAuthStore) InsertUser(username, password string) error {
 	return errors.New("not implemented")
 }
 
-func (s mockAuthStore) ReadPasswordHash(username string) (simple.PasswordHash, error) {
+func (s mockAuthStore) ReadPasswordHash(username string) (auth.PasswordHash, error) {
 	for _, entry := range s.entries {
 		if entry.Username == username {
 			return entry.PasswordHash, nil
 		}
 	}
-	return nil, simple.ErrUserNotFound
+	return nil, auth.ErrUserNotFound
 }
 
 func TestAuthenticate(t *testing.T) {
 	for _, tt := range []struct {
 		description string
-		store       simple.AuthStore
+		store       auth.AuthStore
 		username    string
 		password    string
 		err         error
@@ -92,7 +92,7 @@ func TestAuthenticate(t *testing.T) {
 			},
 			"dummyuser",
 			"wrongpass",
-			simple.ErrIncorrectPassword,
+			auth.ErrIncorrectPassword,
 		},
 		{
 			"returns ErrUserNotFound when user is not found",
@@ -106,11 +106,11 @@ func TestAuthenticate(t *testing.T) {
 			},
 			"madeupuser",
 			"dummy-p@ssword",
-			simple.ErrUserNotFound,
+			auth.ErrUserNotFound,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			authenticator := simple.New(tt.store)
+			authenticator := auth.New(tt.store)
 			err := authenticator.Authenticate(tt.username, tt.password)
 			if got, want := err, tt.err; got != want {
 				t.Fatalf("err=%v, want=%v", got, want)

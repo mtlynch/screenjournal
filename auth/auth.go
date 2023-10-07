@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/mtlynch/screenjournal/v2/auth/simple"
+	simple_auth "github.com/mtlynch/screenjournal/v2/auth/simple/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store"
@@ -13,7 +13,7 @@ type (
 	}
 
 	authenticator struct {
-		inner simple.Authenticator
+		inner simple_auth.Authenticator
 	}
 
 	authStore struct {
@@ -23,7 +23,7 @@ type (
 
 func New(store store.Store) Authenticator {
 	return authenticator{
-		inner: simple.New(authStore{
+		inner: simple_auth.New(authStore{
 			inner: store,
 		}),
 	}
@@ -34,14 +34,14 @@ func (a authenticator) Authenticate(username screenjournal.Username, password sc
 }
 
 func NewPasswordHash(password screenjournal.Password) (screenjournal.PasswordHash, error) {
-	h, err := simple.NewPasswordHash(password.String())
+	h, err := simple_auth.NewPasswordHash(password.String())
 	if err != nil {
 		return screenjournal.PasswordHash{}, err
 	}
 	return screenjournal.PasswordHash(h.Bytes()), nil
 }
 
-func (s authStore) ReadPasswordHash(usernameRaw string) (simple.PasswordHash, error) {
+func (s authStore) ReadPasswordHash(usernameRaw string) (simple_auth.PasswordHash, error) {
 	username, err := parse.Username(usernameRaw)
 	if err != nil {
 		return nil, err
@@ -52,5 +52,5 @@ func (s authStore) ReadPasswordHash(usernameRaw string) (simple.PasswordHash, er
 		return nil, err
 	}
 
-	return simple.NewPasswordHashFromBytes(user.PasswordHash.Bytes()), nil
+	return simple_auth.NewPasswordHashFromBytes(user.PasswordHash.Bytes()), nil
 }

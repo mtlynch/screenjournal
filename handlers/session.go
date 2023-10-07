@@ -50,7 +50,8 @@ func NewSessionManager(dbPath string) (sessionManager, error) {
 }
 
 func (sm sessionManager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username, isAdmin bool) error {
-	if err := sm.inner.CreateSession(w, ctx, sessionKeyFromUsername(username), serializeSession(Session{
+	key := sessions.KeyFromBytes([]byte(username.String()))
+	if err := sm.inner.CreateSession(w, ctx, key, serializeSession(Session{
 		Username: username,
 		IsAdmin:  isAdmin,
 	})); err != nil {

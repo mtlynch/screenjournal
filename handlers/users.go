@@ -109,7 +109,7 @@ func newUserFromRequest(r *http.Request) (userPutRequest, error) {
 		}
 	}
 
-	hash, err := auth.NewPasswordHash(plaintextPassword)
+	hash, err := auth.HashPassword(plaintextPassword)
 	if err != nil {
 		return userPutRequest{}, err
 	}

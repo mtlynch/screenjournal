@@ -33,8 +33,8 @@ func (a authenticator) Authenticate(username screenjournal.Username, password sc
 	return a.inner.Authenticate(username.String(), password.String())
 }
 
-func NewPasswordHash(password screenjournal.Password) (screenjournal.PasswordHash, error) {
-	h, err := simple_auth.NewPasswordHash(password.String())
+func HashPassword(password screenjournal.Password) (screenjournal.PasswordHash, error) {
+	h, err := simple_auth.HashPassword(password.String())
 	if err != nil {
 		return screenjournal.PasswordHash{}, err
 	}
@@ -52,5 +52,5 @@ func (s authStore) ReadPasswordHash(usernameRaw string) (simple_auth.PasswordHas
 		return nil, err
 	}
 
-	return simple_auth.NewPasswordHashFromBytes(user.PasswordHash.Bytes()), nil
+	return simple_auth.PasswordHashFromBytes(user.PasswordHash.Bytes()), nil
 }

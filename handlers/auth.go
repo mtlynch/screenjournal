@@ -59,7 +59,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 	return s.sessionManager.WrapRequest(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := s.sessionManager.SessionFromContext(r.Context())
 		if err != nil {
-			if err != sessions.ErrNotAuthenticated {
+			if err != sessions.ErrNoSessionFound {
 				log.Printf("invalid session token: %v", err)
 			}
 			s.sessionManager.EndSession(r.Context(), w)

@@ -24,7 +24,7 @@ type (
 	Session []byte
 )
 
-var ErrNotAuthenticated = errors.New("user has no active session")
+var ErrNoSessionFound = errors.New("no active session in request context")
 
 func KeyFromBytes(b []byte) Key {
 	return Key{

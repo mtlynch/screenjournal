@@ -41,10 +41,7 @@ func (s Server) authPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.sessionManager.CreateSession(w, r.Context(), sessionKeyFromUsername(user.Username), SerializeSession(Session{
-			Username: user.Username,
-			IsAdmin:  user.IsAdmin,
-		})); err != nil {
+		if err := s.sessionManager.CreateSession(w, r.Context(), user.Username, user.IsAdmin); err != nil {
 			log.Printf("failed to create session for user %s: %v", user.Username.String(), err)
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
@@ -60,20 +57,13 @@ func (s Server) authDelete() http.HandlerFunc {
 
 func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 	return s.sessionManager.WrapRequest(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		b, err := s.sessionManager.SessionFromContext(r.Context())
+		session, err := s.sessionManager.SessionFromContext(r.Context())
 		if err != nil {
 			if err != sessions.ErrNotAuthenticated {
 				log.Printf("invalid session token: %v", err)
 			}
 			s.sessionManager.EndSession(r.Context(), w)
 			next.ServeHTTP(w, r)
-			return
-		}
-
-		session, err := DeserializeSession(b)
-		if err != nil {
-			log.Printf("failed to deserialize session: %v", err)
-			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
 		}
 

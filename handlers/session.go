@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 
@@ -39,6 +40,8 @@ type (
 	}
 )
 
+var ErrNoSessionFound = errors.New("no session in request context")
+
 func NewSessionManager(dbPath string) (sessionManager, error) {
 	inner, err := jeff_sessions.New(dbPath)
 	if err != nil {
@@ -63,6 +66,10 @@ func (sm sessionManager) CreateSession(w http.ResponseWriter, ctx context.Contex
 func (sm sessionManager) SessionFromContext(ctx context.Context) (Session, error) {
 	b, err := sm.inner.SessionFromContext(ctx)
 	if err != nil {
+		// Wrap the third-party error with a local one.
+		if err == sessions.ErrNoSessionFound {
+			return Session{}, ErrNoSessionFound
+		}
 		return Session{}, err
 	}
 

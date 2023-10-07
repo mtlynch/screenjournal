@@ -40,7 +40,7 @@ func (m manager) CreateSession(w http.ResponseWriter, ctx context.Context, key s
 func (m manager) SessionFromContext(ctx context.Context) (sessions.Session, error) {
 	sess := jeff.ActiveSession(ctx)
 	if len(sess.Key) == 0 {
-		return sessions.Session{}, sessions.ErrNotAuthenticated
+		return sessions.Session{}, sessions.ErrNoSessionFound
 	}
 
 	return sess.Meta, nil

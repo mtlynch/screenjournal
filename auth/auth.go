@@ -1,7 +1,8 @@
 package auth
 
 import (
-	simple_auth "github.com/mtlynch/screenjournal/v2/auth/simple/auth"
+	simple_auth "github.com/mtlynch/simpleauth/v2/auth"
+
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store"

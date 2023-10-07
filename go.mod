@@ -11,12 +11,13 @@ require (
 	github.com/mtlynch/gorilla-handlers v1.5.2
 	github.com/mtlynch/jeff v0.2.4
 	github.com/ryanbradynd05/go-tmdb v0.0.0-20220721194547-2ab6191c6273
-	golang.org/x/crypto v0.1.0
+	golang.org/x/crypto v0.14.0
 )
 
 require (
 	github.com/felixge/httpsnoop v1.0.1 // indirect
 	github.com/kylelemons/go-gypsy v1.0.0 // indirect
+	github.com/mtlynch/simpleauth/v2 v2.0.0-20231007142645-38a16f512f2f // indirect
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/tinylib/msgp v1.1.6 // indirect
 )

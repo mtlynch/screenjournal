@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/mtlynch/screenjournal/v2/auth/simple/sessions"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
@@ -59,7 +58,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 	return s.sessionManager.WrapRequest(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := s.sessionManager.SessionFromContext(r.Context())
 		if err != nil {
-			if err != sessions.ErrNoSessionFound {
+			if err != ErrNoSessionFound {
 				log.Printf("invalid session token: %v", err)
 			}
 			s.sessionManager.EndSession(r.Context(), w)

@@ -8,8 +8,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/mtlynch/screenjournal/v2/auth/simple/sessions"
-	jeff_sessions "github.com/mtlynch/screenjournal/v2/auth/simple/sessions/jeff"
+	simple_sessions "github.com/mtlynch/simpleauth/v2/sessions"
 
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
@@ -31,7 +30,7 @@ type (
 	}
 
 	sessionManager struct {
-		inner sessions.Manager
+		inner simple_sessions.Manager
 	}
 
 	serializableSession struct {
@@ -43,7 +42,7 @@ type (
 var ErrNoSessionFound = errors.New("no session in request context")
 
 func NewSessionManager(dbPath string) (sessionManager, error) {
-	inner, err := jeff_sessions.New(dbPath)
+	inner, err := simple_sessions.New(dbPath)
 	if err != nil {
 		log.Fatalf("failed to create session manager: %v", err)
 	}
@@ -53,7 +52,7 @@ func NewSessionManager(dbPath string) (sessionManager, error) {
 }
 
 func (sm sessionManager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username, isAdmin bool) error {
-	key := sessions.KeyFromBytes([]byte(username.String()))
+	key := simple_sessions.KeyFromBytes([]byte(username.String()))
 	if err := sm.inner.CreateSession(w, ctx, key, serializeSession(Session{
 		Username: username,
 		IsAdmin:  isAdmin,
@@ -67,7 +66,7 @@ func (sm sessionManager) SessionFromContext(ctx context.Context) (Session, error
 	b, err := sm.inner.SessionFromContext(ctx)
 	if err != nil {
 		// Wrap the third-party error with a local one.
-		if err == sessions.ErrNoSessionFound {
+		if err == simple_sessions.ErrNoSessionFound {
 			return Session{}, ErrNoSessionFound
 		}
 		return Session{}, err

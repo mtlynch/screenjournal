@@ -176,7 +176,3 @@ func mustGetUsernameFromContext(ctx context.Context) screenjournal.Username {
 	}
 	return username
 }
-
-func sessionKeyFromUsername(username screenjournal.Username) sessions.Key {
-	return sessions.KeyFromBytes([]byte(username.String()))
-}

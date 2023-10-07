@@ -15,7 +15,6 @@ import (
 	email_announce "github.com/mtlynch/screenjournal/v2/announce/email"
 	"github.com/mtlynch/screenjournal/v2/announce/quiet"
 	"github.com/mtlynch/screenjournal/v2/auth"
-	jeff_sessions "github.com/mtlynch/screenjournal/v2/auth/simple/sessions/jeff"
 	"github.com/mtlynch/screenjournal/v2/email/smtp"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
@@ -34,7 +33,7 @@ func main() {
 
 	authenticator := auth.New(store)
 
-	sessionManager, err := jeff_sessions.New(*dbPath)
+	sessionManager, err := handlers.NewSessionManager(*dbPath)
 	if err != nil {
 		log.Fatalf("failed to create session manager: %v", err)
 	}

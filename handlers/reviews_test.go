@@ -15,7 +15,6 @@ import (
 	"github.com/go-test/deep"
 
 	"github.com/mtlynch/screenjournal/v2/announce"
-	"github.com/mtlynch/screenjournal/v2/auth/simple/sessions"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata"
@@ -72,14 +71,11 @@ func newMockSessionManager(mockSessions []mockSessionEntry) mockSessionManager {
 	}
 }
 
-func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, ctx context.Context, key sessions.Key, session sessions.Session) error {
-	sess, err := handlers.DeserializeSession(session)
-	if err != nil {
-		return err
-	}
+func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username, isAdmin bool) error {
 	token := random.String(10, []rune("abcdefghijklmnopqrstuvwxyz0123456789"))
 	sm.sessions[token] = handlers.Session{
-		Username: sess.Username,
+		Username: username,
+		IsAdmin:  isAdmin,
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:  mockSessionTokenName,
@@ -88,17 +84,17 @@ func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, ctx context.C
 	return nil
 }
 
-func (sm mockSessionManager) SessionFromContext(ctx context.Context) (sessions.Session, error) {
+func (sm mockSessionManager) SessionFromContext(ctx context.Context) (handlers.Session, error) {
 	token, ok := ctx.Value(contextKeySession).(string)
 	if !ok {
-		return sessions.Session{}, errors.New("dummy no session in context")
+		return handlers.Session{}, errors.New("dummy no session in context")
 	}
 	session, ok := sm.sessions[token]
 	if !ok {
-		return sessions.Session{}, errors.New("mock session manager: no session associated with token")
+		return handlers.Session{}, errors.New("mock session manager: no session associated with token")
 	}
 
-	return handlers.SerializeSession(session), nil
+	return session, nil
 }
 
 func (sm mockSessionManager) EndSession(context.Context, http.ResponseWriter) {}

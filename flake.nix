@@ -43,6 +43,9 @@
         ];
 
         shellHook = ''
+          GOROOT="$(dirname $(dirname $(which go)))/share/go"
+          export GOROOT
+
           echo "shellcheck" "$(shellcheck --version | grep '^version:')"
           sqlfluff --version
           echo "node" "$(node --version)"

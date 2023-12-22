@@ -1,6 +1,6 @@
 module github.com/mtlynch/screenjournal/v2
 
-go 1.19
+go 1.21
 
 require (
 	github.com/go-test/deep v1.0.8

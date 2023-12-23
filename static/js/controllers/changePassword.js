@@ -1,5 +1,5 @@
 export async function changePassword(oldPassword, newPassword) {
-  return fetch("/api/auth/change-password", {
+  return fetch("/api/account/change-password", {
     method: "POST",
     mode: "same-origin",
     credentials: "include",

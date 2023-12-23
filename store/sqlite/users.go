@@ -151,6 +151,14 @@ func (db DB) InsertUser(user screenjournal.User) error {
 	return tx.Commit()
 }
 
+func (db DB) UpdateUser(user screenjournal.User) error {
+	log.Printf("updating user %s", user.Username.String())
+
+	// TODO: Implement this.
+
+	return nil
+}
+
 func encodePasswordHash(ph screenjournal.PasswordHash) string {
 	return string(ph.Bytes())
 }

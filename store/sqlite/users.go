@@ -154,7 +154,15 @@ func (db DB) InsertUser(user screenjournal.User) error {
 func (db DB) UpdateUser(user screenjournal.User) error {
 	log.Printf("updating user %s", user.Username.String())
 
-	// TODO: Implement this.
+	if _, err := db.ctx.Exec(`
+	UPDATE users
+	SET
+		email = ?,
+		password_hash = ?
+	WHERE
+		username = ?`, user.Username.String(), encodePasswordHash(user.PasswordHash.Bytes()), user.Username.String()); err != nil {
+		return err
+	}
 
 	return nil
 }

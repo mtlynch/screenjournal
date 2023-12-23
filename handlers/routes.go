@@ -48,6 +48,7 @@ func (s *Server) routes() {
 	authenticatedViews := s.router.PathPrefix("/").Subrouter()
 	authenticatedViews.Use(s.requireAuthenticationForView)
 	authenticatedViews.Use(enforceContentSecurityPolicy)
+	authenticatedViews.HandleFunc("/account/change-password", s.accountChangePasswordGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/account/notifications", s.accountNotificationsGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/account/security", s.accountSecurityGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/movies/{movieID}", s.moviesReadGet()).Methods(http.MethodGet)

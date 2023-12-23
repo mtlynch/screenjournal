@@ -454,6 +454,19 @@ func (s Server) invitesNewGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) accountChangePasswordGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := renderTemplate(w, "account-change-password.html", struct {
+			commonProps
+		}{
+			commonProps: makeCommonProps("Change Password", r.Context()),
+		}, template.FuncMap{}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func (s Server) accountNotificationsGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		prefs, err := s.getDB(r).ReadNotificationPreferences(mustGetUsernameFromContext(r.Context()))

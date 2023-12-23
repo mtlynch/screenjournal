@@ -478,6 +478,19 @@ func (s Server) accountNotificationsGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) accountSecurityGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := renderTemplate(w, "account-notifications.html", struct {
+			commonProps
+		}{
+			commonProps: makeCommonProps("Manage Notifications", r.Context()),
+		}, template.FuncMap{}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func relativeWatchDate(t screenjournal.WatchDate) string {
 	daysAgo := int(time.Since(t.Time()).Hours() / 24)
 	weeksAgo := int(daysAgo / 7)

@@ -16,7 +16,7 @@ test("user can change their password and log in again", async ({ page }) => {
 
   await expect(page).toHaveURL("/account/change-password");
   await page.getByLabel("Current Password").fill("password123");
-  await page.getByLabel("New Password").fill("password321");
+  await page.getByLabel(/^New Password$/).fill("password321");
   await page.getByLabel("Confirm New Password").fill("password321");
   await page.getByRole("button", { name: /Change password/i }).click();
 

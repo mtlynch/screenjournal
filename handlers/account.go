@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -20,7 +21,7 @@ func (s Server) accountChangePasswordPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := changePasswordFromRequest(r)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("Failed to change password: %v", err), http.StatusBadRequest)
 			return
 		}
 
@@ -65,6 +66,10 @@ func changePasswordFromRequest(r *http.Request) (accountChangePasswordPostReques
 	newPassword, err := parse.Password(payload.NewPassword)
 	if err != nil {
 		return accountChangePasswordPostRequest{}, err
+	}
+
+	if oldPassword.Equal(newPassword) {
+		return accountChangePasswordPostRequest{}, errors.New("old password is the same as the new password")
 	}
 
 	newPasswordHash, err := auth.HashPassword(newPassword)

@@ -480,10 +480,10 @@ func (s Server) accountNotificationsGet() http.HandlerFunc {
 
 func (s Server) accountSecurityGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := renderTemplate(w, "account-notifications.html", struct {
+		if err := renderTemplate(w, "account-security.html", struct {
 			commonProps
 		}{
-			commonProps: makeCommonProps("Manage Notifications", r.Context()),
+			commonProps: makeCommonProps("Account Security", r.Context()),
 		}, template.FuncMap{}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

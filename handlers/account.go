@@ -28,18 +28,18 @@ func (s Server) accountChangePasswordPost() http.HandlerFunc {
 		username := mustGetUsernameFromContext(r.Context())
 		if err := s.getAuthenticator(r).Authenticate(username, req.OldPassword); err != nil {
 			log.Printf("password change failed for user %s: %v", username, err)
-			http.Error(w, "Old password is incorrect", http.StatusUnauthorized)
+			http.Error(w, "Failed to change password: current password is incorrect", http.StatusUnauthorized)
 			return
 		}
 
 		user, err := s.getDB(r).ReadUser(username)
 		if err != nil {
-			http.Error(w, "Failed to read user information", http.StatusInternalServerError)
+			http.Error(w, "Failed to change password: couldn't read user information", http.StatusInternalServerError)
 			return
 		}
 
 		if err := s.getDB(r).UpdateUserPassword(user.Username, req.NewPasswordHash); err != nil {
-			http.Error(w, "Failed to save new password", http.StatusInternalServerError)
+			http.Error(w, "Failed to change password: couldn't save new password", http.StatusInternalServerError)
 			return
 		}
 	}

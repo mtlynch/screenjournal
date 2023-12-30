@@ -38,9 +38,7 @@ func (s Server) accountChangePasswordPost() http.HandlerFunc {
 			return
 		}
 
-		user.PasswordHash = req.NewPasswordHash
-
-		if err := s.getDB(r).UpdateUser(user); err != nil {
+		if err := s.getDB(r).UpdateUserPassword(user.Username, req.NewPasswordHash); err != nil {
 			http.Error(w, "Failed to save new password", http.StatusInternalServerError)
 			return
 		}

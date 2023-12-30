@@ -151,16 +151,15 @@ func (db DB) InsertUser(user screenjournal.User) error {
 	return tx.Commit()
 }
 
-func (db DB) UpdateUser(user screenjournal.User) error {
-	log.Printf("updating user %s", user.Username.String())
+func (db DB) UpdateUserPassword(username screenjournal.Username, newPasswordHash screenjournal.PasswordHash) error {
+	log.Printf("updating password user %s", username.String())
 
 	if _, err := db.ctx.Exec(`
 	UPDATE users
 	SET
-		email = ?,
 		password_hash = ?
 	WHERE
-		username = ?`, user.Username.String(), encodePasswordHash(user.PasswordHash.Bytes()), user.Username.String()); err != nil {
+		username = ?`, encodePasswordHash(newPasswordHash.Bytes()), username.String()); err != nil {
 		return err
 	}
 

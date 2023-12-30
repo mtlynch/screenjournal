@@ -9,4 +9,4 @@ set -x
 # Exit on unset variable.
 set -u
 
-curl http://localhost:4001/api/debug/db/populate-dummy-data
+curl http://localhost:4003/api/debug/db/populate-dummy-data

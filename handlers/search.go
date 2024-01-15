@@ -18,6 +18,7 @@ func (s Server) searchGet() http.HandlerFunc {
 		res, err := s.metadataFinder.Search(query)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to query metadata: %v", err), http.StatusInternalServerError)
+			return
 		}
 
 		matches := make([]searchMatch, len(res.Matches))

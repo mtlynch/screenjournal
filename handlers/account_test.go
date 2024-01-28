@@ -56,6 +56,16 @@ func TestAccountChangePasswordPost(t *testing.T) {
 			expectedPassword: screenjournal.Password("oldpass123"),
 		},
 		{
+			description: "reject password change if old password matches new password",
+			payload: `{
+					"oldPassword":"oldpass123",
+					"newPassword":"oldpass123"
+				}`,
+			sessionToken:     "abc123",
+			expectedStatus:   http.StatusBadRequest,
+			expectedPassword: screenjournal.Password("oldpass123"),
+		},
+		{
 			description: "reject password change if new password doesn't meet requirements",
 			payload: `{
 					"oldPassword":"oldpass123",
@@ -71,7 +81,7 @@ func TestAccountChangePasswordPost(t *testing.T) {
 					"oldPassword":`,
 			sessionToken:     "abc123",
 			expectedStatus:   http.StatusBadRequest,
-			expectedPassword: screenjournal.Password("newpass456"),
+			expectedPassword: screenjournal.Password("oldpass123"),
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {

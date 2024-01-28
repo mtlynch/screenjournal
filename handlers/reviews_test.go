@@ -48,9 +48,8 @@ func (a *mockAnnouncer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 }
 
 type mockSessionEntry struct {
-	token    string
-	session  handlers.Session
-	password screenjournal.Password
+	token   string
+	session handlers.Session
 }
 
 type mockSessionManager struct {

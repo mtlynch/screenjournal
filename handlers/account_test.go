@@ -1,6 +1,7 @@
 package handlers_test
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -12,6 +13,25 @@ import (
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
+
+type mockAuthEntry struct {
+	Username screenjournal.Username
+	Password screenjournal.Password
+}
+
+// TODO: Rename
+type mockAuthenticator2 struct {
+	entries []mockAuthEntry
+}
+
+func (a mockAuthenticator2) Authenticate(username screenjournal.Username, password screenjournal.Password) error {
+	for _, entry := range a.entries {
+		if entry.Username.Equal(username) && entry.Password.Equal(password) {
+			return nil
+		}
+	}
+	return errors.New("no matching user found in mock authenticator")
+}
 
 func TestAccountChangePasswordPost(t *testing.T) {
 	for _, tt := range []struct {

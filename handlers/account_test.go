@@ -251,7 +251,6 @@ func TestAccountNotificationsPost(t *testing.T) {
 			}
 
 			authenticator := auth.New(dataStore)
-			var nilMetadataFinder metadata.Finder
 			sessionManager := newMockSessionManager(tt.sessions)
 
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)

@@ -13,7 +13,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -213,7 +212,6 @@ func TestCommentsPost(t *testing.T) {
 			announcer := mockAnnouncer{}
 			authenticator := auth.New(store)
 			sessionManager := newMockSessionManager(tt.sessions)
-			var nilMetadataFinder metadata.Finder
 			s := handlers.New(authenticator, &announcer, &sessionManager, store, nilMetadataFinder)
 
 			req, err := http.NewRequest("POST", "/api/comments", strings.NewReader(tt.payload))
@@ -441,7 +439,6 @@ func TestCommentsPut(t *testing.T) {
 
 			authenticator := auth.New(store)
 			sessionManager := newMockSessionManager(tt.sessions)
-			var nilMetadataFinder metadata.Finder
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, nilMetadataFinder)
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
@@ -595,7 +592,6 @@ func TestCommentsDelete(t *testing.T) {
 
 			authenticator := auth.New(store)
 			sessionManager := newMockSessionManager(tt.sessions)
-			var nilMetadataFinder metadata.Finder
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, nilMetadataFinder)
 
 			req, err := http.NewRequest("DELETE", tt.route, strings.NewReader(""))

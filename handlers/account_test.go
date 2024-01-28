@@ -1,7 +1,6 @@
 package handlers_test
 
 import (
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -14,31 +13,25 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
-type mockAuthEntry struct {
-	Username screenjournal.Username
-	Password screenjournal.Password
-}
-
-// TODO: Rename
-type mockAuthenticator2 struct {
-	entries []mockAuthEntry
-}
-
-func (a mockAuthenticator2) Authenticate(username screenjournal.Username, password screenjournal.Password) error {
-	for _, entry := range a.entries {
-		if entry.Username.Equal(username) && entry.Password.Equal(password) {
-			return nil
-		}
-	}
-	return errors.New("no matching user found in mock authenticator")
+type mockUserEntry struct {
+	sessionToken string
+	username     screenjournal.Username
+	password     screenjournal.Password
 }
 
 func TestAccountChangePasswordPost(t *testing.T) {
+	userEntries := []mockUserEntry{
+		{
+			sessionToken: "abc123",
+			username:     screenjournal.Username("userA"),
+			password:     screenjournal.Password("oldpass123"),
+		},
+	}
+
 	for _, tt := range []struct {
 		description      string
 		payload          string
 		sessionToken     string
-		sessions         []mockSessionEntry
 		expectedStatus   int
 		expectedPassword screenjournal.Password
 	}{
@@ -48,35 +41,62 @@ func TestAccountChangePasswordPost(t *testing.T) {
 					"oldPassword":"oldpass123",
 					"newPassword":"newpass456"
 				}`,
-			sessionToken: "abc123",
-			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: handlers.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
-			},
+			sessionToken:     "abc123",
 			expectedStatus:   http.StatusOK,
+			expectedPassword: screenjournal.Password("newpass456"),
+		},
+		{
+			description: "reject password change if old password is incorrect",
+			payload: `{
+					"oldPassword":"wrongpass",
+					"newPassword":"newpass456"
+				}`,
+			sessionToken:     "abc123",
+			expectedStatus:   http.StatusUnauthorized,
+			expectedPassword: screenjournal.Password("oldpass123"),
+		},
+		{
+			description: "reject password change if new password doesn't meet requirements",
+			payload: `{
+					"oldPassword":"oldpass123",
+					"newPassword":"pass"
+				}`,
+			sessionToken:     "abc123",
+			expectedStatus:   http.StatusBadRequest,
+			expectedPassword: screenjournal.Password("oldpass123"),
+		},
+		{
+			description: "invalid JSON does not change password",
+			payload: `{
+					"oldPassword":`,
+			sessionToken:     "abc123",
+			expectedStatus:   http.StatusBadRequest,
 			expectedPassword: screenjournal.Password("newpass456"),
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			// Populate datastore with dummy users.
-			for _, s := range tt.sessions {
+			mockSessionEntries := []mockSessionEntry{}
+
+			// Populate datastore and session manager with dummy users.
+			for _, entry := range userEntries {
 				dataStore.InsertUser(
 					screenjournal.User{
-						Username: s.session.Username,
-						IsAdmin:  s.session.IsAdmin,
+						Username:     entry.username,
+						PasswordHash: mustCreatePasswordHash(entry.password.String()),
 					})
+				mockSessionEntries = append(mockSessionEntries, mockSessionEntry{
+					token: entry.sessionToken,
+					session: handlers.Session{
+						Username: entry.username,
+					},
+				})
 			}
-
 			authenticator := auth.New(dataStore)
-			var nilMetadataFinder metadata.Finder
-			sessionManager := newMockSessionManager(tt.sessions)
+			sessionManager := newMockSessionManager(mockSessionEntries)
 
+			var nilMetadataFinder metadata.Finder
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
 
 			req, err := http.NewRequest("POST", "/api/account/change-password", strings.NewReader(tt.payload))
@@ -94,10 +114,6 @@ func TestAccountChangePasswordPost(t *testing.T) {
 
 			if got, want := w.Code, tt.expectedStatus; got != want {
 				t.Fatalf("httpStatus=%v, want=%v", got, want)
-			}
-
-			if tt.expectedStatus != http.StatusOK {
-				return
 			}
 
 			session, err := sessionManager.SessionFromToken(tt.sessionToken)

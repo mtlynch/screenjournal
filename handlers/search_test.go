@@ -21,7 +21,7 @@ func TestSearch(t *testing.T) {
 			// TODO: Finish test.
 			dataStore := test_sqlite.New()
 
-			s := handlers.New(mockAuthenticator{}, nil, nil, dataStore, nil)
+			s := handlers.New(nilAuthenticator, nilAnnouncer, nil, dataStore, nil)
 
 			req, err := http.NewRequest("GET", "/api/search?query=foo", nil)
 			if err != nil {

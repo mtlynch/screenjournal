@@ -19,6 +19,8 @@ type mockUserEntry struct {
 	password     screenjournal.Password
 }
 
+var nilMetadataFinder metadata.Finder
+
 func TestAccountChangePasswordPost(t *testing.T) {
 	userEntries := []mockUserEntry{
 		{
@@ -105,8 +107,6 @@ func TestAccountChangePasswordPost(t *testing.T) {
 			}
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(mockSessionEntries)
-
-			var nilMetadataFinder metadata.Finder
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
 
 			req, err := http.NewRequest("POST", "/api/account/change-password", strings.NewReader(tt.payload))
@@ -251,7 +251,6 @@ func TestAccountNotificationsPost(t *testing.T) {
 			}
 
 			authenticator := auth.New(dataStore)
-			var nilMetadataFinder metadata.Finder
 			sessionManager := newMockSessionManager(tt.sessions)
 
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)

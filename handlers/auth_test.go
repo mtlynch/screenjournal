@@ -8,7 +8,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -99,7 +98,6 @@ func TestAuthPost(t *testing.T) {
 			}
 
 			authenticator := auth.New(dataStore)
-			var nilMetadataFinder metadata.Finder
 			sessionManager := newMockSessionManager([]mockSessionEntry{})
 
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)

@@ -13,6 +13,85 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
+func TestAccountChangePasswordPost(t *testing.T) {
+	for _, tt := range []struct {
+		description      string
+		payload          string
+		sessionToken     string
+		sessions         []mockSessionEntry
+		expectedStatus   int
+		expectedPassword screenjournal.Password
+	}{
+		{
+			description: "valid request changes password",
+			payload: `{
+					"oldPassword":"oldpass123",
+					"newPassword":"newpass456"
+				}`,
+			sessionToken: "abc123",
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: handlers.Session{
+						Username: screenjournal.Username("userA"),
+					},
+				},
+			},
+			expectedStatus:   http.StatusOK,
+			expectedPassword: screenjournal.Password("newpass456"),
+		},
+	} {
+		t.Run(tt.description, func(t *testing.T) {
+			dataStore := test_sqlite.New()
+
+			// Populate datastore with dummy users.
+			for _, s := range tt.sessions {
+				dataStore.InsertUser(
+					screenjournal.User{
+						Username: s.session.Username,
+						IsAdmin:  s.session.IsAdmin,
+					})
+			}
+
+			authenticator := auth.New(dataStore)
+			var nilMetadataFinder metadata.Finder
+			sessionManager := newMockSessionManager(tt.sessions)
+
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
+
+			req, err := http.NewRequest("POST", "/api/account/change-password", strings.NewReader(tt.payload))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "text/json")
+			req.AddCookie(&http.Cookie{
+				Name:  mockSessionTokenName,
+				Value: tt.sessionToken,
+			})
+
+			w := httptest.NewRecorder()
+			s.Router().ServeHTTP(w, req)
+
+			if got, want := w.Code, tt.expectedStatus; got != want {
+				t.Fatalf("httpStatus=%v, want=%v", got, want)
+			}
+
+			if tt.expectedStatus != http.StatusOK {
+				return
+			}
+
+			session, err := sessionManager.SessionFromToken(tt.sessionToken)
+			if err != nil {
+				t.Fatalf("couldn't map session token (%s) to session: %v", tt.sessionToken, err)
+			}
+
+			if err := authenticator.Authenticate(session.Username, tt.expectedPassword); err != nil {
+				t.Errorf("expected password (%s) is not valid after request", tt.expectedPassword.String())
+			}
+		})
+	}
+}
+
 func TestAccountNotificationsPost(t *testing.T) {
 	for _, tt := range []struct {
 		description   string

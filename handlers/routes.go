@@ -16,6 +16,7 @@ func (s *Server) routes() {
 
 	authenticatedApis := s.router.PathPrefix("/api").Subrouter()
 	authenticatedApis.Use(s.requireAuthenticationForAPI)
+	authenticatedApis.HandleFunc("/account/change-password", s.accountChangePasswordPost()).Methods(http.MethodPost)
 	authenticatedApis.HandleFunc("/account/notifications", s.accountNotificationsPost()).Methods(http.MethodPost)
 	authenticatedApis.HandleFunc("/comments", s.commentsPost()).Methods(http.MethodPost)
 	authenticatedApis.HandleFunc("/comments/{commentID}", s.commentsPut()).Methods(http.MethodPut)
@@ -48,7 +49,9 @@ func (s *Server) routes() {
 	authenticatedViews := s.router.PathPrefix("/").Subrouter()
 	authenticatedViews.Use(s.requireAuthenticationForView)
 	authenticatedViews.Use(enforceContentSecurityPolicy)
+	authenticatedViews.HandleFunc("/account/change-password", s.accountChangePasswordGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/account/notifications", s.accountNotificationsGet()).Methods(http.MethodGet)
+	authenticatedViews.HandleFunc("/account/security", s.accountSecurityGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/movies/{movieID}", s.moviesReadGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews", s.reviewsGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews/by/{username}", s.reviewsGet()).Methods(http.MethodGet)

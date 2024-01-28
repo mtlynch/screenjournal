@@ -12,6 +12,10 @@ type (
 	ImdbID string
 )
 
+func (mid MovieID) Equal(o MovieID) bool {
+	return mid.Int64() == o.Int64()
+}
+
 func (mid MovieID) Int64() int64 {
 	return int64(mid)
 }

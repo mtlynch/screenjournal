@@ -13,6 +13,131 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
+type mockUserEntry struct {
+	sessionToken string
+	username     screenjournal.Username
+	password     screenjournal.Password
+}
+
+func TestAccountChangePasswordPost(t *testing.T) {
+	userEntries := []mockUserEntry{
+		{
+			sessionToken: "abc123",
+			username:     screenjournal.Username("userA"),
+			password:     screenjournal.Password("oldpass123"),
+		},
+	}
+
+	for _, tt := range []struct {
+		description      string
+		payload          string
+		sessionToken     string
+		expectedStatus   int
+		expectedPassword screenjournal.Password
+	}{
+		{
+			description: "valid request changes password",
+			payload: `{
+					"oldPassword":"oldpass123",
+					"newPassword":"newpass456"
+				}`,
+			sessionToken:     "abc123",
+			expectedStatus:   http.StatusOK,
+			expectedPassword: screenjournal.Password("newpass456"),
+		},
+		{
+			description: "reject password change if old password is incorrect",
+			payload: `{
+					"oldPassword":"wrongpass",
+					"newPassword":"newpass456"
+				}`,
+			sessionToken:     "abc123",
+			expectedStatus:   http.StatusUnauthorized,
+			expectedPassword: screenjournal.Password("oldpass123"),
+		},
+		{
+			description: "reject password change if old password matches new password",
+			payload: `{
+					"oldPassword":"oldpass123",
+					"newPassword":"oldpass123"
+				}`,
+			sessionToken:     "abc123",
+			expectedStatus:   http.StatusBadRequest,
+			expectedPassword: screenjournal.Password("oldpass123"),
+		},
+		{
+			description: "reject password change if new password doesn't meet requirements",
+			payload: `{
+					"oldPassword":"oldpass123",
+					"newPassword":"pass"
+				}`,
+			sessionToken:     "abc123",
+			expectedStatus:   http.StatusBadRequest,
+			expectedPassword: screenjournal.Password("oldpass123"),
+		},
+		{
+			description: "invalid JSON does not change password",
+			payload: `{
+					"oldPassword":`,
+			sessionToken:     "abc123",
+			expectedStatus:   http.StatusBadRequest,
+			expectedPassword: screenjournal.Password("oldpass123"),
+		},
+	} {
+		t.Run(tt.description, func(t *testing.T) {
+			dataStore := test_sqlite.New()
+
+			mockSessionEntries := []mockSessionEntry{}
+
+			// Populate datastore and session manager with dummy users.
+			for _, entry := range userEntries {
+				dataStore.InsertUser(
+					screenjournal.User{
+						Username:     entry.username,
+						PasswordHash: mustCreatePasswordHash(entry.password.String()),
+					})
+				mockSessionEntries = append(mockSessionEntries, mockSessionEntry{
+					token: entry.sessionToken,
+					session: handlers.Session{
+						Username: entry.username,
+					},
+				})
+			}
+			authenticator := auth.New(dataStore)
+			sessionManager := newMockSessionManager(mockSessionEntries)
+
+			var nilMetadataFinder metadata.Finder
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
+
+			req, err := http.NewRequest("POST", "/api/account/change-password", strings.NewReader(tt.payload))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Add("Content-Type", "text/json")
+			req.AddCookie(&http.Cookie{
+				Name:  mockSessionTokenName,
+				Value: tt.sessionToken,
+			})
+
+			w := httptest.NewRecorder()
+			s.Router().ServeHTTP(w, req)
+
+			if got, want := w.Code, tt.expectedStatus; got != want {
+				t.Fatalf("httpStatus=%v, want=%v", got, want)
+			}
+
+			session, err := sessionManager.SessionFromToken(tt.sessionToken)
+			if err != nil {
+				t.Fatalf("couldn't map session token (%s) to session: %v", tt.sessionToken, err)
+			}
+
+			if err := authenticator.Authenticate(session.Username, tt.expectedPassword); err != nil {
+				t.Errorf("expected password (%s) is not valid after request", tt.expectedPassword.String())
+			}
+		})
+	}
+}
+
 func TestAccountNotificationsPost(t *testing.T) {
 	for _, tt := range []struct {
 		description   string

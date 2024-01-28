@@ -15,6 +15,7 @@ import (
 	"github.com/go-test/deep"
 
 	"github.com/mtlynch/screenjournal/v2/announce"
+	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata"
@@ -31,11 +32,7 @@ var contextKeySession = &contextKey{"session"}
 
 var nilAnnouncer announce.Announcer
 
-type mockAuthenticator struct{}
-
-func (a mockAuthenticator) Authenticate(username screenjournal.Username, password screenjournal.Password) error {
-	return nil
-}
+var nilAuthenticator auth.Authenticator
 
 type mockAnnouncer struct {
 	announcedReviews  []screenjournal.Review
@@ -89,6 +86,10 @@ func (sm mockSessionManager) SessionFromContext(ctx context.Context) (handlers.S
 	if !ok {
 		return handlers.Session{}, errors.New("dummy no session in context")
 	}
+	return sm.SessionFromToken(token)
+}
+
+func (sm mockSessionManager) SessionFromToken(token string) (handlers.Session, error) {
 	session, ok := sm.sessions[token]
 	if !ok {
 		return handlers.Session{}, errors.New("mock session manager: no session associated with token")
@@ -281,7 +282,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 
 			sessionManager := newMockSessionManager(tt.sessions)
 
-			s := handlers.New(mockAuthenticator{}, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo))
+			s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo))
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
 			if err != nil {
@@ -403,7 +404,7 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 			announcer := mockAnnouncer{}
 
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(mockAuthenticator{}, &announcer, &sessionManager, dataStore, mockMetadataFinder{})
+			s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
 			if err != nil {
@@ -579,7 +580,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			}
 
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(mockAuthenticator{}, nilAnnouncer, &sessionManager, dataStore, mockMetadataFinder{})
+			s := handlers.New(nilAuthenticator, nilAnnouncer, &sessionManager, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {
@@ -991,7 +992,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 
 			sessionManager := newMockSessionManager(tt.sessions)
 
-			s := handlers.New(mockAuthenticator{}, nilAnnouncer, &sessionManager, dataStore, mockMetadataFinder{})
+			s := handlers.New(nilAuthenticator, nilAnnouncer, &sessionManager, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {

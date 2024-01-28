@@ -151,6 +151,21 @@ func (db DB) InsertUser(user screenjournal.User) error {
 	return tx.Commit()
 }
 
+func (db DB) UpdateUserPassword(username screenjournal.Username, newPasswordHash screenjournal.PasswordHash) error {
+	log.Printf("updating password user %s", username.String())
+
+	if _, err := db.ctx.Exec(`
+	UPDATE users
+	SET
+		password_hash = ?
+	WHERE
+		username = ?`, encodePasswordHash(newPasswordHash.Bytes()), username.String()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func encodePasswordHash(ph screenjournal.PasswordHash) string {
 	return string(ph.Bytes())
 }

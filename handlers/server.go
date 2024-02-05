@@ -25,6 +25,10 @@ type (
 		WrapRequest(http.Handler) http.Handler
 	}
 
+	Authenticator interface {
+		Authenticate(username screenjournal.Username, password screenjournal.Password) error
+	}
+
 	Server struct {
 		router         *mux.Router
 		authenticator  auth.Authenticator

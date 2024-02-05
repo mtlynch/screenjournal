@@ -178,7 +178,7 @@ func (s Server) getDB(r *http.Request) store.Store {
 	return sharedDBSettings.GetDB(dbToken(c.Value))
 }
 
-func (s Server) getAuthenticator(r *http.Request) auth.Authenticator {
+func (s Server) getAuthenticator(r *http.Request) Authenticator {
 	if !sharedDBSettings.IsSessionIsolationEnabled() {
 		return s.authenticator
 	}

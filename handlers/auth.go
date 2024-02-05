@@ -9,6 +9,7 @@ import (
 	"net/url"
 
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
@@ -58,7 +59,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 	return s.sessionManager.WrapRequest(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := s.sessionManager.SessionFromContext(r.Context())
 		if err != nil {
-			if err != ErrNoSessionFound {
+			if err != sessions.ErrNoSessionFound {
 				log.Printf("invalid session token: %v", err)
 			}
 			s.sessionManager.EndSession(r.Context(), w)
@@ -152,10 +153,10 @@ func isAuthenticated(ctx context.Context) bool {
 	return ok
 }
 
-func sessionFromContext(ctx context.Context) (Session, bool) {
-	session, ok := ctx.Value(contextKeySession).(Session)
+func sessionFromContext(ctx context.Context) (sessions.Session, bool) {
+	session, ok := ctx.Value(contextKeySession).(sessions.Session)
 	if !ok {
-		return Session{}, false
+		return sessions.Session{}, false
 	}
 	return session, true
 }

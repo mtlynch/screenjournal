@@ -18,9 +18,9 @@ type dbMigration struct {
 //go:embed migrations/*.sql
 var migrationsFs embed.FS
 
-func (d DB) applyMigrations() {
+func (s Store) applyMigrations() {
 	var version int
-	if err := d.ctx.QueryRow(`PRAGMA user_version`).Scan(&version); err != nil {
+	if err := s.ctx.QueryRow(`PRAGMA user_version`).Scan(&version); err != nil {
 		log.Fatalf("failed to get user_version: %v", err)
 	}
 
@@ -35,7 +35,7 @@ func (d DB) applyMigrations() {
 		if migration.version <= version {
 			continue
 		}
-		tx, err := d.ctx.BeginTx(context.Background(), nil)
+		tx, err := s.ctx.BeginTx(context.Background(), nil)
 		if err != nil {
 			log.Fatalf("failed to create migration transaction %d: %v", migration.version, err)
 		}

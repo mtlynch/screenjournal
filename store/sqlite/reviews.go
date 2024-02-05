@@ -13,8 +13,8 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store"
 )
 
-func (db DB) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, error) {
-	row := db.ctx.QueryRow(`
+func (s Store) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, error) {
+	row := s.ctx.QueryRow(`
 	SELECT
 		id,
 		review_owner,
@@ -34,7 +34,7 @@ func (db DB) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, error)
 		return screenjournal.Review{}, err
 	}
 
-	review.Movie, err = db.ReadMovie(review.Movie.ID)
+	review.Movie, err = s.ReadMovie(review.Movie.ID)
 	if err != nil {
 		return screenjournal.Review{}, err
 	}
@@ -42,7 +42,7 @@ func (db DB) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, error)
 	return review, nil
 }
 
-func (db DB) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Review, error) {
+func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Review, error) {
 	params := store.ReadReviewsParams{}
 	for _, o := range opts {
 		o(&params)
@@ -82,7 +82,7 @@ func (db DB) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Revie
 	}
 	query += "		created_time DESC\n"
 
-	rows, err := db.ctx.Query(query, queryArgs...)
+	rows, err := s.ctx.Query(query, queryArgs...)
 	if err != nil {
 		return []screenjournal.Review{}, err
 	}
@@ -94,11 +94,11 @@ func (db DB) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Revie
 			return []screenjournal.Review{}, err
 		}
 
-		if review.Movie, err = db.ReadMovie(review.Movie.ID); err != nil {
+		if review.Movie, err = s.ReadMovie(review.Movie.ID); err != nil {
 			return []screenjournal.Review{}, err
 		}
 
-		if review.Comments, err = db.ReadComments(review.ID); err != nil {
+		if review.Comments, err = s.ReadComments(review.ID); err != nil {
 			return []screenjournal.Review{}, err
 		}
 
@@ -108,12 +108,12 @@ func (db DB) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Revie
 	return reviews, nil
 }
 
-func (d DB) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, error) {
+func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, error) {
 	log.Printf("inserting new review of movie ID %v: %v", r.Movie.ID, r.Rating.UInt8())
 
 	now := time.Now()
 
-	res, err := d.ctx.Exec(`
+	res, err := s.ctx.Exec(`
 	INSERT INTO
 		reviews
 	(
@@ -148,7 +148,7 @@ func (d DB) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, error)
 	return screenjournal.ReviewID(lastID), nil
 }
 
-func (d DB) UpdateReview(r screenjournal.Review) error {
+func (s Store) UpdateReview(r screenjournal.Review) error {
 	log.Printf("updating review of movie ID %v: %v", r.Movie.ID, r.Rating.UInt8())
 
 	if r.ID.IsZero() {
@@ -157,7 +157,7 @@ func (d DB) UpdateReview(r screenjournal.Review) error {
 
 	now := time.Now()
 
-	if _, err := d.ctx.Exec(`
+	if _, err := s.ctx.Exec(`
 	UPDATE reviews
 	SET
 		rating = ?,
@@ -177,10 +177,10 @@ func (d DB) UpdateReview(r screenjournal.Review) error {
 	return nil
 }
 
-func (d DB) DeleteReview(id screenjournal.ReviewID) error {
+func (s Store) DeleteReview(id screenjournal.ReviewID) error {
 	log.Printf("deleting review of movie ID %v", id)
 
-	tx, err := d.ctx.BeginTx(context.Background(), nil)
+	tx, err := s.ctx.BeginTx(context.Background(), nil)
 	if err != nil {
 		return err
 	}

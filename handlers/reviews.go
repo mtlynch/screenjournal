@@ -190,7 +190,7 @@ func updateReviewFromRequest(r *http.Request, review *screenjournal.Review) erro
 	return nil
 }
 
-func (s Server) moviefromTmdbID(db store.Store, tmdbID screenjournal.TmdbID) (screenjournal.Movie, error) {
+func (s Server) moviefromTmdbID(db Store, tmdbID screenjournal.TmdbID) (screenjournal.Movie, error) {
 	movie, err := db.ReadMovieByTmdbID(tmdbID)
 	if err != nil && err != store.ErrMovieNotFound {
 		return screenjournal.Movie{}, err

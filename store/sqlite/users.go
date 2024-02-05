@@ -13,16 +13,16 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store"
 )
 
-func (db DB) CountUsers() (uint, error) {
+func (s Store) CountUsers() (uint, error) {
 	var c uint
-	if err := db.ctx.QueryRow(`SELECT COUNT(*)	AS user_count FROM users`).Scan(&c); err != nil {
+	if err := s.ctx.QueryRow(`SELECT COUNT(*)	AS user_count FROM users`).Scan(&c); err != nil {
 		return 0, err
 	}
 	return c, nil
 }
 
-func (db DB) ReadUsers() ([]screenjournal.User, error) {
-	rows, err := db.ctx.Query(`
+func (s Store) ReadUsers() ([]screenjournal.User, error) {
+	rows, err := s.ctx.Query(`
 	SELECT
 		username,
 		is_admin,
@@ -48,8 +48,8 @@ func (db DB) ReadUsers() ([]screenjournal.User, error) {
 	return users, nil
 }
 
-func (db DB) ReadUser(username screenjournal.Username) (screenjournal.User, error) {
-	row := db.ctx.QueryRow(`
+func (s Store) ReadUser(username screenjournal.Username) (screenjournal.User, error) {
+	row := s.ctx.QueryRow(`
 	SELECT
 		username,
 		is_admin,
@@ -86,12 +86,12 @@ func userFromRow(row rowScanner) (screenjournal.User, error) {
 	}, nil
 }
 
-func (db DB) InsertUser(user screenjournal.User) error {
+func (s Store) InsertUser(user screenjournal.User) error {
 	log.Printf("inserting new user %s, isAdmin=%v", user.Username.String(), user.IsAdmin)
 
 	now := time.Now()
 
-	tx, err := db.ctx.BeginTx(context.Background(), nil)
+	tx, err := s.ctx.BeginTx(context.Background(), nil)
 	if err != nil {
 		return err
 	}
@@ -151,10 +151,10 @@ func (db DB) InsertUser(user screenjournal.User) error {
 	return tx.Commit()
 }
 
-func (db DB) UpdateUserPassword(username screenjournal.Username, newPasswordHash screenjournal.PasswordHash) error {
+func (s Store) UpdateUserPassword(username screenjournal.Username, newPasswordHash screenjournal.PasswordHash) error {
 	log.Printf("updating password user %s", username.String())
 
-	if _, err := db.ctx.Exec(`
+	if _, err := s.ctx.Exec(`
 	UPDATE users
 	SET
 		password_hash = ?

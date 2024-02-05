@@ -7,8 +7,8 @@ import (
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-func (db DB) ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error) {
-	rows, err := db.ctx.Query(`
+func (s Store) ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error) {
+	rows, err := s.ctx.Query(`
 	SELECT
 		users.username AS username,
 		users.email AS email
@@ -35,8 +35,8 @@ func (db DB) ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error) {
 	return subscribers, nil
 }
 
-func (db DB) ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error) {
-	rows, err := db.ctx.Query(`
+func (s Store) ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error) {
+	rows, err := s.ctx.Query(`
 	SELECT
 		users.username AS username,
 		users.email AS email
@@ -63,10 +63,10 @@ func (db DB) ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error) {
 	return subscribers, nil
 }
 
-func (db DB) ReadNotificationPreferences(username screenjournal.Username) (screenjournal.NotificationPreferences, error) {
+func (s Store) ReadNotificationPreferences(username screenjournal.Username) (screenjournal.NotificationPreferences, error) {
 	var newReviews bool
 	var allNewComments bool
-	err := db.ctx.QueryRow(`
+	err := s.ctx.QueryRow(`
 	SELECT
 		new_reviews,
 		all_new_comments
@@ -84,9 +84,9 @@ func (db DB) ReadNotificationPreferences(username screenjournal.Username) (scree
 	}, nil
 }
 
-func (db DB) UpdateNotificationPreferences(username screenjournal.Username, prefs screenjournal.NotificationPreferences) error {
+func (s Store) UpdateNotificationPreferences(username screenjournal.Username, prefs screenjournal.NotificationPreferences) error {
 	log.Printf("updating notifications preferences for %s: newReviews=%v, allNewComments=%v", username, prefs.NewReviews, prefs.AllNewComments)
-	if _, err := db.ctx.Exec(`
+	if _, err := s.ctx.Exec(`
 	UPDATE notification_preferences
 	SET
 		new_reviews = ?,

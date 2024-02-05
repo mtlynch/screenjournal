@@ -9,7 +9,6 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
-	"github.com/mtlynch/screenjournal/v2/store"
 )
 
 type (
@@ -37,7 +36,7 @@ type (
 		authenticator  Authenticator
 		announcer      Announcer
 		sessionManager SessionManager
-		store          store.Store
+		store          Store
 		metadataFinder metadata.Finder
 	}
 )
@@ -49,7 +48,7 @@ func (s Server) Router() *mux.Router {
 
 // New creates a new server with all the state it needs to satisfy HTTP
 // requests.
-func New(authenticator Authenticator, announcer Announcer, sessionManager SessionManager, store store.Store, metadataFinder metadata.Finder) Server {
+func New(authenticator Authenticator, announcer Announcer, sessionManager SessionManager, store Store, metadataFinder metadata.Finder) Server {
 	s := Server{
 		router:         mux.NewRouter(),
 		authenticator:  authenticator,

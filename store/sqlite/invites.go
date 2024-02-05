@@ -7,12 +7,12 @@ import (
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-func (d DB) InsertSignupInvitation(invite screenjournal.SignupInvitation) error {
+func (s Store) InsertSignupInvitation(invite screenjournal.SignupInvitation) error {
 	log.Printf("inserting new signup invite code for %s: %v", invite.Invitee, invite.InviteCode)
 
 	now := time.Now()
 
-	if _, err := d.ctx.Exec(`
+	if _, err := s.ctx.Exec(`
 	INSERT INTO
 		invites
 	(
@@ -31,9 +31,9 @@ func (d DB) InsertSignupInvitation(invite screenjournal.SignupInvitation) error 
 	return nil
 }
 
-func (d DB) ReadSignupInvitation(code screenjournal.InviteCode) (screenjournal.SignupInvitation, error) {
+func (s Store) ReadSignupInvitation(code screenjournal.InviteCode) (screenjournal.SignupInvitation, error) {
 	var invitee string
-	if err := d.ctx.QueryRow(`
+	if err := s.ctx.QueryRow(`
 		SELECT
 			invitee
 		FROM
@@ -49,8 +49,8 @@ func (d DB) ReadSignupInvitation(code screenjournal.InviteCode) (screenjournal.S
 	}, nil
 }
 
-func (d DB) ReadSignupInvitations() ([]screenjournal.SignupInvitation, error) {
-	rows, err := d.ctx.Query(`
+func (s Store) ReadSignupInvitations() ([]screenjournal.SignupInvitation, error) {
+	rows, err := s.ctx.Query(`
 		SELECT
 			invitee,
 			code
@@ -79,9 +79,9 @@ func (d DB) ReadSignupInvitations() ([]screenjournal.SignupInvitation, error) {
 	return invites, nil
 }
 
-func (d DB) DeleteSignupInvitation(code screenjournal.InviteCode) error {
+func (s Store) DeleteSignupInvitation(code screenjournal.InviteCode) error {
 	log.Printf("deleting signup code: %s", code)
-	_, err := d.ctx.Exec(`DELETE FROM invites WHERE code = ?`, code.String())
+	_, err := s.ctx.Exec(`DELETE FROM invites WHERE code = ?`, code.String())
 	if err != nil {
 		return err
 	}

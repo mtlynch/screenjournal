@@ -13,7 +13,6 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
-	"github.com/mtlynch/screenjournal/v2/store"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
@@ -133,13 +132,13 @@ type (
 
 	dbSettings struct {
 		isolateBySession bool
-		tokenToDB        map[dbToken]store.Store
+		tokenToDB        map[dbToken]Store
 		lock             sync.RWMutex
 	}
 )
 
 var sharedDBSettings = dbSettings{
-	tokenToDB: map[dbToken]store.Store{},
+	tokenToDB: map[dbToken]Store{},
 }
 
 func (dbs *dbSettings) IsSessionIsolationEnabled() bool {
@@ -155,19 +154,19 @@ func (dbs *dbSettings) EnableSessionIsolation() {
 	log.Print("per-session database = on")
 }
 
-func (dbs *dbSettings) GetDB(token dbToken) store.Store {
+func (dbs *dbSettings) GetDB(token dbToken) Store {
 	dbs.lock.RLock()
 	defer dbs.lock.RUnlock()
 	return dbs.tokenToDB[token]
 }
 
-func (dbs *dbSettings) SaveDB(token dbToken, db store.Store) {
+func (dbs *dbSettings) SaveDB(token dbToken, db Store) {
 	dbs.lock.Lock()
 	defer dbs.lock.Unlock()
 	dbs.tokenToDB[token] = db
 }
 
-func (s Server) getDB(r *http.Request) store.Store {
+func (s Server) getDB(r *http.Request) Store {
 	if !sharedDBSettings.IsSessionIsolationEnabled() {
 		return s.store
 	}

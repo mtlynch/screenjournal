@@ -6,11 +6,10 @@ import (
 	"os"
 
 	"github.com/mtlynch/screenjournal/v2/random"
-	"github.com/mtlynch/screenjournal/v2/store"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
-func New() store.Store {
+func New() sqlite.Store {
 	// Suppress log output, as the migration logs are too noisy during tests.
 	defer quietLogs()()
 	const optimizeForLitestream = false

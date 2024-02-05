@@ -8,7 +8,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
-	"github.com/mtlynch/screenjournal/v2/store"
 )
 
 const (
@@ -16,7 +15,7 @@ const (
 )
 
 type (
-	DB struct {
+	Store struct {
 		ctx *sql.DB
 	}
 
@@ -25,7 +24,7 @@ type (
 	}
 )
 
-func New(path string, optimizeForLitestream bool) store.Store {
+func New(path string, optimizeForLitestream bool) Store {
 	log.Printf("reading DB from %s", path)
 	ctx, err := sql.Open("sqlite3", path)
 	if err != nil {
@@ -39,14 +38,14 @@ func New(path string, optimizeForLitestream bool) store.Store {
 		log.Fatalf("failed to set pragmas: %v", err)
 	}
 
-	d := &DB{ctx: ctx}
+	store := Store{ctx: ctx}
 	if optimizeForLitestream {
-		d.optimizeForLitestream()
+		store.optimizeForLitestream()
 	}
 
-	d.applyMigrations()
+	store.applyMigrations()
 
-	return d
+	return store
 }
 
 func parseDatetime(s string) (time.Time, error) {

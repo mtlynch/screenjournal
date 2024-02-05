@@ -9,13 +9,13 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store"
 )
 
-func (db DB) ReadComments(rid screenjournal.ReviewID) ([]screenjournal.ReviewComment, error) {
-	review, err := db.ReadReview(rid)
+func (s Store) ReadComments(rid screenjournal.ReviewID) ([]screenjournal.ReviewComment, error) {
+	review, err := s.ReadReview(rid)
 	if err != nil {
 		return []screenjournal.ReviewComment{}, err
 	}
 
-	rows, err := db.ctx.Query(`
+	rows, err := s.ctx.Query(`
 	SELECT
 		id,
 		comment_owner,
@@ -48,8 +48,8 @@ func (db DB) ReadComments(rid screenjournal.ReviewID) ([]screenjournal.ReviewCom
 	return comments, nil
 }
 
-func (db DB) ReadComment(cid screenjournal.CommentID) (screenjournal.ReviewComment, error) {
-	row := db.ctx.QueryRow(`
+func (s Store) ReadComment(cid screenjournal.CommentID) (screenjournal.ReviewComment, error) {
+	row := s.ctx.QueryRow(`
 	SELECT
 		id,
 		comment_owner,
@@ -65,12 +65,12 @@ func (db DB) ReadComment(cid screenjournal.CommentID) (screenjournal.ReviewComme
 	return reviewCommentFromRow(row)
 }
 
-func (db DB) InsertComment(rc screenjournal.ReviewComment) (screenjournal.CommentID, error) {
+func (s Store) InsertComment(rc screenjournal.ReviewComment) (screenjournal.CommentID, error) {
 	log.Printf("inserting new comment from %v on %v's review of %s", rc.Owner, rc.Review.Owner, rc.Review.Movie.Title)
 
 	now := time.Now()
 
-	res, err := db.ctx.Exec(`
+	res, err := s.ctx.Exec(`
 	INSERT INTO
 		review_comments
 	(
@@ -101,10 +101,10 @@ func (db DB) InsertComment(rc screenjournal.ReviewComment) (screenjournal.Commen
 	return screenjournal.CommentID(lastID), nil
 }
 
-func (db DB) UpdateComment(rc screenjournal.ReviewComment) error {
+func (s Store) UpdateComment(rc screenjournal.ReviewComment) error {
 	log.Printf("updating comment %v from %v", rc.ID, rc.Owner)
 
-	_, err := db.ctx.Exec(`
+	_, err := s.ctx.Exec(`
 		UPDATE review_comments
 		SET
 			comment_text = ?,
@@ -122,9 +122,9 @@ func (db DB) UpdateComment(rc screenjournal.ReviewComment) error {
 	return nil
 }
 
-func (db DB) DeleteComment(cid screenjournal.CommentID) error {
+func (s Store) DeleteComment(cid screenjournal.CommentID) error {
 	log.Printf("deleting comment ID=%v", cid)
-	_, err := db.ctx.Exec(`DELETE FROM review_comments WHERE id = ?`, cid.String())
+	_, err := s.ctx.Exec(`DELETE FROM review_comments WHERE id = ?`, cid.String())
 	if err != nil {
 		return err
 	}

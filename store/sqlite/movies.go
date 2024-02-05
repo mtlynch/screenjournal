@@ -9,8 +9,8 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store"
 )
 
-func (db DB) ReadMovie(id screenjournal.MovieID) (screenjournal.Movie, error) {
-	row := db.ctx.QueryRow(`
+func (s Store) ReadMovie(id screenjournal.MovieID) (screenjournal.Movie, error) {
+	row := s.ctx.QueryRow(`
 	SELECT
 		id,
 		tmdb_id,
@@ -26,8 +26,8 @@ func (db DB) ReadMovie(id screenjournal.MovieID) (screenjournal.Movie, error) {
 	return movieFromRow(row)
 }
 
-func (db DB) ReadMovieByTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movie, error) {
-	row := db.ctx.QueryRow(`
+func (s Store) ReadMovieByTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movie, error) {
+	row := s.ctx.QueryRow(`
 	SELECT
 		id,
 		tmdb_id,
@@ -43,10 +43,10 @@ func (db DB) ReadMovieByTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movie
 	return movieFromRow(row)
 }
 
-func (d DB) InsertMovie(m screenjournal.Movie) (screenjournal.MovieID, error) {
+func (s Store) InsertMovie(m screenjournal.Movie) (screenjournal.MovieID, error) {
 	log.Printf("inserting new movie %s", m.Title)
 
-	res, err := d.ctx.Exec(`
+	res, err := s.ctx.Exec(`
 	INSERT INTO
 		movies
 	(
@@ -77,10 +77,10 @@ func (d DB) InsertMovie(m screenjournal.Movie) (screenjournal.MovieID, error) {
 	return screenjournal.MovieID(lastID), nil
 }
 
-func (db DB) UpdateMovie(m screenjournal.Movie) error {
+func (s Store) UpdateMovie(m screenjournal.Movie) error {
 	log.Printf("updating movie information for %s (id=%v)", m.Title, m.ID)
 
-	if _, err := db.ctx.Exec(`
+	if _, err := s.ctx.Exec(`
 	UPDATE movies
 	SET
 		title = ?,

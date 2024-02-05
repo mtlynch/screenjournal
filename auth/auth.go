@@ -3,51 +3,31 @@ package auth
 import (
 	simple_auth "github.com/mtlynch/simpleauth/v2/auth"
 
-	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
-	"github.com/mtlynch/screenjournal/v2/store"
 )
 
 type (
-	Authenticator struct {
-		inner simple_auth.Authenticator
+	GenericAuthenticator interface {
+		Authenticate(username, password string) error
 	}
 
-	authStore struct {
-		inner store.Store
+	Authenticator struct {
+		inner GenericAuthenticator
+	}
+
+	UserStore interface {
+		ReadUser(screenjournal.Username) (screenjournal.User, error)
 	}
 )
 
-func New(store store.Store) Authenticator {
+func New(userStore UserStore) Authenticator {
 	return Authenticator{
 		inner: simple_auth.New(authStore{
-			inner: store,
+			userStore: userStore,
 		}),
 	}
 }
 
 func (a Authenticator) Authenticate(username screenjournal.Username, password screenjournal.Password) error {
 	return a.inner.Authenticate(username.String(), password.String())
-}
-
-func HashPassword(password screenjournal.Password) (screenjournal.PasswordHash, error) {
-	h, err := simple_auth.HashPassword(password.String())
-	if err != nil {
-		return screenjournal.PasswordHash{}, err
-	}
-	return screenjournal.PasswordHash(h.Bytes()), nil
-}
-
-func (s authStore) ReadPasswordHash(usernameRaw string) (simple_auth.PasswordHash, error) {
-	username, err := parse.Username(usernameRaw)
-	if err != nil {
-		return nil, err
-	}
-
-	user, err := s.inner.ReadUser(username)
-	if err != nil {
-		return nil, err
-	}
-
-	return simple_auth.PasswordHashFromBytes(user.PasswordHash.Bytes()), nil
 }

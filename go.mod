@@ -9,7 +9,7 @@ require (
 	github.com/kylelemons/godebug v1.1.0
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/mtlynch/gorilla-handlers v1.5.2
-	github.com/mtlynch/simpleauth/v2 v2.0.0-20231007142645-38a16f512f2f
+	github.com/mtlynch/simpleauth/v2 v2.0.0-20240205025639-08f515727a4d
 	github.com/ryanbradynd05/go-tmdb v0.0.0-20220721194547-2ab6191c6273
 )
 

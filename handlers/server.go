@@ -1,22 +1,39 @@
 package handlers
 
 import (
+	"context"
+	"net/http"
+
 	"github.com/gorilla/mux"
 
 	"github.com/mtlynch/screenjournal/v2/announce"
 	"github.com/mtlynch/screenjournal/v2/auth"
+	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store"
 )
 
-type Server struct {
-	router         *mux.Router
-	authenticator  auth.Authenticator
-	announcer      announce.Announcer
-	sessionManager SessionManager
-	store          store.Store
-	metadataFinder metadata.Finder
-}
+type (
+	SessionManager interface {
+		CreateSession(http.ResponseWriter, context.Context, screenjournal.Username, bool) error
+		SessionFromContext(context.Context) (sessions.Session, error)
+		EndSession(context.Context, http.ResponseWriter)
+		// WrapRequest wraps the given handler, adding the Session object (if
+		// there's an active session) to the request context before passing control
+		// to the next handler.
+		WrapRequest(http.Handler) http.Handler
+	}
+
+	Server struct {
+		router         *mux.Router
+		authenticator  auth.Authenticator
+		announcer      announce.Announcer
+		sessionManager SessionManager
+		store          store.Store
+		metadataFinder metadata.Finder
+	}
+)
 
 // Router returns the underlying router interface for the server.
 func (s Server) Router() *mux.Router {

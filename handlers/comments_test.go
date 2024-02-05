@@ -13,6 +13,7 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
+	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -41,13 +42,13 @@ func makeCommentsTestData() commentsTestData {
 	}
 	td.sessions.userA = mockSessionEntry{
 		token: "abc123",
-		session: handlers.Session{
+		session: sessions.Session{
 			Username: td.users.userA.Username,
 		},
 	}
 	td.sessions.userB = mockSessionEntry{
 		token: "def456",
-		session: handlers.Session{
+		session: sessions.Session{
 			Username: td.users.userB.Username,
 		},
 	}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
+	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
@@ -100,7 +101,7 @@ func TestAccountChangePasswordPost(t *testing.T) {
 					})
 				mockSessionEntries = append(mockSessionEntries, mockSessionEntry{
 					token: entry.sessionToken,
-					session: handlers.Session{
+					session: sessions.Session{
 						Username: entry.username,
 					},
 				})
@@ -157,7 +158,7 @@ func TestAccountNotificationsPost(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: handlers.Session{
+					session: sessions.Session{
 						Username: screenjournal.Username("userA"),
 					},
 				},
@@ -178,7 +179,7 @@ func TestAccountNotificationsPost(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: handlers.Session{
+					session: sessions.Session{
 						Username: screenjournal.Username("userA"),
 					},
 				},
@@ -199,7 +200,7 @@ func TestAccountNotificationsPost(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: handlers.Session{
+					session: sessions.Session{
 						Username: screenjournal.Username("userA"),
 					},
 				},
@@ -220,7 +221,7 @@ func TestAccountNotificationsPost(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: handlers.Session{
+					session: sessions.Session{
 						Username: screenjournal.Username("userA"),
 					},
 				},

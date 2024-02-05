@@ -11,7 +11,6 @@ import (
 
 	gorilla "github.com/mtlynch/gorilla-handlers"
 
-	"github.com/mtlynch/screenjournal/v2/announce"
 	email_announce "github.com/mtlynch/screenjournal/v2/announce/email"
 	"github.com/mtlynch/screenjournal/v2/announce/quiet"
 	"github.com/mtlynch/screenjournal/v2/auth"
@@ -39,7 +38,7 @@ func main() {
 		log.Fatalf("failed to create session manager: %v", err)
 	}
 
-	var announcer announce.Announcer
+	var announcer handlers.Announcer
 	if isSmtpEnabled() {
 		smtpHost := requireEnv("SJ_SMTP_HOST")
 		smtpPort, err := strconv.Atoi(requireEnv("SJ_SMTP_PORT"))

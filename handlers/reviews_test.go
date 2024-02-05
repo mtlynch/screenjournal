@@ -14,7 +14,6 @@ import (
 
 	"github.com/go-test/deep"
 
-	"github.com/mtlynch/screenjournal/v2/announce"
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
@@ -31,7 +30,7 @@ type contextKey struct {
 
 var contextKeySession = &contextKey{"session"}
 
-var nilAnnouncer announce.Announcer
+var nilAnnouncer handlers.Announcer
 
 var nilAuthenticator auth.Authenticator
 

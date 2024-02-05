@@ -9,7 +9,6 @@ import (
 	"path"
 	"text/template"
 
-	"github.com/mtlynch/screenjournal/v2/announce"
 	"github.com/mtlynch/screenjournal/v2/email"
 	"github.com/mtlynch/screenjournal/v2/markdown"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -21,22 +20,22 @@ type (
 		ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error)
 	}
 
-	announcer struct {
+	Announcer struct {
 		baseURL string
 		sender  email.Sender
 		store   NotificationsStore
 	}
 )
 
-func New(baseURL string, sender email.Sender, store NotificationsStore) announce.Announcer {
-	return announcer{
+func New(baseURL string, sender email.Sender, store NotificationsStore) Announcer {
+	return Announcer{
 		baseURL: baseURL,
 		sender:  sender,
 		store:   store,
 	}
 }
 
-func (a announcer) AnnounceNewReview(r screenjournal.Review) {
+func (a Announcer) AnnounceNewReview(r screenjournal.Review) {
 	log.Printf("announcing new review from user %s of %s", r.Owner.String(), r.Movie.Title)
 	subscribers, err := a.store.ReadReviewSubscribers()
 	if err != nil {
@@ -87,7 +86,7 @@ func (a announcer) AnnounceNewReview(r screenjournal.Review) {
 	}
 }
 
-func (a announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
+func (a Announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 	log.Printf("announcing new comment from %s about %s's review of %s", rc.Owner, rc.Review.Owner, rc.Review.Movie.Title)
 	users, err := a.store.ReadCommentSubscribers()
 	if err != nil {

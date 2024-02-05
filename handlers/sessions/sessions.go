@@ -2,6 +2,7 @@ package sessions
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"log"
 	"net/http"
@@ -25,12 +26,19 @@ type (
 var ErrNoSessionFound = errors.New("no session in request context")
 
 func NewManager(dbPath string) (Manager, error) {
-	inner, err := simple_sessions.New(dbPath)
+	// We could theoretically share the DB pointer with the main DB store, if we
+	// do the sql.Open call in main.go and share it.
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		return Manager{}, err
+	}
+
+	simpleManager, err := simple_sessions.NewManager(db)
 	if err != nil {
 		log.Fatalf("failed to create session manager: %v", err)
 	}
 	return Manager{
-		inner: inner,
+		inner: simpleManager,
 	}, nil
 }
 

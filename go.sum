@@ -24,10 +24,8 @@ github.com/mtlynch/gorilla-handlers v1.5.2 h1:CnOI7baYzjgdumJMc7Dh192JFxqGsNgRew
 github.com/mtlynch/gorilla-handlers v1.5.2/go.mod h1:qZmXSCK7pPjN71Pl9ARbQX2ec1t11FI/j8bDS+ZVbmQ=
 github.com/mtlynch/jeff v0.2.4 h1:+sfnAwKZ7yO44IuaJM3n/53Tvc6lqscHeR9Z2WTbacE=
 github.com/mtlynch/jeff v0.2.4/go.mod h1:bxdRG/C7U5XEt1nTKU282IAeVRJu2pLR2cV4dHNLkOk=
-github.com/mtlynch/simpleauth/v2 v2.0.0-20231007142645-38a16f512f2f h1:AulL08oG9d8IJrLKIyzX7bUfiEnsL6XF20rF8UXc4tw=
-github.com/mtlynch/simpleauth/v2 v2.0.0-20231007142645-38a16f512f2f/go.mod h1:+mqxaYlX0kiRM6w4iN9gWXtywBw+X4xo+YKQUPENxOc=
-github.com/mtlynch/simpleauth/v2 v2.0.0-20240205025639-08f515727a4d h1:dEGKx3r73Ibhw7P9WukgoMPSMR1CrH4oJ0ZimMyO+cI=
-github.com/mtlynch/simpleauth/v2 v2.0.0-20240205025639-08f515727a4d/go.mod h1:+mqxaYlX0kiRM6w4iN9gWXtywBw+X4xo+YKQUPENxOc=
+github.com/mtlynch/simpleauth/v2 v2.0.0-20240205040209-52395b0fa4e0 h1:kTgJ0FrOJJP8IxUhzQ4YQ6wGkxX30xaPV23VjgHtmA8=
+github.com/mtlynch/simpleauth/v2 v2.0.0-20240205040209-52395b0fa4e0/go.mod h1:+mqxaYlX0kiRM6w4iN9gWXtywBw+X4xo+YKQUPENxOc=
 github.com/philhofer/fwd v1.1.1 h1:GdGcTjf5RNAxwS4QLsiMzJYj5KEvPJD3Abr261yRQXQ=
 github.com/philhofer/fwd v1.1.1/go.mod h1:gk3iGcWd9+svBvR0sR+KPcfE+RNWozjowpeBVG3ZVNU=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

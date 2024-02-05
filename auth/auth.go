@@ -9,11 +9,7 @@ import (
 )
 
 type (
-	Authenticator interface {
-		Authenticate(username screenjournal.Username, password screenjournal.Password) error
-	}
-
-	authenticator struct {
+	Authenticator struct {
 		inner simple_auth.Authenticator
 	}
 
@@ -23,14 +19,14 @@ type (
 )
 
 func New(store store.Store) Authenticator {
-	return authenticator{
+	return Authenticator{
 		inner: simple_auth.New(authStore{
 			inner: store,
 		}),
 	}
 }
 
-func (a authenticator) Authenticate(username screenjournal.Username, password screenjournal.Password) error {
+func (a Authenticator) Authenticate(username screenjournal.Username, password screenjournal.Password) error {
 	return a.inner.Authenticate(username.String(), password.String())
 }
 

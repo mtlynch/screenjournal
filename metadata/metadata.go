@@ -7,11 +7,6 @@ import (
 )
 
 type (
-	Finder interface {
-		Search(query string) (MovieSearchResults, error)
-		GetMovieInfo(id screenjournal.TmdbID) (MovieInfo, error)
-	}
-
 	MovieSearchResult struct {
 		TmdbID      screenjournal.TmdbID
 		Title       string

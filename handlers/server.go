@@ -31,13 +31,18 @@ type (
 		Authenticate(username screenjournal.Username, password screenjournal.Password) error
 	}
 
+	MetadataFinder interface {
+		Search(query string) (metadata.MovieSearchResults, error)
+		GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, error)
+	}
+
 	Server struct {
 		router         *mux.Router
 		authenticator  Authenticator
 		announcer      Announcer
 		sessionManager SessionManager
 		store          Store
-		metadataFinder metadata.Finder
+		metadataFinder MetadataFinder
 	}
 )
 
@@ -48,7 +53,7 @@ func (s Server) Router() *mux.Router {
 
 // New creates a new server with all the state it needs to satisfy HTTP
 // requests.
-func New(authenticator Authenticator, announcer Announcer, sessionManager SessionManager, store Store, metadataFinder metadata.Finder) Server {
+func New(authenticator Authenticator, announcer Announcer, sessionManager SessionManager, store Store, metadataFinder MetadataFinder) Server {
 	s := Server{
 		router:         mux.NewRouter(),
 		authenticator:  authenticator,

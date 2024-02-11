@@ -48,7 +48,7 @@ func TestSearch(t *testing.T) {
 					{
 						"tmdbId": 38,
 						"title": "Eternal Sunshine of the Spotless Mind",
-						"releaseDate": "TODO",
+						"releaseDate": "2004-03-19",
 						"posterUrl": "https://image.tmdb.org/t/p/w92/TODO"
 					}
 				]

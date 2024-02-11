@@ -121,7 +121,7 @@ func (mf mockMetadataFinder) Search(query string) (metadata.MovieSearchResults, 
 			results.Matches = append(results.Matches, metadata.MovieSearchResult{
 				Title:       movie.Title.String(),
 				TmdbID:      movie.TmdbID,
-				ReleaseDate: movie.ReleaseDate.Time().Format(time.RFC3339),
+				ReleaseDate: movie.ReleaseDate.Time().Format("2006-01-02"),
 				PosterPath:  movie.PosterPath.String(),
 			})
 		}

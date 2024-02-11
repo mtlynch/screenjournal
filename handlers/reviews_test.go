@@ -297,9 +297,8 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			w := httptest.NewRecorder()
 			s.Router().ServeHTTP(w, req)
 
-			if status := w.Code; status != http.StatusOK {
-				t.Fatalf("%s: handler returned wrong status code: got %v want %v",
-					tt.description, status, http.StatusOK)
+			if got, want := w.Code, http.StatusOK; got != want {
+				t.Fatalf("httpStatus=%v, want=%v", got, want)
 			}
 
 			rr, err := dataStore.ReadReviews()

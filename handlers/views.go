@@ -504,6 +504,43 @@ func (s Server) accountSecurityGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) queueGet() http.HandlerFunc {
+	type entry struct {
+		Title      screenjournal.MediaTitle
+		PosterPath url.URL
+		Note       string
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		reviews, err := s.getDB(r).ReadReviews()
+		if err != nil {
+			log.Printf("failed to read queue: %v", err)
+			http.Error(w, "Failed to read queue", http.StatusInternalServerError)
+			return
+		}
+
+		entries := make([]entry, len(reviews))
+		for i, review := range reviews {
+			entries[i].Title = review.Movie.Title
+			entries[i].PosterPath = review.Movie.PosterPath
+			entries[i].Note = "Seems fun!"
+		}
+
+		if err := renderTemplate(w, "queue.html", struct {
+			commonProps
+			Entries []entry
+		}{
+			commonProps: makeCommonProps("Queue", r.Context()),
+			Entries:     entries,
+		}, template.FuncMap{
+			"posterPathToURL": posterPathToURL,
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func relativeWatchDate(t screenjournal.WatchDate) string {
 	daysAgo := int(time.Since(t.Time()).Hours() / 24)
 	weeksAgo := int(daysAgo / 7)

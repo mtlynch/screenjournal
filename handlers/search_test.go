@@ -2,6 +2,7 @@ package handlers_test
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -26,14 +27,14 @@ func TestSearch(t *testing.T) {
 		sessionToken      string
 		searchQuery       string
 		metadataFinderErr error
-		expectedStatus    int
+		statusExpected    int
 		expectedResponse  string
 	}{
 		{
 			description:    "returns matching search results",
 			sessionToken:   "abc123",
 			searchQuery:    "spo",
-			expectedStatus: http.StatusOK,
+			statusExpected: http.StatusOK,
 			expectedResponse: `{
 				"matches": [
 					{
@@ -49,24 +50,23 @@ func TestSearch(t *testing.T) {
 			description:    "prohibits search if user is not authenticated",
 			sessionToken:   "",
 			searchQuery:    "spo",
-			expectedStatus: http.StatusUnauthorized,
+			statusExpected: http.StatusUnauthorized,
 		},
 		{
 			description:    "prohibits search if user has an invalid session token",
 			sessionToken:   "invalid-token",
 			searchQuery:    "spo",
-			expectedStatus: http.StatusUnauthorized,
+			statusExpected: http.StatusUnauthorized,
 		},
 		{
 			description:       "returns internal server error if metadata finder fails",
 			sessionToken:      "abc123",
 			searchQuery:       "spo",
 			metadataFinderErr: errors.New("dummy error"),
-			expectedStatus:    http.StatusInternalServerError,
+			statusExpected:    http.StatusInternalServerError,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			// TODO: Finish test.
 			dataStore := test_sqlite.New()
 
 			// TODO: Connect the session manager
@@ -76,10 +76,11 @@ func TestSearch(t *testing.T) {
 
 			s := handlers.New(nilAuthenticator, nilAnnouncer, &sessionManager, dataStore, NewMockMetadataFinder(movies))
 
-			req, err := http.NewRequest("GET", "/api/search?query=foo", nil)
+			req, err := http.NewRequest("GET", "/api/search", nil)
 			if err != nil {
 				t.Fatal(err)
 			}
+			req.URL.RawQuery = fmt.Sprintf("query=%s", tt.searchQuery)
 			req.Header.Add("Accept", "text/json")
 			req.AddCookie(&http.Cookie{
 				Name: mockSessionTokenName,
@@ -88,9 +89,12 @@ func TestSearch(t *testing.T) {
 			w := httptest.NewRecorder()
 			s.Router().ServeHTTP(w, req)
 
-			if status := w.Code; status != http.StatusOK {
-				t.Fatalf("%s: handler returned wrong status code: got %v want %v",
-					tt.description, status, http.StatusOK)
+			if got, want := w.Code, tt.statusExpected; got != want {
+				t.Fatalf("httpStatus=%v, want=%v", got, want)
+			}
+
+			if w.Code != http.StatusOK {
+				return
 			}
 		})
 	}

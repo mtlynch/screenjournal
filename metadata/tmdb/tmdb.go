@@ -1,19 +1,18 @@
 package tmdb
 
 import (
-	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/ryanbradynd05/go-tmdb"
 )
 
-type tmdbFinder struct {
+type Finder struct {
 	tmdbAPI *tmdb.TMDb
 }
 
-func New(apiKey string) (metadata.Finder, error) {
+func New(apiKey string) (Finder, error) {
 	tmbdAPI := tmdb.Init(tmdb.Config{
 		APIKey: apiKey,
 	})
-	return tmdbFinder{
+	return Finder{
 		tmdbAPI: tmbdAPI,
 	}, nil
 }

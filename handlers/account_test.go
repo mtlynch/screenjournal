@@ -9,7 +9,6 @@ import (
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
-	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -20,7 +19,7 @@ type mockUserEntry struct {
 	password     screenjournal.Password
 }
 
-var nilMetadataFinder metadata.Finder
+var nilMetadataFinder handlers.MetadataFinder
 
 func TestAccountChangePasswordPost(t *testing.T) {
 	userEntries := []mockUserEntry{

@@ -9,7 +9,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-func (f tmdbFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, error) {
+func (f Finder) GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, error) {
 	m, err := f.tmdbAPI.GetMovieInfo(int(id.Int32()), map[string]string{})
 	if err != nil {
 		return metadata.MovieInfo{}, err

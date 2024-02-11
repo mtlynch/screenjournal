@@ -17,7 +17,7 @@ func (s Server) searchGet() http.HandlerFunc {
 		query := r.URL.Query().Get("query")
 		res, err := s.metadataFinder.Search(query)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("failed to query metadata: %v", err), http.StatusInternalServerError)
+			http.Error(w, fmt.Sprintf("Failed to query metadata: %v", err), http.StatusInternalServerError)
 			return
 		}
 

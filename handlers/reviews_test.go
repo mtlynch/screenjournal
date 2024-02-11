@@ -92,7 +92,7 @@ func (sm mockSessionManager) SessionFromContext(ctx context.Context) (handlers.S
 func (sm mockSessionManager) SessionFromToken(token string) (handlers.Session, error) {
 	session, ok := sm.sessions[token]
 	if !ok {
-		return handlers.Session{}, errors.New("mock session manager: no session associated with token")
+		return handlers.Session{}, fmt.Errorf("mock session manager: no session associated with token [%s]", token)
 	}
 
 	return session, nil
@@ -110,11 +110,24 @@ func (sm mockSessionManager) WrapRequest(next http.Handler) http.Handler {
 }
 
 type mockMetadataFinder struct {
-	db map[screenjournal.TmdbID]metadata.MovieInfo
+	db  map[screenjournal.TmdbID]metadata.MovieInfo
+	err error
 }
 
 func (mf mockMetadataFinder) Search(query string) (metadata.MovieSearchResults, error) {
-	return metadata.MovieSearchResults{}, nil
+	results := metadata.MovieSearchResults{}
+	for _, movie := range mf.db {
+		if strings.Contains(strings.ToLower(movie.Title.String()), strings.ToLower(query)) {
+			results.Matches = append(results.Matches, metadata.MovieSearchResult{
+				Title:       movie.Title.String(),
+				TmdbID:      movie.TmdbID,
+				ReleaseDate: movie.ReleaseDate.Time().Format(time.RFC3339),
+				PosterPath:  movie.PosterPath.String(),
+			})
+		}
+	}
+
+	return results, mf.err
 }
 
 func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, error) {
@@ -126,12 +139,15 @@ func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.Mov
 	return m, nil
 }
 
-func NewMockMetadataFinder(movies []metadata.MovieInfo) mockMetadataFinder {
+func NewMockMetadataFinder(movies []metadata.MovieInfo, err error) mockMetadataFinder {
 	db := map[screenjournal.TmdbID]metadata.MovieInfo{}
 	for _, m := range movies {
 		db[m.TmdbID] = m
 	}
-	return mockMetadataFinder{db}
+	return mockMetadataFinder{
+		db:  db,
+		err: nil,
+	}
 }
 
 func TestReviewsPostAcceptsValidRequest(t *testing.T) {
@@ -282,7 +298,10 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 
 			sessionManager := newMockSessionManager(tt.sessions)
 
-			s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo))
+			var metadataFinderErr error = nil
+			metadataFinder := NewMockMetadataFinder(tt.remoteMovieInfo, metadataFinderErr)
+
+			s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, metadataFinder)
 
 			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
 			if err != nil {
@@ -319,7 +338,6 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			if got, want := len(announcer.announcedReviews), 1; got != want {
 				t.Fatalf("reviewCountAnnounced=%d, want=%d", got, want)
 			}
-
 			clearUnpredictableReviewProperties(&announcer.announcedReviews[0])
 			if !reflect.DeepEqual(announcer.announcedReviews[0], tt.expected) {
 				t.Errorf("did not find expected review of %s - %v", tt.expected.Movie.Title, deep.Equal(announcer.announcedReviews[0], tt.expected))

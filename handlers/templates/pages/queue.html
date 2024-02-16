@@ -1,0 +1,38 @@
+{{ define "style-tags" }}
+  <style nonce="{{ .CspNonce }}">
+    .poster {
+      max-height: 120px;
+    }
+
+    .title {
+      font-size: 1.4rem;
+    }
+  </style>
+{{ end }}
+
+{{ define "script-tags" }}
+  <script type="module" nonce="{{ .CspNonce }}"></script>
+{{ end }}
+
+{{ define "custom-elements" }}
+{{ end }}
+
+{{ define "content" }}
+  <h1>Queue</h1>
+
+  {{ range .Entries }}
+    <div class="d-flex flex-row my-2">
+      <img
+        class="poster"
+        src="{{ posterPathToURL .PosterPath }}"
+        alt="Movie poster for {{ .Title }}"
+      />
+      <div class="ms-3">
+        <p class="title">{{ .Title }}</p>
+        <p>{{ .Note }}</p>
+      </div>
+    </div>
+  {{ end }}
+{{ end }}
+
+{{ template "base.html" }}

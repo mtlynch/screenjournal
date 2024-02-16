@@ -23,6 +23,11 @@
         <li class="nav-item">
           <a class="nav-link" href="{{ $homeRoute }}" role="menuitem">Home</a>
         </li>
+        {{ if .IsAuthenticated }}
+          <li class="nav-item">
+            <a class="nav-link" href="/queue" role="menuitem">Queue</a>
+          </li>
+        {{ end }}
         <li class="nav-item">
           <a class="nav-link" href="/about" role="menuitem">About</a>
         </li>

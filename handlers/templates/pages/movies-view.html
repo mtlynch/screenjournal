@@ -31,7 +31,7 @@
     document.addEventListener(
       "DOMContentLoaded",
       function () {
-        document
+        /*document
           .querySelectorAll(".comment-thread")
           .forEach((commentThreadDiv) => {
             commentThreadDiv
@@ -62,7 +62,7 @@
 
                 hideElement(commentBtn);
               });
-          });
+          });*/
 
         document
           .querySelectorAll("[data-sj-purpose='comment']")
@@ -248,8 +248,9 @@
           <div class="d-flex justify-content-end">
             <button
               type="button"
-              class="comment-btn btn btn-secondary mt-2"
+              class="btn btn-secondary mt-2"
               data-review-id="{{ .ID }}"
+              hx-get="/comments/new"
             >
               Comment
             </button>

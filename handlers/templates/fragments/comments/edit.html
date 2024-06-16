@@ -1,0 +1,15 @@
+<form hx-post="/api/comments" hx-target="this" hx-swap="outerHTML">
+  <input type="hidden" name="review-id" value="{{ .ID }}" />
+  <textarea name="comment" class="form-control my-2"></textarea>
+  <div class="d-flex justify-content-start mt-1 flex-row-reverse">
+    <input type="submit" id="save-btn" class="btn btn-primary" value="Save" />
+    <button
+      type="button"
+      id="cancel-btn"
+      class="btn btn-light mx-2"
+      hx-get="/api/comments/add?reviewId={{ .ID }}"
+    >
+      Cancel
+    </button>
+  </div>
+</form>

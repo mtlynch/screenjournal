@@ -220,14 +220,7 @@
             {{ end }}
           </div>
           <div class="d-flex justify-content-end">
-            <button
-              type="button"
-              class="btn btn-secondary mt-2"
-              hx-get="/api/comments/new?reviewId={{ .ID }}"
-              hx-swap="outerHTML"
-            >
-              Comment
-            </button>
+            {{ template "add.html" . }}
           </div>
         </div>
       </div>

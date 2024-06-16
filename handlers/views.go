@@ -596,6 +596,7 @@ func renderTemplate(w http.ResponseWriter, templateFilename string, templateVars
 		t.ParseFS(
 			templatesFS,
 			"templates/custom-elements/*.html",
+			"templates/fragments/comments/*.html", // TODO: Clean this up.
 			"templates/layouts/*.html",
 			"templates/partials/*.html",
 			path.Join("templates/pages", templateFilename)))

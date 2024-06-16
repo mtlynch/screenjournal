@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 
@@ -62,6 +63,33 @@ func (s Server) commentsPost() http.HandlerFunc {
 	}
 }
 
+func (s Server) commentsAddGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		reviewID, err := reviewIDFromQueryParams(r)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
+			return
+		}
+
+		t, err := template.ParseFS(templatesFS, "templates/fragments/comments/add.html")
+		if err != nil {
+			http.Error(w, "Failed to render template", http.StatusInternalServerError)
+			log.Printf("error=%s", err)
+			return
+		}
+
+		if err := t.Execute(w, struct {
+			ID screenjournal.ReviewID
+		}{
+			ID: reviewID,
+		}); err != nil {
+			http.Error(w, "Failed to render template", http.StatusInternalServerError)
+			log.Printf("failed to get add form: %v", err)
+			return
+		}
+	}
+}
+
 func (s Server) commentsNewGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		reviewID, err := reviewIDFromQueryParams(r)
@@ -69,7 +97,23 @@ func (s Server) commentsNewGet() http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			return
 		}
-		respondHTML(w, fmt.Sprintf(`<comment-form data-review-id="%d"></comment-form>`, reviewID))
+
+		t, err := template.ParseFS(templatesFS, "templates/fragments/comments/edit.html")
+		if err != nil {
+			http.Error(w, "Failed to render template", http.StatusInternalServerError)
+			log.Printf("error=%s", err)
+			return
+		}
+
+		if err := t.Execute(w, struct {
+			ID screenjournal.ReviewID
+		}{
+			ID: reviewID,
+		}); err != nil {
+			http.Error(w, "Failed to render template", http.StatusInternalServerError)
+			log.Printf("error=%s", err)
+			return
+		}
 	}
 }
 
@@ -137,21 +181,17 @@ func (s Server) commentsDelete() http.HandlerFunc {
 }
 
 func parseCommentPostRequest(r *http.Request) (commentPostRequest, error) {
-	var payload struct {
-		ReviewID uint64 `json:"reviewId"`
-		Comment  string `json:"comment"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		log.Printf("failed to decode JSON request: %v", err)
+	if err := r.ParseForm(); err != nil {
+		log.Printf("failed to decode comment POST request: %v", err)
 		return commentPostRequest{}, err
 	}
 
-	rid, err := parse.ReviewID(payload.ReviewID)
+	rid, err := parse.ReviewIDFromString(r.PostFormValue("review-id"))
 	if err != nil {
 		return commentPostRequest{}, err
 	}
 
-	comment, err := parse.CommentText(payload.Comment)
+	comment, err := parse.CommentText(r.PostFormValue("comment"))
 	if err != nil {
 		return commentPostRequest{}, err
 	}

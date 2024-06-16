@@ -71,58 +71,65 @@
               commentDiv.getAttribute("data-comment-id")
             );
 
-            commentDiv
-              .querySelector("[data-sj-purpose='edit']")
-              .addEventListener("click", (evt) => {
-                evt.preventDefault();
+            const editBtn = commentDiv.querySelector(
+              "[data-sj-purpose='edit']"
+            );
+            if (!editBtn) {
+              return;
+            }
+            editBtn.addEventListener("click", (evt) => {
+              evt.preventDefault();
 
-                const commentEditForm = commentDiv.parentElement.querySelector(
-                  `comment-form[data-comment-id="${commentId}"]`
+              const commentEditForm = commentDiv.parentElement.querySelector(
+                `comment-form[data-comment-id="${commentId}"]`
+              );
+
+              commentEditForm.addEventListener("cancel", (evt) => {
+                hideElement(commentEditForm);
+                showElement(commentDiv);
+              });
+              commentEditForm.addEventListener("comment-updated", (evt) => {
+                window.location.hash = "#comment" + commentId;
+                // We need to reload to re-render the page with the updated
+                // comment.
+                window.location.reload();
+              });
+
+              showElement(commentEditForm);
+              commentEditForm.focus();
+              hideElement(commentDiv);
+            });
+
+            const deleteBtn = commentDiv.querySelector(
+              "[data-sj-purpose='delete']"
+            );
+            if (!deleteBtn) {
+              return;
+            }
+            deleteBtn.addEventListener("click", (evt) => {
+              evt.preventDefault();
+
+              const commentDeleteForm = commentDiv.parentElement.querySelector(
+                `delete-comment-form[data-comment-id="${commentId}"]`
+              );
+
+              commentDeleteForm.addEventListener("cancel", (evt) => {
+                commentDiv.classList.remove("bg-danger");
+                hideElement(commentDeleteForm);
+              });
+              commentDeleteForm.addEventListener("delete", (evt) => {
+                const reviewId = parseInt(
+                  commentDiv
+                    .closest("[data-review-id]")
+                    .getAttribute("data-review-id")
                 );
-
-                commentEditForm.addEventListener("cancel", (evt) => {
-                  hideElement(commentEditForm);
-                  showElement(commentDiv);
-                });
-                commentEditForm.addEventListener("comment-updated", (evt) => {
-                  window.location.hash = "#comment" + commentId;
-                  // We need to reload to re-render the page with the updated
-                  // comment.
-                  window.location.reload();
-                });
-
-                showElement(commentEditForm);
-                commentEditForm.focus();
-                hideElement(commentDiv);
+                document.location.hash = "#review" + reviewId;
+                document.location.reload();
               });
 
-            commentDiv
-              .querySelector("[data-sj-purpose='delete']")
-              .addEventListener("click", (evt) => {
-                evt.preventDefault();
-
-                const commentDeleteForm =
-                  commentDiv.parentElement.querySelector(
-                    `delete-comment-form[data-comment-id="${commentId}"]`
-                  );
-
-                commentDeleteForm.addEventListener("cancel", (evt) => {
-                  commentDiv.classList.remove("bg-danger");
-                  hideElement(commentDeleteForm);
-                });
-                commentDeleteForm.addEventListener("delete", (evt) => {
-                  const reviewId = parseInt(
-                    commentDiv
-                      .closest("[data-review-id]")
-                      .getAttribute("data-review-id")
-                  );
-                  document.location.hash = "#review" + reviewId;
-                  document.location.reload();
-                });
-
-                showElement(commentDeleteForm);
-                commentDiv.classList.add("bg-danger");
-              });
+              showElement(commentDeleteForm);
+              commentDiv.classList.add("bg-danger");
+            });
           });
       },
       false

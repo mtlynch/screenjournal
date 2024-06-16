@@ -6,6 +6,8 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -40,10 +42,13 @@ func (s Server) commentsPost() http.HandlerFunc {
 			return
 		}
 
+		now := time.Now()
 		rc := screenjournal.ReviewComment{
 			Review:      review,
 			Owner:       mustGetUsernameFromContext(r.Context()),
 			CommentText: req.CommentText,
+			Created:     now,
+			Modified:    now,
 		}
 
 		rc.ID, err = s.getDB(r).InsertComment(rc)
@@ -53,11 +58,29 @@ func (s Server) commentsPost() http.HandlerFunc {
 			return
 		}
 
-		respondJSON(w, struct {
-			ID uint64 `json:"id"`
-		}{
-			ID: rc.ID.UInt64(),
-		})
+		funcMap := template.FuncMap{
+			"formatCommentTime":   formatIso8601Datetime,
+			"relativeCommentDate": relativeCommentDate,
+			"isLoggedInUser": func(u screenjournal.Username) bool {
+				return u.Equal(mustGetUsernameFromContext(r.Context()))
+			},
+			"splitByNewline": func(s string) []string {
+				return strings.Split(s, "\n")
+			},
+		}
+
+		t, err := template.New("view.html").Funcs(funcMap).ParseFS(templatesFS, "templates/fragments/comments/view.html")
+		if err != nil {
+			http.Error(w, "Failed to render template", http.StatusInternalServerError)
+			log.Printf("error=%s", err)
+			return
+		}
+
+		if err := t.Execute(w, rc); err != nil {
+			http.Error(w, "Failed to render template", http.StatusInternalServerError)
+			log.Printf("error=%s", err)
+			return
+		}
 
 		s.announcer.AnnounceNewComment(rc)
 	}

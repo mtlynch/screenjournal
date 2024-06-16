@@ -13,3 +13,11 @@ func respondJSON(w http.ResponseWriter, data interface{}) {
 		log.Fatalf("failed to encode JSON response: %v", err)
 	}
 }
+
+func respondHTML(w http.ResponseWriter, data string) {
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "text/html")
+	if _, err := w.Write([]byte(data)); err != nil {
+		log.Fatalf("failed to encode JSON response: %v", err)
+	}
+}

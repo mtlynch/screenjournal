@@ -62,6 +62,12 @@ func (s Server) commentsPost() http.HandlerFunc {
 	}
 }
 
+func (s Server) commentsNewGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		respondHTML(w, `<comment-form></comment-form>`)
+	}
+}
+
 func (s Server) commentsPut() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := parseCommentPutRequest(r)

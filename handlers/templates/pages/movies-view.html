@@ -95,11 +95,9 @@
 
       <div class="d-flex justify-content-start ms-3">
         <div class="comment-thread w-75">
-          <div>
-            {{ range .Comments }}
-              {{ template "view.html" . }}
-            {{ end }}
-          </div>
+          {{ range .Comments }}
+            {{ template "view.html" . }}
+          {{ end }}
           <div class="d-flex justify-content-end">
             {{ template "add.html" . }}
           </div>

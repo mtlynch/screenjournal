@@ -258,6 +258,9 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			},
 			"formatWatchDate":   formatWatchDate,
 			"formatCommentTime": formatIso8601Datetime,
+			"isLoggedInUser": func(u screenjournal.Username) bool {
+				return u.Equal(mustGetUsernameFromContext(r.Context()))
+			},
 			"iterate": func(n uint8) []uint8 {
 				var arr []uint8
 				var i uint8

@@ -31,39 +31,6 @@
     document.addEventListener(
       "DOMContentLoaded",
       function () {
-        /*document
-          .querySelectorAll(".comment-thread")
-          .forEach((commentThreadDiv) => {
-            commentThreadDiv
-              .querySelector(".comment-btn")
-              .addEventListener("click", (evt) => {
-                evt.preventDefault();
-                const commentBtn = evt.target;
-
-                const commentForm = document.createElement("comment-form");
-                commentForm.setAttribute(
-                  "data-review-id",
-                  evt.target.getAttribute("data-review-id")
-                );
-
-                commentForm.addEventListener("cancel", (evt) => {
-                  evt.target.parentElement.removeChild(evt.target);
-                  showElement(commentBtn);
-                });
-                commentForm.addEventListener("comment-created", (evt) => {
-                  const commentId = evt.detail.commentId;
-                  window.location.hash = "#comment" + commentId;
-                  // We need to reload to re-render the page with the new comment.
-                  window.location.reload();
-                });
-
-                commentThreadDiv.appendChild(commentForm);
-                commentForm.focus();
-
-                hideElement(commentBtn);
-              });
-          });*/
-
         document
           .querySelectorAll("[data-sj-purpose='comment']")
           .forEach((commentDiv) => {
@@ -256,8 +223,7 @@
             <button
               type="button"
               class="btn btn-secondary mt-2"
-              data-review-id="{{ .ID }}"
-              hx-get="/api/comments/new"
+              hx-get="/api/comments/new?reviewId={{ .ID }}"
             >
               Comment
             </button>

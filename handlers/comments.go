@@ -64,7 +64,12 @@ func (s Server) commentsPost() http.HandlerFunc {
 
 func (s Server) commentsNewGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		respondHTML(w, `<comment-form></comment-form>`)
+		reviewID, err := reviewIDFromQueryParams(r)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
+			return
+		}
+		respondHTML(w, fmt.Sprintf(`<comment-form data-review-id="%d"></comment-form>`, reviewID))
 	}
 }
 

@@ -11,6 +11,7 @@ import (
 )
 
 var ErrMoveIDNotProvided = errors.New("no movie ID in query parameters")
+var ErrReviewIDNotProvided = errors.New("no review ID in query parameters")
 var ErrSortOrderNotProvided = errors.New("no sort order in query parameters")
 
 func movieIDFromRequestPath(r *http.Request) (screenjournal.MovieID, error) {
@@ -28,6 +29,15 @@ func movieIDFromQueryParams(r *http.Request) (screenjournal.MovieID, error) {
 
 func reviewIDFromRequestPath(r *http.Request) (screenjournal.ReviewID, error) {
 	return parse.ReviewIDFromString(mux.Vars(r)["reviewID"])
+}
+
+func reviewIDFromQueryParams(r *http.Request) (screenjournal.ReviewID, error) {
+	raw := r.URL.Query().Get("reviewId")
+	if raw == "" {
+		return screenjournal.ReviewID(0), ErrMoveIDNotProvided
+	}
+
+	return parse.ReviewIDFromString(raw)
 }
 
 func commentIDFromRequestPath(r *http.Request) (screenjournal.CommentID, error) {

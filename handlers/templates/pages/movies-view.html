@@ -96,13 +96,54 @@
       <div class="d-flex justify-content-start ms-3">
         <div class="comment-thread w-75">
           {{ range .Comments }}
-            {{ template "view.html" . }}
+            {{ template "comment" . }}
           {{ end }}
           <div class="d-flex justify-content-end">
-            {{ template "add.html" . }}
+            {{ template "add-comment-button" . }}
           </div>
         </div>
       </div>
     </div>
   {{ end }}
+{{ end }}
+
+{{ block "add-comment-button" . }}
+  <button
+    type="button"
+    class="btn btn-secondary mt-2"
+    hx-get="/api/comments/new?reviewId={{ .ID }}"
+    hx-swap="outerHTML"
+  >
+    Comment
+  </button>
+{{ end }}
+
+{{ block "comment" . }}
+  <div
+    id="comment{{ .ID }}"
+    data-sj-purpose="comment"
+    data-comment-id="{{ .ID }}"
+    class="border my-1 p-2"
+  >
+    <p class="mb-2">
+      <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b>
+      &mdash;
+      <span data-testid="relative-time" title="{{ formatCommentTime .Created }}"
+        >{{ relativeCommentDate .Created }}</span
+      >
+    </p>
+    <p class="mb-0" data-sj-purpose="body">
+      {{ range .CommentText.String | splitByNewline }}
+        {{ . }}<br />
+      {{ end }}
+    </p>
+
+    {{ if isLoggedInUser .Owner }}
+      <div class="mt-3 small">
+        <a href="#" data-sj-purpose="edit">Edit</a>
+        &bull;
+        <a href="#" data-sj-purpose="delete">Delete</a>
+      </div>
+    {{ end }}
+  </div>
 {{ end }}

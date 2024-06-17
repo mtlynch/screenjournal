@@ -58,27 +58,46 @@ func (s Server) commentsPost() http.HandlerFunc {
 			return
 		}
 
-		funcMap := template.FuncMap{
-			"formatCommentTime":   formatIso8601Datetime,
+		fns := template.FuncMap{
 			"relativeCommentDate": relativeCommentDate,
+			"relativeWatchDate":   relativeWatchDate,
+			"formatReleaseDate": func(t screenjournal.ReleaseDate) string {
+				return t.Time().Format("1/2/2006")
+			},
+			"formatWatchDate":   formatWatchDate,
+			"formatCommentTime": formatIso8601Datetime,
 			"isLoggedInUser": func(u screenjournal.Username) bool {
 				return u.Equal(mustGetUsernameFromContext(r.Context()))
+			},
+			"iterate": func(n uint8) []uint8 {
+				var arr []uint8
+				var i uint8
+				for i = 0; i < n; i++ {
+					arr = append(arr, i)
+				}
+				return arr
+			},
+			"minus": func(a, b uint8) uint8 {
+				return a - b
 			},
 			"splitByNewline": func(s string) []string {
 				return strings.Split(s, "\n")
 			},
+			"posterPathToURL": posterPathToURL,
 		}
 
-		t, err := template.New("view.html").Funcs(funcMap).ParseFS(templatesFS, "templates/fragments/comments/view.html")
+		t, err := template.New("movies-view.html").
+			Funcs(fns).
+			ParseFS(templatesFS, "templates/pages/movies-view.html")
 		if err != nil {
 			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("error=%s", err)
+			log.Printf("error=%v", err)
 			return
 		}
 
-		if err := t.Execute(w, rc); err != nil {
+		if err := t.ExecuteTemplate(w, "comment", rc); err != nil {
 			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("error=%s", err)
+			log.Printf("error=%v", err)
 			return
 		}
 
@@ -94,14 +113,14 @@ func (s Server) commentsAddGet() http.HandlerFunc {
 			return
 		}
 
-		t, err := template.ParseFS(templatesFS, "templates/fragments/comments/add.html")
+		t, err := template.ParseFS(templatesFS, "templates/pages/movies-view.html")
 		if err != nil {
 			http.Error(w, "Failed to render template", http.StatusInternalServerError)
 			log.Printf("error=%s", err)
 			return
 		}
 
-		if err := t.Execute(w, struct {
+		if err := t.ExecuteTemplate(w, "add-comment-button", struct {
 			ID screenjournal.ReviewID
 		}{
 			ID: reviewID,

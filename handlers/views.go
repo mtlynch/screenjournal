@@ -26,7 +26,7 @@ type commonProps struct {
 }
 
 func (s Server) indexGet() http.HandlerFunc {
-	t := makeTemplate("index.html", template.FuncMap{})
+	t := makePageTemplate("index.html", template.FuncMap{})
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Redirect logged in users to the reviews index instead of the landing
 		// page.
@@ -47,7 +47,7 @@ func (s Server) indexGet() http.HandlerFunc {
 }
 
 func (s Server) aboutGet() http.HandlerFunc {
-	t := makeTemplate("about.html", template.FuncMap{})
+	t := makePageTemplate("about.html", template.FuncMap{})
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := t.Execute(w, struct {
 			commonProps
@@ -61,7 +61,7 @@ func (s Server) aboutGet() http.HandlerFunc {
 }
 
 func (s Server) logInGet() http.HandlerFunc {
-	t := makeTemplate("login.html", template.FuncMap{})
+	t := makePageTemplate("login.html", template.FuncMap{})
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := t.Execute(w, struct {
 			commonProps
@@ -75,8 +75,8 @@ func (s Server) logInGet() http.HandlerFunc {
 }
 
 func (s Server) signUpGet() http.HandlerFunc {
-	noInviteTemplate := makeTemplate("sign-up.html", template.FuncMap{})
-	byInviteTemplate := makeTemplate("sign-up-by-invitation.html", template.FuncMap{})
+	noInviteTemplate := makePageTemplate("sign-up.html", template.FuncMap{})
+	byInviteTemplate := makePageTemplate("sign-up-by-invitation.html", template.FuncMap{})
 	return func(w http.ResponseWriter, r *http.Request) {
 		inviteCode, err := inviteCodeFromQueryParams(r)
 		if err != nil {
@@ -132,7 +132,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsGet() http.HandlerFunc {
-	t := makeTemplate("reviews-index.html", template.FuncMap{
+	t := makePageTemplate("reviews-index.html", template.FuncMap{
 		"relativeWatchDate": relativeWatchDate,
 		"formatWatchDate":   formatWatchDate,
 		"iterate": func(n uint8) []uint8 {
@@ -216,7 +216,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 }
 
 func (s Server) moviesReadGet() http.HandlerFunc {
-	t := makeTemplate("movies-view.html", template.FuncMap{
+	t := makePageTemplate("movies-view.html", template.FuncMap{
 		"relativeCommentDate": relativeCommentDate,
 		"relativeWatchDate":   relativeWatchDate,
 		"formatReleaseDate": func(t screenjournal.ReleaseDate) string {
@@ -291,7 +291,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsEditGet() http.HandlerFunc {
-	t := makeTemplate("reviews-edit.html", template.FuncMap{
+	t := makePageTemplate("reviews-edit.html", template.FuncMap{
 		"formatWatchDate": formatWatchDate,
 		"iterate": func(n uint8) []uint8 {
 			var arr []uint8
@@ -350,7 +350,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsDeleteGet() http.HandlerFunc {
-	t := makeTemplate("reviews-delete.html", template.FuncMap{})
+	t := makePageTemplate("reviews-delete.html", template.FuncMap{})
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := reviewIDFromRequestPath(r)
@@ -389,7 +389,7 @@ func (s Server) reviewsDeleteGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsNewGet() http.HandlerFunc {
-	t := makeTemplate("reviews-new.html", template.FuncMap{
+	t := makePageTemplate("reviews-new.html", template.FuncMap{
 		"formatDate": func(t time.Time) string {
 			return t.Format("2006-01-02")
 		},
@@ -436,7 +436,7 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 }
 
 func (s Server) invitesGet() http.HandlerFunc {
-	t := makeTemplate("invites.html", template.FuncMap{})
+	t := makePageTemplate("invites.html", template.FuncMap{})
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		invites, err := s.getDB(r).ReadSignupInvitations()
@@ -459,7 +459,7 @@ func (s Server) invitesGet() http.HandlerFunc {
 }
 
 func (s Server) invitesNewGet() http.HandlerFunc {
-	t := makeTemplate("invites-new.html", template.FuncMap{})
+	t := makePageTemplate("invites-new.html", template.FuncMap{})
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := t.Execute(w, struct {
 			commonProps
@@ -473,7 +473,7 @@ func (s Server) invitesNewGet() http.HandlerFunc {
 }
 
 func (s Server) accountChangePasswordGet() http.HandlerFunc {
-	t := makeTemplate("account-change-password.html", template.FuncMap{})
+	t := makePageTemplate("account-change-password.html", template.FuncMap{})
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := t.Execute(w, struct {
@@ -488,7 +488,7 @@ func (s Server) accountChangePasswordGet() http.HandlerFunc {
 }
 
 func (s Server) accountNotificationsGet() http.HandlerFunc {
-	t := makeTemplate("account-notifications.html", template.FuncMap{})
+	t := makePageTemplate("account-notifications.html", template.FuncMap{})
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		prefs, err := s.getDB(r).ReadNotificationPreferences(mustGetUsernameFromContext(r.Context()))
@@ -514,7 +514,7 @@ func (s Server) accountNotificationsGet() http.HandlerFunc {
 }
 
 func (s Server) accountSecurityGet() http.HandlerFunc {
-	t := makeTemplate("account-security.html", template.FuncMap{})
+	t := makePageTemplate("account-security.html", template.FuncMap{})
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := t.Execute(w, struct {
 			commonProps
@@ -613,7 +613,7 @@ func makeCommonProps(title string, ctx context.Context) commonProps {
 //go:embed templates
 var templatesFS embed.FS
 
-func makeTemplate(templateFilename string, funcMap template.FuncMap) *template.Template {
+func makePageTemplate(templateFilename string, funcMap template.FuncMap) *template.Template {
 	return template.Must(
 		template.New("base.html").Funcs(funcMap).ParseFS(
 			templatesFS,

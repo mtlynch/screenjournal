@@ -615,7 +615,7 @@ var templatesFS embed.FS
 
 func makeTemplate(templateFilename string, funcMap template.FuncMap) *template.Template {
 	return template.Must(
-		template.New(templateFilename).Funcs(funcMap).ParseFS(
+		template.New("base.html").Funcs(funcMap).ParseFS(
 			templatesFS,
 			"templates/layouts/base.html",
 			"templates/custom-elements/*.html",

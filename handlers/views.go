@@ -440,7 +440,11 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 }
 
 func (s Server) invitesGet() http.HandlerFunc {
-	t := makePageTemplate("invites.html", template.FuncMap{})
+	t := template.Must(
+		template.New("base.html").ParseFS(
+			templatesFS,
+			"templates/layouts/base.html",
+			"templates/pages/invites.html"))
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		invites, err := s.getDB(r).ReadSignupInvitations()
@@ -624,7 +628,6 @@ func makePageTemplate(pageFilename string, funcMap template.FuncMap) *template.T
 			"templates/layouts/base.html",
 			"templates/custom-elements/*.html",
 			"templates/fragments/comments/*.html", // TODO: Clean this up.
-			"templates/layouts/*.html",
 			"templates/partials/*.html",
 			path.Join("templates/pages", pageFilename)))
 }

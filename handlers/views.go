@@ -591,7 +591,6 @@ func makeCommonProps(title string, ctx context.Context) commonProps {
 var templatesFS embed.FS
 
 func renderTemplate(w http.ResponseWriter, templateFilename string, templateVars interface{}, funcMap template.FuncMap) error {
-	log.Printf("template filename=%v", templateFilename)
 	t := template.New("base.html").Funcs(funcMap)
 	t = template.Must(
 		t.ParseFS(
@@ -600,12 +599,6 @@ func renderTemplate(w http.ResponseWriter, templateFilename string, templateVars
 			"templates/custom-elements/*.html",
 			"templates/partials/*.html",
 			path.Join("templates/pages", templateFilename)))
-
-	log.Printf("vars=%+v", templateVars)
-	tt := t.Templates()
-	for _, ttemp := range tt {
-		log.Printf("templates=%v", ttemp.Name())
-	}
 
 	return t.Execute(w, templateVars)
 }

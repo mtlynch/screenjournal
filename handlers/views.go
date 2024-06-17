@@ -389,7 +389,7 @@ func (s Server) reviewsDeleteGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsNewGet() http.HandlerFunc {
-	t := makeTemplate("reviews-new", template.FuncMap{
+	t := makeTemplate("reviews-new.html", template.FuncMap{
 		"formatDate": func(t time.Time) string {
 			return t.Format("2006-01-02")
 		},

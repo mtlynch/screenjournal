@@ -591,17 +591,14 @@ func makeCommonProps(title string, ctx context.Context) commonProps {
 var templatesFS embed.FS
 
 func renderTemplate(w http.ResponseWriter, templateFilename string, templateVars interface{}, funcMap template.FuncMap) error {
-	t := template.New(templateFilename).Funcs(funcMap)
+	t := template.New("base.html").Funcs(funcMap)
 	t = template.Must(
 		t.ParseFS(
 			templatesFS,
+			"templates/layouts/base.html",
 			"templates/custom-elements/*.html",
-			"templates/layouts/*.html",
 			"templates/partials/*.html",
 			path.Join("templates/pages", templateFilename)))
 
-	if err := t.ExecuteTemplate(w, "base", templateVars); err != nil {
-		return err
-	}
-	return nil
+	return t.Execute(w, templateVars)
 }

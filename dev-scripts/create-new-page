@@ -44,7 +44,7 @@ cat << EOF > "${page_path}"
   <h1>${page_name}</h1>
 {{ end }}
 
-{{ template "base.html" }}
+
 EOF
 
 echo "created boilerplate page at ${page_path}"

@@ -597,12 +597,13 @@ func renderTemplate(w http.ResponseWriter, templateFilename string, templateVars
 		t.ParseFS(
 			templatesFS,
 			"templates/layouts/base.html",
+			"templates/custom-elements/*.html",
+			"templates/partials/*.html",
 			path.Join("templates/pages", templateFilename)))
 
 	log.Printf("vars=%+v", templateVars)
 	tt := t.Templates()
 	for _, ttemp := range tt {
-
 		log.Printf("templates=%v", ttemp.Name())
 	}
 

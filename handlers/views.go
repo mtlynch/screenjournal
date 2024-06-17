@@ -26,6 +26,7 @@ type commonProps struct {
 }
 
 func (s Server) indexGet() http.HandlerFunc {
+	t := makePageTemplate("index.html", template.FuncMap{})
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Redirect logged in users to the reviews index instead of the landing
 		// page.
@@ -34,11 +35,11 @@ func (s Server) indexGet() http.HandlerFunc {
 			return
 		}
 
-		if err := renderTemplate(w, "index.html", struct {
+		if err := t.Execute(w, struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps("ScreenJournal", r.Context()),
-		}, template.FuncMap{}); err != nil {
+		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -46,12 +47,13 @@ func (s Server) indexGet() http.HandlerFunc {
 }
 
 func (s Server) aboutGet() http.HandlerFunc {
+	t := makePageTemplate("about.html", template.FuncMap{})
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := renderTemplate(w, "about.html", struct {
+		if err := t.Execute(w, struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps("About ScreenJournal", r.Context()),
-		}, template.FuncMap{}); err != nil {
+		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -59,12 +61,13 @@ func (s Server) aboutGet() http.HandlerFunc {
 }
 
 func (s Server) logInGet() http.HandlerFunc {
+	t := makePageTemplate("login.html", template.FuncMap{})
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := renderTemplate(w, "login.html", struct {
+		if err := t.Execute(w, struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps("Log In", r.Context()),
-		}, template.FuncMap{}); err != nil {
+		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -72,9 +75,9 @@ func (s Server) logInGet() http.HandlerFunc {
 }
 
 func (s Server) signUpGet() http.HandlerFunc {
+	noInviteTemplate := makePageTemplate("sign-up.html", template.FuncMap{})
+	byInviteTemplate := makePageTemplate("sign-up-by-invitation.html", template.FuncMap{})
 	return func(w http.ResponseWriter, r *http.Request) {
-		templateFilename := "sign-up.html"
-
 		inviteCode, err := inviteCodeFromQueryParams(r)
 		if err != nil {
 			log.Printf("invalid invite code: %v", err)
@@ -99,8 +102,11 @@ func (s Server) signUpGet() http.HandlerFunc {
 			return
 		}
 
+		var t *template.Template
 		if uc > 0 && invite.Empty() {
-			templateFilename = "sign-up-by-invitation.html"
+			t = byInviteTemplate
+		} else {
+			t = noInviteTemplate
 		}
 
 		var suggestedUsername string
@@ -110,7 +116,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 			suggestedUsername = nonSuggestedCharsPattern.ReplaceAllString(strings.ToLower(firstPart), "")
 		}
 
-		if err := renderTemplate(w, templateFilename, struct {
+		if err := t.Execute(w, struct {
 			commonProps
 			Invitee           screenjournal.Invitee
 			SuggestedUsername string
@@ -118,7 +124,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 			commonProps:       makeCommonProps("Sign Up", r.Context()),
 			Invitee:           invite.Invitee,
 			SuggestedUsername: suggestedUsername,
-		}, template.FuncMap{}); err != nil {
+		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -126,6 +132,44 @@ func (s Server) signUpGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsGet() http.HandlerFunc {
+	t := makePageTemplate("reviews-index.html", template.FuncMap{
+		"relativeWatchDate": relativeWatchDate,
+		"formatWatchDate":   formatWatchDate,
+		"iterate": func(n uint8) []uint8 {
+			var arr []uint8
+			var i uint8
+			for i = 0; i < n; i++ {
+				arr = append(arr, i)
+			}
+			return arr
+		},
+		"elideBlurb": func(b screenjournal.Blurb) string {
+			score := 0
+			var elidedChars []rune
+			for _, c := range b.String() {
+				if c == '\n' {
+					score += 50
+				} else {
+					score += 1
+				}
+				if score > 350 {
+					// Add ellipsis.
+					elidedChars = append(elidedChars, '.', '.', '.')
+					break
+				}
+				elidedChars = append(elidedChars, c)
+			}
+			return string(elidedChars)
+		},
+		"splitByNewline": func(s string) []string {
+			return strings.Split(s, "\n")
+		},
+		"minus": func(a, b uint8) uint8 {
+			return a - b
+		},
+		"posterPathToURL": posterPathToURL,
+	})
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		var collectionOwner *screenjournal.Username
 		queryOptions := []store.ReadReviewsOption{}
@@ -152,7 +196,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			title = fmt.Sprintf("%s's %s", collectionOwner, title)
 		}
 
-		if err := renderTemplate(w, "reviews-index.html", struct {
+		if err := t.Execute(w, struct {
 			commonProps
 			Reviews          []screenjournal.Review
 			SortOrder        screenjournal.SortOrder
@@ -164,42 +208,6 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			SortOrder:        sortOrder,
 			CollectionOwner:  collectionOwner,
 			UserCanAddReview: collectionOwner == nil || collectionOwner.Equal(mustGetUsernameFromContext(r.Context())),
-		}, template.FuncMap{
-			"relativeWatchDate": relativeWatchDate,
-			"formatWatchDate":   formatWatchDate,
-			"iterate": func(n uint8) []uint8 {
-				var arr []uint8
-				var i uint8
-				for i = 0; i < n; i++ {
-					arr = append(arr, i)
-				}
-				return arr
-			},
-			"elideBlurb": func(b screenjournal.Blurb) string {
-				score := 0
-				var elidedChars []rune
-				for _, c := range b.String() {
-					if c == '\n' {
-						score += 50
-					} else {
-						score += 1
-					}
-					if score > 350 {
-						// Add ellipsis.
-						elidedChars = append(elidedChars, '.', '.', '.')
-						break
-					}
-					elidedChars = append(elidedChars, c)
-				}
-				return string(elidedChars)
-			},
-			"splitByNewline": func(s string) []string {
-				return strings.Split(s, "\n")
-			},
-			"minus": func(a, b uint8) uint8 {
-				return a - b
-			},
-			"posterPathToURL": posterPathToURL,
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -209,6 +217,35 @@ func (s Server) reviewsGet() http.HandlerFunc {
 
 func (s Server) moviesReadGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Compute within becasue it requires request context for the username.
+		t := makePageTemplate("movies-view.html", template.FuncMap{
+			"relativeCommentDate": relativeCommentDate,
+			"relativeWatchDate":   relativeWatchDate,
+			"formatReleaseDate": func(t screenjournal.ReleaseDate) string {
+				return t.Time().Format("1/2/2006")
+			},
+			"formatWatchDate":   formatWatchDate,
+			"formatCommentTime": formatIso8601Datetime,
+			"isLoggedInUser": func(u screenjournal.Username) bool {
+				return u.Equal(mustGetUsernameFromContext(r.Context()))
+			},
+			"iterate": func(n uint8) []uint8 {
+				var arr []uint8
+				var i uint8
+				for i = 0; i < n; i++ {
+					arr = append(arr, i)
+				}
+				return arr
+			},
+			"minus": func(a, b uint8) uint8 {
+				return a - b
+			},
+			"splitByNewline": func(s string) []string {
+				return strings.Split(s, "\n")
+			},
+			"posterPathToURL": posterPathToURL,
+		})
+
 		mid, err := movieIDFromRequestPath(r)
 		if err != nil {
 			http.Error(w, "Invalid movie ID", http.StatusBadRequest)
@@ -242,7 +279,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			reviews[i].Comments = cc
 		}
 
-		if err := renderTemplate(w, "movies-view.html", struct {
+		if err := t.Execute(w, struct {
 			commonProps
 			Movie   screenjournal.Movie
 			Reviews []screenjournal.Review
@@ -250,32 +287,6 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			commonProps: makeCommonProps(movie.Title.String(), r.Context()),
 			Movie:       movie,
 			Reviews:     reviews,
-		}, template.FuncMap{
-			"relativeCommentDate": relativeCommentDate,
-			"relativeWatchDate":   relativeWatchDate,
-			"formatReleaseDate": func(t screenjournal.ReleaseDate) string {
-				return t.Time().Format("1/2/2006")
-			},
-			"formatWatchDate":   formatWatchDate,
-			"formatCommentTime": formatIso8601Datetime,
-			"isLoggedInUser": func(u screenjournal.Username) bool {
-				return u.Equal(mustGetUsernameFromContext(r.Context()))
-			},
-			"iterate": func(n uint8) []uint8 {
-				var arr []uint8
-				var i uint8
-				for i = 0; i < n; i++ {
-					arr = append(arr, i)
-				}
-				return arr
-			},
-			"minus": func(a, b uint8) uint8 {
-				return a - b
-			},
-			"splitByNewline": func(s string) []string {
-				return strings.Split(s, "\n")
-			},
-			"posterPathToURL": posterPathToURL,
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -284,6 +295,24 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsEditGet() http.HandlerFunc {
+	t := makePageTemplate("reviews-edit.html", template.FuncMap{
+		"formatWatchDate": formatWatchDate,
+		"iterate": func(n uint8) []uint8 {
+			var arr []uint8
+			var i uint8
+			for i = 0; i < n; i++ {
+				arr = append(arr, i)
+			}
+			return arr
+		},
+		"minus": func(a, b uint8) uint8 {
+			return a - b
+		},
+		"formatDate": func(t time.Time) string {
+			return t.Format("2006-01-02")
+		},
+	})
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := reviewIDFromRequestPath(r)
 		if err != nil {
@@ -307,7 +336,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			return
 		}
 
-		if err := renderTemplate(w, "reviews-edit.html", struct {
+		if err := t.Execute(w, struct {
 			commonProps
 			RatingOptions []int
 			Review        screenjournal.Review
@@ -317,22 +346,6 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			RatingOptions: []int{1, 2, 3, 4, 5},
 			Review:        review,
 			Today:         time.Now(),
-		}, template.FuncMap{
-			"formatWatchDate": formatWatchDate,
-			"iterate": func(n uint8) []uint8 {
-				var arr []uint8
-				var i uint8
-				for i = 0; i < n; i++ {
-					arr = append(arr, i)
-				}
-				return arr
-			},
-			"minus": func(a, b uint8) uint8 {
-				return a - b
-			},
-			"formatDate": func(t time.Time) string {
-				return t.Format("2006-01-02")
-			},
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -341,6 +354,8 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsDeleteGet() http.HandlerFunc {
+	t := makePageTemplate("reviews-delete.html", template.FuncMap{})
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := reviewIDFromRequestPath(r)
 		if err != nil {
@@ -364,13 +379,13 @@ func (s Server) reviewsDeleteGet() http.HandlerFunc {
 			return
 		}
 
-		if err := renderTemplate(w, "reviews-delete.html", struct {
+		if err := t.Execute(w, struct {
 			commonProps
 			Review screenjournal.Review
 		}{
 			commonProps: makeCommonProps("Delete Review", r.Context()),
 			Review:      review,
-		}, template.FuncMap{}); err != nil {
+		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -378,6 +393,11 @@ func (s Server) reviewsDeleteGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsNewGet() http.HandlerFunc {
+	t := makePageTemplate("reviews-new.html", template.FuncMap{
+		"formatDate": func(t time.Time) string {
+			return t.Format("2006-01-02")
+		},
+	})
 	return func(w http.ResponseWriter, r *http.Request) {
 		var mediaTitle string
 		var tmdbID int32
@@ -400,7 +420,7 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 			return
 		}
 
-		if err := renderTemplate(w, "reviews-new.html", struct {
+		if err := t.Execute(w, struct {
 			commonProps
 			MediaTitle    string
 			TmdbID        int32
@@ -412,10 +432,6 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 			TmdbID:        tmdbID,
 			RatingOptions: []int{1, 2, 3, 4, 5},
 			Today:         time.Now(),
-		}, template.FuncMap{
-			"formatDate": func(t time.Time) string {
-				return t.Format("2006-01-02")
-			},
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -424,6 +440,8 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 }
 
 func (s Server) invitesGet() http.HandlerFunc {
+	t := makePageTemplate("invites.html", template.FuncMap{})
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		invites, err := s.getDB(r).ReadSignupInvitations()
 		if err != nil {
@@ -431,13 +449,13 @@ func (s Server) invitesGet() http.HandlerFunc {
 			http.Error(w, "Failed to read signup invitations", http.StatusInternalServerError)
 			return
 		}
-		if err := renderTemplate(w, "invites.html", struct {
+		if err := t.Execute(w, struct {
 			commonProps
 			Invites []screenjournal.SignupInvitation
 		}{
 			commonProps: makeCommonProps("Invites", r.Context()),
 			Invites:     invites,
-		}, template.FuncMap{}); err != nil {
+		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -445,12 +463,13 @@ func (s Server) invitesGet() http.HandlerFunc {
 }
 
 func (s Server) invitesNewGet() http.HandlerFunc {
+	t := makePageTemplate("invites-new.html", template.FuncMap{})
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := renderTemplate(w, "invites-new.html", struct {
+		if err := t.Execute(w, struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps("Create Invite Link", r.Context()),
-		}, template.FuncMap{}); err != nil {
+		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -458,12 +477,14 @@ func (s Server) invitesNewGet() http.HandlerFunc {
 }
 
 func (s Server) accountChangePasswordGet() http.HandlerFunc {
+	t := makePageTemplate("account-change-password.html", template.FuncMap{})
+
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := renderTemplate(w, "account-change-password.html", struct {
+		if err := t.Execute(w, struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps("Change Password", r.Context()),
-		}, template.FuncMap{}); err != nil {
+		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -471,6 +492,8 @@ func (s Server) accountChangePasswordGet() http.HandlerFunc {
 }
 
 func (s Server) accountNotificationsGet() http.HandlerFunc {
+	t := makePageTemplate("account-notifications.html", template.FuncMap{})
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		prefs, err := s.getDB(r).ReadNotificationPreferences(mustGetUsernameFromContext(r.Context()))
 		if err != nil {
@@ -479,7 +502,7 @@ func (s Server) accountNotificationsGet() http.HandlerFunc {
 			return
 		}
 
-		if err := renderTemplate(w, "account-notifications.html", struct {
+		if err := t.Execute(w, struct {
 			commonProps
 			ReceivesReviewNotices     bool
 			ReceivesAllCommentNotices bool
@@ -487,7 +510,7 @@ func (s Server) accountNotificationsGet() http.HandlerFunc {
 			commonProps:               makeCommonProps("Manage Notifications", r.Context()),
 			ReceivesReviewNotices:     prefs.NewReviews,
 			ReceivesAllCommentNotices: prefs.AllNewComments,
-		}, template.FuncMap{}); err != nil {
+		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -495,12 +518,13 @@ func (s Server) accountNotificationsGet() http.HandlerFunc {
 }
 
 func (s Server) accountSecurityGet() http.HandlerFunc {
+	t := makePageTemplate("account-security.html", template.FuncMap{})
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := renderTemplate(w, "account-security.html", struct {
+		if err := t.Execute(w, struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps("Account Security", r.Context()),
-		}, template.FuncMap{}); err != nil {
+		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -593,19 +617,14 @@ func makeCommonProps(title string, ctx context.Context) commonProps {
 //go:embed templates
 var templatesFS embed.FS
 
-func renderTemplate(w http.ResponseWriter, templateFilename string, templateVars interface{}, funcMap template.FuncMap) error {
-	t := template.New(templateFilename).Funcs(funcMap)
-	t = template.Must(
-		t.ParseFS(
+func makePageTemplate(pageFilename string, funcMap template.FuncMap) *template.Template {
+	return template.Must(
+		template.New("base.html").Funcs(funcMap).ParseFS(
 			templatesFS,
+			"templates/layouts/base.html",
 			"templates/custom-elements/*.html",
 			"templates/fragments/comments/*.html", // TODO: Clean this up.
 			"templates/layouts/*.html",
 			"templates/partials/*.html",
-			path.Join("templates/pages", templateFilename)))
-
-	if err := t.ExecuteTemplate(w, "base", templateVars); err != nil {
-		return err
-	}
-	return nil
+			path.Join("templates/pages", pageFilename)))
 }

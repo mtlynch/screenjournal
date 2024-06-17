@@ -1,51 +1,49 @@
-{{ define "base" }}
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="utf-8" />
-      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-      <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-      <title>{{ .Title }}</title>
-      {{ template "style-tags" . }}
-      <link
-        rel="stylesheet"
-        type="text/css"
-        href="/third-party/bootstrap@5.2.2/css/bootstrap.min.css"
-      />
-      <link
-        rel="stylesheet"
-        type="text/css"
-        href="/third-party/fontawesome@6.2.0/css/fontawesome.min.css"
-      />
-      <link
-        rel="stylesheet"
-        type="text/css"
-        href="/third-party/fontawesome@6.2.0/css/regular.min.css"
-      />
-      <link
-        rel="stylesheet"
-        type="text/css"
-        href="/third-party/fontawesome@6.2.0/css/solid.min.css"
-      />
-      <link rel="stylesheet" type="text/css" href="/css/screenjournal.css" />
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>{{ .Title }}</title>
+    {{ template "style-tags" . }}
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="/third-party/bootstrap@5.2.2/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="/third-party/fontawesome@6.2.0/css/fontawesome.min.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="/third-party/fontawesome@6.2.0/css/regular.min.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="/third-party/fontawesome@6.2.0/css/solid.min.css"
+    />
+    <link rel="stylesheet" type="text/css" href="/css/screenjournal.css" />
 
-      {{ template "script-tags" . }}
-      <script src="/js/navbar.js" type="module"></script>
-      <script src="/third-party/bootstrap@5.2.2/js/bootstrap.bundle.min.js"></script>
-      <script src="/third-party/htmx@1.9.12/htmx.min.js"></script>
-    </head>
+    {{ template "script-tags" . }}
+    <script src="/js/navbar.js" type="module"></script>
+    <script src="/third-party/bootstrap@5.2.2/js/bootstrap.bundle.min.js"></script>
+    <script src="/third-party/htmx@1.9.12/htmx.min.js"></script>
+  </head>
 
-    <body>
-      {{ template "custom-elements" . }}
+  <body>
+    {{ template "custom-elements" . }}
 
-      {{ template "navbar.html" . }}
+    {{ template "navbar.html" . }}
 
 
-      <div class="container-md mt-4 content">
-        {{ template "content" . }}
-      </div>
+    <div class="container-md mt-4 content">
+      {{ template "content" . }}
+    </div>
 
-      {{ template "footer.html" . }}
-    </body>
-  </html>
-{{ end }}
+    {{ template "footer.html" . }}
+  </body>
+</html>

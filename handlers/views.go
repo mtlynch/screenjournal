@@ -551,8 +551,7 @@ func (s Server) accountChangePasswordGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").ParseFS(
 			templatesFS,
-			"templates/layouts/base.html",
-			"templates/pages/account-change-password.html"))
+			append(baseTemplates, "templates/pages/account-change-password.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := t.Execute(w, struct {

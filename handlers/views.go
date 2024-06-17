@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"path"
 	"regexp"
 	"strings"
 	"time"
@@ -25,8 +24,22 @@ type commonProps struct {
 	CspNonce         string
 }
 
+//go:embed templates
+var templatesFS embed.FS
+
+var baseTemplates = []string{
+	"templates/layouts/base.html",
+	"templates/partials/footer.html",
+	"templates/partials/navbar.html",
+}
+
 func (s Server) indexGet() http.HandlerFunc {
-	t := makePageTemplate("index.html", template.FuncMap{})
+	t := template.Must(
+		template.New("base.html").
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/index.html")...))
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Redirect logged in users to the reviews index instead of the landing
 		// page.
@@ -47,7 +60,11 @@ func (s Server) indexGet() http.HandlerFunc {
 }
 
 func (s Server) aboutGet() http.HandlerFunc {
-	t := makePageTemplate("about.html", template.FuncMap{})
+	t := template.Must(
+		template.New("base.html").
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/about.html")...))
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := t.Execute(w, struct {
 			commonProps
@@ -61,7 +78,11 @@ func (s Server) aboutGet() http.HandlerFunc {
 }
 
 func (s Server) logInGet() http.HandlerFunc {
-	t := makePageTemplate("login.html", template.FuncMap{})
+	t := template.Must(
+		template.New("base.html").
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/login.html")...))
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := t.Execute(w, struct {
 			commonProps
@@ -75,8 +96,17 @@ func (s Server) logInGet() http.HandlerFunc {
 }
 
 func (s Server) signUpGet() http.HandlerFunc {
-	noInviteTemplate := makePageTemplate("sign-up.html", template.FuncMap{})
-	byInviteTemplate := makePageTemplate("sign-up-by-invitation.html", template.FuncMap{})
+	noInviteTemplate := template.Must(
+		template.New("base.html").
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/sign-up.html")...))
+	byInviteTemplate := template.Must(
+		template.New("base.html").
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/sign-up-by-invitation.html")...))
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		inviteCode, err := inviteCodeFromQueryParams(r)
 		if err != nil {
@@ -132,7 +162,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsGet() http.HandlerFunc {
-	t := makePageTemplate("reviews-index.html", template.FuncMap{
+	fns := template.FuncMap{
 		"relativeWatchDate": relativeWatchDate,
 		"formatWatchDate":   formatWatchDate,
 		"iterate": func(n uint8) []uint8 {
@@ -168,7 +198,14 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			return a - b
 		},
 		"posterPathToURL": posterPathToURL,
-	})
+	}
+
+	t := template.Must(
+		template.New("base.html").
+			Funcs(fns).
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/reviews-index.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var collectionOwner *screenjournal.Username
@@ -216,7 +253,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 }
 
 func (s Server) moviesReadGet() http.HandlerFunc {
-	t := makePageTemplate("movies-view.html", template.FuncMap{
+	fns := template.FuncMap{
 		"relativeCommentDate": relativeCommentDate,
 		"relativeWatchDate":   relativeWatchDate,
 		"formatReleaseDate": func(t screenjournal.ReleaseDate) string {
@@ -239,7 +276,17 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			return strings.Split(s, "\n")
 		},
 		"posterPathToURL": posterPathToURL,
-	})
+	}
+
+	t := template.Must(
+		template.New("base.html").
+			Funcs(fns).
+			ParseFS(
+				templatesFS,
+				append(baseTemplates,
+					"templates/custom-elements/comment-form.html",
+					"templates/custom-elements/delete-comment-form.html",
+					"templates/pages/movies-view.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		mid, err := movieIDFromRequestPath(r)
@@ -291,7 +338,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsEditGet() http.HandlerFunc {
-	t := makePageTemplate("reviews-edit.html", template.FuncMap{
+	fns := template.FuncMap{
 		"formatWatchDate": formatWatchDate,
 		"iterate": func(n uint8) []uint8 {
 			var arr []uint8
@@ -307,7 +354,14 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 		"formatDate": func(t time.Time) string {
 			return t.Format("2006-01-02")
 		},
-	})
+	}
+
+	t := template.Must(
+		template.New("base.html").
+			Funcs(fns).
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/reviews-edit.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := reviewIDFromRequestPath(r)
@@ -350,7 +404,11 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsDeleteGet() http.HandlerFunc {
-	t := makePageTemplate("reviews-delete.html", template.FuncMap{})
+	t := template.Must(
+		template.New("base.html").
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/reviews-delete.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := reviewIDFromRequestPath(r)
@@ -389,11 +447,21 @@ func (s Server) reviewsDeleteGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsNewGet() http.HandlerFunc {
-	t := makePageTemplate("reviews-new.html", template.FuncMap{
+	fns := template.FuncMap{
 		"formatDate": func(t time.Time) string {
 			return t.Format("2006-01-02")
 		},
-	})
+	}
+	t := template.Must(
+		template.New("base.html").
+			Funcs(fns).
+			ParseFS(
+				templatesFS,
+				append(
+					baseTemplates,
+					"templates/custom-elements/title-search.html",
+					"templates/pages/reviews-new.html")...))
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		var mediaTitle string
 		var tmdbID int32
@@ -436,7 +504,10 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 }
 
 func (s Server) invitesGet() http.HandlerFunc {
-	t := makePageTemplate("invites.html", template.FuncMap{})
+	t := template.Must(
+		template.New("base.html").ParseFS(
+			templatesFS,
+			append(baseTemplates, "templates/pages/invites.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		invites, err := s.getDB(r).ReadSignupInvitations()
@@ -459,7 +530,11 @@ func (s Server) invitesGet() http.HandlerFunc {
 }
 
 func (s Server) invitesNewGet() http.HandlerFunc {
-	t := makePageTemplate("invites-new.html", template.FuncMap{})
+	t := template.Must(
+		template.New("base.html").ParseFS(
+			templatesFS,
+			append(baseTemplates, "templates/pages/invites-new.html")...))
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := t.Execute(w, struct {
 			commonProps
@@ -473,7 +548,10 @@ func (s Server) invitesNewGet() http.HandlerFunc {
 }
 
 func (s Server) accountChangePasswordGet() http.HandlerFunc {
-	t := makePageTemplate("account-change-password.html", template.FuncMap{})
+	t := template.Must(
+		template.New("base.html").ParseFS(
+			templatesFS,
+			append(baseTemplates, "templates/pages/account-change-password.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := t.Execute(w, struct {
@@ -488,7 +566,10 @@ func (s Server) accountChangePasswordGet() http.HandlerFunc {
 }
 
 func (s Server) accountNotificationsGet() http.HandlerFunc {
-	t := makePageTemplate("account-notifications.html", template.FuncMap{})
+	t := template.Must(
+		template.New("base.html").ParseFS(
+			templatesFS,
+			append(baseTemplates, "templates/pages/account-notifications.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		prefs, err := s.getDB(r).ReadNotificationPreferences(mustGetUsernameFromContext(r.Context()))
@@ -514,7 +595,11 @@ func (s Server) accountNotificationsGet() http.HandlerFunc {
 }
 
 func (s Server) accountSecurityGet() http.HandlerFunc {
-	t := makePageTemplate("account-security.html", template.FuncMap{})
+	t := template.Must(
+		template.New("base.html").ParseFS(
+			templatesFS,
+			append(baseTemplates, "templates/pages/account-security.html")...))
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := t.Execute(w, struct {
 			commonProps
@@ -608,17 +693,4 @@ func makeCommonProps(title string, ctx context.Context) commonProps {
 		LoggedInUsername: username,
 		CspNonce:         cspNonce(ctx),
 	}
-}
-
-//go:embed templates
-var templatesFS embed.FS
-
-func makePageTemplate(pageFilename string, funcMap template.FuncMap) *template.Template {
-	return template.Must(
-		template.New("base.html").Funcs(funcMap).ParseFS(
-			templatesFS,
-			"templates/layouts/base.html",
-			"templates/custom-elements/*.html",
-			"templates/partials/*.html",
-			path.Join("templates/pages", pageFilename)))
 }

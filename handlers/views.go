@@ -613,12 +613,12 @@ func makeCommonProps(title string, ctx context.Context) commonProps {
 //go:embed templates
 var templatesFS embed.FS
 
-func makePageTemplate(templateFilename string, funcMap template.FuncMap) *template.Template {
+func makePageTemplate(pageFilename string, funcMap template.FuncMap) *template.Template {
 	return template.Must(
 		template.New("base.html").Funcs(funcMap).ParseFS(
 			templatesFS,
 			"templates/layouts/base.html",
 			"templates/custom-elements/*.html",
 			"templates/partials/*.html",
-			path.Join("templates/pages", templateFilename)))
+			path.Join("templates/pages", pageFilename)))
 }

@@ -289,7 +289,8 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 				ParseFS(
 					templatesFS,
 					append(baseTemplates,
-						"templates/custom-elements/comment-form.html",
+						"templates/fragments/comments/add.html",
+						"templates/fragments/comments/view.html",
 						"templates/custom-elements/delete-comment-form.html",
 						"templates/pages/movies-view.html")...))
 

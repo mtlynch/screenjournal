@@ -1,6 +1,3 @@
-{{ define "style-tags" }}
-{{ end }}
-
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
     import { makeVisible, makeInvisible } from "/js/lib/bootstrap.js";
@@ -64,9 +61,6 @@
       false
     );
   </script>
-{{ end }}
-
-{{ define "custom-elements" }}
 {{ end }}
 
 {{ define "content" }}

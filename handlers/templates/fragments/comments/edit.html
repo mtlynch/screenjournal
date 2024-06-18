@@ -3,6 +3,7 @@
   hx-target=".comment-thread"
   hx-swap="beforeend"
   hx-reset-on-success
+  data-loading-disable
 >
   <input type="hidden" name="review-id" value="{{ .ID }}" />
   <textarea name="comment" class="form-control my-2" autofocus></textarea>
@@ -13,6 +14,7 @@
       id="cancel-btn"
       class="btn btn-light mx-2"
       hx-get="/api/comments/add?reviewId={{ .ID }}"
+      data-loading-disable
     >
       Cancel
     </button>

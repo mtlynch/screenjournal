@@ -32,6 +32,7 @@
     <script src="/js/navbar.js" type="module"></script>
     <script src="/third-party/bootstrap@5.2.2/js/bootstrap.bundle.min.js"></script>
     <script src="/third-party/htmx@2.0.0/htmx.min.js"></script>
+    <script src="/third-party/htmx-ext-loading-states@2.0.0/loading-states.js"></script>
     <script type="module" nonce="{{ .CspNonce }}">
       htmx.config.selfRequestsOnly = true;
       htmx.config.allowScriptTags = false;
@@ -77,7 +78,10 @@
     {{ template "navbar.html" . }}
 
 
-    <div class="container-md mt-4 content" hx-ext="reset-on-success">
+    <div
+      class="container-md mt-4 content"
+      hx-ext="reset-on-success,loading-states"
+    >
       {{ template "content" . }}
     </div>
 

@@ -499,7 +499,7 @@ func TestCommentsDelete(t *testing.T) {
 					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
 				},
 			},
-			status:           http.StatusOK,
+			status:           http.StatusNoContent,
 			expectedComments: []screenjournal.ReviewComment{},
 		},
 		{

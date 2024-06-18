@@ -33,6 +33,31 @@ var baseTemplates = []string{
 	"templates/partials/navbar.html",
 }
 
+var moviePageFns = template.FuncMap{
+	"relativeCommentDate": relativeCommentDate,
+	"relativeWatchDate":   relativeWatchDate,
+	"formatReleaseDate": func(t screenjournal.ReleaseDate) string {
+		return t.Time().Format("1/2/2006")
+	},
+	"formatWatchDate":   formatWatchDate,
+	"formatCommentTime": formatIso8601Datetime,
+	"iterate": func(n uint8) []uint8 {
+		var arr []uint8
+		var i uint8
+		for i = 0; i < n; i++ {
+			arr = append(arr, i)
+		}
+		return arr
+	},
+	"minus": func(a, b uint8) uint8 {
+		return a - b
+	},
+	"splitByNewline": func(s string) []string {
+		return strings.Split(s, "\n")
+	},
+	"posterPathToURL": posterPathToURL,
+}
+
 func (s Server) indexGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").
@@ -254,38 +279,10 @@ func (s Server) reviewsGet() http.HandlerFunc {
 
 func (s Server) moviesReadGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fns := template.FuncMap{
-			"relativeCommentDate": relativeCommentDate,
-			"relativeWatchDate":   relativeWatchDate,
-			"formatReleaseDate": func(t screenjournal.ReleaseDate) string {
-				return t.Time().Format("1/2/2006")
-			},
-			"formatWatchDate":   formatWatchDate,
-			"formatCommentTime": formatIso8601Datetime,
-			"isLoggedInUser": func(u screenjournal.Username) bool {
-				return u.Equal(mustGetUsernameFromContext(r.Context()))
-			},
-			"iterate": func(n uint8) []uint8 {
-				var arr []uint8
-				var i uint8
-				for i = 0; i < n; i++ {
-					arr = append(arr, i)
-				}
-				return arr
-			},
-			"minus": func(a, b uint8) uint8 {
-				return a - b
-			},
-			"splitByNewline": func(s string) []string {
-				return strings.Split(s, "\n")
-			},
-			"posterPathToURL": posterPathToURL,
-		}
-
 		// Compute within because it requires request context for the username.
 		t := template.Must(
 			template.New("base.html").
-				Funcs(fns).
+				Funcs(moviePageFns).
 				ParseFS(
 					templatesFS,
 					append(baseTemplates, "templates/pages/movies-view.html")...))

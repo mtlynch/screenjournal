@@ -6,7 +6,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
@@ -25,6 +24,9 @@ type commentPutRequest struct {
 }
 
 func (s Server) commentsPost() http.HandlerFunc {
+	t := template.Must(template.New("movies-view.html").
+		Funcs(moviePageFns).
+		ParseFS(templatesFS, "templates/pages/movies-view.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := parseCommentPostRequest(r)
 		if err != nil {
@@ -58,43 +60,6 @@ func (s Server) commentsPost() http.HandlerFunc {
 			return
 		}
 
-		fns := template.FuncMap{
-			"relativeCommentDate": relativeCommentDate,
-			"relativeWatchDate":   relativeWatchDate,
-			"formatReleaseDate": func(t screenjournal.ReleaseDate) string {
-				return t.Time().Format("1/2/2006")
-			},
-			"formatWatchDate":   formatWatchDate,
-			"formatCommentTime": formatIso8601Datetime,
-			"isLoggedInUser": func(u screenjournal.Username) bool {
-				return u.Equal(mustGetUsernameFromContext(r.Context()))
-			},
-			"iterate": func(n uint8) []uint8 {
-				var arr []uint8
-				var i uint8
-				for i = 0; i < n; i++ {
-					arr = append(arr, i)
-				}
-				return arr
-			},
-			"minus": func(a, b uint8) uint8 {
-				return a - b
-			},
-			"splitByNewline": func(s string) []string {
-				return strings.Split(s, "\n")
-			},
-			"posterPathToURL": posterPathToURL,
-		}
-
-		t, err := template.New("movies-view.html").
-			Funcs(fns).
-			ParseFS(templatesFS, "templates/pages/movies-view.html")
-		if err != nil {
-			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("error=%v", err)
-			return
-		}
-
 		if err := t.ExecuteTemplate(w, "comment", rc); err != nil {
 			http.Error(w, "Failed to render template", http.StatusInternalServerError)
 			log.Printf("error=%v", err)
@@ -106,17 +71,13 @@ func (s Server) commentsPost() http.HandlerFunc {
 }
 
 func (s Server) commentsAddGet() http.HandlerFunc {
+	t := template.Must(template.New("movies-view.html").
+		Funcs(moviePageFns).
+		ParseFS(templatesFS, "templates/pages/movies-view.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		reviewID, err := reviewIDFromQueryParams(r)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
-			return
-		}
-
-		t, err := template.ParseFS(templatesFS, "templates/pages/movies-view.html")
-		if err != nil {
-			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("error=%s", err)
 			return
 		}
 
@@ -132,34 +93,61 @@ func (s Server) commentsAddGet() http.HandlerFunc {
 	}
 }
 
-func (s Server) commentsNewGet() http.HandlerFunc {
+func (s Server) commentsEditGet() http.HandlerFunc {
+	t := template.Must(template.ParseFS(templatesFS, "templates/fragments/comments/edit.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		reviewID, err := reviewIDFromQueryParams(r)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
+			log.Printf("error=%v", err)
 			return
 		}
 
-		t, err := template.ParseFS(templatesFS, "templates/fragments/comments/edit.html")
-		if err != nil {
-			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("error=%s", err)
-			return
+		var commentID *screenjournal.CommentID
+		var commentText *screenjournal.CommentText
+		if id, err := commentIDFromQueryParams(r); err == nil {
+			rc, err := s.getDB(r).ReadComment(id)
+			if err == store.ErrCommentNotFound {
+				http.Error(w, "Comment not found", http.StatusNotFound)
+				return
+			} else if err != nil {
+				log.Printf("failed to read comment: %v", err)
+				http.Error(w, fmt.Sprintf("Failed to read comment: %v", err), http.StatusInternalServerError)
+				return
+			}
+			commentID = &rc.ID
+			commentText = &rc.CommentText
+		}
+
+		var cID screenjournal.CommentID
+		if commentID != nil {
+			cID = *commentID
+		}
+		var cText screenjournal.CommentText
+		if commentText != nil {
+			cText = *commentText
 		}
 
 		if err := t.Execute(w, struct {
-			ID screenjournal.ReviewID
+			ReviewID    screenjournal.ReviewID
+			CommentID   screenjournal.CommentID
+			CommentText screenjournal.CommentText
 		}{
-			ID: reviewID,
+			ReviewID:    reviewID,
+			CommentID:   cID,
+			CommentText: cText,
 		}); err != nil {
 			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("error=%s", err)
+			log.Printf("error=%v", err)
 			return
 		}
 	}
 }
 
 func (s Server) commentsPut() http.HandlerFunc {
+	t := template.Must(template.New("movies-view.html").
+		Funcs(moviePageFns).
+		ParseFS(templatesFS, "templates/pages/movies-view.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := parseCommentPutRequest(r)
 		if err != nil {
@@ -186,6 +174,12 @@ func (s Server) commentsPut() http.HandlerFunc {
 		if err := s.getDB(r).UpdateComment(rc); err != nil {
 			log.Printf("failed to update comment: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to update comment: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		if err := t.ExecuteTemplate(w, "comment", rc); err != nil {
+			http.Error(w, "Failed to render template", http.StatusInternalServerError)
+			log.Printf("failed to render: %v", err) // TODO: Better error
 			return
 		}
 	}

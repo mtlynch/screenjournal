@@ -20,7 +20,7 @@ func (s *Server) routes() {
 	authenticatedApis.HandleFunc("/account/notifications", s.accountNotificationsPost()).Methods(http.MethodPost)
 	authenticatedApis.HandleFunc("/comments", s.commentsPost()).Methods(http.MethodPost)
 	authenticatedApis.HandleFunc("/comments/add", s.commentsAddGet()).Methods(http.MethodGet)
-	authenticatedApis.HandleFunc("/comments/new", s.commentsNewGet()).Methods(http.MethodGet)
+	authenticatedApis.HandleFunc("/comments/edit", s.commentsEditGet()).Methods(http.MethodGet)
 	authenticatedApis.HandleFunc("/comments/{commentID}", s.commentsPut()).Methods(http.MethodPut)
 	authenticatedApis.HandleFunc("/comments/{commentID}", s.commentsDelete()).Methods(http.MethodDelete)
 	authenticatedApis.HandleFunc("/search", s.searchGet()).Methods(http.MethodGet)

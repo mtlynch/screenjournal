@@ -32,6 +32,8 @@
 
 {{ define "content" }}
 
+  {{ $liu := .LoggedInUsername }}
+
   {{ with .Movie }}
     <h1>{{ .Title }}</h1>
     <img
@@ -138,9 +140,17 @@
       {{ end }}
     </p>
 
-    {{ if isLoggedInUser .Owner }}
+    <!-- todo: change to canEdit -->
+    {{ if .ID }}
       <div class="mt-3 small">
-        <a href="#" data-sj-purpose="edit">Edit</a>
+        <a
+          href="#"
+          hx-get="/api/comments/edit?reviewId={{ .Review.ID }}&commentId={{ .ID }}"
+          hx-target="#comment{{ .ID }}"
+          hx-swap="outerHTML swap:0.5s"
+          data-sj-purpose="edit"
+          >Edit</a
+        >
         &bull;
         <a
           href="#"

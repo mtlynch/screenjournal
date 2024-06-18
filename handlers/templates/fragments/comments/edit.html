@@ -1,18 +1,20 @@
 <form
-  hx-post="/api/comments"
+  hx-post="/api/comments?commentId={{ .CommentID }}"
   hx-target=".comment-thread"
   hx-swap="beforeend"
   hx-reset-on-success
 >
-  <input type="hidden" name="review-id" value="{{ .ID }}" />
-  <textarea name="comment" class="form-control my-2" autofocus></textarea>
+  <input type="hidden" name="review-id" value="{{ .ReviewID }}" />
+  <textarea name="comment" class="form-control my-2" autofocus>
+{{ .CommentText }}</textarea
+  >
   <div class="d-flex justify-content-start mt-1 flex-row-reverse">
     <input type="submit" id="save-btn" class="btn btn-primary" value="Save" />
     <button
       type="button"
       id="cancel-btn"
       class="btn btn-light mx-2"
-      hx-get="/api/comments/add?reviewId={{ .ID }}"
+      hx-get="/api/comments/add?reviewId={{ .ReviewID }}"
     >
       Cancel
     </button>

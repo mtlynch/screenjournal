@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -34,6 +35,20 @@ var baseTemplates = []string{
 }
 
 var moviePageFns = template.FuncMap{
+	"dict": func(values ...interface{}) (map[string]interface{}, error) {
+		if len(values)%2 != 0 {
+			return nil, errors.New("invalid dict call")
+		}
+		dict := make(map[string]interface{}, len(values)/2)
+		for i := 0; i < len(values); i += 2 {
+			k, ok := values[i].(string)
+			if !ok {
+				return nil, errors.New("dict keys must be strings")
+			}
+			dict[k] = values[i+1]
+		}
+		return dict, nil
+	},
 	"relativeCommentDate": relativeCommentDate,
 	"relativeWatchDate":   relativeWatchDate,
 	"formatReleaseDate": func(t screenjournal.ReleaseDate) string {
@@ -278,15 +293,13 @@ func (s Server) reviewsGet() http.HandlerFunc {
 }
 
 func (s Server) moviesReadGet() http.HandlerFunc {
+	t := template.Must(
+		template.New("base.html").
+			Funcs(moviePageFns).
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/movies-view.html")...))
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Compute within because it requires request context for the username.
-		t := template.Must(
-			template.New("base.html").
-				Funcs(moviePageFns).
-				ParseFS(
-					templatesFS,
-					append(baseTemplates, "templates/pages/movies-view.html")...))
-
 		mid, err := movieIDFromRequestPath(r)
 		if err != nil {
 			http.Error(w, "Invalid movie ID", http.StatusBadRequest)

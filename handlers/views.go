@@ -288,9 +288,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 				Funcs(fns).
 				ParseFS(
 					templatesFS,
-					append(baseTemplates,
-						"templates/custom-elements/delete-comment-form.html",
-						"templates/pages/movies-view.html")...))
+					append(baseTemplates, "templates/pages/movies-view.html")...))
 
 		mid, err := movieIDFromRequestPath(r)
 		if err != nil {

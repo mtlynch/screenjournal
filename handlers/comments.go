@@ -219,6 +219,8 @@ func (s Server) commentsDelete() http.HandlerFunc {
 			http.Error(w, "Failed to delete comment: %v", http.StatusInternalServerError)
 			return
 		}
+
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 

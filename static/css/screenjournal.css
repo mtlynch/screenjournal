@@ -22,3 +22,9 @@ img {
 .content .bg-light {
   background-color: #fafffb !important;
 }
+
+.htmx-swapping .comment,
+.htmx-swapping.comment {
+  opacity: 0;
+  transition: opacity 0.5s ease-out;
+}

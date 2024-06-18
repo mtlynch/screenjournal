@@ -123,7 +123,7 @@
     id="comment{{ .ID }}"
     data-sj-purpose="comment"
     data-comment-id="{{ .ID }}"
-    class="border my-1 p-2"
+    class="comment border my-1 p-2"
   >
     <p class="mb-2">
       <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b>
@@ -142,7 +142,15 @@
       <div class="mt-3 small">
         <a href="#" data-sj-purpose="edit">Edit</a>
         &bull;
-        <a href="#" data-sj-purpose="delete">Delete</a>
+        <a
+          href="#"
+          hx-delete="/api/comments/{{ .ID }}"
+          hx-confirm="Delete this comment?"
+          hx-target="#comment{{ .ID }}"
+          hx-swap="outerHTML swap:0.5s"
+          data-sj-purpose="delete"
+          >Delete</a
+        >
       </div>
     {{ end }}
   </div>

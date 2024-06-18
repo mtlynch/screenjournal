@@ -1,6 +1,3 @@
-{{ define "style-tags" }}
-{{ end }}
-
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
     import { createInvite } from "/js/controllers/invites.js";
@@ -42,9 +39,6 @@
       false
     );
   </script>
-{{ end }}
-
-{{ define "custom-elements" }}
 {{ end }}
 
 {{ define "content" }}

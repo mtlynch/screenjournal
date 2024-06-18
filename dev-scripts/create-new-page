@@ -37,8 +37,7 @@ cat << EOF > "${page_path}"
   </script>
 {{ end }}
 
-{{ define "custom-elements" }}
-{{ end }}
+
 
 {{ define "content" }}
   <h1>${page_name}</h1>

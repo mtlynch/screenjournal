@@ -32,6 +32,37 @@
     <script src="/js/navbar.js" type="module"></script>
     <script src="/third-party/bootstrap@5.2.2/js/bootstrap.bundle.min.js"></script>
     <script src="/third-party/htmx@1.9.12/htmx.min.js"></script>
+    <script type="module" nonce="{{ .CspNonce }}">
+      htmx.config.selfRequestsOnly = true;
+      htmx.config.allowScriptTags = false;
+      htmx.config.allowEval = false;
+
+      // Inspired by https://stackoverflow.com/a/76134033/90388
+      htmx.defineExtension("reset-on-success", {
+        onEvent: function (name, event) {
+          if (name !== "htmx:beforeSwap" || event.detail.isError) {
+            return;
+          }
+
+          const triggeringElt = event.detail.requestConfig.elt;
+          if (
+            !triggeringElt.closest("[hx-reset-on-success]") &&
+            !triggeringElt.closest("[data-hx-reset-on-success]")
+          ) {
+            return;
+          }
+
+          switch (triggeringElt.tagName) {
+            case "TEXTAREA":
+              triggeringElt.value = triggeringElt.defaultValue;
+              break;
+            case "FORM":
+              triggeringElt.reset();
+              break;
+          }
+        },
+      });
+    </script>
   </head>
 
   <body>
@@ -40,7 +71,7 @@
     {{ template "navbar.html" . }}
 
 
-    <div class="container-md mt-4 content">
+    <div class="container-md mt-4 content" hx-ext="reset-on-success">
       {{ template "content" . }}
     </div>
 

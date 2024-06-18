@@ -1,10 +1,11 @@
 <form
   hx-post="/api/comments"
-  hx-target="closest .comment-thread"
+  hx-target=".comment-thread"
   hx-swap="beforeend"
+  hx-reset-on-success
 >
   <input type="hidden" name="review-id" value="{{ .ID }}" />
-  <textarea name="comment" class="form-control my-2"></textarea>
+  <textarea name="comment" class="form-control my-2" autofocus></textarea>
   <div class="d-flex justify-content-start mt-1 flex-row-reverse">
     <input type="submit" id="save-btn" class="btn btn-primary" value="Save" />
     <button

@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"embed"
-	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -35,19 +34,19 @@ var baseTemplates = []string{
 }
 
 var moviePageFns = template.FuncMap{
-	"dict": func(values ...interface{}) (map[string]interface{}, error) {
+	"dict": func(values ...interface{}) map[string]interface{} {
 		if len(values)%2 != 0 {
-			return nil, errors.New("invalid dict call")
+			panic("dict must have an even number of arguments")
 		}
 		dict := make(map[string]interface{}, len(values)/2)
 		for i := 0; i < len(values); i += 2 {
 			k, ok := values[i].(string)
 			if !ok {
-				return nil, errors.New("dict keys must be strings")
+				panic("dict keys must be strings")
 			}
 			dict[k] = values[i+1]
 		}
-		return dict, nil
+		return dict
 	},
 	"relativeCommentDate": relativeCommentDate,
 	"relativeWatchDate":   relativeWatchDate,

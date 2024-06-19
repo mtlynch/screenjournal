@@ -69,7 +69,7 @@ func (s Server) aboutGet() http.HandlerFunc {
 		if err := t.Execute(w, struct {
 			commonProps
 		}{
-			commonProps: makeCommonProps("About ScreenJournal", r.Context()),
+			commonProps: makeCommonProps(r.Context()),
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -681,13 +681,12 @@ func posterPathToURL(pp url.URL) string {
 	return pp.String()
 }
 
-func makeCommonProps(title string, ctx context.Context) commonProps {
+func makeCommonProps(ctx context.Context) commonProps {
 	username, ok := usernameFromContext(ctx)
 	if !ok {
 		username = screenjournal.Username("")
 	}
 	return commonProps{
-		Title:            title,
 		IsAuthenticated:  isAuthenticated(ctx),
 		IsAdmin:          isAdmin(ctx),
 		LoggedInUsername: username,

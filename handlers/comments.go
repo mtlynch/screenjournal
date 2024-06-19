@@ -91,6 +91,8 @@ func (s Server) commentsPut() http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("Failed to update comment: %v", err), http.StatusInternalServerError)
 			return
 		}
+
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 
@@ -122,6 +124,8 @@ func (s Server) commentsDelete() http.HandlerFunc {
 			http.Error(w, "Failed to delete comment: %v", http.StatusInternalServerError)
 			return
 		}
+
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 

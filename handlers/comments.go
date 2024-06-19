@@ -195,6 +195,7 @@ func (s Server) commentsPut() http.HandlerFunc {
 		req, err := parseCommentPutRequest(r)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
+			log.Printf("invalid comments PUT request: %v", err)
 			return
 		}
 
@@ -300,6 +301,8 @@ func parseCommentPutRequest(r *http.Request) (commentPutRequest, error) {
 	if err != nil {
 		return commentPutRequest{}, err
 	}
+
+	log.Printf("raw comment=%v", r.PostFormValue("comment"))
 
 	comment, err := parse.CommentText(r.PostFormValue("comment"))
 	if err != nil {

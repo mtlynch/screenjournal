@@ -9,7 +9,11 @@
   {{ end }}
   hx-swap="outerHTML"
 >
-  <input type="hidden" name="review-id" value="{{ .ReviewID }}" />
+  {{ if not $isEditing }}
+    <input type="hidden" name="review-id" value="{{ .ReviewID }}" />
+  {{ end }}
+
+
   <textarea name="comment" class="form-control my-2" autofocus>
 {{ .CommentText }}</textarea
   >

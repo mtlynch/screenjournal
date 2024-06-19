@@ -2,7 +2,11 @@
 
 
 <form
-  hx-post="/api/comments{{ if $isEditing }}?commentId={{ .CommentID }}{{ end }}"
+  {{ if $isEditing }}
+    hx-put="/api/comments/{{ .CommentID }}"
+  {{ else }}
+    hx-post="/api/comments"
+  {{ end }}
   hx-swap="outerHTML"
 >
   <input type="hidden" name="review-id" value="{{ .ReviewID }}" />

@@ -100,14 +100,10 @@
       </div>
 
       <div class="d-flex flex-column justify-content-start ms-3 w-75">
-        <div class="comment-thread">
-          {{ range .Comments }}
-            {{ template "comment" dict "Comment" . "LoggedInUsername" $loggedInUsername }}
-          {{ end }}
-        </div>
-        <div class="d-flex justify-content-end">
-          {{ template "add-comment-button" . }}
-        </div>
+        {{ range .Comments }}
+          {{ template "comment" dict "Comment" . "LoggedInUsername" $loggedInUsername }}
+        {{ end }}
+        {{ template "add-comment-button" . }}
       </div>
     </div>
   {{ end }}

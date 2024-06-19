@@ -1,7 +1,6 @@
 <form
   hx-post="/api/comments?commentId={{ .CommentID }}"
-  hx-target=".comment-thread"
-  hx-swap="beforeend"
+  hx-swap="outerHTML"
   hx-reset-on-success
 >
   <input type="hidden" name="review-id" value="{{ .ReviewID }}" />

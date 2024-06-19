@@ -15,9 +15,11 @@ import (
 
 type commentPostRequest struct {
 	ReviewID    screenjournal.ReviewID
+	CommentID   *screenjournal.CommentID
 	CommentText screenjournal.CommentText
 }
 
+// TODO: Delete?
 type commentPutRequest struct {
 	CommentID   screenjournal.CommentID
 	CommentText screenjournal.CommentText
@@ -44,23 +46,60 @@ func (s Server) commentsPost() http.HandlerFunc {
 			return
 		}
 
+		var rc screenjournal.ReviewComment
 		now := time.Now()
-		rc := screenjournal.ReviewComment{
-			Review:      review,
-			Owner:       mustGetUsernameFromContext(r.Context()),
-			CommentText: req.CommentText,
-			Created:     now,
-			Modified:    now,
+		if req.CommentID != nil {
+
+			rc, err = s.getDB(r).ReadComment(*req.CommentID)
+			if err == store.ErrCommentNotFound {
+				http.Error(w, "Comment not found", http.StatusNotFound)
+				return
+			} else if err != nil {
+				log.Printf("failed to read comment: %v", err)
+				http.Error(w, fmt.Sprintf("Failed to read comment: %v", err), http.StatusInternalServerError)
+				return
+			}
+
+			if rc.Review, err = s.getDB(r).ReadReview(rc.Review.ID); err != nil {
+				log.Printf("failed to read review %d for comment %d: %v", rc.Review.ID, rc.ID, err)
+				http.Error(w, fmt.Sprintf("Failed to read comment: %v", err), http.StatusInternalServerError)
+				return
+			}
+		} else {
+			rc = screenjournal.ReviewComment{
+				Review:  review,
+				Owner:   mustGetUsernameFromContext(r.Context()),
+				Created: now,
+			}
 		}
 
-		rc.ID, err = s.getDB(r).InsertComment(rc)
+		rc.CommentText = req.CommentText
+		rc.Modified = now
+
+		var dbFn func(screenjournal.ReviewComment) (screenjournal.CommentID, error)
+
+		if req.CommentID == nil {
+			dbFn = s.getDB(r).InsertComment
+		} else {
+			dbFn = func(rc screenjournal.ReviewComment) (screenjournal.CommentID, error) {
+				return rc.ID, s.getDB(r).UpdateComment(rc)
+			}
+		}
+
+		rc.ID, err = dbFn(rc)
 		if err != nil {
 			log.Printf("failed to save comment: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to save comment: %v", err), http.StatusInternalServerError)
 			return
 		}
 
-		if err := t.ExecuteTemplate(w, "comment", rc); err != nil {
+		if err := t.ExecuteTemplate(w, "comment", struct {
+			Comment          screenjournal.ReviewComment
+			LoggedInUsername screenjournal.Username
+		}{
+			Comment:          rc,
+			LoggedInUsername: mustGetUsernameFromContext(r.Context()),
+		}); err != nil {
 			http.Error(w, "Failed to render template", http.StatusInternalServerError)
 			log.Printf("error=%v", err)
 			return
@@ -229,6 +268,11 @@ func parseCommentPostRequest(r *http.Request) (commentPostRequest, error) {
 		return commentPostRequest{}, err
 	}
 
+	var pCid *screenjournal.CommentID
+	if cid, err := commentIDFromQueryParams(r); err == nil {
+		pCid = &cid
+	}
+
 	comment, err := parse.CommentText(r.PostFormValue("comment"))
 	if err != nil {
 		return commentPostRequest{}, err
@@ -236,6 +280,7 @@ func parseCommentPostRequest(r *http.Request) (commentPostRequest, error) {
 
 	return commentPostRequest{
 		ReviewID:    rid,
+		CommentID:   pCid,
 		CommentText: comment,
 	}, nil
 }

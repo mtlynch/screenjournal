@@ -18,6 +18,7 @@ func (s Store) ReadComments(rid screenjournal.ReviewID) ([]screenjournal.ReviewC
 	rows, err := s.ctx.Query(`
 	SELECT
 		id,
+		review_id,
 		comment_owner,
 		comment_text,
 		created_time,
@@ -52,6 +53,7 @@ func (s Store) ReadComment(cid screenjournal.CommentID) (screenjournal.ReviewCom
 	row := s.ctx.QueryRow(`
 	SELECT
 		id,
+		review_id,
 		comment_owner,
 		comment_text,
 		created_time,
@@ -131,12 +133,13 @@ func (s Store) DeleteComment(cid screenjournal.CommentID) error {
 
 func reviewCommentFromRow(row rowScanner) (screenjournal.ReviewComment, error) {
 	var id int
+	var reviewId int
 	var owner string
 	var comment string
 	var createdTimeRaw string
 	var lastModifiedTimeRaw string
 
-	err := row.Scan(&id, &owner, &comment, &createdTimeRaw, &lastModifiedTimeRaw)
+	err := row.Scan(&id, &reviewId, &owner, &comment, &createdTimeRaw, &lastModifiedTimeRaw)
 	if err == sql.ErrNoRows {
 		return screenjournal.ReviewComment{}, store.ErrCommentNotFound
 	} else if err != nil {
@@ -154,7 +157,10 @@ func reviewCommentFromRow(row rowScanner) (screenjournal.ReviewComment, error) {
 	}
 
 	return screenjournal.ReviewComment{
-		ID:          screenjournal.CommentID(id),
+		ID: screenjournal.CommentID(id),
+		Review: screenjournal.Review{
+			ID: screenjournal.ReviewID(reviewId),
+		},
 		Owner:       screenjournal.Username(owner),
 		CommentText: screenjournal.CommentText(comment),
 		Created:     ct,

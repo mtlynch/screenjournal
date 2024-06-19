@@ -4,7 +4,6 @@
 <form
   hx-post="/api/comments{{ if $isEditing }}?commentId={{ .CommentID }}{{ end }}"
   hx-swap="outerHTML"
-  hx-reset-on-success
 >
   <input type="hidden" name="review-id" value="{{ .ReviewID }}" />
   <textarea name="comment" class="form-control my-2" autofocus>

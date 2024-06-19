@@ -164,7 +164,6 @@ jobs:
       # time being.
       # https://github.com/superfly/flyctl/issues/394#issuecomment-815890166
       FLYCTL_VERSION: "latest"
-      FLY_REGION: "ewr"
     steps:
       - checkout
       - run:
@@ -178,8 +177,7 @@ jobs:
           name: Deploy to fly.io
           command: |
             "${HOME}/.fly/bin/flyctl" deploy \
-              --access-token "${FLY_ACCESS_TOKEN}" \
-              --region "${FLY_REGION}"
+              --access-token "${FLY_ACCESS_TOKEN}"
 workflows:
   version: 2
   test_deploy:

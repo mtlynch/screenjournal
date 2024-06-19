@@ -29,9 +29,20 @@
 {{ end }}
 
 {{ define "script-tags" }}
-{{ end }}
+  <script type="module" nonce="{{ .CspNonce }}">
+    function is2xxCode(status) {
+      return (status / 100) * 100 === 200;
+    }
 
-{{ define "custom-elements" }}
+    document.body.addEventListener("htmx:beforeSwap", function (evt) {
+      if (is2xxCode(evt.detail.xhr.status)) {
+        return;
+      }
+      const alertEl = evt.detail.target.querySelector(".alert");
+      alertEl.innerText = evt.detail.xhr.responseText;
+      alertEl.hidden = false;
+    });
+  </script>
 {{ end }}
 
 {{ define "content" }}

@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -153,15 +152,10 @@ func (s Server) commentsPost() http.HandlerFunc {
 			return
 		}
 
-		var rc screenjournal.ReviewComment
-		now := time.Now()
-
-		rc = screenjournal.ReviewComment{
+		rc := screenjournal.ReviewComment{
 			Review:      review,
 			Owner:       mustGetUsernameFromContext(r.Context()),
 			CommentText: req.CommentText,
-			Created:     now,
-			Modified:    now,
 		}
 
 		rc.ID, err = s.getDB(r).InsertComment(rc)

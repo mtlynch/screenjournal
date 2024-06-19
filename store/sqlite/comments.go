@@ -70,6 +70,8 @@ func (s Store) ReadComment(cid screenjournal.CommentID) (screenjournal.ReviewCom
 func (s Store) InsertComment(rc screenjournal.ReviewComment) (screenjournal.CommentID, error) {
 	log.Printf("inserting new comment from %v on %v's review of %s", rc.Owner, rc.Review.Owner, rc.Review.Movie.Title)
 
+	now := time.Now()
+
 	res, err := s.ctx.Exec(`
 	INSERT INTO
 		review_comments
@@ -87,8 +89,8 @@ func (s Store) InsertComment(rc screenjournal.ReviewComment) (screenjournal.Comm
 		rc.Review.ID,
 		rc.Owner,
 		rc.CommentText,
-		formatTime(rc.Created),
-		formatTime(rc.Modified))
+		formatTime(now),
+		formatTime(now))
 	if err != nil {
 		return screenjournal.CommentID(0), err
 	}

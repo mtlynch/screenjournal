@@ -51,7 +51,7 @@ func (s Server) indexGet() http.HandlerFunc {
 		if err := t.Execute(w, struct {
 			commonProps
 		}{
-			commonProps: makeCommonProps("ScreenJournal", r.Context()),
+			commonProps: makeCommonProps(r.Context()),
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -69,7 +69,7 @@ func (s Server) aboutGet() http.HandlerFunc {
 		if err := t.Execute(w, struct {
 			commonProps
 		}{
-			commonProps: makeCommonProps("About ScreenJournal", r.Context()),
+			commonProps: makeCommonProps(r.Context()),
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -87,7 +87,7 @@ func (s Server) logInGet() http.HandlerFunc {
 		if err := t.Execute(w, struct {
 			commonProps
 		}{
-			commonProps: makeCommonProps("Log In", r.Context()),
+			commonProps: makeCommonProps(r.Context()),
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -151,7 +151,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 			Invitee           screenjournal.Invitee
 			SuggestedUsername string
 		}{
-			commonProps:       makeCommonProps("Sign Up", r.Context()),
+			commonProps:       makeCommonProps(r.Context()),
 			Invitee:           invite.Invitee,
 			SuggestedUsername: suggestedUsername,
 		}); err != nil {
@@ -235,12 +235,14 @@ func (s Server) reviewsGet() http.HandlerFunc {
 
 		if err := t.Execute(w, struct {
 			commonProps
+			Title            string
 			Reviews          []screenjournal.Review
 			SortOrder        screenjournal.SortOrder
 			CollectionOwner  *screenjournal.Username
 			UserCanAddReview bool
 		}{
-			commonProps:      makeCommonProps(title, r.Context()),
+			commonProps:      makeCommonProps(r.Context()),
+			Title:            title,
 			Reviews:          reviews,
 			SortOrder:        sortOrder,
 			CollectionOwner:  collectionOwner,
@@ -327,7 +329,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			Movie   screenjournal.Movie
 			Reviews []screenjournal.Review
 		}{
-			commonProps: makeCommonProps(movie.Title.String(), r.Context()),
+			commonProps: makeCommonProps(r.Context()),
 			Movie:       movie,
 			Reviews:     reviews,
 		}); err != nil {
@@ -392,7 +394,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			Review        screenjournal.Review
 			Today         time.Time
 		}{
-			commonProps:   makeCommonProps("Edit Review", r.Context()),
+			commonProps:   makeCommonProps(r.Context()),
 			RatingOptions: []int{1, 2, 3, 4, 5},
 			Review:        review,
 			Today:         time.Now(),
@@ -437,7 +439,7 @@ func (s Server) reviewsDeleteGet() http.HandlerFunc {
 			commonProps
 			Review screenjournal.Review
 		}{
-			commonProps: makeCommonProps("Delete Review", r.Context()),
+			commonProps: makeCommonProps(r.Context()),
 			Review:      review,
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -491,7 +493,7 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 			RatingOptions []int
 			Today         time.Time
 		}{
-			commonProps:   makeCommonProps("Add Review", r.Context()),
+			commonProps:   makeCommonProps(r.Context()),
 			MediaTitle:    mediaTitle,
 			TmdbID:        tmdbID,
 			RatingOptions: []int{1, 2, 3, 4, 5},
@@ -520,7 +522,7 @@ func (s Server) invitesGet() http.HandlerFunc {
 			commonProps
 			Invites []screenjournal.SignupInvitation
 		}{
-			commonProps: makeCommonProps("Invites", r.Context()),
+			commonProps: makeCommonProps(r.Context()),
 			Invites:     invites,
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -539,7 +541,7 @@ func (s Server) invitesNewGet() http.HandlerFunc {
 		if err := t.Execute(w, struct {
 			commonProps
 		}{
-			commonProps: makeCommonProps("Create Invite Link", r.Context()),
+			commonProps: makeCommonProps(r.Context()),
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -557,7 +559,7 @@ func (s Server) accountChangePasswordGet() http.HandlerFunc {
 		if err := t.Execute(w, struct {
 			commonProps
 		}{
-			commonProps: makeCommonProps("Change Password", r.Context()),
+			commonProps: makeCommonProps(r.Context()),
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -584,7 +586,7 @@ func (s Server) accountNotificationsGet() http.HandlerFunc {
 			ReceivesReviewNotices     bool
 			ReceivesAllCommentNotices bool
 		}{
-			commonProps:               makeCommonProps("Manage Notifications", r.Context()),
+			commonProps:               makeCommonProps(r.Context()),
 			ReceivesReviewNotices:     prefs.NewReviews,
 			ReceivesAllCommentNotices: prefs.AllNewComments,
 		}); err != nil {
@@ -604,7 +606,7 @@ func (s Server) accountSecurityGet() http.HandlerFunc {
 		if err := t.Execute(w, struct {
 			commonProps
 		}{
-			commonProps: makeCommonProps("Account Security", r.Context()),
+			commonProps: makeCommonProps(r.Context()),
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -681,13 +683,12 @@ func posterPathToURL(pp url.URL) string {
 	return pp.String()
 }
 
-func makeCommonProps(title string, ctx context.Context) commonProps {
+func makeCommonProps(ctx context.Context) commonProps {
 	username, ok := usernameFromContext(ctx)
 	if !ok {
 		username = screenjournal.Username("")
 	}
 	return commonProps{
-		Title:            title,
 		IsAuthenticated:  isAuthenticated(ctx),
 		IsAdmin:          isAdmin(ctx),
 		LoggedInUsername: username,

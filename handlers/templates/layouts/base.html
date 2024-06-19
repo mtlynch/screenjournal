@@ -4,8 +4,8 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>{{ .Title }}</title>
-    {{ template "style-tags" . }}
+    <title>{{ block "title" . }}ScreenJournal{{ end }}</title>
+    {{ block "style-tags" . }}{{ end }}
     <link
       rel="stylesheet"
       type="text/css"
@@ -28,7 +28,7 @@
     />
     <link rel="stylesheet" type="text/css" href="/css/screenjournal.css" />
 
-    {{ template "script-tags" . }}
+    {{ block "script-tags" . }}{{ end }}
     <script src="/js/navbar.js" type="module"></script>
     <script src="/third-party/bootstrap@5.2.2/js/bootstrap.bundle.min.js"></script>
     <script src="/third-party/htmx@2.0.0/htmx.min.js"></script>
@@ -38,7 +38,7 @@
   </head>
 
   <body>
-    {{ template "custom-elements" . }}
+    {{ block "custom-elements" . }}{{ end }}
 
     {{ template "navbar.html" . }}
 
@@ -50,12 +50,3 @@
     {{ template "footer.html" . }}
   </body>
 </html>
-
-{{ define "style-tags" }}
-{{ end }}
-
-{{ define "script-tags" }}
-{{ end }}
-
-{{ define "custom-elements" }}
-{{ end }}

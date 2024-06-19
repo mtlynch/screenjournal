@@ -183,6 +183,41 @@ func (s Server) commentsEditGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) commentsGet() http.HandlerFunc {
+	t := template.Must(template.New("movies-view.html").
+		Funcs(moviePageFns).
+		ParseFS(templatesFS, "templates/pages/movies-view.html"))
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := commentIDFromRequestPath(r)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
+			return
+		}
+
+		rc, err := s.getDB(r).ReadComment(id)
+		if err == store.ErrCommentNotFound {
+			http.Error(w, "Comment not found", http.StatusNotFound)
+			return
+		} else if err != nil {
+			log.Printf("failed to read comment: %v", err)
+			http.Error(w, fmt.Sprintf("Failed to read comment: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		if err := t.ExecuteTemplate(w, "comment", struct {
+			Comment          screenjournal.ReviewComment
+			LoggedInUsername screenjournal.Username
+		}{
+			Comment:          rc,
+			LoggedInUsername: mustGetUsernameFromContext(r.Context()),
+		}); err != nil {
+			http.Error(w, "Failed to render template", http.StatusInternalServerError)
+			log.Printf("failed to render: %v", err) // TODO: Better error
+			return
+		}
+	}
+}
+
 func (s Server) commentsPut() http.HandlerFunc {
 	t := template.Must(template.New("movies-view.html").
 		Funcs(moviePageFns).

@@ -1,5 +1,8 @@
+{{ $isEditing := ne .CommentID 0 }}
+
+
 <form
-  hx-post="/api/comments?commentId={{ .CommentID }}"
+  hx-post="/api/comments{{ if $isEditing }}?commentId={{ .CommentID }}{{ end }}"
   hx-swap="outerHTML"
   hx-reset-on-success
 >
@@ -13,7 +16,12 @@
       type="button"
       id="cancel-btn"
       class="btn btn-light mx-2"
-      hx-get="/api/comments/add?reviewId={{ .ReviewID }}"
+      {{ if $isEditing }}
+        hx-get="/api/comments/{{ .CommentID }}"
+      {{ else }}
+        hx-get="/api/comments/add?reviewId={{ .ReviewID }}"
+      {{ end }}
+      hx-target="closest form"
     >
       Cancel
     </button>

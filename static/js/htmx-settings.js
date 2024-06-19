@@ -1,3 +1,5 @@
+/* global htmx */
+
 htmx.config.selfRequestsOnly = true;
 htmx.config.allowScriptTags = false;
 htmx.config.allowEval = false;

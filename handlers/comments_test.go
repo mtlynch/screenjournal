@@ -233,8 +233,8 @@ func TestCommentsPost(t *testing.T) {
 				t.Fatalf("commentCountAnnounced=%d, want=%d", got, want)
 			}
 
-			clearUnpredictableReviewProperties(&announcer.announcedComments[0].Review)
-			clearUnpredictableReviewProperties(&tt.expectedComments[0].Review)
+			clearUnpredictableCommentProperties(&announcer.announcedComments[0])
+			clearUnpredictableCommentProperties(&tt.expectedComments[0])
 			if !reflect.DeepEqual(announcer.announcedComments, tt.expectedComments) {
 				t.Errorf("did not find expected announced comments: %v", deep.Equal(announcer.announcedComments, tt.expectedComments))
 			}
@@ -623,4 +623,10 @@ func reviewCommentsEqual(a, b []screenjournal.ReviewComment) bool {
 	}
 
 	return reflect.DeepEqual(a, b)
+}
+
+func clearUnpredictableCommentProperties(c *screenjournal.ReviewComment) {
+	c.Created = time.Time{}
+	c.Modified = time.Time{}
+	clearUnpredictableReviewProperties(&c.Review)
 }

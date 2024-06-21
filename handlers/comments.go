@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -164,6 +165,7 @@ func (s Server) commentsPost() http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("Failed to save comment: %v", err), http.StatusInternalServerError)
 			return
 		}
+		rc.Created = time.Now()
 
 		if err := t.ExecuteTemplate(w, "comment", struct {
 			Comment          screenjournal.ReviewComment

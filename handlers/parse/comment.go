@@ -30,25 +30,24 @@ func CommentID(raw string) (screenjournal.CommentID, error) {
 	return screenjournal.CommentID(id), nil
 }
 
-func CommentText(comment string) (screenjournal.CommentText, error) {
-	if strings.TrimSpace(comment) != comment {
+func CommentText(raw string) (screenjournal.CommentText, error) {
+	if len(raw) > commentMaxLength {
 		return screenjournal.CommentText(""), ErrInvalidComment
 	}
 
-	if len(comment) > commentMaxLength {
-		return screenjournal.CommentText(""), ErrInvalidComment
-	}
+	// Force a new scope so that we can't use the unstripped version.
+	return func(comment string) (screenjournal.CommentText, error) {
+		if isReservedWord(comment) {
+			return screenjournal.CommentText(""), ErrInvalidComment
+		}
+		if len(comment) < 1 {
+			return screenjournal.CommentText(""), ErrInvalidComment
+		}
 
-	if isReservedWord(comment) {
-		return screenjournal.CommentText(""), ErrInvalidComment
-	}
-	if len(comment) < 1 {
-		return screenjournal.CommentText(""), ErrInvalidComment
-	}
+		if scriptTagPattern.FindString(comment) != "" {
+			return screenjournal.CommentText(""), ErrInvalidComment
+		}
 
-	if scriptTagPattern.FindString(comment) != "" {
-		return screenjournal.CommentText(""), ErrInvalidComment
-	}
-
-	return screenjournal.CommentText(comment), nil
+		return screenjournal.CommentText(comment), nil
+	}(strings.TrimSpace(raw))
 }

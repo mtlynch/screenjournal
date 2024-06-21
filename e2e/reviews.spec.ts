@@ -620,27 +620,25 @@ test("removes leading and trailing whitespace from comments", async ({
     .click();
   await expect(page).toHaveURL("/movies/1#review1");
 
-  await page
-    .locator(".review", {
-      has: page.getByText("I love water!"),
-    })
-    .locator(".comment-btn")
-    .click();
+  const reviewDiv = await page.locator(".review", {
+    has: page.getByText("I love water!"),
+  });
+  await reviewDiv.getByRole("button", { name: "Comment" }).click();
+  await expect(reviewDiv.getByRole("textbox")).toBeFocused();
 
   await page.keyboard.press("Enter");
   await page.keyboard.type("Yes, but can you strip my whitespace?");
   await page.keyboard.press("Enter");
   await page.keyboard.press("Tab");
   await page.keyboard.press("Enter");
-  await expect(page).toHaveURL("/movies/1#comment2");
 
-  const reviewDiv = await page.locator("#comment2");
-  await expect(reviewDiv.getByRole("link", { name: "userA" })).toBeVisible();
-  await expect(reviewDiv.getByTestId("relative-time")).toHaveText("just now");
+  const commentDiv = await page.locator("#comment2");
+  await expect(commentDiv.getByRole("link", { name: "userA" })).toBeVisible();
+  await expect(commentDiv.getByTestId("relative-time")).toHaveText("just now");
   await expect(
     // Strip leading whitespace from each line in inner HTML.
     (
-      await reviewDiv.locator("[data-sj-purpose='body']").innerHTML()
+      await commentDiv.locator("[data-sj-purpose='body']").innerHTML()
     ).replace(/^\s+/gm, "")
   ).toEqual(
     `

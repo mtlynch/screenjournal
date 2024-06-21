@@ -106,6 +106,29 @@ func TestCommentsPost(t *testing.T) {
 			},
 		},
 		{
+			description:  "trims leading and trailing whitespce from a review comment",
+			payload:      "review-id=1&comment=%0AYes%2C%20but%20can%20you%20strip%20my%20whitespace%3F%0A",
+			sessionToken: makeCommentsTestData().sessions.userA.token,
+			sessions: []mockSessionEntry{
+				makeCommentsTestData().sessions.userA,
+			},
+			movies: []screenjournal.Movie{
+				makeCommentsTestData().movies.theWaterBoy,
+			},
+			reviews: []screenjournal.Review{
+				makeCommentsTestData().reviews.userBTheWaterBoy,
+			},
+			status: http.StatusOK,
+			expectedComments: []screenjournal.ReviewComment{
+				{
+					ID:          screenjournal.CommentID(1),
+					Owner:       makeCommentsTestData().users.userA.Username,
+					CommentText: screenjournal.CommentText("Yes, but can you strip my whitespace?"),
+					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
+				},
+			},
+		},
+		{
 			description:  "rejects a request without a comment field",
 			payload:      `banana=true`,
 			sessionToken: makeCommentsTestData().sessions.userA.token,

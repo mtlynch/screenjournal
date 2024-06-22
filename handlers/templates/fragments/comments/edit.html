@@ -8,6 +8,9 @@
     hx-post="/api/comments"
   {{ end }}
   hx-swap="outerHTML"
+  data-comment-id="{{ .CommentID }}"
+  {{/* Workaround for https://github.com/bigskysoftware/htmx/issues/2660 */}}
+  hx-disabled-elt="[data-comment-id='{{ .CommentID }}'] textarea, [data-comment-id='{{ .CommentID }}'] .btn"
 >
   {{ if not $isEditing }}
     <input type="hidden" name="review-id" value="{{ .ReviewID }}" />

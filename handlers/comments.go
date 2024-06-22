@@ -165,6 +165,8 @@ func (s Server) commentsPost() http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("Failed to save comment: %v", err), http.StatusInternalServerError)
 			return
 		}
+		// Hack so that when we render the comment in the response, it has roughly
+		// the correct creation time.
 		rc.Created = time.Now()
 
 		if err := t.ExecuteTemplate(w, "comment", struct {
@@ -293,6 +295,7 @@ func parseCommentPostRequest(r *http.Request) (commentPostRequest, error) {
 }
 
 func parseCommentPutRequest(r *http.Request) (commentPutRequest, error) {
+	time.Sleep(time.Second * 3)
 	cid, err := commentIDFromRequestPath(r)
 	if err != nil {
 		return commentPutRequest{}, err

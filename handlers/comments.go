@@ -300,8 +300,6 @@ func parseCommentPutRequest(r *http.Request) (commentPutRequest, error) {
 		return commentPutRequest{}, err
 	}
 
-	log.Printf("raw comment=%v", r.PostFormValue("comment"))
-
 	comment, err := parse.CommentText(r.PostFormValue("comment"))
 	if err != nil {
 		return commentPutRequest{}, err

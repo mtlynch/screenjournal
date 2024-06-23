@@ -507,10 +507,10 @@ test("adds a comment to an existing review", async ({ page }) => {
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL("/movies/1#comment2");
 
-  const reviewDiv = await page.locator("#comment2");
-  await expect(reviewDiv.getByRole("link", { name: "userA" })).toBeVisible();
-  await expect(reviewDiv.getByTestId("relative-time")).toHaveText("just now");
-  await expect(reviewDiv.locator("[data-sj-purpose='body']")).toHaveText(
+  const commentDiv = await page.locator("#comment2");
+  await expect(commentDiv.getByRole("link", { name: "userA" })).toBeVisible();
+  await expect(commentDiv.getByTestId("relative-time")).toHaveText("just now");
+  await expect(commentDiv.locator("[data-sj-purpose='body']")).toHaveText(
     "I loved it despite my indifference to water."
   );
 });
@@ -638,7 +638,7 @@ What is "movie?"<br>
 
   // Verify comment2 is deleted.
   await expect(page).toHaveURL("/movies/1#review1");
-  await expect(await page.locator("#comment2").count()).toBe(0);
+  await expect(page.locator("#comment2")).toHaveCount(0);
 });
 
 test("removes leading and trailing whitespace from comments", async ({
@@ -664,13 +664,13 @@ test("removes leading and trailing whitespace from comments", async ({
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL("/movies/1#comment2");
 
-  const reviewDiv = await page.locator("#comment2");
-  await expect(reviewDiv.getByRole("link", { name: "userA" })).toBeVisible();
-  await expect(reviewDiv.getByTestId("relative-time")).toHaveText("just now");
+  const commentDiv = await page.locator("#comment2");
+  await expect(commentDiv.getByRole("link", { name: "userA" })).toBeVisible();
+  await expect(commentDiv.getByTestId("relative-time")).toHaveText("just now");
   await expect(
     // Strip leading whitespace from each line in inner HTML.
     (
-      await reviewDiv.locator("[data-sj-purpose='body']").innerHTML()
+      await commentDiv.locator("[data-sj-purpose='body']").innerHTML()
     ).replace(/^\s+/gm, "")
   ).toEqual(
     `

@@ -638,7 +638,7 @@ What is "movie?"<br>
 
   // Verify comment2 is deleted.
   await expect(page).toHaveURL("/movies/1#review1");
-  await expect(await page.locator("#comment2").count()).toBe(0);
+  await expect(page.locator("#comment2")).toHaveCount(0);
 });
 
 test("removes leading and trailing whitespace from comments", async ({

@@ -35,19 +35,18 @@ func CommentText(raw string) (screenjournal.CommentText, error) {
 		return screenjournal.CommentText(""), ErrInvalidComment
 	}
 
-	// Force a new scope so that we can't use the unstripped version.
-	return func(comment string) (screenjournal.CommentText, error) {
-		if isReservedWord(comment) {
-			return screenjournal.CommentText(""), ErrInvalidComment
-		}
-		if len(comment) < 1 {
-			return screenjournal.CommentText(""), ErrInvalidComment
-		}
+	comment := strings.TrimSpace(raw)
 
-		if scriptTagPattern.FindString(comment) != "" {
-			return screenjournal.CommentText(""), ErrInvalidComment
-		}
+	if isReservedWord(comment) {
+		return screenjournal.CommentText(""), ErrInvalidComment
+	}
+	if len(comment) < 1 {
+		return screenjournal.CommentText(""), ErrInvalidComment
+	}
 
-		return screenjournal.CommentText(comment), nil
-	}(strings.TrimSpace(raw))
+	if scriptTagPattern.FindString(comment) != "" {
+		return screenjournal.CommentText(""), ErrInvalidComment
+	}
+
+	return screenjournal.CommentText(comment), nil
 }

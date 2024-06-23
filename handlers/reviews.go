@@ -82,6 +82,8 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("Failed to update review: %v", err), http.StatusInternalServerError)
 			return
 		}
+
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 

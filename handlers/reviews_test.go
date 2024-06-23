@@ -303,7 +303,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 
 			rr, err := dataStore.ReadReviews()
 			if err != nil {
-				t.Fatalf("%s: failed to retrieve review from datastore: %v", tt.description, err)
+				t.Fatalf("failed to retrieve review from datastore: %v", err)
 			}
 
 			if got, want := len(rr), 1; got != want {
@@ -595,13 +595,12 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			s.Router().ServeHTTP(w, req)
 
 			if got, want := w.Code, http.StatusNoContent; got != want {
-				t.Fatalf("%s: handler returned wrong status code: got %v want %v",
-					tt.description, got, want)
+				t.Fatalf("handler returned wrong status code: got %v want %v", got, want)
 			}
 
 			rr, err := dataStore.ReadReviews()
 			if err != nil {
-				t.Fatalf("%s: failed to retrieve review from datastore: %v", tt.description, err)
+				t.Fatalf("failed to retrieve review from datastore: %v", err)
 			}
 
 			if got, want := len(rr), 1; got != want {

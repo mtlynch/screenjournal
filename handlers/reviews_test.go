@@ -303,7 +303,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 
 			rr, err := dataStore.ReadReviews()
 			if err != nil {
-				t.Fatalf("%s: failed to retrieve review from datastore: %v", tt.description, err)
+				t.Fatalf("failed to retrieve review from datastore: %v", err)
 			}
 
 			if got, want := len(rr), 1; got != want {
@@ -600,7 +600,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 
 			rr, err := dataStore.ReadReviews()
 			if err != nil {
-				t.Fatalf("%s: failed to retrieve review from datastore: %v", tt.description, err)
+				t.Fatalf("failed to retrieve review from datastore: %v", err)
 			}
 
 			if got, want := len(rr), 1; got != want {

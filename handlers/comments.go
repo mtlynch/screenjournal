@@ -295,7 +295,6 @@ func parseCommentPostRequest(r *http.Request) (commentPostRequest, error) {
 }
 
 func parseCommentPutRequest(r *http.Request) (commentPutRequest, error) {
-	time.Sleep(time.Second * 3)
 	cid, err := commentIDFromRequestPath(r)
 	if err != nil {
 		return commentPutRequest{}, err

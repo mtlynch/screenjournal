@@ -47,7 +47,7 @@ func (s Server) commentsAddGet() http.HandlerFunc {
 }
 
 func (s Server) commentsEditGet() http.HandlerFunc {
-	t := template.Must(template.ParseFS(templatesFS, "templates/fragments/comments/edit.html"))
+	t := template.Must(template.ParseFS(templatesFS, "templates/fragments/comments-edit.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		reviewID, err := reviewIDFromQueryParams(r)
 		if err != nil {

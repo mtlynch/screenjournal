@@ -40,7 +40,7 @@ func (s Server) commentsAddGet() http.HandlerFunc {
 			ID: reviewID,
 		}); err != nil {
 			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("failed to get add form: %v", err)
+			log.Printf("failed to render add comment button: %v", err)
 			return
 		}
 	}
@@ -52,12 +52,12 @@ func (s Server) commentsEditGet() http.HandlerFunc {
 		reviewID, err := reviewIDFromQueryParams(r)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
-			log.Printf("error=%v", err)
 			return
 		}
 
-		var commentID *screenjournal.CommentID
-		var commentText *screenjournal.CommentText
+		// Get the existing comment, if one exists.
+		var pCommentID *screenjournal.CommentID
+		var pCommentText *screenjournal.CommentText
 		if id, err := commentIDFromQueryParams(r); err == nil {
 			rc, err := s.getDB(r).ReadComment(id)
 			if err == store.ErrCommentNotFound {
@@ -68,17 +68,17 @@ func (s Server) commentsEditGet() http.HandlerFunc {
 				http.Error(w, fmt.Sprintf("Failed to read comment: %v", err), http.StatusInternalServerError)
 				return
 			}
-			commentID = &rc.ID
-			commentText = &rc.CommentText
+			pCommentID = &rc.ID
+			pCommentText = &rc.CommentText
 		}
 
-		var cID screenjournal.CommentID
-		if commentID != nil {
-			cID = *commentID
+		var commentID screenjournal.CommentID
+		if pCommentID != nil {
+			commentID = *pCommentID
 		}
-		var cText screenjournal.CommentText
-		if commentText != nil {
-			cText = *commentText
+		var commentText screenjournal.CommentText
+		if pCommentText != nil {
+			commentText = *pCommentText
 		}
 
 		if err := t.Execute(w, struct {
@@ -87,11 +87,11 @@ func (s Server) commentsEditGet() http.HandlerFunc {
 			CommentText screenjournal.CommentText
 		}{
 			ReviewID:    reviewID,
-			CommentID:   cID,
-			CommentText: cText,
+			CommentID:   commentID,
+			CommentText: commentText,
 		}); err != nil {
 			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("error=%v", err)
+			log.Printf("failed to render edit comment template: %v", err)
 			return
 		}
 	}

@@ -35,10 +35,12 @@
     }
 
     document.body.addEventListener("htmx:beforeSwap", function (evt) {
+      const alertEl = evt.detail.target.querySelector(".alert");
+
       if (is2xxCode(evt.detail.xhr.status)) {
+        alertEl.hidden = true;
         return;
       }
-      const alertEl = evt.detail.target.querySelector(".alert");
       alertEl.innerText = evt.detail.xhr.responseText;
       alertEl.hidden = false;
     });

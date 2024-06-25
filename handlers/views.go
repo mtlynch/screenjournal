@@ -343,7 +343,6 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			Movie:       movie,
 			Reviews:     reviews,
 		}); err != nil {
-			log.Printf("failed to render: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

@@ -10,8 +10,12 @@ import (
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-var ErrMoveIDNotProvided = errors.New("no movie ID in query parameters")
-var ErrSortOrderNotProvided = errors.New("no sort order in query parameters")
+var (
+	ErrMoveIDNotProvided    = errors.New("no movie ID in query parameters")
+	ErrReviewIDNotProvided  = errors.New("no review ID in query parameters")
+	ErrSortOrderNotProvided = errors.New("no sort order in query parameters")
+	ErrCommentIDNotProvided = errors.New("no comment ID in query parameters")
+)
 
 func movieIDFromRequestPath(r *http.Request) (screenjournal.MovieID, error) {
 	return parse.MovieIDFromString(mux.Vars(r)["movieID"])
@@ -30,8 +34,26 @@ func reviewIDFromRequestPath(r *http.Request) (screenjournal.ReviewID, error) {
 	return parse.ReviewIDFromString(mux.Vars(r)["reviewID"])
 }
 
+func reviewIDFromQueryParams(r *http.Request) (screenjournal.ReviewID, error) {
+	raw := r.URL.Query().Get("reviewId")
+	if raw == "" {
+		return screenjournal.ReviewID(0), ErrMoveIDNotProvided
+	}
+
+	return parse.ReviewIDFromString(raw)
+}
+
 func commentIDFromRequestPath(r *http.Request) (screenjournal.CommentID, error) {
 	return parse.CommentID(mux.Vars(r)["commentID"])
+}
+
+func commentIDFromQueryParams(r *http.Request) (screenjournal.CommentID, error) {
+	raw := r.URL.Query().Get("commentId")
+	if raw == "" {
+		return screenjournal.CommentID(0), ErrCommentIDNotProvided
+	}
+
+	return parse.CommentID(raw)
 }
 
 func usernameFromRequestPath(r *http.Request) (screenjournal.Username, error) {

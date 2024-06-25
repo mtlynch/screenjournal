@@ -1,0 +1,47 @@
+{{ $isEditing := ne .CommentID 0 }}
+
+
+<form
+  {{ if $isEditing }}
+    hx-put="/api/comments/{{ .CommentID }}"
+  {{ else }}
+    hx-post="/api/comments"
+  {{ end }}
+  hx-swap="outerHTML"
+  data-comment-id="{{ .CommentID }}"
+  {{/* Workaround for https://github.com/bigskysoftware/htmx/issues/2660 */}}
+  hx-disabled-elt="[data-comment-id='{{ .CommentID }}'] textarea, [data-comment-id='{{ .CommentID }}'] .btn"
+>
+  {{ if not $isEditing }}
+    <input type="hidden" name="review-id" value="{{ .ReviewID }}" />
+  {{ end }}
+
+
+  <textarea name="comment" class="form-control my-2" autofocus>
+{{ .CommentText }}</textarea
+  >
+  <div class="alert alert-danger" role="alert" hidden>Placeholder error</div>
+
+  <div class="d-flex justify-content-start mt-1 flex-row-reverse">
+    <input type="submit" id="save-btn" class="btn btn-primary" value="Save" />
+    <button
+      type="button"
+      id="cancel-btn"
+      class="btn btn-light mx-2"
+      {{ if $isEditing }}
+        hx-get="/api/comments/{{ .CommentID }}"
+      {{ else }}
+        hx-get="/api/comments/add?reviewId={{ .ReviewID }}"
+      {{ end }}
+      hx-target="closest form"
+    >
+      Cancel
+    </button>
+
+    <div class="d-flex justify-content-end my-2 htmx-indicator">
+      <div id="submit-spinner" class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  </div>
+</form>

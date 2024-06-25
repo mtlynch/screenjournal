@@ -83,11 +83,8 @@ func TestCommentsPost(t *testing.T) {
 		expectedComments []screenjournal.ReviewComment
 	}{
 		{
-			description: "allows user to comment on an existing review",
-			payload: `{
-					"reviewId": 1,
-					"comment": "Good insights!"
-				}`,
+			description:  "allows user to comment on an existing review",
+			payload:      "review-id=1&comment=Good+insights!",
 			sessionToken: makeCommentsTestData().sessions.userA.token,
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
@@ -109,8 +106,31 @@ func TestCommentsPost(t *testing.T) {
 			},
 		},
 		{
-			description:  "rejects an invalid JSON request",
-			payload:      `{banana`,
+			description:  "trims leading and trailing whitespce from a review comment",
+			payload:      "review-id=1&comment=%0AYes%2C%20but%20can%20you%20strip%20my%20whitespace%3F%0A",
+			sessionToken: makeCommentsTestData().sessions.userA.token,
+			sessions: []mockSessionEntry{
+				makeCommentsTestData().sessions.userA,
+			},
+			movies: []screenjournal.Movie{
+				makeCommentsTestData().movies.theWaterBoy,
+			},
+			reviews: []screenjournal.Review{
+				makeCommentsTestData().reviews.userBTheWaterBoy,
+			},
+			status: http.StatusOK,
+			expectedComments: []screenjournal.ReviewComment{
+				{
+					ID:          screenjournal.CommentID(1),
+					Owner:       makeCommentsTestData().users.userA.Username,
+					CommentText: screenjournal.CommentText("Yes, but can you strip my whitespace?"),
+					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
+				},
+			},
+		},
+		{
+			description:  "rejects a request without a comment field",
+			payload:      `banana=true`,
 			sessionToken: makeCommentsTestData().sessions.userA.token,
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
@@ -124,11 +144,8 @@ func TestCommentsPost(t *testing.T) {
 			status: http.StatusBadRequest,
 		},
 		{
-			description: "rejects a comment with invalid content",
-			payload: `{
-					"reviewId": 1,
-					"comment": "<script>alert(1)</script>"
-				}`,
+			description:  "rejects a comment with invalid content",
+			payload:      "review-id=1&comment=%3Cscript%3Ealert(1)%3C%2Fscript%3E",
 			sessionToken: makeCommentsTestData().sessions.userA.token,
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
@@ -142,11 +159,8 @@ func TestCommentsPost(t *testing.T) {
 			status: http.StatusBadRequest,
 		},
 		{
-			description: "rejects a comment with invalid review ID",
-			payload: `{
-					"reviewId": 0,
-					"comment": "Good insights!"
-				}`,
+			description:  "rejects a comment with invalid review ID",
+			payload:      "review-id=0&comment=Good+insights!",
 			sessionToken: makeCommentsTestData().sessions.userA.token,
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
@@ -160,11 +174,8 @@ func TestCommentsPost(t *testing.T) {
 			status: http.StatusBadRequest,
 		},
 		{
-			description: "returns 404 if user attempts to comment on non-existent review",
-			payload: `{
-					"reviewId": 999,
-					"comment": "Good insights!"
-				}`,
+			description:  "returns 404 if user attempts to comment on non-existent review",
+			payload:      "review-id=999&comment=Good+insights!",
 			sessionToken: makeCommentsTestData().sessions.userA.token,
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
@@ -179,11 +190,8 @@ func TestCommentsPost(t *testing.T) {
 			expectedComments: []screenjournal.ReviewComment{},
 		},
 		{
-			description: "rejects comment update if user is not authenticated",
-			payload: `{
-					"reviewId": 1,
-					"comment": "I haven't logged in, but I'm commenting anyway!"
-				}`,
+			description:  "rejects comment update if user is not authenticated",
+			payload:      "review-id=1&comment=I+haven't+logged+in+but+I'm+commenting+anyway",
 			sessionToken: "dummy-invalid-token",
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
@@ -219,7 +227,7 @@ func TestCommentsPost(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			req.Header.Add("Content-Type", "text/json")
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.AddCookie(&http.Cookie{
 				Name:  mockSessionTokenName,
 				Value: tt.sessionToken,
@@ -248,8 +256,8 @@ func TestCommentsPost(t *testing.T) {
 				t.Fatalf("commentCountAnnounced=%d, want=%d", got, want)
 			}
 
-			clearUnpredictableReviewProperties(&announcer.announcedComments[0].Review)
-			clearUnpredictableReviewProperties(&tt.expectedComments[0].Review)
+			clearUnpredictableCommentProperties(&announcer.announcedComments[0])
+			clearUnpredictableCommentProperties(&tt.expectedComments[0])
 			if !reflect.DeepEqual(announcer.announcedComments, tt.expectedComments) {
 				t.Errorf("did not find expected announced comments: %v", deep.Equal(announcer.announcedComments, tt.expectedComments))
 			}
@@ -269,11 +277,9 @@ func TestCommentsPut(t *testing.T) {
 		expectedComments []screenjournal.ReviewComment
 	}{
 		{
-			description: "allows a user to update their own comment",
-			route:       "/api/comments/1",
-			payload: `{
-					"comment": "So-so insights"
-				}`,
+			description:  "allows a user to update their own comment",
+			route:        "/api/comments/1",
+			payload:      "comment=So-so%20insights",
 			sessionToken: makeCommentsTestData().sessions.userA.token,
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
@@ -286,7 +292,7 @@ func TestCommentsPut(t *testing.T) {
 					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
 				},
 			},
-			status: http.StatusNoContent,
+			status: http.StatusOK,
 			expectedComments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
@@ -297,11 +303,9 @@ func TestCommentsPut(t *testing.T) {
 			},
 		},
 		{
-			description: "prevents a user from updating a non-existent comment",
-			route:       "/api/comments/999",
-			payload: `{
-					"comment": "So-so insights"
-				}`,
+			description:  "prevents a user from updating a non-existent comment",
+			route:        "/api/comments/999",
+			payload:      "comment=So-so%20insights",
 			sessionToken: makeCommentsTestData().sessions.userA.token,
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
@@ -317,9 +321,9 @@ func TestCommentsPut(t *testing.T) {
 			status: http.StatusNotFound,
 		},
 		{
-			description:  "prevents a user from updating with invalid JSON",
+			description:  "prevents a user from updating with missing comment field",
 			route:        "/api/comments/1",
-			payload:      `{banana`,
+			payload:      "review-id=1",
 			sessionToken: makeCommentsTestData().sessions.userA.token,
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
@@ -335,11 +339,9 @@ func TestCommentsPut(t *testing.T) {
 			status: http.StatusBadRequest,
 		},
 		{
-			description: "prevents a user from updating an invalid comment ID",
-			route:       "/api/comments/banana",
-			payload: `{
-					"comment": "So-so insights"
-				}`,
+			description:  "prevents a user from updating an invalid comment ID",
+			route:        "/api/comments/banana",
+			payload:      "comment=So-so%20insights",
 			sessionToken: makeCommentsTestData().sessions.userA.token,
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
@@ -355,11 +357,9 @@ func TestCommentsPut(t *testing.T) {
 			status: http.StatusBadRequest,
 		},
 		{
-			description: "prevents a user from updating their comment with invalid content",
-			route:       "/api/comments/1",
-			payload: `{
-					"comment": "<script>alert(1)</script>"
-				}`,
+			description:  "prevents a user from updating their comment with invalid content",
+			route:        "/api/comments/1",
+			payload:      "comment=%3Cscript%3Ealert(1)%3C%2Fscript%3E",
 			sessionToken: makeCommentsTestData().sessions.userA.token,
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
@@ -375,11 +375,9 @@ func TestCommentsPut(t *testing.T) {
 			status: http.StatusBadRequest,
 		},
 		{
-			description: "prevents a user from updating someone else's comment",
-			route:       "/api/comments/1",
-			payload: `{
-					"comment": "I overwrote your comment!"
-				}`,
+			description:  "prevents a user from updating someone else's comment",
+			route:        "/api/comments/1",
+			payload:      "comment=I%20overwrote%20your%20comment!",
 			sessionToken: makeCommentsTestData().sessions.userB.token,
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userB,
@@ -395,11 +393,9 @@ func TestCommentsPut(t *testing.T) {
 			status: http.StatusForbidden,
 		},
 		{
-			description: "prevents an unauthenticated user from updating any comment",
-			route:       "/api/comments/1",
-			payload: `{
-					"comment": "I overwrote your comment!"
-				}`,
+			description:  "prevents an unauthenticated user from updating any comment",
+			route:        "/api/comments/1",
+			payload:      "comment=I%20overwrote%20your%20comment!",
 			sessionToken: "",
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userB,
@@ -446,7 +442,7 @@ func TestCommentsPut(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			req.Header.Add("Content-Type", "text/json")
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.AddCookie(&http.Cookie{
 				Name:  mockSessionTokenName,
 				Value: tt.sessionToken,
@@ -650,4 +646,10 @@ func reviewCommentsEqual(a, b []screenjournal.ReviewComment) bool {
 	}
 
 	return reflect.DeepEqual(a, b)
+}
+
+func clearUnpredictableCommentProperties(c *screenjournal.ReviewComment) {
+	c.Created = time.Time{}
+	c.Modified = time.Time{}
+	clearUnpredictableReviewProperties(&c.Review)
 }

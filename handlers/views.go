@@ -33,6 +33,45 @@ var baseTemplates = []string{
 	"templates/partials/navbar.html",
 }
 
+var moviePageFns = template.FuncMap{
+	"dict": func(values ...interface{}) map[string]interface{} {
+		if len(values)%2 != 0 {
+			panic("dict must have an even number of arguments")
+		}
+		dict := make(map[string]interface{}, len(values)/2)
+		for i := 0; i < len(values); i += 2 {
+			k, ok := values[i].(string)
+			if !ok {
+				panic("dict keys must be strings")
+			}
+			dict[k] = values[i+1]
+		}
+		return dict
+	},
+	"relativeCommentDate": relativeCommentDate,
+	"relativeWatchDate":   relativeWatchDate,
+	"formatReleaseDate": func(t screenjournal.ReleaseDate) string {
+		return t.Time().Format("1/2/2006")
+	},
+	"formatWatchDate":   formatWatchDate,
+	"formatCommentTime": formatIso8601Datetime,
+	"iterate": func(n uint8) []uint8 {
+		var arr []uint8
+		var i uint8
+		for i = 0; i < n; i++ {
+			arr = append(arr, i)
+		}
+		return arr
+	},
+	"minus": func(a, b uint8) uint8 {
+		return a - b
+	},
+	"splitByNewline": func(s string) []string {
+		return strings.Split(s, "\n")
+	},
+	"posterPathToURL": posterPathToURL,
+}
+
 func (s Server) indexGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").
@@ -255,41 +294,12 @@ func (s Server) reviewsGet() http.HandlerFunc {
 }
 
 func (s Server) moviesReadGet() http.HandlerFunc {
-	fns := template.FuncMap{
-		"relativeCommentDate": relativeCommentDate,
-		"relativeWatchDate":   relativeWatchDate,
-		"formatReleaseDate": func(t screenjournal.ReleaseDate) string {
-			return t.Time().Format("1/2/2006")
-		},
-		"formatWatchDate":   formatWatchDate,
-		"formatCommentTime": formatIso8601Datetime,
-		"iterate": func(n uint8) []uint8 {
-			var arr []uint8
-			var i uint8
-			for i = 0; i < n; i++ {
-				arr = append(arr, i)
-			}
-			return arr
-		},
-		"minus": func(a, b uint8) uint8 {
-			return a - b
-		},
-		"splitByNewline": func(s string) []string {
-			return strings.Split(s, "\n")
-		},
-		"posterPathToURL": posterPathToURL,
-	}
-
 	t := template.Must(
 		template.New("base.html").
-			Funcs(fns).
+			Funcs(moviePageFns).
 			ParseFS(
 				templatesFS,
-				append(baseTemplates,
-					"templates/custom-elements/comment-form.html",
-					"templates/custom-elements/delete-comment-form.html",
-					"templates/pages/movies-view.html")...))
-
+				append(baseTemplates, "templates/pages/movies-view.html")...))
 	return func(w http.ResponseWriter, r *http.Request) {
 		mid, err := movieIDFromRequestPath(r)
 		if err != nil {

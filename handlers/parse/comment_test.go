@@ -74,6 +74,18 @@ func TestCommentText(t *testing.T) {
 			nil,
 		},
 		{
+			"comment with leading spaces is valid",
+			" I thought it was bad.",
+			screenjournal.CommentText("I thought it was bad."),
+			nil,
+		},
+		{
+			"comment with trailing spaces is valid",
+			"I thought it was bad.   ",
+			screenjournal.CommentText("I thought it was bad."),
+			nil,
+		},
+		{
 			"'undefined' as a comment is invalid",
 			"undefined",
 			screenjournal.CommentText(""),
@@ -96,18 +108,6 @@ func TestCommentText(t *testing.T) {
 			"a",
 			screenjournal.CommentText("a"),
 			nil,
-		},
-		{
-			"comment with leading spaces is invalid",
-			" I thought it was bad.",
-			screenjournal.CommentText(""),
-			parse.ErrInvalidComment,
-		},
-		{
-			"comment with trailing spaces is invalid",
-			"I thought it was bad.   ",
-			screenjournal.CommentText(""),
-			parse.ErrInvalidComment,
 		},
 		{
 			"comment with more than 9000 characters is invalid",

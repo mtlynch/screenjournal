@@ -30,14 +30,12 @@ func CommentID(raw string) (screenjournal.CommentID, error) {
 	return screenjournal.CommentID(id), nil
 }
 
-func CommentText(comment string) (screenjournal.CommentText, error) {
-	if strings.TrimSpace(comment) != comment {
+func CommentText(raw string) (screenjournal.CommentText, error) {
+	if len(raw) > commentMaxLength {
 		return screenjournal.CommentText(""), ErrInvalidComment
 	}
 
-	if len(comment) > commentMaxLength {
-		return screenjournal.CommentText(""), ErrInvalidComment
-	}
+	comment := strings.TrimSpace(raw)
 
 	if isReservedWord(comment) {
 		return screenjournal.CommentText(""), ErrInvalidComment

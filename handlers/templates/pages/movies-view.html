@@ -30,123 +30,25 @@
 
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
-    import { hideElement, showElement } from "/js/lib/bootstrap.js";
+    function is2xxCode(status) {
+      return (status / 100) * 100 === 200;
+    }
 
-    document.addEventListener(
-      "DOMContentLoaded",
-      function () {
-        document
-          .querySelectorAll(".comment-thread")
-          .forEach((commentThreadDiv) => {
-            commentThreadDiv
-              .querySelector(".comment-btn")
-              .addEventListener("click", (evt) => {
-                evt.preventDefault();
-                const commentBtn = evt.target;
+    document.body.addEventListener("htmx:beforeSwap", function (evt) {
+      const alertEl = evt.detail.target.querySelector(".alert");
 
-                const commentForm = document.createElement("comment-form");
-                commentForm.setAttribute(
-                  "data-review-id",
-                  evt.target.getAttribute("data-review-id")
-                );
-
-                commentForm.addEventListener("cancel", (evt) => {
-                  evt.target.parentElement.removeChild(evt.target);
-                  showElement(commentBtn);
-                });
-                commentForm.addEventListener("comment-created", (evt) => {
-                  const commentId = evt.detail.commentId;
-                  window.location.hash = "#comment" + commentId;
-                  // We need to reload to re-render the page with the new comment.
-                  window.location.reload();
-                });
-
-                commentThreadDiv.appendChild(commentForm);
-                commentForm.focus();
-
-                hideElement(commentBtn);
-              });
-          });
-
-        document
-          .querySelectorAll("[data-sj-purpose='comment']")
-          .forEach((commentDiv) => {
-            const commentId = parseInt(
-              commentDiv.getAttribute("data-comment-id")
-            );
-
-            const editBtn = commentDiv.querySelector(
-              "[data-sj-purpose='edit']"
-            );
-            if (!editBtn) {
-              return;
-            }
-            editBtn.addEventListener("click", (evt) => {
-              evt.preventDefault();
-
-              const commentEditForm = commentDiv.parentElement.querySelector(
-                `comment-form[data-comment-id="${commentId}"]`
-              );
-
-              commentEditForm.addEventListener("cancel", (evt) => {
-                hideElement(commentEditForm);
-                showElement(commentDiv);
-              });
-              commentEditForm.addEventListener("comment-updated", (evt) => {
-                window.location.hash = "#comment" + commentId;
-                // We need to reload to re-render the page with the updated
-                // comment.
-                window.location.reload();
-              });
-
-              showElement(commentEditForm);
-              commentEditForm.focus();
-              hideElement(commentDiv);
-            });
-
-            const deleteBtn = commentDiv.querySelector(
-              "[data-sj-purpose='delete']"
-            );
-            if (!deleteBtn) {
-              return;
-            }
-            deleteBtn.addEventListener("click", (evt) => {
-              evt.preventDefault();
-
-              const commentDeleteForm = commentDiv.parentElement.querySelector(
-                `delete-comment-form[data-comment-id="${commentId}"]`
-              );
-
-              commentDeleteForm.addEventListener("cancel", (evt) => {
-                commentDiv.classList.remove("bg-danger");
-                hideElement(commentDeleteForm);
-              });
-              commentDeleteForm.addEventListener("delete", (evt) => {
-                const reviewId = parseInt(
-                  commentDiv
-                    .closest("[data-review-id]")
-                    .getAttribute("data-review-id")
-                );
-                document.location.hash = "#review" + reviewId;
-                document.location.reload();
-              });
-
-              showElement(commentDeleteForm);
-              commentDiv.classList.add("bg-danger");
-            });
-          });
-      },
-      false
-    );
+      if (is2xxCode(evt.detail.xhr.status)) {
+        alertEl.hidden = true;
+        return;
+      }
+      alertEl.innerText = evt.detail.xhr.responseText;
+      alertEl.hidden = false;
+    });
   </script>
 {{ end }}
 
-{{ define "custom-elements" }}
-  {{ template "comment-form.html" . }}
-  {{ template "delete-comment-form.html" . }}
-{{ end }}
-
 {{ define "content" }}
+
   {{ $loggedInUsername := .LoggedInUsername }}
 
   {{ with .Movie }}
@@ -210,63 +112,72 @@
         {{ end }}
       </div>
 
-      <div class="d-flex justify-content-start ms-3">
-        <div class="comment-thread w-75">
-          <div>
-            {{ range .Comments }}
-              <div
-                id="comment{{ .ID }}"
-                data-sj-purpose="comment"
-                data-comment-id="{{ .ID }}"
-                class="border my-1 p-2"
-              >
-                <p class="mb-2">
-                  <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b>
-                  &mdash;
-                  <span
-                    data-testid="relative-time"
-                    title="{{ formatCommentTime .Created }}"
-                    >{{ relativeCommentDate .Created }}</span
-                  >
-                </p>
-                <p class="mb-0" data-sj-purpose="body">
-                  {{ range .CommentText.String | splitByNewline }}
-                    {{ . }}<br />
-                  {{ end }}
-                </p>
-
-                {{ if (eq .Owner $loggedInUsername) }}
-                  <div class="mt-3 small">
-                    <a href="#" data-sj-purpose="edit">Edit</a>
-                    &bull;
-                    <a href="#" data-sj-purpose="delete">Delete</a>
-                  </div>
-                {{ end }}
-              </div>
-              {{ if (eq .Owner $loggedInUsername) }}
-                <comment-form
-                  class="d-none"
-                  data-comment-id="{{ .ID }}"
-                  value="{{ .CommentText.String }}"
-                ></comment-form>
-                <delete-comment-form
-                  class="d-none"
-                  data-comment-id="{{ .ID }}"
-                ></delete-comment-form>
-              {{ end }}
-            {{ end }}
-          </div>
-          <div class="d-flex justify-content-end">
-            <button
-              type="button"
-              class="comment-btn btn btn-secondary mt-2"
-              data-review-id="{{ .ID }}"
-            >
-              Comment
-            </button>
-          </div>
-        </div>
+      <div class="d-flex flex-column justify-content-start ms-3 w-75">
+        {{ range .Comments }}
+          {{ template "comment" dict "Comment" . "LoggedInUsername" $loggedInUsername }}
+        {{ end }}
+        {{ template "add-comment-button" . }}
       </div>
+    </div>
+  {{ end }}
+{{ end }}
+
+{{ define "add-comment-button" }}
+  <button
+    type="button"
+    class="btn btn-secondary mt-2"
+    hx-get="/api/comments/edit?reviewId={{ .ID }}"
+    hx-swap="outerHTML"
+  >
+    Comment
+  </button>
+{{ end }}
+
+{{ define "comment" }}
+  {{ $loggedInUsername := .LoggedInUsername }}
+  {{ with .Comment }}
+    <div
+      id="comment{{ .ID }}"
+      data-comment-id="{{ .ID }}"
+      class="comment border my-1 p-2"
+    >
+      <p class="mb-2">
+        <b><a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a></b>
+        &mdash;
+        <span
+          data-testid="relative-time"
+          title="{{ formatCommentTime .Created }}"
+          >{{ relativeCommentDate .Created }}</span
+        >
+      </p>
+      <p class="mb-0" data-sj-purpose="body">
+        {{ range .CommentText.String | splitByNewline }}
+          {{ . }}<br />
+        {{ end }}
+      </p>
+
+      {{ if eq .Owner $loggedInUsername }}
+        <div class="mt-3 small">
+          <a
+            href="#"
+            hx-get="/api/comments/edit?reviewId={{ .Review.ID }}&commentId={{ .ID }}"
+            hx-target="#comment{{ .ID }}"
+            hx-swap="outerHTML swap:0.5s"
+            data-sj-purpose="edit"
+            >Edit</a
+          >
+          &bull;
+          <a
+            href="#"
+            hx-delete="/api/comments/{{ .ID }}"
+            hx-confirm="Delete this comment?"
+            hx-target="#comment{{ .ID }}"
+            hx-swap="outerHTML swap:0.5s"
+            data-sj-purpose="delete"
+            >Delete</a
+          >
+        </div>
+      {{ end }}
     </div>
   {{ end }}
 {{ end }}

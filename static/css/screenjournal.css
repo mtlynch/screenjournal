@@ -22,3 +22,19 @@ img {
 .content .bg-light {
   background-color: #fafffb !important;
 }
+
+.htmx-indicator {
+  opacity: 0;
+  transition: opacity 500ms ease-in;
+}
+
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+  opacity: 1;
+}
+
+.htmx-swapping .comment,
+.htmx-swapping.comment {
+  opacity: 0;
+  transition: opacity 0.5s ease-out;
+}

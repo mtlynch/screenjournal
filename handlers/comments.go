@@ -114,7 +114,7 @@ func (s Server) commentsGet() http.HandlerFunc {
 			return
 		} else if err != nil {
 			log.Printf("failed to read comment: %v", err)
-			http.Error(w, fmt.Sprintf("Failed to read comment: %v", err), http.StatusInternalServerError)
+			http.Error(w, "Failed to read comment", http.StatusInternalServerError)
 			return
 		}
 
@@ -126,7 +126,7 @@ func (s Server) commentsGet() http.HandlerFunc {
 			LoggedInUsername: mustGetUsernameFromContext(r.Context()),
 		}); err != nil {
 			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("failed to render: %v", err) // TODO: Better error
+			log.Printf("failed to render comment: %v", err)
 			return
 		}
 	}
@@ -177,7 +177,7 @@ func (s Server) commentsPost() http.HandlerFunc {
 			LoggedInUsername: mustGetUsernameFromContext(r.Context()),
 		}); err != nil {
 			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("error=%v", err)
+			log.Printf("failed to render comment: %v", err)
 			return
 		}
 
@@ -193,7 +193,7 @@ func (s Server) commentsPut() http.HandlerFunc {
 		req, err := parseCommentPutRequest(r)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
-			log.Printf("invalid comments PUT request: %v", err)
+			log.Printf("invalid comment PUT request: %v", err)
 			return
 		}
 
@@ -227,7 +227,7 @@ func (s Server) commentsPut() http.HandlerFunc {
 			LoggedInUsername: mustGetUsernameFromContext(r.Context()),
 		}); err != nil {
 			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("failed to render: %v", err) // TODO: Better error
+			log.Printf("failed to render comment: %v", err)
 			return
 		}
 	}

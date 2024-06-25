@@ -35,7 +35,7 @@
     <script src="/js/htmx-settings.js" type="module"></script>
   </head>
 
-  <body>
+  <body hx-boost="true">
     {{ block "custom-elements" . }}{{ end }}
 
     {{ template "navbar.html" . }}

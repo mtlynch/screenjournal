@@ -23,8 +23,18 @@ func (s Server) searchGet() http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("failed to query metadata: %v", err), http.StatusInternalServerError)
 		}
 
-		matches := make([]searchMatch, len(res.Matches))
+		const limit = 7
+		max := func() int {
+			if limit < len(res.Matches) {
+				return limit
+			}
+			return len(res.Matches)
+		}()
+		matches := make([]searchMatch, max)
 		for i, m := range res.Matches {
+			if i >= max {
+				break
+			}
 			matches[i].TmdbID = m.TmdbID.Int32()
 			matches[i].Title = m.Title
 			matches[i].ReleaseYear = m.ReleaseDate[0:4]

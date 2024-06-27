@@ -1,0 +1,16 @@
+<ul
+  id="search-results-list"
+  class="dropdown-menu show"
+  aria-labelledby="search-box"
+>
+  {{ range .Results }}
+    <li>
+      <a href="#"
+        ><img src="{{ .PosterURL }}" /><span class="title"
+          >{{ .Title }} ({{ .ReleaseYear }})</span
+        ></a
+      >
+    </li>
+  {{ end }}
+
+</ul>

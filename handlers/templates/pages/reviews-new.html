@@ -90,9 +90,26 @@
     {{ if .MediaTitle }}
       <input type="hidden" id="tmdb-id" value="{{ .TmdbID }}" />
     {{ else }}
-      <div class="mb-3">
-        <title-search></title-search>
-      </div>
+      <form class="mb-3">
+        <label for="media-title" class="form-label">Title</label>
+        <input
+          id="media-title"
+          name="query"
+          class="form-control"
+          type="search"
+          placeholder="Search"
+          aria-label="Search"
+          aria-expanded="false"
+          data-bs-toggle="dropdown"
+          autofocus="autofocus"
+          required
+          hx-get="/api/search"
+          hx-trigger="search, keyup delay:200ms changed"
+          hx-target="#search-results-list"
+        />
+      </form>
+
+      <div id="search-results-list"></div>
     {{ end }}
 
 

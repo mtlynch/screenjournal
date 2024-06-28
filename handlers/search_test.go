@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/kylelemons/godebug/diff"
+
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
@@ -39,10 +41,9 @@ func TestSearchGet(t *testing.T) {
 			status: http.StatusOK,
 			response: `
 <ul class="dropdown-menu show" aria-labelledby="search-box">
-
-    <li>No matches</li>
-
-</ul>`,
+  <li>No matches</li>
+</ul>
+`,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
@@ -85,8 +86,10 @@ func TestSearchGet(t *testing.T) {
 				t.Fatalf("failed to read server response: %v", err)
 			}
 
-			if got, want := string(response), strings.TrimSpace(tt.response); got != want {
-				t.Errorf("response=%+v, got=%+v", got, want)
+			got := string(response)
+			want := strings.TrimPrefix(tt.response, "\n")
+			if delta := diff.Diff(got, want); delta != "" {
+				t.Errorf("diff in search response\nGot:\n%s\nWant:\n%s\nDiff:%s", got, want, delta)
 			}
 		})
 	}

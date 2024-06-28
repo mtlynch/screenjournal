@@ -60,7 +60,7 @@ func TestSearchGet(t *testing.T) {
 			},
 			status: http.StatusOK,
 			response: `
-<ul class="dropdown-menu py-0 show" aria-labelledby="search-box">
+<ul class="py-0 my-0 list-unstyled border border-success">
 	<li>
 			<a href="/reviews/new?tmdbId=1"
 				><img src="https://image.tmdb.org/t/p/w92/the-waterboy.jpg" /><span class="mx-3"
@@ -92,7 +92,7 @@ func TestSearchGet(t *testing.T) {
 			},
 			status: http.StatusOK,
 			response: `
-<ul class="dropdown-menu py-0 show" aria-labelledby="search-box">
+<ul class="py-0 my-0 list-unstyled border border-success">
   <li>No matches</li>
 </ul>
 `,

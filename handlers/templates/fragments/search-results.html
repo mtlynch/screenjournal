@@ -1,7 +1,7 @@
 <ul class="dropdown-menu show" aria-labelledby="search-box">
   {{ range .Results -}}
     <li>
-      <a href="/reviews/new?tmdb-id={{ .TmdbID }}"
+      <a href="/reviews/new?tmdbId={{ .TmdbID }}"
         ><img src="{{ .PosterURL }}" /><span class="mx-3"
           >{{ .Title }} ({{ .ReleaseYear }})</span
         ></a

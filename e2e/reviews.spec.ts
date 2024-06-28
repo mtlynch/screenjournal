@@ -118,6 +118,8 @@ test("adds a new rating and fills in only required fields", async ({
 
   await page.locator("form input[type='submit']").click();
 
+  await expect(page).toHaveURL("/reviews");
+
   const reviewCard = await page.locator(".card", {
     has: page.getByRole("heading", { name: "Slow Learners" }),
   });
@@ -170,6 +172,8 @@ Daniel Radcliffe is fantastic, and it's a great film role for Rainn Wilson. Ther
 You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, or Popstar.`);
 
   await page.locator("form input[type='submit']").click();
+
+  await expect(page).toHaveURL("/reviews");
 
   const reviewCard = await page.locator(".card", {
     has: page.getByRole("heading", { name: "Weird: The Al Yankovic Story" }),
@@ -249,6 +253,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
 
   await page.locator("form input[type='submit']").click();
 
+  await expect(page).toHaveURL("/reviews");
   const reviewCard = await page.locator(".card", {
     has: page.getByRole("heading", {
       name: "Eternal Sunshine of the Spotless Mind",
@@ -297,6 +302,7 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
 
   await page.locator("form input[type='submit']").click();
 
+  await expect(page).toHaveURL("/reviews");
   const reviewCard = await page.locator(".card", {
     has: page.getByRole("heading", {
       name: "Eternal Sunshine of the Spotless Mind",
@@ -332,6 +338,7 @@ test("adds a new rating and edits the details", async ({ page }) => {
 
   await page.locator("form input[type='submit']").click();
 
+  await expect(page).toHaveURL("/reviews");
   const reviewCard = await page.locator(".card", {
     has: page.getByRole("heading", { name: "There's something About Mary" }),
   });
@@ -394,7 +401,6 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   await page.locator("form input[type='submit']").click();
 
   await expect(page).toHaveURL("/reviews");
-
   const reviewCard = await page.locator(".card", {
     has: page.getByRole("heading", { name: "The English Patient" }),
   });

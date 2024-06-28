@@ -52,10 +52,13 @@ func TestSearchGet(t *testing.T) {
 			status: http.StatusOK,
 			response: `
 <ul class="dropdown-menu show" aria-labelledby="search-box">
-  <li>
-      <a href="#"
-				><img src="https://image.tmdb.org/t/p/w92/miT42qWYC4D0n2mXNzJ9VfhheWW.jpg"><span class="title">The Waterboy (1998)</span></a>
-    </li>
+	<li>
+			<a href="#"
+				><img src="https://image.tmdb.org/t/p/w92/miT42qWYC4D0n2mXNzJ9VfhheWW.jpg" /><span class="title"
+					>The Waterboy (1998)</span
+				></a
+			>
+		</li>
 </ul>
 `,
 		},
@@ -134,11 +137,31 @@ func TestSearchGet(t *testing.T) {
 				t.Fatalf("failed to read server response: %v", err)
 			}
 
-			got := string(response)
-			want := strings.TrimPrefix(tt.response, "\n")
+			got := removeBlankLines(string(response))
+			want := formatExpectedResponse(tt.response)
 			if delta := diff.Diff(got, want); delta != "" {
 				t.Errorf("diff in search response\nGot:\n%s\nWant:\n%s\nDiff:%s", got, want, delta)
 			}
 		})
 	}
+}
+
+func formatExpectedResponse(raw string) string {
+	response := strings.TrimPrefix(raw, "\n")
+	response = strings.ReplaceAll(response, "\t", "  ")
+	response = removeBlankLines(response)
+	return response
+}
+
+func removeBlankLines(input string) string {
+	lines := strings.Split(input, "\n")
+	var result []string
+
+	for _, line := range lines {
+		if strings.TrimSpace(line) != "" {
+			result = append(result, line)
+		}
+	}
+
+	return strings.Join(result, "\n")
 }

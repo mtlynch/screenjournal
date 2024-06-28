@@ -30,35 +30,33 @@
         const submitSpinner = document.getElementById("submit-spinner");
         const submitBtn = document.querySelector("form .btn-primary");
 
-        document
-          .getElementById("add-rating")
-          .addEventListener("submit", (evt) => {
-            evt.preventDefault();
+        document.querySelector("form").addEventListener("submit", (evt) => {
+          evt.preventDefault();
 
-            submitBtn.disabled = true;
-            makeInvisible(errorAlert);
-            makeVisible(submitSpinner);
+          submitBtn.disabled = true;
+          makeInvisible(errorAlert);
+          makeVisible(submitSpinner);
 
-            addReview(reviewFromForm())
-              .then(() => {
-                let newLocation = new URL(window.location.href);
-                newLocation.search = (() => {
-                  let s = new URLSearchParams(newLocation.search);
-                  s.delete("movieId");
-                  return s.toString();
-                })();
-                newLocation.pathname = "/reviews";
-                window.location = newLocation;
-              })
-              .catch((error) => {
-                errorAlert.innerText = error;
-                makeVisible(errorAlert);
-              })
-              .finally(() => {
-                makeInvisible(submitSpinner);
-                submitBtn.disabled = false;
-              });
-          });
+          addReview(reviewFromForm())
+            .then(() => {
+              let newLocation = new URL(window.location.href);
+              newLocation.search = (() => {
+                let s = new URLSearchParams(newLocation.search);
+                s.delete("movieId");
+                return s.toString();
+              })();
+              newLocation.pathname = "/reviews";
+              window.location = newLocation;
+            })
+            .catch((error) => {
+              errorAlert.innerText = error;
+              makeVisible(errorAlert);
+            })
+            .finally(() => {
+              makeInvisible(submitSpinner);
+              submitBtn.disabled = false;
+            });
+        });
       },
       false
     );
@@ -72,20 +70,17 @@
     <h2>{{ .MediaTitle }}</h2>
   {{ end }}
 
+  {{ if not .MediaTitle }}
+    {{ template "find-title" }}
+  {{ else }}
+    {{ template "rate-movie" . }}
+  {{ end }}
 
-  <form id="add-rating" class="my-5">
-    {{ if not .MediaTitle }}
-      {{ template "find-title" }}
-    {{ else }}
-      {{ template "rate-movie" . }}
-    {{ end }}
-
-  </form>
 {{ end }}
 
 {{ define "find-title" }}
-  <div class="dropdown">
-    <form class="mb-3">
+  <div class="dropdown my-5">
+    <form>
       <label for="media-title" class="form-label">Title</label>
       <input
         id="media-title"
@@ -109,7 +104,7 @@
 {{ end }}
 
 {{ define "rate-movie" }}
-  <form>
+  <form class="my-5">
     <input type="hidden" id="tmdb-id" value="{{ .TmdbID }}" />
     <div class="mb-3">
       <label for="rating-select" class="form-label">Rating</label>

@@ -2,36 +2,53 @@ package handlers
 
 import (
 	"fmt"
+	"html/template"
+	"log"
 	"net/http"
 )
 
 type searchMatch struct {
-	TmdbID      int32  `json:"tmdbId"`
-	Title       string `json:"title"`
-	ReleaseDate string `json:"releaseDate"`
-	PosterURL   string `json:"posterUrl"`
+	TmdbID      int32
+	Title       string
+	ReleaseYear int
+	PosterURL   string
 }
 
 func (s Server) searchGet() http.HandlerFunc {
+	t := template.Must(template.ParseFS(templatesFS, "templates/fragments/search-results.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query().Get("query")
+		if len(query) < 2 {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			return
+		}
 		res, err := s.metadataFinder.Search(query)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to query metadata: %v", err), http.StatusInternalServerError)
 		}
 
-		matches := make([]searchMatch, len(res))
+		const limit = 7 // Arbitrary limit to show 7 results max
+		matches := []searchMatch{}
 		for i, m := range res {
-			matches[i].TmdbID = m.TmdbID.Int32()
-			matches[i].Title = m.Title.String()
-			matches[i].ReleaseDate = m.ReleaseDate.Time().Format("2006-01-02")
-			matches[i].PosterURL = "https://image.tmdb.org/t/p/w92" + m.PosterPath.Path
+			if i >= limit {
+				break
+			}
+			matches = append(matches, searchMatch{
+				TmdbID:      m.TmdbID.Int32(),
+				Title:       m.Title.String(),
+				ReleaseYear: m.ReleaseDate.Year(),
+				PosterURL:   "https://image.tmdb.org/t/p/w92" + m.PosterPath.Path,
+			})
 		}
 
-		respondJSON(w, struct {
-			Matches []searchMatch `json:"matches"`
+		if err := t.Execute(w, struct {
+			Results []searchMatch
 		}{
-			Matches: matches,
-		})
+			Results: matches,
+		}); err != nil {
+			http.Error(w, "Failed to render template", http.StatusInternalServerError)
+			log.Printf("failed to render search results template: %v", err)
+			return
+		}
 	}
 }

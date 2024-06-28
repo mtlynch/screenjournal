@@ -1,0 +1,13 @@
+<ul class="py-0 my-0 list-unstyled border border-success">
+  {{ range .Results -}}
+    <li>
+      <a href="/reviews/new?tmdbId={{ .TmdbID }}"
+        ><img src="{{ .PosterURL }}" /><span class="mx-3"
+          >{{ .Title }} ({{ .ReleaseYear }})</span
+        ></a
+      >
+    </li>
+  {{ else -}}
+    <li>No matches</li>
+  {{- end }}
+</ul>

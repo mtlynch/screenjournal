@@ -12,6 +12,7 @@ import (
 
 var (
 	ErrMovieIDNotProvided   = errors.New("no movie ID in query parameters")
+	ErrTmdbIDNotProvided    = errors.New("no TMDB ID in query parameters")
 	ErrReviewIDNotProvided  = errors.New("no review ID in query parameters")
 	ErrSortOrderNotProvided = errors.New("no sort order in query parameters")
 	ErrCommentIDNotProvided = errors.New("no comment ID in query parameters")
@@ -28,6 +29,15 @@ func movieIDFromQueryParams(r *http.Request) (screenjournal.MovieID, error) {
 	}
 
 	return parse.MovieIDFromString(raw)
+}
+
+func tmdbIDFromQueryParams(r *http.Request) (screenjournal.TmdbID, error) {
+	raw := r.URL.Query().Get("tmdbId")
+	if raw == "" {
+		return screenjournal.TmdbID(0), ErrTmdbIDNotProvided
+	}
+
+	return parse.TmdbIDFromString(raw)
 }
 
 func reviewIDFromRequestPath(r *http.Request) (screenjournal.ReviewID, error) {

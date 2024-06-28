@@ -9,19 +9,10 @@
     import { tzOffsetString } from "/js/lib/time.js";
 
     function reviewFromForm() {
-      const tmdbId = (() => {
-        const tmdbEl = document.getElementById("tmdb-id");
-        if (tmdbEl) {
-          return parseInt(tmdbEl.value);
-        }
-        return parseInt(document.querySelector("title-search").value);
-      })();
-
+      const tmdbId = parseInt(document.getElementById("tmdb-id").value);
       const rating = parseInt(document.getElementById("rating-select").value);
-
       const dateRaw = document.getElementById("watched-date").value;
       const watched = `${dateRaw}T00:00:00.000${tzOffsetString()}`;
-
       const blurb = document.getElementById("blurb").value.trim();
 
       return {
@@ -39,43 +30,66 @@
         const submitSpinner = document.getElementById("submit-spinner");
         const submitBtn = document.querySelector("form .btn-primary");
 
-        document
-          .getElementById("add-rating")
-          .addEventListener("submit", (evt) => {
-            evt.preventDefault();
+        document.querySelector("form").addEventListener("submit", (evt) => {
+          evt.preventDefault();
 
-            submitBtn.disabled = true;
-            makeInvisible(errorAlert);
-            makeVisible(submitSpinner);
+          submitBtn.disabled = true;
+          makeInvisible(errorAlert);
+          makeVisible(submitSpinner);
 
-            addReview(reviewFromForm())
-              .then(() => {
-                let newLocation = new URL(window.location.href);
-                newLocation.search = (() => {
-                  let s = new URLSearchParams(newLocation.search);
-                  s.delete("movieId");
-                  return s.toString();
-                })();
-                newLocation.pathname = "/reviews";
-                window.location = newLocation;
-              })
-              .catch((error) => {
-                errorAlert.innerText = error;
-                makeVisible(errorAlert);
-              })
-              .finally(() => {
-                makeInvisible(submitSpinner);
-                submitBtn.disabled = false;
-              });
-          });
+          addReview(reviewFromForm())
+            .then(() => {
+              let newLocation = new URL(window.location.href);
+              newLocation.search = (() => {
+                let s = new URLSearchParams(newLocation.search);
+                s.delete("movieId");
+                s.delete("tmdbId");
+                return s.toString();
+              })();
+              newLocation.pathname = "/reviews";
+              window.location = newLocation;
+            })
+            .catch((error) => {
+              errorAlert.innerText = error;
+              makeVisible(errorAlert);
+            })
+            .finally(() => {
+              makeInvisible(submitSpinner);
+              submitBtn.disabled = false;
+            });
+        });
       },
       false
     );
   </script>
 {{ end }}
 
-{{ define "custom-elements" }}
-  {{ template "title-search.html" . }}
+{{ define "style-tags" }}
+  <style nonce="{{ .CspNonce }}">
+    #search-results-list li {
+      border-top: 1px solid #c2c2c2;
+    }
+
+    #search-results-list li a {
+      display: block;
+      text-decoration: none;
+      color: black;
+    }
+
+    #search-results-list li a:hover {
+      background-color: #def0ff;
+    }
+
+    #search-results-list img {
+      max-height: 100px;
+    }
+
+    @media screen and (min-width: 1024px) {
+      #search-results-list img {
+        max-height: 80px;
+      }
+    }
+  </style>
 {{ end }}
 
 {{ define "content" }}
@@ -86,16 +100,39 @@
   {{ end }}
 
 
-  <form id="add-rating" class="my-5">
-    {{ if .MediaTitle }}
-      <input type="hidden" id="tmdb-id" value="{{ .TmdbID }}" />
+  <div class="my-5">
+    {{ if not .MediaTitle }}
+      {{ template "find-title" }}
     {{ else }}
-      <div class="mb-3">
-        <title-search></title-search>
-      </div>
+      {{ template "rate-movie" . }}
     {{ end }}
+  </div>
+{{ end }}
 
+{{ define "find-title" }}
+  <form>
+    <label for="media-title" class="form-label">Title</label>
+    <input
+      id="media-title"
+      name="query"
+      class="form-control"
+      type="search"
+      placeholder="Search"
+      aria-label="Search"
+      autofocus="autofocus"
+      required
+      hx-get="/api/search"
+      hx-trigger="search, keyup delay:200ms changed"
+      hx-target="#search-results-list"
+    />
+  </form>
 
+  <div id="search-results-list" class="p-0"></div>
+{{ end }}
+
+{{ define "rate-movie" }}
+  <form>
+    <input type="hidden" id="tmdb-id" value="{{ .TmdbID }}" />
     <div class="mb-3">
       <label for="rating-select" class="form-label">Rating</label>
       <select

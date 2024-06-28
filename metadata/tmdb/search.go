@@ -19,7 +19,7 @@ func (f Finder) Search(query string) ([]metadata.MovieInfo, error) {
 	for _, match := range tmdbResults.Results {
 		info := metadata.MovieInfo{}
 
-		info.TmdbID, err = ParseTmdbID(match.ID)
+		info.TmdbID, err = parse.TmdbID(match.ID)
 		if err != nil {
 			return []metadata.MovieInfo{}, err
 		}

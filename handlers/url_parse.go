@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	ErrMoveIDNotProvided    = errors.New("no movie ID in query parameters")
+	ErrMovieIDNotProvided   = errors.New("no movie ID in query parameters")
 	ErrReviewIDNotProvided  = errors.New("no review ID in query parameters")
 	ErrSortOrderNotProvided = errors.New("no sort order in query parameters")
 	ErrCommentIDNotProvided = errors.New("no comment ID in query parameters")
@@ -24,7 +24,7 @@ func movieIDFromRequestPath(r *http.Request) (screenjournal.MovieID, error) {
 func movieIDFromQueryParams(r *http.Request) (screenjournal.MovieID, error) {
 	raw := r.URL.Query().Get("movieId")
 	if raw == "" {
-		return screenjournal.MovieID(0), ErrMoveIDNotProvided
+		return screenjournal.MovieID(0), ErrMovieIDNotProvided
 	}
 
 	return parse.MovieIDFromString(raw)
@@ -37,7 +37,7 @@ func reviewIDFromRequestPath(r *http.Request) (screenjournal.ReviewID, error) {
 func reviewIDFromQueryParams(r *http.Request) (screenjournal.ReviewID, error) {
 	raw := r.URL.Query().Get("reviewId")
 	if raw == "" {
-		return screenjournal.ReviewID(0), ErrMoveIDNotProvided
+		return screenjournal.ReviewID(0), ErrReviewIDNotProvided
 	}
 
 	return parse.ReviewIDFromString(raw)

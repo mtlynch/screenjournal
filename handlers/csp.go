@@ -39,6 +39,8 @@ func enforceContentSecurityPolicy(next http.Handler) http.Handler {
 				values: []string{
 					"'self'",
 					"'nonce-" + nonce + "'",
+					// for htmx 2.0.0 inline style
+					"'sha256-bsV5JivYxvGywDAZ22EZJKBFip65Ng9xoJVLbBg7bdo='",
 				},
 			},
 			{

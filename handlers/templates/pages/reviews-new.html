@@ -43,6 +43,7 @@
               newLocation.search = (() => {
                 let s = new URLSearchParams(newLocation.search);
                 s.delete("movieId");
+                s.delete("tmdbId");
                 return s.toString();
               })();
               newLocation.pathname = "/reviews";

@@ -114,7 +114,23 @@ type mockMetadataFinder struct {
 }
 
 func (mf mockMetadataFinder) Search(query string) (metadata.MovieSearchResults, error) {
-	return metadata.MovieSearchResults{}, nil
+	matches := []metadata.MovieSearchResult{}
+	for _, v := range mf.db {
+		if strings.Contains(strings.ToLower(v.Title.String()), strings.ToLower(query)) {
+			matches = append(matches, metadata.MovieSearchResult{
+				TmdbID:      v.TmdbID,
+				Title:       v.Title.String(),
+				ReleaseDate: v.ReleaseDate,
+				PosterPath:  v.PosterPath.String(),
+			})
+		}
+	}
+	return metadata.MovieSearchResults{
+		Matches:      matches,
+		Page:         1,
+		TotalPages:   1,
+		TotalResults: len(matches),
+	}, nil
 }
 
 func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, error) {

@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -17,6 +18,16 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
+var mockSearchableData = []metadata.MovieInfo{
+	{
+		Title:       screenjournal.MediaTitle("The Waterboy"),
+		ReleaseDate: mustParseReleaseDate("1998-11-06"),
+		PosterPath: url.URL{
+			Path: "/miT42qWYC4D0n2mXNzJ9VfhheWW.jpg",
+		},
+	},
+}
+
 func TestSearchGet(t *testing.T) {
 	for _, tt := range []struct {
 		description  string
@@ -26,6 +37,28 @@ func TestSearchGet(t *testing.T) {
 		status       int
 		response     string
 	}{
+		{
+			description:  "matches search results",
+			url:          "/api/search?query=waterbo",
+			sessionToken: "abc123",
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("user123"),
+					},
+				},
+			},
+			status: http.StatusOK,
+			response: `
+<ul class="dropdown-menu show" aria-labelledby="search-box">
+  <li>
+      <a href="#"
+				><img src="https://image.tmdb.org/t/p/w92/miT42qWYC4D0n2mXNzJ9VfhheWW.jpg"><span class="title">The Waterboy (1998)</span></a>
+    </li>
+</ul>
+`,
+		},
 		{
 			description:  "returns empty result on no matches",
 			url:          "/api/search?query=matchesnothing555",
@@ -45,6 +78,21 @@ func TestSearchGet(t *testing.T) {
 </ul>
 `,
 		},
+		{
+			description:  "prevents an unauthenticated user from searching",
+			url:          "/api/search?query=waterbo",
+			sessionToken: "",
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("user123"),
+					},
+				},
+			},
+			status:   http.StatusUnauthorized,
+			response: "You must log in to perform searches",
+		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			store := test_sqlite.New()
@@ -58,7 +106,7 @@ func TestSearchGet(t *testing.T) {
 
 			authenticator := auth.New(store)
 			sessionManager := newMockSessionManager(tt.sessions)
-			metadataFinder := NewMockMetadataFinder([]metadata.MovieInfo{})
+			metadataFinder := NewMockMetadataFinder(mockSearchableData)
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, metadataFinder)
 
 			req, err := http.NewRequest("GET", tt.url, nil)

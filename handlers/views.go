@@ -496,6 +496,8 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 			return
 		}
 
+		if tid, err := tmdbId
+
 		if err := t.Execute(w, struct {
 			commonProps
 			MediaTitle    string

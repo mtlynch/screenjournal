@@ -18,6 +18,10 @@ func (s Server) searchGet() http.HandlerFunc {
 	t := template.Must(template.ParseFS(templatesFS, "templates/fragments/search-results.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query().Get("query")
+		if len(query) < 2 {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			return
+		}
 		res, err := s.metadataFinder.Search(query)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to query metadata: %v", err), http.StatusInternalServerError)

@@ -63,6 +63,34 @@
   </script>
 {{ end }}
 
+{{ define "style-tags" }}
+  <style nonce="{{ .CspNonce }}">
+    #search-results-list li {
+      border-top: 1px solid #c2c2c2;
+    }
+
+    #search-results-list li a {
+      display: block;
+      text-decoration: none;
+      color: black;
+    }
+
+    #search-results-list li a:hover {
+      background-color: #def0ff;
+    }
+
+    #search-results-list img {
+      max-height: 100px;
+    }
+
+    @media screen and (min-width: 1024px) {
+      #search-results-list img {
+        max-height: 80px;
+      }
+    }
+  </style>
+{{ end }}
+
 {{ define "content" }}
   <h1>Add Rating</h1>
 
@@ -70,41 +98,39 @@
     <h2>{{ .MediaTitle }}</h2>
   {{ end }}
 
-  {{ if not .MediaTitle }}
-    {{ template "find-title" }}
-  {{ else }}
-    {{ template "rate-movie" . }}
-  {{ end }}
 
-{{ end }}
-
-{{ define "find-title" }}
-  <div class="dropdown my-5">
-    <form>
-      <label for="media-title" class="form-label">Title</label>
-      <input
-        id="media-title"
-        name="query"
-        class="form-control"
-        type="search"
-        placeholder="Search"
-        aria-label="Search"
-        aria-expanded="false"
-        data-bs-toggle="dropdown"
-        autofocus="autofocus"
-        required
-        hx-get="/api/search"
-        hx-trigger="search, keyup delay:200ms changed"
-        hx-target="#search-results-list"
-      />
-    </form>
-
-    <div id="search-results-list"></div>
+  <div class="my-5">
+    {{ if not .MediaTitle }}
+      {{ template "find-title" }}
+    {{ else }}
+      {{ template "rate-movie" . }}
+    {{ end }}
   </div>
 {{ end }}
 
+{{ define "find-title" }}
+  <form>
+    <label for="media-title" class="form-label">Title</label>
+    <input
+      id="media-title"
+      name="query"
+      class="form-control"
+      type="search"
+      placeholder="Search"
+      aria-label="Search"
+      autofocus="autofocus"
+      required
+      hx-get="/api/search"
+      hx-trigger="search, keyup delay:200ms changed"
+      hx-target="#search-results-list"
+    />
+  </form>
+
+  <div id="search-results-list" class="p-0"></div>
+{{ end }}
+
 {{ define "rate-movie" }}
-  <form class="my-5">
+  <form>
     <input type="hidden" id="tmdb-id" value="{{ .TmdbID }}" />
     <div class="mb-3">
       <label for="rating-select" class="form-label">Rating</label>

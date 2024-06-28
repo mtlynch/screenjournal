@@ -98,6 +98,21 @@ func TestSearchGet(t *testing.T) {
 `,
 		},
 		{
+			description:  "returns empty string when query is too short",
+			url:          "/api/search?query=a",
+			sessionToken: "abc123",
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("user123"),
+					},
+				},
+			},
+			status:   http.StatusUnprocessableEntity,
+			response: "",
+		},
+		{
 			description:  "prevents an unauthenticated user from searching",
 			url:          "/api/search?query=waterbo",
 			sessionToken: "",

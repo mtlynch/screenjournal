@@ -100,21 +100,23 @@ test("adds a new rating and fills in only required fields", async ({
 }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
-  await page.getByPlaceholder("Search").fill("slow lear");
+  await page.getByPlaceholder("Search").pressSequentially("slow lear");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );
   await expect(matchingTitle).toHaveText("Slow Learners (2015)");
   await matchingTitle.click();
-  await expect(page.getByPlaceholder("Search")).toHaveValue("Slow Learners");
+
+  await expect(page).toHaveURL("/reviews/new?tmdbId=333287");
+  await expect(
+    page.getByRole("heading", { name: "Slow Learners" })
+  ).toBeVisible();
 
   await page.locator("#rating-select").selectOption({ label: "1" });
 
   await page.locator("#watched-date").fill("2022-10-21");
 
   await page.locator("form input[type='submit']").click();
-
-  await expect(page).toHaveURL("/reviews");
 
   const reviewCard = await page.locator(".card", {
     has: page.getByRole("heading", { name: "Slow Learners" }),
@@ -140,15 +142,20 @@ test("adds a new rating that's too long to display in a card", async ({
 }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
-  await page.getByPlaceholder("Search").fill("Weird: The Al Yankovic Story");
+  await page
+    .getByPlaceholder("Search")
+    .pressSequentially("Weird: The Al Yankovic Story");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );
   await expect(matchingTitle).toHaveText("Weird: The Al Yankovic Story (2022)");
   await matchingTitle.click();
-  await expect(page.getByPlaceholder("Search")).toHaveValue(
-    "Weird: The Al Yankovic Story"
-  );
+
+  await expect(page).toHaveURL("/reviews/new?tmdbId=928344");
+  await expect(
+    page.getByRole("heading", { name: "Weird: The Al Yankovic Story" })
+  ).toBeVisible();
+
   await page.locator("#watched-date").fill("2022-11-11");
 
   await page.locator("#rating-select").selectOption({ label: "5" });
@@ -163,8 +170,6 @@ Daniel Radcliffe is fantastic, and it's a great film role for Rainn Wilson. Ther
 You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, or Popstar.`);
 
   await page.locator("form input[type='submit']").click();
-
-  await expect(page).toHaveURL("/reviews");
 
   const reviewCard = await page.locator(".card", {
     has: page.getByRole("heading", { name: "Weird: The Al Yankovic Story" }),
@@ -222,7 +227,7 @@ You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, o
 test("adds a new rating and fills all fields", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
-  await page.getByPlaceholder("Search").fill("eternal sunshine");
+  await page.getByPlaceholder("Search").pressSequentially("eternal sunshine");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );
@@ -230,9 +235,11 @@ test("adds a new rating and fills all fields", async ({ page }) => {
     "Eternal Sunshine of the Spotless Mind (2004)"
   );
   await matchingTitle.click();
-  await expect(page.getByPlaceholder("Search")).toHaveValue(
-    "Eternal Sunshine of the Spotless Mind"
-  );
+
+  await expect(page).toHaveURL("/reviews/new?tmdbId=38");
+  await expect(
+    page.getByRole("heading", { name: "Eternal Sunshine of the Spotless Mind" })
+  ).toBeVisible();
 
   await page.locator("#rating-select").selectOption({ label: "5" });
 
@@ -241,8 +248,6 @@ test("adds a new rating and fills all fields", async ({ page }) => {
   await page.locator("#blurb").fill("My favorite movie!");
 
   await page.locator("form input[type='submit']").click();
-
-  await expect(page).toHaveURL("/reviews");
 
   const reviewCard = await page.locator(".card", {
     has: page.getByRole("heading", {
@@ -270,7 +275,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
 test("HTML tags in reviews are encoded properly", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
-  await page.getByPlaceholder("Search").fill("eternal sunshine");
+  await page.getByPlaceholder("Search").pressSequentially("eternal sunshine");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );
@@ -278,9 +283,11 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
     "Eternal Sunshine of the Spotless Mind (2004)"
   );
   await matchingTitle.click();
-  await expect(page.getByPlaceholder("Search")).toHaveValue(
-    "Eternal Sunshine of the Spotless Mind"
-  );
+
+  await expect(page).toHaveURL("/reviews/new?tmdbId=38");
+  await expect(
+    page.getByRole("heading", { name: "Eternal Sunshine of the Spotless Mind" })
+  ).toBeVisible();
 
   await page.locator("#rating-select").selectOption({ label: "5" });
 
@@ -289,8 +296,6 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
   await page.locator("#blurb").fill("This is the <b>best</b> movie ever!");
 
   await page.locator("form input[type='submit']").click();
-
-  await expect(page).toHaveURL("/reviews");
 
   const reviewCard = await page.locator(".card", {
     has: page.getByRole("heading", {
@@ -305,15 +310,19 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
 test("adds a new rating and edits the details", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
-  await page.getByPlaceholder("Search").fill("something about mary");
+  await page
+    .getByPlaceholder("Search")
+    .pressSequentially("something about mary");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );
   await expect(matchingTitle).toHaveText("There's Something About Mary (1998)");
   await matchingTitle.click();
-  await expect(page.getByPlaceholder("Search")).toHaveValue(
-    "There's Something About Mary"
-  );
+
+  await expect(page).toHaveURL("/reviews/new?tmdbId=544");
+  await expect(
+    page.getByRole("heading", { name: "There's Something About Mary" })
+  ).toBeVisible();
 
   await page.locator("#rating-select").selectOption({ label: "5" });
 
@@ -322,8 +331,6 @@ test("adds a new rating and edits the details", async ({ page }) => {
   await page.locator("#blurb").fill("My favorite movie!");
 
   await page.locator("form input[type='submit']").click();
-
-  await expect(page).toHaveURL("/reviews");
 
   const reviewCard = await page.locator(".card", {
     has: page.getByRole("heading", { name: "There's something About Mary" }),
@@ -368,15 +375,17 @@ test("adds a new rating and edits the details", async ({ page }) => {
 test("adds a new rating and cancels the edit", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
-  await page.getByPlaceholder("Search").fill("the english pati");
+  await page.getByPlaceholder("Search").pressSequentially("the english pati");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );
   await expect(matchingTitle).toHaveText("The English Patient (1996)");
   await matchingTitle.click();
-  await expect(page.getByPlaceholder("Search")).toHaveValue(
-    "The English Patient"
-  );
+
+  await expect(page).toHaveURL("/reviews/new?tmdbId=409");
+  await expect(
+    page.getByRole("heading", { name: "The English Patient" })
+  ).toBeVisible();
 
   await page.locator("#rating-select").selectOption({ label: "4" });
   await page.locator("#watched-date").fill("2022-10-29");
@@ -421,15 +430,16 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
 test("editing another user's review fails", async ({ page, browser }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
-  await page.getByPlaceholder("Search").fill("the english pati");
+  await page.getByPlaceholder("Search").pressSequentially("the english pati");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );
-  await expect(matchingTitle).toHaveText("The English Patient (1996)");
   await matchingTitle.click();
-  await expect(page.getByPlaceholder("Search")).toHaveValue(
-    "The English Patient"
-  );
+
+  await expect(page).toHaveURL("/reviews/new?tmdbId=409");
+  await expect(
+    page.getByRole("heading", { name: "The English Patient" })
+  ).toBeVisible();
 
   await page.locator("#rating-select").selectOption({ label: "4" });
   await page.locator("#watched-date").fill("2022-10-29");

@@ -1,43 +1,47 @@
 package tmdb
 
 import (
+	"net/url"
+
 	"github.com/mtlynch/screenjournal/v2/metadata"
 )
 
-func (f Finder) Search(query string) (metadata.MovieSearchResults, error) {
+func (f Finder) Search(query string) ([]metadata.MovieInfo, error) {
 	tmdbResults, err := f.tmdbAPI.SearchMovie(query, map[string]string{
 		"include_adult": "false",
 	})
 	if err != nil {
-		return metadata.MovieSearchResults{}, err
-	}
-	results := metadata.MovieSearchResults{
-		Matches:      []metadata.MovieSearchResult{},
-		Page:         tmdbResults.Page,
-		TotalPages:   tmdbResults.TotalPages,
-		TotalResults: tmdbResults.TotalResults,
+		return []metadata.MovieInfo{}, err
 	}
 
+	matches := []metadata.MovieInfo{}
 	for _, match := range tmdbResults.Results {
-		// Exclude results that are not sufficiently populated.
+		info := metadata.MovieInfo{}
+
+		info.TmdbID, err = ParseTmdbID(match.ID)
+		if err != nil {
+			return []metadata.MovieInfo{}, err
+		}
+
 		if match.ReleaseDate == "" {
 			continue
 		}
+		info.ReleaseDate, err = ParseReleaseDate(match.ReleaseDate)
+		if err != nil {
+			return []metadata.MovieInfo{}, err
+		}
+
 		if match.PosterPath == "" {
 			continue
 		}
-
-		tmdbID, err := ParseTmdbID(match.ID)
+		pp, err := url.Parse(match.PosterPath)
 		if err != nil {
-			return metadata.MovieSearchResults{}, err
+			return []metadata.MovieInfo{}, err
 		}
-		results.Matches = append(results.Matches, metadata.MovieSearchResult{
-			TmdbID:      tmdbID,
-			Title:       match.Title,
-			ReleaseDate: match.ReleaseDate,
-			PosterPath:  match.PosterPath,
-		})
+		info.PosterPath = *pp
+
+		matches = append(matches, info)
 	}
 
-	return results, nil
+	return matches, nil
 }

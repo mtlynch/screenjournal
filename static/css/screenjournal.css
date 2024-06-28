@@ -51,11 +51,6 @@ img {
   }
 }
 
-#search-results-list .title {
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-
 .htmx-indicator {
   opacity: 0;
   transition: opacity 500ms ease-in;

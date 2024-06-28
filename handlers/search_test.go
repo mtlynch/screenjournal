@@ -62,15 +62,15 @@ func TestSearchGet(t *testing.T) {
 			response: `
 <ul class="dropdown-menu show" aria-labelledby="search-box">
 	<li>
-			<a href="#"
-				><img src="https://image.tmdb.org/t/p/w92/the-waterboy.jpg" /><span class="title"
+			<a href="/reviews/new?tmdb-id=1"
+				><img src="https://image.tmdb.org/t/p/w92/the-waterboy.jpg" /><span class="mx-3"
 					>The Waterboy (1998)</span
 				></a
 			>
 		</li>
 	<li>
-			<a href="#"
-				><img src="https://image.tmdb.org/t/p/w92/waterboys.jpg" /><span class="title"
+			<a href="/reviews/new?tmdb-id=2"
+				><img src="https://image.tmdb.org/t/p/w92/waterboys.jpg" /><span class="mx-3"
 					>Waterboys (2011)</span
 				></a
 			>

@@ -10,7 +10,7 @@ import (
 type searchMatch struct {
 	TmdbID      int32
 	Title       string
-	ReleaseYear string
+	ReleaseYear int
 	PosterURL   string
 }
 
@@ -25,20 +25,20 @@ func (s Server) searchGet() http.HandlerFunc {
 
 		const limit = 7
 		max := func() int {
-			if limit < len(res.Matches) {
+			if limit < len(res) {
 				return limit
 			}
-			return len(res.Matches)
+			return len(res)
 		}()
 		matches := make([]searchMatch, max)
-		for i, m := range res.Matches {
+		for i, m := range res {
 			if i >= max {
 				break
 			}
 			matches[i].TmdbID = m.TmdbID.Int32()
-			matches[i].Title = m.Title
-			matches[i].ReleaseYear = m.ReleaseDate[0:4]
-			matches[i].PosterURL = "https://image.tmdb.org/t/p/w92" + m.PosterPath
+			matches[i].Title = m.Title.String()
+			matches[i].ReleaseYear = m.ReleaseDate.Year()
+			matches[i].PosterURL = "https://image.tmdb.org/t/p/w92" + m.PosterPath.Path
 		}
 
 		if err := t.Execute(w, struct {

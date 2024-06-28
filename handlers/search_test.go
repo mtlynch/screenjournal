@@ -20,10 +20,19 @@ import (
 
 var mockSearchableData = []metadata.MovieInfo{
 	{
+		TmdbID:      screenjournal.TmdbID(1),
 		Title:       screenjournal.MediaTitle("The Waterboy"),
 		ReleaseDate: mustParseReleaseDate("1998-11-06"),
 		PosterPath: url.URL{
-			Path: "/miT42qWYC4D0n2mXNzJ9VfhheWW.jpg",
+			Path: "/the-waterboy.jpg",
+		},
+	},
+	{
+		TmdbID:      screenjournal.TmdbID(2),
+		Title:       screenjournal.MediaTitle("Waterboys"),
+		ReleaseDate: mustParseReleaseDate("2011-12-05"),
+		PosterPath: url.URL{
+			Path: "/waterboys.jpg",
 		},
 	},
 }
@@ -54,8 +63,15 @@ func TestSearchGet(t *testing.T) {
 <ul class="dropdown-menu show" aria-labelledby="search-box">
 	<li>
 			<a href="#"
-				><img src="https://image.tmdb.org/t/p/w92/miT42qWYC4D0n2mXNzJ9VfhheWW.jpg" /><span class="title"
+				><img src="https://image.tmdb.org/t/p/w92/the-waterboy.jpg" /><span class="title"
 					>The Waterboy (1998)</span
+				></a
+			>
+		</li>
+	<li>
+			<a href="#"
+				><img src="https://image.tmdb.org/t/p/w92/waterboys.jpg" /><span class="title"
+					>Waterboys (2011)</span
 				></a
 			>
 		</li>

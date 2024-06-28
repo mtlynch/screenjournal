@@ -489,7 +489,7 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 			}
 			mediaTitle = movie.Title.String()
 			tmdbID = movie.TmdbID.Int32()
-		} else if err == ErrMoveIDNotProvided {
+		} else if err == ErrMovieIDNotProvided {
 			// Movie ID is optional for this view.
 		} else {
 			http.Error(w, "Invalid movie ID", http.StatusBadRequest)

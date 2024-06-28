@@ -27,22 +27,18 @@ func (s Server) searchGet() http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("failed to query metadata: %v", err), http.StatusInternalServerError)
 		}
 
-		const limit = 7
-		max := func() int {
-			if limit < len(res) {
-				return limit
-			}
-			return len(res)
-		}()
-		matches := make([]searchMatch, max)
+		const limit = 7 // Arbitrary limit to show 7 results max
+		matches := []searchMatch{}
 		for i, m := range res {
-			if i >= max {
+			if i >= limit {
 				break
 			}
-			matches[i].TmdbID = m.TmdbID.Int32()
-			matches[i].Title = m.Title.String()
-			matches[i].ReleaseYear = m.ReleaseDate.Year()
-			matches[i].PosterURL = "https://image.tmdb.org/t/p/w92" + m.PosterPath.Path
+			matches = append(matches, searchMatch{
+				TmdbID:      m.TmdbID.Int32(),
+				Title:       m.Title.String(),
+				ReleaseYear: m.ReleaseDate.Year(),
+				PosterURL:   "https://image.tmdb.org/t/p/w92" + m.PosterPath.Path,
+			})
 		}
 
 		if err := t.Execute(w, struct {

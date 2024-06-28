@@ -24,8 +24,6 @@
 </template>
 
 <script type="module" nonce="{{ .CspNonce }}">
-  import { searchGet } from "/js/controllers/search.js";
-
   function throttle(func, waitInMilliseconds) {
     let timer = null;
     return function (...args) {

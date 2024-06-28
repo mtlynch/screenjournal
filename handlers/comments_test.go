@@ -106,7 +106,7 @@ func TestCommentsPost(t *testing.T) {
 			},
 		},
 		{
-			description:  "trims leading and trailing whitespce from a review comment",
+			description:  "trims leading and trailing whitespace from a review comment",
 			payload:      "review-id=1&comment=%0AYes%2C%20but%20can%20you%20strip%20my%20whitespace%3F%0A",
 			sessionToken: makeCommentsTestData().sessions.userA.token,
 			sessions: []mockSessionEntry{

@@ -3,6 +3,7 @@ package tmdb
 import (
 	"net/url"
 
+	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 )
 
@@ -19,6 +20,11 @@ func (f Finder) Search(query string) ([]metadata.MovieInfo, error) {
 		info := metadata.MovieInfo{}
 
 		info.TmdbID, err = ParseTmdbID(match.ID)
+		if err != nil {
+			return []metadata.MovieInfo{}, err
+		}
+
+		info.Title, err = parse.MediaTitle(match.Title)
 		if err != nil {
 			return []metadata.MovieInfo{}, err
 		}

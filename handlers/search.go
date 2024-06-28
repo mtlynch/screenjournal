@@ -20,12 +20,12 @@ func (s Server) searchGet() http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("failed to query metadata: %v", err), http.StatusInternalServerError)
 		}
 
-		matches := make([]searchMatch, len(res.Matches))
-		for i, m := range res.Matches {
+		matches := make([]searchMatch, len(res))
+		for i, m := range res {
 			matches[i].TmdbID = m.TmdbID.Int32()
-			matches[i].Title = m.Title
-			matches[i].ReleaseDate = m.ReleaseDate
-			matches[i].PosterURL = "https://image.tmdb.org/t/p/w92" + m.PosterPath
+			matches[i].Title = m.Title.String()
+			matches[i].ReleaseDate = m.ReleaseDate.Time().Format("2006-01-02")
+			matches[i].PosterURL = "https://image.tmdb.org/t/p/w92" + m.PosterPath.Path
 		}
 
 		respondJSON(w, struct {

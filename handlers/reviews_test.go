@@ -113,8 +113,8 @@ type mockMetadataFinder struct {
 	db map[screenjournal.TmdbID]metadata.MovieInfo
 }
 
-func (mf mockMetadataFinder) Search(query string) (metadata.MovieSearchResults, error) {
-	return metadata.MovieSearchResults{}, nil
+func (mf mockMetadataFinder) Search(query string) ([]metadata.MovieInfo, error) {
+	return []metadata.MovieInfo{}, nil
 }
 
 func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, error) {

@@ -8,7 +8,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata"
-	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store"
 )
@@ -131,7 +130,7 @@ func newReviewFromRequest(r *http.Request) (reviewPostRequest, error) {
 		return reviewPostRequest{}, err
 	}
 
-	tmdbID, err := tmdb.ParseTmdbID(payload.TmdbID)
+	tmdbID, err := parse.TmdbID(payload.TmdbID)
 	if err != nil {
 		return reviewPostRequest{}, err
 	}

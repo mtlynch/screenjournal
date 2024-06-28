@@ -2,7 +2,6 @@ package tmdb
 
 import (
 	"errors"
-	"math"
 	"regexp"
 	"time"
 
@@ -10,20 +9,11 @@ import (
 )
 
 var (
-	ErrInvalidTmdbID      = errors.New("invalid TMDB ID")
 	ErrInvalidImdbID      = errors.New("invalid IMDB ID")
 	ErrInvalidReleaseDate = errors.New("invalid release date")
 
 	imdbIDPattern = regexp.MustCompile(`^tt[0-9]{7,8}$`)
 )
-
-func ParseTmdbID(raw int) (screenjournal.TmdbID, error) {
-	if raw <= 0 || raw > math.MaxInt32 {
-		return screenjournal.TmdbID(0), ErrInvalidTmdbID
-	}
-
-	return screenjournal.TmdbID(raw), nil
-}
 
 func ParseImdbID(raw string) (screenjournal.ImdbID, error) {
 	if !imdbIDPattern.MatchString(raw) {

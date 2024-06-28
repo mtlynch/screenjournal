@@ -37,7 +37,7 @@ func tmdbIDFromQueryParams(r *http.Request) (screenjournal.TmdbID, error) {
 		return screenjournal.TmdbID(0), ErrTmdbIDNotProvided
 	}
 
-	return parse.TmdbID(raw)
+	return parse.TmdbIDFromString(raw)
 }
 
 func reviewIDFromRequestPath(r *http.Request) (screenjournal.ReviewID, error) {

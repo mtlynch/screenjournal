@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
@@ -33,23 +34,23 @@ func TestParseTmdbID(t *testing.T) {
 			"ID of math.MaxInt64 is invalid",
 			math.MaxInt64,
 			screenjournal.TmdbID(0),
-			tmdb.ErrInvalidTmdbID,
+			parse.ErrInvalidTmdbID,
 		},
 		{
 			"zero ID is invalid",
 			0,
 			screenjournal.TmdbID(0),
-			tmdb.ErrInvalidTmdbID,
+			parse.ErrInvalidTmdbID,
 		},
 		{
 			"negative ID is invalid",
 			-1,
 			screenjournal.TmdbID(0),
-			tmdb.ErrInvalidTmdbID,
+			parse.ErrInvalidTmdbID,
 		},
 	} {
 		t.Run(fmt.Sprintf("%s [%d]", tt.description, tt.in), func(t *testing.T) {
-			id, err := tmdb.ParseTmdbID(tt.in)
+			id, err := parse.TmdbID(tt.in)
 			if got, want := err, tt.err; got != want {
 				t.Fatalf("err=%v, want=%v", got, want)
 			}

@@ -471,12 +471,11 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 				templatesFS,
 				append(
 					baseTemplates,
-					"templates/custom-elements/title-search.html",
 					"templates/pages/reviews-new.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		var mediaTitle string
-		var tmdbID int32
+		var title screenjournal.MediaTitle
+		var tmdbID screenjournal.TmdbID
 		if mid, err := movieIDFromQueryParams(r); err == nil {
 			movie, err := s.getDB(r).ReadMovie(mid)
 			if err == store.ErrMovieNotFound {
@@ -487,8 +486,8 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 				http.Error(w, "Failed to retrieve movie information", http.StatusInternalServerError)
 				return
 			}
-			mediaTitle = movie.Title.String()
-			tmdbID = movie.TmdbID.Int32()
+			title = movie.Title
+			tmdbID = movie.TmdbID
 		} else if err == ErrMovieIDNotProvided {
 			// Movie ID is optional for this view.
 		} else {
@@ -496,7 +495,17 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 			return
 		}
 
-		if tid, err := tmdbId
+		if tid, err := tmdbIDFromQueryParams(r); err == nil {
+			info, err := s.metadataFinder.GetMovieInfo(tid)
+			if err != nil {
+				http.Error(w, "Failed to get movie info", http.StatusFailedDependency)
+				log.Printf("failed to get movie info for TMDB ID %v: %v", tid, err)
+				return
+			}
+
+			title = info.Title
+			tmdbID = tid
+		}
 
 		if err := t.Execute(w, struct {
 			commonProps
@@ -506,8 +515,8 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 			Today         time.Time
 		}{
 			commonProps:   makeCommonProps(r.Context()),
-			MediaTitle:    mediaTitle,
-			TmdbID:        tmdbID,
+			MediaTitle:    title.String(),
+			TmdbID:        tmdbID.Int32(),
 			RatingOptions: []int{1, 2, 3, 4, 5},
 			Today:         time.Now(),
 		}); err != nil {

@@ -100,15 +100,13 @@ test("adds a new rating and fills in only required fields", async ({
 }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
-  await page.locator("title-search #media-title").fill("slow lear");
+  await page.getByPlaceholder("Search").fill("slow lear");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );
   await expect(matchingTitle).toHaveText("Slow Learners (2015)");
   await matchingTitle.click();
-  await expect(page.locator("title-search #media-title")).toHaveValue(
-    "Slow Learners"
-  );
+  await expect(page.getByPlaceholder("Search")).toHaveValue("Slow Learners");
 
   await page.locator("#rating-select").selectOption({ label: "1" });
 
@@ -142,15 +140,13 @@ test("adds a new rating that's too long to display in a card", async ({
 }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
-  await page
-    .locator("title-search #media-title")
-    .fill("Weird: The Al Yankovic Story");
+  await page.getByPlaceholder("Search").fill("Weird: The Al Yankovic Story");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );
   await expect(matchingTitle).toHaveText("Weird: The Al Yankovic Story (2022)");
   await matchingTitle.click();
-  await expect(page.locator("title-search #media-title")).toHaveValue(
+  await expect(page.getByPlaceholder("Search")).toHaveValue(
     "Weird: The Al Yankovic Story"
   );
   await page.locator("#watched-date").fill("2022-11-11");
@@ -226,7 +222,7 @@ You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, o
 test("adds a new rating and fills all fields", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
-  await page.locator("title-search #media-title").fill("eternal sunshine");
+  await page.getByPlaceholder("Search").fill("eternal sunshine");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );
@@ -234,7 +230,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
     "Eternal Sunshine of the Spotless Mind (2004)"
   );
   await matchingTitle.click();
-  await expect(page.locator("title-search #media-title")).toHaveValue(
+  await expect(page.getByPlaceholder("Search")).toHaveValue(
     "Eternal Sunshine of the Spotless Mind"
   );
 
@@ -274,7 +270,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
 test("HTML tags in reviews are encoded properly", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
-  await page.locator("title-search #media-title").fill("eternal sunshine");
+  await page.getByPlaceholder("Search").fill("eternal sunshine");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );
@@ -282,7 +278,7 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
     "Eternal Sunshine of the Spotless Mind (2004)"
   );
   await matchingTitle.click();
-  await expect(page.locator("title-search #media-title")).toHaveValue(
+  await expect(page.getByPlaceholder("Search")).toHaveValue(
     "Eternal Sunshine of the Spotless Mind"
   );
 
@@ -309,13 +305,13 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
 test("adds a new rating and edits the details", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
-  await page.locator("title-search #media-title").fill("something about mary");
+  await page.getByPlaceholder("Search").fill("something about mary");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );
   await expect(matchingTitle).toHaveText("There's Something About Mary (1998)");
   await matchingTitle.click();
-  await expect(page.locator("title-search #media-title")).toHaveValue(
+  await expect(page.getByPlaceholder("Search")).toHaveValue(
     "There's Something About Mary"
   );
 
@@ -372,13 +368,13 @@ test("adds a new rating and edits the details", async ({ page }) => {
 test("adds a new rating and cancels the edit", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
-  await page.locator("title-search #media-title").fill("the english pati");
+  await page.getByPlaceholder("Search").fill("the english pati");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );
   await expect(matchingTitle).toHaveText("The English Patient (1996)");
   await matchingTitle.click();
-  await expect(page.locator("title-search #media-title")).toHaveValue(
+  await expect(page.getByPlaceholder("Search")).toHaveValue(
     "The English Patient"
   );
 
@@ -425,13 +421,13 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
 test("editing another user's review fails", async ({ page, browser }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
-  await page.locator("title-search #media-title").fill("the english pati");
+  await page.getByPlaceholder("Search").fill("the english pati");
   const matchingTitle = await page.locator(
     "#search-results-list li:first-child span"
   );
   await expect(matchingTitle).toHaveText("The English Patient (1996)");
   await matchingTitle.click();
-  await expect(page.locator("title-search #media-title")).toHaveValue(
+  await expect(page.getByPlaceholder("Search")).toHaveValue(
     "The English Patient"
   );
 
@@ -477,7 +473,7 @@ test("views a movie with an existing review and adds a new review", async ({
     page.getByRole("heading", { name: "The Waterboy" })
   ).toBeVisible();
 
-  await expect(page.locator("title-search")).not.toBeVisible();
+  await expect(page.getByPlaceholder("Search")).not.toBeVisible();
 
   await page.locator("#rating-select").selectOption({ label: "5" });
   await page.locator("#watched-date").fill("2023-01-05");

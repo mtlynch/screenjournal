@@ -346,6 +346,8 @@ test("adds a new rating and edits the details", async ({ page }) => {
   });
   await reviewCard.getByTestId("edit-rating").click();
 
+  await expect(page).toHaveURL("/reviews/3/edit");
+
   await expect(
     page.getByRole("heading", { name: "There's Something About Mary (1998)" })
   ).toBeVisible();

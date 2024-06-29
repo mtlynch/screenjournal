@@ -24,6 +24,10 @@ func (mid MovieID) String() string {
 	return strconv.FormatInt(mid.Int64(), 10)
 }
 
+func (m TmdbID) Equal(o TmdbID) bool {
+	return m.Int32() == o.Int32()
+}
+
 func (m TmdbID) Int32() int32 {
 	return int32(m)
 }

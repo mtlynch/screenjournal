@@ -586,9 +586,8 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			}
 
 			clearUnpredictableReviewProperties(&rr[0])
-			got := rr[0]
-			want := tt.expected
-			if !reflect.DeepEqual(got, want) {
+
+			if got, want := rr[0], tt.expected; !reflect.DeepEqual(got, want) {
 				t.Errorf("unexpected reviews, got=%+v, want=%+v, diff=%s", got, want, deep.Equal(got, want))
 			}
 		})

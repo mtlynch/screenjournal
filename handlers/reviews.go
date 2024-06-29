@@ -12,8 +12,10 @@ import (
 )
 
 type reviewPostRequest struct {
-	Review screenjournal.Review
-	TmdbID screenjournal.TmdbID
+	TmdbID    screenjournal.TmdbID
+	Rating    screenjournal.Rating
+	WatchDate screenjournal.WatchDate
+	Blurb     screenjournal.Blurb
 }
 
 type reviewPutRequest struct {
@@ -31,9 +33,15 @@ func (s Server) reviewsPost() http.HandlerFunc {
 			return
 		}
 
-		req.Review.Owner = mustGetUsernameFromContext(r.Context())
+		review := screenjournal.Review{
+			Owner:    mustGetUsernameFromContext(r.Context()),
+			Rating:   req.Rating,
+			Watched:  req.WatchDate,
+			Blurb:    req.Blurb,
+			Comments: []screenjournal.ReviewComment{},
+		}
 
-		req.Review.Movie, err = s.moviefromTmdbID(s.getDB(r), req.TmdbID)
+		review.Movie, err = s.moviefromTmdbID(s.getDB(r), req.TmdbID)
 		if err == store.ErrMovieNotFound {
 			http.Error(w, fmt.Sprintf("Could not find movie with TMDB ID: %v", req.TmdbID), http.StatusNotFound)
 			return
@@ -43,14 +51,14 @@ func (s Server) reviewsPost() http.HandlerFunc {
 			return
 		}
 
-		req.Review.ID, err = s.getDB(r).InsertReview(req.Review)
+		review.ID, err = s.getDB(r).InsertReview(review)
 		if err != nil {
 			log.Printf("failed to save review: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to save review: %v", err), http.StatusInternalServerError)
 			return
 		}
 
-		s.announcer.AnnounceNewReview(req.Review)
+		s.announcer.AnnounceNewReview(review)
 
 		http.Redirect(w, r, "/reviews", http.StatusSeeOther)
 	}
@@ -136,35 +144,26 @@ func parseReviewPostRequest(r *http.Request) (reviewPostRequest, error) {
 		return reviewPostRequest{}, err
 	}
 
-	tmdbID, err := parse.TmdbIDFromString(r.PostFormValue("tmdb-id"))
-	if err != nil {
+	parsed := reviewPostRequest{}
+	var err error
+
+	if parsed.TmdbID, err = parse.TmdbIDFromString(r.PostFormValue("tmdb-id")); err != nil {
 		return reviewPostRequest{}, err
 	}
 
-	rating, err := parse.RatingFromString(r.PostFormValue("rating"))
-	if err != nil {
+	if parsed.Rating, err = parse.RatingFromString(r.PostFormValue("rating")); err != nil {
 		return reviewPostRequest{}, err
 	}
 
-	watchDate, err := parse.WatchDate(r.PostFormValue("watch-date"))
-	if err != nil {
+	if parsed.WatchDate, err = parse.WatchDate(r.PostFormValue("watch-date")); err != nil {
 		return reviewPostRequest{}, err
 	}
 
-	blurb, err := parse.Blurb(r.PostFormValue("blurb"))
-	if err != nil {
+	if parsed.Blurb, err = parse.Blurb(r.PostFormValue("blurb")); err != nil {
 		return reviewPostRequest{}, err
 	}
 
-	return reviewPostRequest{
-		Review: screenjournal.Review{
-			Rating:   rating,
-			Comments: []screenjournal.ReviewComment{},
-			Watched:  watchDate,
-			Blurb:    blurb,
-		},
-		TmdbID: tmdbID,
-	}, nil
+	return parsed, nil
 }
 
 func parseReviewPutRequest(r *http.Request) (reviewPutRequest, error) {

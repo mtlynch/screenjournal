@@ -2,67 +2,6 @@
   Add Review
 {{ end }}
 
-{{ define "script-tags" }}
-  <script type="module" nonce="{{ .CspNonce }}">
-    import { addReview } from "/js/controllers/reviews.js";
-    import { makeVisible, makeInvisible } from "/js/lib/bootstrap.js";
-    import { tzOffsetString } from "/js/lib/time.js";
-
-    function reviewFromForm() {
-      const tmdbId = parseInt(document.getElementById("tmdb-id").value);
-      const rating = parseInt(document.getElementById("rating-select").value);
-      const watched = document.getElementById("watched-date").value;
-      const blurb = document.getElementById("blurb").value.trim();
-
-      return {
-        tmdbId,
-        rating,
-        watched,
-        blurb,
-      };
-    }
-
-    document.addEventListener(
-      "DOMContentLoaded",
-      function () {
-        const errorAlert = document.getElementById("error");
-        const submitSpinner = document.getElementById("submit-spinner");
-        const submitBtn = document.querySelector("form .btn-primary");
-
-        document.querySelector("form").addEventListener("submit", (evt) => {
-          evt.preventDefault();
-
-          submitBtn.disabled = true;
-          makeInvisible(errorAlert);
-          makeVisible(submitSpinner);
-
-          addReview(reviewFromForm())
-            .then(() => {
-              let newLocation = new URL(window.location.href);
-              newLocation.search = (() => {
-                let s = new URLSearchParams(newLocation.search);
-                s.delete("movieId");
-                s.delete("tmdbId");
-                return s.toString();
-              })();
-              newLocation.pathname = "/reviews";
-              window.location = newLocation;
-            })
-            .catch((error) => {
-              errorAlert.innerText = error;
-              makeVisible(errorAlert);
-            })
-            .finally(() => {
-              makeInvisible(submitSpinner);
-              submitBtn.disabled = false;
-            });
-        });
-      },
-      false
-    );
-  </script>
-{{ end }}
-
 {{ define "style-tags" }}
   <style nonce="{{ .CspNonce }}">
     #search-results-list li {
@@ -89,6 +28,27 @@
       }
     }
   </style>
+{{ end }}
+
+{{ define "script-tags" }}
+  <script type="module" nonce="{{ .CspNonce }}">
+    function is2xxCode(status) {
+      return (status / 100) * 100 === 200;
+    }
+    const alertEl = document.querySelector(".alert");
+
+    document.querySelector("form").addEventListener("input", function (evt) {
+      alertEl.hidden = true;
+    });
+
+    document.body.addEventListener("htmx:beforeSwap", function (evt) {
+      if (is2xxCode(evt.detail.xhr.status)) {
+        return;
+      }
+      alertEl.innerText = evt.detail.xhr.responseText;
+      alertEl.hidden = false;
+    });
+  </script>
 {{ end }}
 
 {{ define "content" }}
@@ -124,21 +84,31 @@
       hx-trigger="search, keyup delay:200ms changed"
       hx-target="#search-results-list"
     />
+
+    <div class="alert alert-danger" role="alert" hidden>Placeholder error</div>
   </form>
 
   <div id="search-results-list" class="p-0"></div>
 {{ end }}
 
 {{ define "rate-movie" }}
-  <form>
-    <input type="hidden" id="tmdb-id" value="{{ .TmdbID }}" />
+  <form
+    class="d-flex flex-column"
+    hx-post="/reviews"
+    hx-target="body"
+    hx-push-url="true"
+    hx-disabled-elt="input, select, textarea, .btn"
+  >
+    <input type="hidden" name="tmdb-id" value="{{ .TmdbID }}" />
     <div class="mb-3">
-      <label for="rating-select" class="form-label">Rating</label>
+      <label for="rating" class="form-label">Rating</label>
       <select
-        id="rating-select"
+        id="rating"
+        name="rating"
         class="form-select"
         aria-label="Rating"
         required
+        autofocus
       >
         <option selected></option>
         {{ range .RatingOptions }}
@@ -148,9 +118,10 @@
     </div>
 
     <div class="mb-3">
-      <label for="watched-date" class="form-label">When did you watch?</label>
+      <label for="watch-date" class="form-label">When did you watch?</label>
       <input
-        id="watched-date"
+        id="watch-date"
+        name="watch-date"
         class="form-control"
         type="date"
         value="{{ .Today | formatDate }}"
@@ -162,17 +133,17 @@
 
     <div class="mb-3">
       <label for="blurb" class="form-label">Other thoughts? (Optional)</label>
-      <textarea id="blurb" class="form-control"></textarea>
+      <textarea id="blurb" name="blurb" class="form-control"></textarea>
     </div>
 
-    <input type="submit" class="btn btn-primary" value="Submit" />
+    <div class="mb-3">
+      <input type="submit" class="btn btn-primary" value="Submit" />
+    </div>
+
+    <div class="spinner-border htmx-indicator" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+
+    <div class="alert alert-danger" role="alert" hidden>Placeholder error</div>
   </form>
-
-  <div id="submit-spinner" class="spinner-border invisible" role="status">
-    <span class="visually-hidden">Loading...</span>
-  </div>
-
-  <div id="error" class="alert alert-danger invisible" role="alert">
-    Placeholder error
-  </div>
 {{ end }}

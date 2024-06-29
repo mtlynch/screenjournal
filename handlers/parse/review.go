@@ -65,6 +65,14 @@ func MediaTitle(raw string) (screenjournal.MediaTitle, error) {
 	return screenjournal.MediaTitle(raw), nil
 }
 
+func RatingFromString(raw string) (screenjournal.Rating, error) {
+	i, err := strconv.ParseInt(raw, 10, 32)
+	if err != nil {
+		return screenjournal.Rating(0), err
+	}
+	return Rating(int(i))
+}
+
 func Rating(raw int) (screenjournal.Rating, error) {
 	if raw < minRating || raw > maxRating {
 		return screenjournal.Rating(0), ErrInvalidRating

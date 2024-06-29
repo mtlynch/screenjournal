@@ -154,13 +154,8 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 		expected        screenjournal.Review
 	}{
 		{
-			description: "valid request with all fields populated and movie information is in local DB",
-			payload: `{
-					"tmdbId": 38,
-					"rating": 5,
-					"watched":"2022-10-28",
-					"blurb": "It's my favorite movie!"
-				}`,
+			description:  "valid request with all fields populated and movie information is in local DB",
+			payload:      "tmdb-id=38&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
 			sessionToken: "abc123",
 			localMovies: []screenjournal.Movie{
 				{
@@ -195,13 +190,8 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			},
 		},
 		{
-			description: "valid request without a blurb",
-			payload: `{
-					"tmdbId": 14577,
-					"rating": 4,
-					"watched":"2022-10-21",
-					"blurb": ""
-				}`,
+			description:  "valid request without a blurb",
+			payload:      "tmdb-id=14577&rating=4&watch-date=2022-10-21&blurb=",
 			sessionToken: "abc123",
 			localMovies: []screenjournal.Movie{
 				{
@@ -237,13 +227,8 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			},
 		},
 		{
-			description: "valid request but we have to query metadata finder for movie info",
-			payload: `{
-					"tmdbId": 38,
-					"rating": 5,
-					"watched":"2022-10-28",
-					"blurb": "It's my favorite movie!"
-				}`,
+			description:  "valid request but we have to query metadata finder for movie info",
+			payload:      "tmdb-id=38&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
 			sessionToken: "abc123",
 			remoteMovieInfo: []metadata.MovieInfo{
 				{
@@ -293,11 +278,11 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 
 			s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo))
 
-			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
+			req, err := http.NewRequest("POST", "/reviews", strings.NewReader(tt.payload))
 			if err != nil {
 				t.Fatal(err)
 			}
-			req.Header.Add("Content-Type", "text/json")
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.AddCookie(&http.Cookie{
 				Name:  mockSessionTokenName,
 				Value: tt.sessionToken,
@@ -306,7 +291,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			w := httptest.NewRecorder()
 			s.Router().ServeHTTP(w, req)
 
-			if got, want := w.Code, http.StatusOK; got != want {
+			if got, want := w.Code, http.StatusSeeOther; got != want {
 				t.Fatalf("httpStatus=%v, want=%v", got, want)
 			}
 
@@ -358,7 +343,7 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 		},
 		{
 			description:  "empty payload",
-			payload:      "{}",
+			payload:      "tmdb-id=&rating=&watch-date=&blurb=",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -370,13 +355,8 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 			},
 		},
 		{
-			description: "invalid title field (non-string)",
-			payload: `{
-					"title": 5,
-					"rating": 5,
-					"watched":"2022-10-28",
-					"blurb": "It's my favorite movie!"
-				}`,
+			description:  "invalid tmdb field (non-number)",
+			payload:      "tmdb-id=banana&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -388,13 +368,8 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 			},
 		},
 		{
-			description: "invalid title field (too long)",
-			payload: fmt.Sprintf(`{
-					"title": "%s",
-					"rating": 5,
-					"watched":"2022-10-28",
-					"blurb": "It's my favorite movie!"
-				}`, strings.Repeat("A", parse.MediaTitleMaxLength+1)),
+			description:  "invalid rating field (non-number)",
+			payload:      "tmdb-id=banana&rating=banana&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -414,11 +389,11 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 			sessionManager := newMockSessionManager(tt.sessions)
 			s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, mockMetadataFinder{})
 
-			req, err := http.NewRequest("POST", "/api/reviews", strings.NewReader(tt.payload))
+			req, err := http.NewRequest("POST", "/reviews", strings.NewReader(tt.payload))
 			if err != nil {
 				t.Fatal(err)
 			}
-			req.Header.Add("Content-Type", "text/json")
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.AddCookie(&http.Cookie{
 				Name:  mockSessionTokenName,
 				Value: tt.sessionToken,
@@ -428,7 +403,7 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 			s.Router().ServeHTTP(w, req)
 
 			if got, want := w.Code, http.StatusBadRequest; got != want {
-				t.Fatalf("/api/reviews POST returned wrong status: got=%v, want=%v", got, want)
+				t.Fatalf("/reviews POST returned wrong status: got=%v, want=%v", got, want)
 			}
 
 			if got, want := len(announcer.announcedReviews), 0; got != want {

@@ -1038,7 +1038,7 @@ func mustParseWatchDate(s string) screenjournal.WatchDate {
 }
 
 func mustParseDate(s string) time.Time {
-	d, err := time.Parse("2006-01-02", s)
+	d, err := time.Parse(time.DateOnly, s)
 	if err != nil {
 		log.Fatalf("failed to parse watch date: %s", s)
 	}

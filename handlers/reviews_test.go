@@ -110,7 +110,7 @@ func (sm mockSessionManager) WrapRequest(next http.Handler) http.Handler {
 }
 
 type mockMetadataFinder struct {
-	db map[screenjournal.TmdbID]metadata.MovieInfo
+	db []metadata.MovieInfo
 }
 
 func (mf mockMetadataFinder) Search(query string) ([]metadata.MovieInfo, error) {
@@ -129,19 +129,17 @@ func (mf mockMetadataFinder) Search(query string) ([]metadata.MovieInfo, error) 
 }
 
 func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, error) {
-	var m metadata.MovieInfo
-	var ok bool
-	if m, ok = mf.db[id]; !ok {
-		return metadata.MovieInfo{}, fmt.Errorf("could not find movie with id %d in mock DB", id.Int32())
+	for _, m := range mf.db {
+		if id.Equal(m.TmdbID) {
+			return m, nil
+		}
 	}
-	return m, nil
+	return metadata.MovieInfo{}, fmt.Errorf("could not find movie with id %d in mock DB", id.Int32())
 }
 
 func NewMockMetadataFinder(movies []metadata.MovieInfo) mockMetadataFinder {
-	db := map[screenjournal.TmdbID]metadata.MovieInfo{}
-	for _, m := range movies {
-		db[m.TmdbID] = m
-	}
+	db := make([]metadata.MovieInfo, len(movies))
+	copy(db, movies)
 	return mockMetadataFinder{db}
 }
 

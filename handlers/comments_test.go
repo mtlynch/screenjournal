@@ -66,7 +66,7 @@ func makeCommentsTestData() commentsTestData {
 		Owner:   td.users.userB.Username,
 		Rating:  screenjournal.Rating(5),
 		Movie:   td.movies.theWaterBoy,
-		Watched: mustParseWatchDate("2020-10-05T20:18:55-04:00"),
+		Watched: mustParseWatchDate("2020-10-05"),
 		Blurb:   screenjournal.Blurb("I love water!"),
 	}
 	return td

@@ -160,7 +160,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			payload: `{
 					"tmdbId": 38,
 					"rating": 5,
-					"watched":"2022-10-28T00:00:00-04:00",
+					"watched":"2022-10-28",
 					"blurb": "It's my favorite movie!"
 				}`,
 			sessionToken: "abc123",
@@ -184,7 +184,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("dummyadmin"),
 				Rating:  screenjournal.Rating(5),
-				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+				Watched: mustParseWatchDate("2022-10-28"),
 				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 				Movie: screenjournal.Movie{
 					ID:          screenjournal.MovieID(1),
@@ -201,7 +201,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			payload: `{
 					"tmdbId": 14577,
 					"rating": 4,
-					"watched":"2022-10-21T00:00:00-04:00",
+					"watched":"2022-10-21",
 					"blurb": ""
 				}`,
 			sessionToken: "abc123",
@@ -226,7 +226,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("dummyadmin"),
 				Rating:  screenjournal.Rating(4),
-				Watched: mustParseWatchDate("2022-10-21T00:00:00-04:00"),
+				Watched: mustParseWatchDate("2022-10-21"),
 				Blurb:   screenjournal.Blurb(""),
 				Movie: screenjournal.Movie{
 					ID:          screenjournal.MovieID(1),
@@ -243,7 +243,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			payload: `{
 					"tmdbId": 38,
 					"rating": 5,
-					"watched":"2022-10-28T00:00:00-04:00",
+					"watched":"2022-10-28",
 					"blurb": "It's my favorite movie!"
 				}`,
 			sessionToken: "abc123",
@@ -267,7 +267,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("dummyadmin"),
 				Rating:  screenjournal.Rating(5),
-				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+				Watched: mustParseWatchDate("2022-10-28"),
 				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 				Movie: screenjournal.Movie{
 					ID:          screenjournal.MovieID(1),
@@ -376,7 +376,7 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 			payload: `{
 					"title": 5,
 					"rating": 5,
-					"watched":"2022-10-28T00:00:00-04:00",
+					"watched":"2022-10-28",
 					"blurb": "It's my favorite movie!"
 				}`,
 			sessionToken: "abc123",
@@ -394,7 +394,7 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 			payload: fmt.Sprintf(`{
 					"title": "%s",
 					"rating": 5,
-					"watched":"2022-10-28T00:00:00-04:00",
+					"watched":"2022-10-28",
 					"blurb": "It's my favorite movie!"
 				}`, strings.Repeat("A", parse.MediaTitleMaxLength+1)),
 			sessionToken: "abc123",
@@ -471,7 +471,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				{
 					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(5),
-					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
 						ID:          screenjournal.MovieID(1),
@@ -493,14 +493,14 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			route: "/api/reviews/1",
 			payload: `{
 					"rating": 4,
-					"watched":"2022-10-30T00:00:00-04:00",
+					"watched":"2022-10-30",
 					"blurb": "It's a pretty good movie!"
 				}`,
 			sessionToken: "abc123",
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("userA"),
 				Rating:  screenjournal.Rating(4),
-				Watched: mustParseWatchDate("2022-10-30T00:00:00-04:00"),
+				Watched: mustParseWatchDate("2022-10-30"),
 				Blurb:   screenjournal.Blurb("It's a pretty good movie!"),
 				Movie: screenjournal.Movie{
 					ID:          screenjournal.MovieID(1),
@@ -532,7 +532,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				{
 					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(4),
-					Watched: mustParseWatchDate("2022-10-21T00:00:00-04:00"),
+					Watched: mustParseWatchDate("2022-10-21"),
 					Blurb:   screenjournal.Blurb("Love Norm McDonald!"),
 					Movie: screenjournal.Movie{
 						ID:          screenjournal.MovieID(2),
@@ -554,14 +554,14 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 			route: "/api/reviews/1",
 			payload: `{
 					"rating": 3,
-					"watched":"2022-10-28T00:00:00-04:00",
+					"watched":"2022-10-28",
 					"blurb": ""
 				}`,
 			sessionToken: "abc123",
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("userA"),
 				Rating:  screenjournal.Rating(3),
-				Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+				Watched: mustParseWatchDate("2022-10-28"),
 				Blurb:   screenjournal.Blurb(""),
 				Movie: screenjournal.Movie{
 					ID:          screenjournal.MovieID(2),
@@ -652,7 +652,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(5),
-					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
 						ID:          screenjournal.MovieID(1),
@@ -674,7 +674,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			route: "/api/reviews/0",
 			payload: `{
 					"rating": 4,
-					"watched":"2022-10-30T00:00:00-04:00",
+					"watched":"2022-10-30",
 					"blurb": "It's a pretty good movie!"
 				}`,
 			sessionToken: "abc123",
@@ -694,7 +694,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 				{
 					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(5),
-					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
 						ID:          screenjournal.MovieID(1),
@@ -716,7 +716,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			route: "/api/reviews/9876",
 			payload: `{
 					"rating": 4,
-					"watched":"2022-10-30T00:00:00-04:00",
+					"watched":"2022-10-30",
 					"blurb": "It's a pretty good movie!"
 				}`,
 			sessionToken: "abc123",
@@ -737,7 +737,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(5),
-					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
 						ID:          screenjournal.MovieID(1),
@@ -759,7 +759,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			route: "/api/reviews/1",
 			payload: `{
 					"rating": 4,
-					"watched":"2022-10-30T00:00:00-04:00",
+					"watched":"2022-10-30",
 					"blurb": "no JSON ending brace!"`,
 			sessionToken: "abc123",
 			status:       http.StatusBadRequest,
@@ -779,7 +779,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(5),
-					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
 						ID:          screenjournal.MovieID(1),
@@ -800,7 +800,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			},
 			route: "/api/reviews/1",
 			payload: `{
-					"watched":"2022-10-30T00:00:00-04:00",
+					"watched":"2022-10-30",
 					"blurb": "It's a pretty good movie!"
 				}`,
 			sessionToken: "abc123",
@@ -821,7 +821,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(5),
-					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
 						ID:          screenjournal.MovieID(1),
@@ -863,7 +863,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(5),
-					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
 						ID:          screenjournal.MovieID(1),
@@ -885,7 +885,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			route: "/api/reviews/1",
 			payload: `{
 					"rating": 4,
-					"watched":"2022-10-30T00:00:00-04:00",
+					"watched":"2022-10-30",
 					"blurb": 6
 				}`,
 			sessionToken: "abc123",
@@ -906,7 +906,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(5),
-					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
 						ID:          screenjournal.MovieID(1),
@@ -928,7 +928,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			route: "/api/reviews/1",
 			payload: `{
 					"rating": 4,
-					"watched":"2022-10-30T00:00:00-04:00",
+					"watched":"2022-10-30",
 					"blurb": "Nothing evil going on here...<script>alert(1)</script>"
 				}`,
 			sessionToken: "abc123",
@@ -949,7 +949,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
 					Rating:  screenjournal.Rating(5),
-					Watched: mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
 						ID:          screenjournal.MovieID(1),
@@ -977,7 +977,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			route: "/api/reviews/1",
 			payload: `{
 					"rating": 4,
-					"watched":"2022-10-30T00:00:00-04:00",
+					"watched":"2022-10-30",
 					"blurb": "I'm overwriting userA's review!"
 				}`,
 			sessionToken: "def456",

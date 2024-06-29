@@ -76,7 +76,7 @@ func (s Server) populateDummyData() http.HandlerFunc {
 				ID:    screenjournal.MovieID(1),
 				Title: screenjournal.MediaTitle("The Waterboy"),
 			},
-			Watched: mustParseWatchDate("2020-10-05T20:18:55-04:00"),
+			Watched: mustParseWatchDate("2020-10-05"),
 			Blurb:   screenjournal.Blurb("I love water!"),
 			Comments: []screenjournal.ReviewComment{
 				{
@@ -94,7 +94,7 @@ func (s Server) populateDummyData() http.HandlerFunc {
 				ID:    screenjournal.MovieID(2),
 				Title: screenjournal.MediaTitle("Billy Madison"),
 			},
-			Watched: mustParseWatchDate("2023-02-05T20:18:55-04:00"),
+			Watched: mustParseWatchDate("2023-02-05"),
 			Blurb:   screenjournal.Blurb("A staggering lack of water."),
 		},
 	}

@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
-	"time"
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
@@ -191,11 +191,11 @@ func dbPerSessionPost() http.HandlerFunc {
 }
 
 func mustParseReleaseDate(s string) screenjournal.ReleaseDate {
-	d, err := time.Parse(time.DateOnly, s)
+	d, err := tmdb.ParseReleaseDate(s)
 	if err != nil {
 		log.Fatalf("failed to parse release date: %s", s)
 	}
-	return screenjournal.ReleaseDate(d)
+	return d
 }
 
 func mustParseWatchDate(s string) screenjournal.WatchDate {

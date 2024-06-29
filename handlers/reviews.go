@@ -74,6 +74,7 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
+		// TODO: make parseReviewPutRequest
 		if err := updateReviewFromRequest(r, &review); err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			return

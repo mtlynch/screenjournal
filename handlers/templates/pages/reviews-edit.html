@@ -1,9 +1,38 @@
 {{ define "title" }}
-  Edit Review
+  {{ $isEditing := ne .Review.ID 0 }}
+  {{ if $isEditing }}
+    Add Review
+  {{ else }}
+    Edit Review
+  {{ end }}
 {{ end }}
 
 {{ define "style-tags" }}
   <style nonce="{{ .CspNonce }}">
+    #search-results-list li {
+      border-top: 1px solid #c2c2c2;
+    }
+
+    #search-results-list li a {
+      display: block;
+      text-decoration: none;
+      color: black;
+    }
+
+    #search-results-list li a:hover {
+      background-color: #def0ff;
+    }
+
+    #search-results-list img {
+      max-height: 100px;
+    }
+
+    @media screen and (min-width: 1024px) {
+      #search-results-list img {
+        max-height: 80px;
+      }
+    }
+
     .btn + .btn {
       margin-right: 0.5rem;
     }
@@ -12,75 +41,104 @@
 
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
-    import { updateReview } from "/js/controllers/reviews.js";
-    import { makeVisible, makeInvisible } from "/js/lib/bootstrap.js";
-    import { tzOffsetString } from "/js/lib/time.js";
-
-    function reviewFromForm() {
-      const rating = parseInt(document.getElementById("rating-select").value);
-
-      const watched = document.getElementById("watched-date").value;
-
-      const blurb = document.getElementById("blurb").value.trim();
-
-      return {
-        rating,
-        watched,
-        blurb,
-      };
+    function is2xxCode(status) {
+      return (status / 100) * 100 === 200;
     }
+    const alertEl = document.querySelector(".alert");
 
-    document.addEventListener(
-      "DOMContentLoaded",
-      function () {
-        const errorAlert = document.getElementById("error");
-        const submitSpinner = document.getElementById("submit-spinner");
-        const submitBtn = document.querySelector("form .btn-primary");
+    document.querySelector("form").addEventListener("input", function (evt) {
+      alertEl.hidden = true;
+    });
 
-        document
-          .getElementById("edit-rating")
-          .addEventListener("submit", (evt) => {
-            evt.preventDefault();
-
-            submitBtn.disabled = true;
-            makeInvisible(errorAlert);
-            makeVisible(submitSpinner);
-
-            const id = parseInt(document.getElementById("review-id").value);
-
-            updateReview(id, reviewFromForm())
-              .then(() => {
-                window.location.pathname = `/reviews`;
-              })
-              .catch((error) => {
-                errorAlert.innerText = error;
-                makeVisible(errorAlert);
-              })
-              .finally(() => {
-                makeInvisible(submitSpinner);
-                submitBtn.disabled = false;
-              });
-          });
-      },
-      false
-    );
+    document.body.addEventListener("htmx:beforeSwap", function (evt) {
+      if (is2xxCode(evt.detail.xhr.status)) {
+        return;
+      }
+      alertEl.innerText = evt.detail.xhr.responseText;
+      alertEl.hidden = false;
+    });
   </script>
 {{ end }}
 
 {{ define "content" }}
-  <h1>{{ .Review.Movie.Title }} ({{ .Review.Movie.ReleaseDate.Year }})</h1>
+  {{ $isEditing := ne .Review.ID 0 }}
 
-  <form id="edit-rating" class="my-5">
-    <input id="review-id" type="hidden" value="{{ .Review.ID }}" />
+
+  <h1>
+    {{- if $isEditing -}}
+      Edit Rating
+    {{- else -}}
+      Add Rating
+    {{- end -}}
+  </h1>
+
+  <h2>{{ .Review.Movie.Title }} ({{ .Review.Movie.ReleaseDate.Year }})</h2>
+
+  <div class="my-5">
+    {{ if not .Review.Movie.Title }}
+      {{ template "find-title" }}
+    {{ else }}
+      {{ template "rate-movie" . }}
+    {{ end }}
+  </div>
+{{ end }}
+
+{{ define "find-title" }}
+  <form>
+    <label for="media-title" class="form-label">Title</label>
+    <input
+      id="media-title"
+      name="query"
+      class="form-control"
+      type="search"
+      placeholder="Search"
+      aria-label="Search"
+      autofocus="autofocus"
+      required
+      hx-get="/api/search"
+      hx-trigger="search, keyup delay:200ms changed"
+      hx-target="#search-results-list"
+    />
+
+    <div class="alert alert-danger" role="alert" hidden>Placeholder error</div>
+  </form>
+
+  <div id="search-results-list" class="p-0"></div>
+{{ end }}
+
+{{ define "rate-movie" }}
+  {{ $isEditing := ne .Review.ID 0 }}
+
+
+  <form
+    class="d-flex flex-column"
+    {{ if $isEditing }}
+      hx-put="/reviews/{{ .Review.ID }}"
+    {{ else }}
+      hx-post="/reviews"
+    {{ end }}
+    hx-target="body"
+    hx-push-url="true"
+    hx-disabled-elt="input, select, textarea, .btn"
+  >
+    <input type="hidden" name="tmdb-id" value="{{ .Review.Movie.TmdbID }}" />
+    {{ if ne .Review.ID 0 }}
+      <input name="review-id" type="hidden" value="{{ .Review.ID }}" />
+    {{ end }}
     <div class="mb-3">
-      <label for="rating-select" class="form-label">Rating</label>
+      <label for="rating" class="form-label">Rating</label>
       <select
-        id="rating-select"
+        id="rating"
+        name="rating"
         class="form-select"
         aria-label="Rating"
         required
+        autofocus
       >
         {{ $selectedRating := .Review.Rating.UInt8 }}
+        {{ if eq $selectedRating 0 }}
+          <option selected></option>
+        {{ end }}
         {{ range $i := .RatingOptions }}
           <option
             value="{{ . }}"
@@ -93,12 +151,17 @@
     </div>
 
     <div class="mb-3">
-      <label for="watched-date" class="form-label">When did you watch?</label>
+      <label for="watch-date" class="form-label">When did you watch?</label>
+      {{ $defaultWatchDate := .Review.Watched.Time }}
+      {{ if not $isEditing }}
+        {{ $defaultWatchDate = .Today }}
+      {{ end }}
       <input
-        id="watched-date"
+        id="watch-date"
+        name="watch-date"
         class="form-control"
         type="date"
-        value="{{ .Review.Watched.Time | formatDate }}"
+        value="{{ $defaultWatchDate | formatDate }}"
         min="2000-01-01"
         max="{{ .Today | formatDate }}"
         required
@@ -106,37 +169,42 @@
     </div>
 
     <div class="mb-3">
-      <label for="blurb" class="form-label">Other thoughts?</label>
+      <label for="blurb" class="form-label">Other thoughts? (Optional)</label>
       <textarea id="blurb" class="form-control">{{ .Review.Blurb }}</textarea>
     </div>
 
-    <div class="d-flex justify-content-between flex-row-reverse">
-      <div class="d-flex">
-        <button class="btn btn-primary me-2" value="Save">
-          <i class="fa-solid fa-floppy-disk"></i>
-          Save
-        </button>
-        <a class="btn btn-outline-secondary" role="button" href="/reviews"
-          >Cancel</a
-        >
+    {{ if $isEditing }}
+      <div class="d-flex justify-content-between flex-row-reverse">
+        <div class="d-flex">
+          <button class="btn btn-primary me-2" value="Save">
+            <i class="fa-solid fa-floppy-disk"></i>
+            Save
+          </button>
+          <a class="btn btn-outline-secondary" role="button" href="/reviews"
+            >Cancel</a
+          >
+        </div>
+        <div class="d-flex">
+          <a
+            class="btn btn-danger"
+            role="button"
+            href="/reviews/{{ .Review.ID }}/delete"
+          >
+            <i class="fa fa-trash me-2"></i>Delete
+          </a>
+        </div>
       </div>
-      <div class="d-flex">
-        <a
-          class="btn btn-danger"
-          role="button"
-          href="/reviews/{{ .Review.ID }}/delete"
-        >
-          <i class="fa fa-trash me-2"></i>Delete
-        </a>
+    {{ else }}
+      <div class="mb-3">
+        <input type="submit" class="btn btn-primary" value="Submit" />
       </div>
+    {{ end }}
+
+
+    <div class="spinner-border htmx-indicator" role="status">
+      <span class="visually-hidden">Loading...</span>
     </div>
+
+    <div class="alert alert-danger" role="alert" hidden>Placeholder error</div>
   </form>
-
-  <div id="submit-spinner" class="spinner-border invisible" role="status">
-    <span class="visually-hidden">Loading...</span>
-  </div>
-
-  <div id="error" class="alert alert-danger invisible" role="alert">
-    Placeholder error
-  </div>
 {{ end }}

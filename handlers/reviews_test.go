@@ -157,7 +157,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 	}{
 		{
 			description:  "valid request with all fields populated and movie information is in local DB",
-			payload:      "tmdb-id=38&rating=5&watched-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
+			payload:      "tmdb-id=38&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
 			sessionToken: "abc123",
 			localMovies: []screenjournal.Movie{
 				{
@@ -193,7 +193,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 		},
 		{
 			description:  "valid request without a blurb",
-			payload:      "tmdb-id=14577&rating=4&watched-date=2022-10-21&blurb=",
+			payload:      "tmdb-id=14577&rating=4&watch-date=2022-10-21&blurb=",
 			sessionToken: "abc123",
 			localMovies: []screenjournal.Movie{
 				{
@@ -230,7 +230,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 		},
 		{
 			description:  "valid request but we have to query metadata finder for movie info",
-			payload:      "tmdb-id=38&rating=5&watched-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
+			payload:      "tmdb-id=38&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
 			sessionToken: "abc123",
 			remoteMovieInfo: []metadata.MovieInfo{
 				{
@@ -293,7 +293,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			w := httptest.NewRecorder()
 			s.Router().ServeHTTP(w, req)
 
-			if got, want := w.Code, http.StatusOK; got != want {
+			if got, want := w.Code, http.StatusSeeOther; got != want {
 				t.Fatalf("httpStatus=%v, want=%v", got, want)
 			}
 
@@ -345,7 +345,7 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 		},
 		{
 			description:  "empty payload",
-			payload:      "tmdb-id=&rating=&watched-date=&blurb=",
+			payload:      "tmdb-id=&rating=&watch-date=&blurb=",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -358,7 +358,7 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 		},
 		{
 			description:  "invalid tmdb field (non-number)",
-			payload:      "tmdb-id=banana&rating=5&watched-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
+			payload:      "tmdb-id=banana&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -371,7 +371,7 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 		},
 		{
 			description:  "invalid rating field (non-number)",
-			payload:      "tmdb-id=banana&rating=banana&watched-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
+			payload:      "tmdb-id=banana&rating=banana&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{

@@ -5,7 +5,6 @@ import (
 	"math"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -230,7 +229,7 @@ func TestWatchDate(t *testing.T) {
 		},
 		{
 			description: "reject watch date in the future",
-			input:       "3000-01-01T00:00:00Z",
+			input:       "3000-01-01",
 			output:      screenjournal.WatchDate{},
 			err:         parse.ErrWatchDateTooLate,
 		},
@@ -346,9 +345,9 @@ func TestBlurb(t *testing.T) {
 }
 
 func mustParseWatchDate(s string) screenjournal.WatchDate {
-	wd, err := time.Parse(time.RFC3339, s)
+	wd, err := parse.WatchDate(s)
 	if err != nil {
 		panic(err)
 	}
-	return screenjournal.WatchDate(wd)
+	return wd
 }

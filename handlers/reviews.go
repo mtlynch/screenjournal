@@ -147,13 +147,13 @@ func parseReviewPostRequest(r *http.Request) (reviewPostRequest, error) {
 	}
 
 	return reviewPostRequest{
-		TmdbID: tmdbID,
 		Review: screenjournal.Review{
 			Rating:   rating,
 			Comments: []screenjournal.ReviewComment{},
 			Watched:  watchDate,
 			Blurb:    blurb,
 		},
+		TmdbID: tmdbID,
 	}, nil
 }
 

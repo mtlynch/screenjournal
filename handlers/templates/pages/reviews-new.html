@@ -11,8 +11,7 @@
     function reviewFromForm() {
       const tmdbId = parseInt(document.getElementById("tmdb-id").value);
       const rating = parseInt(document.getElementById("rating-select").value);
-      const dateRaw = document.getElementById("watched-date").value;
-      const watched = `${dateRaw}T00:00:00.000${tzOffsetString()}`;
+      const watched = document.getElementById("watched-date").value;
       const blurb = document.getElementById("blurb").value.trim();
 
       return {

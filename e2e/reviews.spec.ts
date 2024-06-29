@@ -112,9 +112,9 @@ test("adds a new rating and fills in only required fields", async ({
     page.getByRole("heading", { name: "Slow Learners" })
   ).toBeVisible();
 
-  await page.locator("#rating-select").selectOption({ label: "1" });
+  await page.getByLabel("Rating").selectOption({ label: "1" });
 
-  await page.locator("#watched-date").fill("2022-10-21");
+  await page.getByLabel("When did you watch?").fill("2022-10-21");
 
   await page.locator("form input[type='submit']").click();
 
@@ -158,11 +158,11 @@ test("adds a new rating that's too long to display in a card", async ({
     page.getByRole("heading", { name: "Weird: The Al Yankovic Story" })
   ).toBeVisible();
 
-  await page.locator("#watched-date").fill("2022-11-11");
+  await page.getByLabel("When did you watch?").fill("2022-11-11");
 
-  await page.locator("#rating-select").selectOption({ label: "5" });
+  await page.getByLabel("Rating").selectOption({ label: "5" });
 
-  await page.locator("#blurb")
+  await page.getByLabel("Other thoughts?")
     .fill(`Instant movie of the year for me. It's such a delightful and creative way to play with the genre of musical biopics.
 
 If you think of Weird Al as just a parody music guy, give it a chance. I was never that excited about his parody music, but I always enjoy seeing him in TV and movies.
@@ -245,11 +245,11 @@ test("adds a new rating and fills all fields", async ({ page }) => {
     page.getByRole("heading", { name: "Eternal Sunshine of the Spotless Mind" })
   ).toBeVisible();
 
-  await page.locator("#rating-select").selectOption({ label: "5" });
+  await page.getByLabel("Rating").selectOption({ label: "5" });
 
-  await page.locator("#watched-date").fill("2022-10-29");
+  await page.getByLabel("When did you watch?").fill("2022-10-29");
 
-  await page.locator("#blurb").fill("My favorite movie!");
+  await page.getByLabel("Other thoughts?").fill("My favorite movie!");
 
   await page.locator("form input[type='submit']").click();
 
@@ -294,11 +294,13 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
     page.getByRole("heading", { name: "Eternal Sunshine of the Spotless Mind" })
   ).toBeVisible();
 
-  await page.locator("#rating-select").selectOption({ label: "5" });
+  await page.getByLabel("Rating").selectOption({ label: "5" });
 
-  await page.locator("#watched-date").fill("2022-10-29");
+  await page.getByLabel("When did you watch?").fill("2022-10-29");
 
-  await page.locator("#blurb").fill("This is the <b>best</b> movie ever!");
+  await page
+    .getByLabel("Other thoughts?")
+    .fill("This is the <b>best</b> movie ever!");
 
   await page.locator("form input[type='submit']").click();
 
@@ -330,11 +332,11 @@ test("adds a new rating and edits the details", async ({ page }) => {
     page.getByRole("heading", { name: "There's Something About Mary" })
   ).toBeVisible();
 
-  await page.locator("#rating-select").selectOption({ label: "5" });
+  await page.getByLabel("Rating").selectOption({ label: "5" });
 
-  await page.locator("#watched-date").fill("2022-10-29");
+  await page.getByLabel("When did you watch?").fill("2022-10-29");
 
-  await page.locator("#blurb").fill("My favorite movie!");
+  await page.getByLabel("Other thoughts?").fill("My favorite movie!");
 
   await page.locator("form input[type='submit']").click();
 
@@ -348,14 +350,18 @@ test("adds a new rating and edits the details", async ({ page }) => {
     "There's Something About Mary (1998)"
   );
 
-  await expect(page.locator("#rating-select")).toHaveValue("5");
-  await page.locator("#rating-select").selectOption({ label: "4" });
+  await expect(page.getByLabel("Rating")).toHaveValue("5");
+  await page.getByLabel("Rating").selectOption({ label: "4" });
 
-  await expect(page.locator("#watched-date")).toHaveValue("2022-10-29");
-  await page.locator("#watched-date").fill("2022-10-22");
+  await expect(page.getByLabel("When did you watch?")).toHaveValue(
+    "2022-10-29"
+  );
+  await page.getByLabel("When did you watch?").fill("2022-10-22");
 
-  await expect(page.locator("#blurb")).toHaveValue("My favorite movie!");
-  await page.locator("#blurb").fill("Not as good as I remembered");
+  await expect(page.getByLabel("Other thoughts?")).toHaveValue(
+    "My favorite movie!"
+  );
+  await page.getByLabel("Other thoughts?").fill("Not as good as I remembered");
 
   await page.locator("form .btn-primary").click();
 
@@ -394,9 +400,11 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
     page.getByRole("heading", { name: "The English Patient" })
   ).toBeVisible();
 
-  await page.locator("#rating-select").selectOption({ label: "4" });
-  await page.locator("#watched-date").fill("2022-10-29");
-  await page.locator("#blurb").fill("What an English patient he was!");
+  await page.getByLabel("Rating").selectOption({ label: "4" });
+  await page.getByLabel("When did you watch?").fill("2022-10-29");
+  await page
+    .getByLabel("Other thoughts?")
+    .fill("What an English patient he was!");
 
   await page.locator("form input[type='submit']").click();
 
@@ -407,9 +415,9 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   await reviewCard.getByTestId("edit-rating").click();
 
   // Make edits that will be ignored when we cancel the edit.
-  await page.locator("#rating-select").selectOption({ label: "1" });
-  await page.locator("#watched-date").fill("2022-10-22");
-  await page.locator("#blurb").fill("Ignore this edit");
+  await page.getByLabel("Rating").selectOption({ label: "1" });
+  await page.getByLabel("When did you watch?").fill("2022-10-22");
+  await page.getByLabel("Other thoughts?").fill("Ignore this edit");
 
   await page.getByRole("button", { name: "Cancel" }).click();
 
@@ -447,9 +455,11 @@ test("editing another user's review fails", async ({ page, browser }) => {
     page.getByRole("heading", { name: "The English Patient" })
   ).toBeVisible();
 
-  await page.locator("#rating-select").selectOption({ label: "4" });
-  await page.locator("#watched-date").fill("2022-10-29");
-  await page.locator("#blurb").fill("What an English patient he was!");
+  await page.getByLabel("Rating").selectOption({ label: "4" });
+  await page.getByLabel("When did you watch?").fill("2022-10-29");
+  await page
+    .getByLabel("Other thoughts?")
+    .fill("What an English patient he was!");
 
   await page.locator("form input[type='submit']").click();
 
@@ -491,9 +501,9 @@ test("views a movie with an existing review and adds a new review", async ({
 
   await expect(page.getByPlaceholder("Search")).not.toBeVisible();
 
-  await page.locator("#rating-select").selectOption({ label: "5" });
-  await page.locator("#watched-date").fill("2023-01-05");
-  await page.locator("#blurb").fill("Relevant as ever");
+  await page.getByLabel("Rating").selectOption({ label: "5" });
+  await page.getByLabel("When did you watch?").fill("2023-01-05");
+  await page.getByLabel("Other thoughts?").fill("Relevant as ever");
 
   await page.locator("form input[type='submit']").click();
 

@@ -12,14 +12,14 @@ import (
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-const watchDateFormat = time.RFC3339
+const watchDateFormat = time.DateOnly
 
 var (
 	ErrInvalidReviewID             = errors.New("invalid review ID")
 	ErrInvalidMediaTitle           = errors.New("invalid media title")
 	ErrInvalidRating               = fmt.Errorf("rating must be between %d and %d", minRating, maxRating)
 	ErrWatchDateUnrecognizedFormat = fmt.Errorf("unrecognized format for watch date, must be in %s format", watchDateFormat)
-	ErrWatchDateTooLate            = fmt.Errorf("watch time must be no later than %s", time.Now().Format("2006-01-02"))
+	ErrWatchDateTooLate            = fmt.Errorf("watch time must be no later than %s", time.Now().Format(time.DateOnly))
 	ErrInvalidBlurb                = errors.New("invalid blurb")
 
 	MediaTitleMinLength = 2

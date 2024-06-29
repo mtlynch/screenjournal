@@ -191,7 +191,7 @@ func dbPerSessionPost() http.HandlerFunc {
 }
 
 func mustParseReleaseDate(s string) screenjournal.ReleaseDate {
-	d, err := time.Parse("2006-01-02", s)
+	d, err := time.Parse(time.DateOnly, s)
 	if err != nil {
 		log.Fatalf("failed to parse release date: %s", s)
 	}

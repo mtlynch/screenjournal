@@ -224,8 +224,8 @@ func TestWatchDate(t *testing.T) {
 	}{
 		{
 			description: "valid watch date",
-			input:       "2022-10-28T00:00:00-04:00",
-			output:      mustParseWatchDate("2022-10-28T00:00:00-04:00"),
+			input:       "2022-10-28",
+			output:      mustParseWatchDate("2022-10-28"),
 			err:         nil,
 		},
 		{

@@ -65,7 +65,7 @@ func makeCommentsTestData() commentsTestData {
 		Owner:   td.users.userB.Username,
 		Rating:  screenjournal.Rating(5),
 		Movie:   td.movies.theWaterBoy,
-		Watched: mustParseWatchDate("2020-10-05T20:18:55-04:00"),
+		Watched: mustParseWatchDate("2020-10-05"),
 		Blurb:   screenjournal.Blurb("I love water!"),
 	}
 	return td
@@ -624,7 +624,7 @@ func TestCommentsDelete(t *testing.T) {
 }
 
 func mustParseReleaseDate(s string) screenjournal.ReleaseDate {
-	d, err := time.Parse("2006-01-02", s)
+	d, err := time.Parse(time.DateOnly, s)
 	if err != nil {
 		log.Fatalf("failed to parse release date: %s", s)
 	}

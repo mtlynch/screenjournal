@@ -12,7 +12,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-const watchDateFormat = time.RFC3339
+const watchDateFormat = time.DateOnly
 
 var (
 	ErrInvalidReviewID             = errors.New("invalid review ID")

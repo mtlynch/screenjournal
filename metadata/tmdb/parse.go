@@ -23,7 +23,7 @@ func ParseImdbID(raw string) (screenjournal.ImdbID, error) {
 }
 
 func ParseReleaseDate(raw string) (screenjournal.ReleaseDate, error) {
-	t, err := time.Parse("2006-01-02", raw)
+	t, err := time.Parse(time.DateOnly, raw)
 	if err != nil {
 		return screenjournal.ReleaseDate{}, ErrInvalidReleaseDate
 	}

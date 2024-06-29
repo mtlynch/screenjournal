@@ -24,7 +24,7 @@ import (
 func main() {
 	log.Print("starting screenjournal server")
 
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.SetFlags(log.LstdFlags | log.Llongfile)
 	dbPath := flag.String("db", "data/store.db", "path to database")
 	flag.Parse()
 

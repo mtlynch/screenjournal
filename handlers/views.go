@@ -364,7 +364,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			return a - b
 		},
 		"formatDate": func(t time.Time) string {
-			return t.Format("2006-01-02")
+			return t.Format(time.DateOnly)
 		},
 	}
 
@@ -461,7 +461,7 @@ func (s Server) reviewsDeleteGet() http.HandlerFunc {
 func (s Server) reviewsNewGet() http.HandlerFunc {
 	fns := template.FuncMap{
 		"formatDate": func(t time.Time) string {
-			return t.Format("2006-01-02")
+			return t.Format(time.DateOnly)
 		},
 	}
 	t := template.Must(
@@ -655,7 +655,7 @@ func relativeWatchDate(t screenjournal.WatchDate) string {
 }
 
 func formatWatchDate(t screenjournal.WatchDate) string {
-	return t.Time().Format("2006-01-02")
+	return t.Time().Format(time.DateOnly)
 }
 
 func relativeCommentDate(t time.Time) string {

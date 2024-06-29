@@ -19,7 +19,7 @@ type reviewPostRequest struct {
 
 func (s Server) reviewsPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req, err := newReviewFromRequest(r)
+		req, err := parseReviewPostRequest(r)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			return
@@ -45,6 +45,8 @@ func (s Server) reviewsPost() http.HandlerFunc {
 		}
 
 		s.announcer.AnnounceNewReview(req.Review)
+
+		http.Redirect(w, r, "/reviews", http.StatusSeeOther)
 	}
 }
 
@@ -117,44 +119,40 @@ func (s Server) reviewsDelete() http.HandlerFunc {
 	}
 }
 
-func newReviewFromRequest(r *http.Request) (reviewPostRequest, error) {
-	var payload struct {
-		TmdbID  int    `json:"tmdbId"`
-		Rating  int    `json:"rating"`
-		Watched string `json:"watched"`
-		Blurb   string `json:"blurb"`
-	}
-	err := json.NewDecoder(r.Body).Decode(&payload)
-	if err != nil {
-		log.Printf("failed to decode JSON request: %v", err)
+func parseReviewPostRequest(r *http.Request) (reviewPostRequest, error) {
+	if err := r.ParseForm(); err != nil {
+		log.Printf("failed to decode review POST request: %v", err)
 		return reviewPostRequest{}, err
 	}
 
-	tmdbID, err := parse.TmdbID(payload.TmdbID)
+	tmdbID, err := parse.TmdbIDFromString(r.PostFormValue("tmdb-id"))
 	if err != nil {
 		return reviewPostRequest{}, err
 	}
-	rating, err := parse.Rating(payload.Rating)
+
+	rating, err := parse.RatingFromString(r.PostFormValue("rating"))
 	if err != nil {
 		return reviewPostRequest{}, err
 	}
-	watchDate, err := parse.WatchDate(payload.Watched)
+
+	watchDate, err := parse.WatchDate(r.PostFormValue("watched"))
 	if err != nil {
 		return reviewPostRequest{}, err
 	}
-	blurb, err := parse.Blurb(payload.Blurb)
+
+	blurb, err := parse.Blurb(r.PostFormValue("blurb"))
 	if err != nil {
 		return reviewPostRequest{}, err
 	}
 
 	return reviewPostRequest{
+		TmdbID: tmdbID,
 		Review: screenjournal.Review{
 			Rating:   rating,
-			Blurb:    blurb,
-			Watched:  watchDate,
 			Comments: []screenjournal.ReviewComment{},
+			Watched:  watchDate,
+			Blurb:    blurb,
 		},
-		TmdbID: tmdbID,
 	}, nil
 }
 

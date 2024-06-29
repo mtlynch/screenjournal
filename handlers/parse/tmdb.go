@@ -21,6 +21,7 @@ func TmdbIDFromString(raw string) (screenjournal.TmdbID, error) {
 	return TmdbID(int(id))
 }
 
+// TODO: Merge?
 func TmdbID(raw int) (screenjournal.TmdbID, error) {
 	if raw <= 0 || raw > math.MaxInt32 {
 		return screenjournal.TmdbID(0), ErrInvalidTmdbID

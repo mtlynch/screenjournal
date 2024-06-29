@@ -4,24 +4,8 @@
 
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
-    import { addReview } from "/js/controllers/reviews.js";
     import { makeVisible, makeInvisible } from "/js/lib/bootstrap.js";
     import { tzOffsetString } from "/js/lib/time.js";
-
-    function reviewFromForm() {
-      const tmdbId = parseInt(document.getElementById("tmdb-id").value);
-      const rating = parseInt(document.getElementById("rating-select").value);
-      const dateRaw = document.getElementById("watched-date").value;
-      const watched = `${dateRaw}T00:00:00.000${tzOffsetString()}`;
-      const blurb = document.getElementById("blurb").value.trim();
-
-      return {
-        tmdbId,
-        rating,
-        watched,
-        blurb,
-      };
-    }
 
     document.addEventListener(
       "DOMContentLoaded",
@@ -131,12 +115,12 @@
 {{ end }}
 
 {{ define "rate-movie" }}
-  <form>
-    <input type="hidden" id="tmdb-id" value="{{ .TmdbID }}" />
+  <form hx-post="/reviews">
+    <input type="hidden" name="tmdb-id" value="{{ .TmdbID }}" />
     <div class="mb-3">
       <label for="rating-select" class="form-label">Rating</label>
       <select
-        id="rating-select"
+        name="rating-select"
         class="form-select"
         aria-label="Rating"
         required
@@ -151,7 +135,7 @@
     <div class="mb-3">
       <label for="watched-date" class="form-label">When did you watch?</label>
       <input
-        id="watched-date"
+        name="watched-date"
         class="form-control"
         type="date"
         value="{{ .Today | formatDate }}"

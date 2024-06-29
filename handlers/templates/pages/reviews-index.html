@@ -2,22 +2,6 @@
   {{ .Title }}
 {{ end }}
 
-{{ define "style-tags" }}
-  <style nonce="{{ .CspNonce }}">
-    @media screen and (min-width: 768px) {
-      .poster {
-        max-height: 300px;
-      }
-    }
-
-    @media screen and (min-width: 768px) {
-      #sort-by {
-        max-width: 18ch;
-      }
-    }
-  </style>
-{{ end }}
-
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
     function setPageSort(sortByField) {

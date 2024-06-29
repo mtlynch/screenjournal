@@ -23,6 +23,18 @@ img {
   background-color: #fafffb !important;
 }
 
+@media screen and (min-width: 768px) {
+  .poster {
+    max-height: 300px;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  #sort-by {
+    max-width: 18ch;
+  }
+}
+
 .htmx-indicator {
   opacity: 0;
   transition: opacity 500ms ease-in;

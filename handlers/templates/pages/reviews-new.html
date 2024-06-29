@@ -30,6 +30,27 @@
   </style>
 {{ end }}
 
+{{ define "script-tags" }}
+  <script type="module" nonce="{{ .CspNonce }}">
+    function is2xxCode(status) {
+      return (status / 100) * 100 === 200;
+    }
+    const alertEl = document.querySelector(".alert");
+
+    document.querySelector("form").addEventListener("input", function (evt) {
+      alertEl.hidden = true;
+    });
+
+    document.body.addEventListener("htmx:beforeSwap", function (evt) {
+      if (is2xxCode(evt.detail.xhr.status)) {
+        return;
+      }
+      alertEl.innerText = evt.detail.xhr.responseText;
+      alertEl.hidden = false;
+    });
+  </script>
+{{ end }}
+
 {{ define "content" }}
   <h1>Add Rating</h1>
 
@@ -63,13 +84,21 @@
       hx-trigger="search, keyup delay:200ms changed"
       hx-target="#search-results-list"
     />
+
+    <div class="alert alert-danger" role="alert" hidden>Placeholder error</div>
   </form>
 
   <div id="search-results-list" class="p-0"></div>
 {{ end }}
 
 {{ define "rate-movie" }}
-  <form hx-post="/reviews" hx-target="body" hx-push-url="true">
+  <form
+    class="d-flex flex-column"
+    hx-post="/reviews"
+    hx-target="body"
+    hx-push-url="true"
+    hx-disabled-elt="input, select, textarea, .btn"
+  >
     <input type="hidden" name="tmdb-id" value="{{ .TmdbID }}" />
     <div class="mb-3">
       <label for="rating" class="form-label">Rating</label>
@@ -79,6 +108,7 @@
         class="form-select"
         aria-label="Rating"
         required
+        autofocus
       >
         <option selected></option>
         {{ range .RatingOptions }}
@@ -106,17 +136,14 @@
       <textarea id="blurb" name="blurb" class="form-control"></textarea>
     </div>
 
-    <input type="submit" class="btn btn-primary" value="Submit" />
+    <div class="mb-3">
+      <input type="submit" class="btn btn-primary" value="Submit" />
+    </div>
+
+    <div class="spinner-border htmx-indicator" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+
+    <div class="alert alert-danger" role="alert" hidden>Placeholder error</div>
   </form>
-
-  {{/* Put in a spinner */}}
-  {{/* Show error on error */}}
-
-  <div id="submit-spinner" class="spinner-border invisible" role="status">
-    <span class="visually-hidden">Loading...</span>
-  </div>
-
-  <div id="error" class="alert alert-danger invisible" role="alert">
-    Placeholder error
-  </div>
 {{ end }}

@@ -14,6 +14,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
+	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -624,11 +625,11 @@ func TestCommentsDelete(t *testing.T) {
 }
 
 func mustParseReleaseDate(s string) screenjournal.ReleaseDate {
-	d, err := time.Parse(time.DateOnly, s)
+	d, err := tmdb.ParseReleaseDate(s)
 	if err != nil {
 		log.Fatalf("failed to parse release date: %s", s)
 	}
-	return screenjournal.ReleaseDate(d)
+	return d
 }
 
 func reviewCommentsEqual(a, b []screenjournal.ReviewComment) bool {

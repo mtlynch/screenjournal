@@ -22,6 +22,7 @@ func (s Server) reviewsPost() http.HandlerFunc {
 		req, err := parseReviewPostRequest(r)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
+			log.Printf("couldn't parse review POST request: %v", err)
 			return
 		}
 
@@ -135,7 +136,7 @@ func parseReviewPostRequest(r *http.Request) (reviewPostRequest, error) {
 		return reviewPostRequest{}, err
 	}
 
-	watchDate, err := parse.WatchDate(r.PostFormValue("watched"))
+	watchDate, err := parse.WatchDate(r.PostFormValue("watch-date"))
 	if err != nil {
 		return reviewPostRequest{}, err
 	}

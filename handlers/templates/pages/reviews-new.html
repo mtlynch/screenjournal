@@ -118,9 +118,10 @@
   <form hx-post="/reviews">
     <input type="hidden" name="tmdb-id" value="{{ .TmdbID }}" />
     <div class="mb-3">
-      <label for="rating-select" class="form-label">Rating</label>
+      <label for="rating" class="form-label">Rating</label>
       <select
-        name="rating-select"
+        id="rating"
+        name="rating"
         class="form-select"
         aria-label="Rating"
         required
@@ -135,6 +136,7 @@
     <div class="mb-3">
       <label for="watched-date" class="form-label">When did you watch?</label>
       <input
+        id="watched-date"
         name="watched-date"
         class="form-control"
         type="date"
@@ -147,7 +149,7 @@
 
     <div class="mb-3">
       <label for="blurb" class="form-label">Other thoughts? (Optional)</label>
-      <textarea id="blurb" class="form-control"></textarea>
+      <textarea id="blurb" name="blurb" class="form-control"></textarea>
     </div>
 
     <input type="submit" class="btn btn-primary" value="Submit" />

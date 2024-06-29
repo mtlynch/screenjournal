@@ -305,8 +305,9 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			}
 
 			clearUnpredictableReviewProperties(&rr[0])
-			if !reflect.DeepEqual(rr[0], tt.expected) {
-				t.Errorf("did not find expected review of %s - %v", tt.expected.Movie.Title, deep.Equal(rr[0], tt.expected))
+			if got, want := rr[0], tt.expected; !reflect.DeepEqual(got, want) {
+				t.Errorf("db did not contain expected review of %s", want.Movie.Title)
+				t.Errorf("got=%#v, want=%#v, diff=%s", got, want, deep.Equal(got, want))
 			}
 
 			if got, want := len(announcer.announcedReviews), 1; got != want {
@@ -314,8 +315,9 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			}
 
 			clearUnpredictableReviewProperties(&announcer.announcedReviews[0])
-			if !reflect.DeepEqual(announcer.announcedReviews[0], tt.expected) {
-				t.Errorf("did not find expected review of %s - %v", tt.expected.Movie.Title, deep.Equal(announcer.announcedReviews[0], tt.expected))
+			if got, want := announcer.announcedReviews[0], tt.expected; !reflect.DeepEqual(got, want) {
+				t.Errorf("announcer did not announce expected review of %s", want.Movie.Title)
+				t.Errorf("got=%#v, want=%#v, diff=%s", got, want, deep.Equal(got, want))
 			}
 		})
 	}

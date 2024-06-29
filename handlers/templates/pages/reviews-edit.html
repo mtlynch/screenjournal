@@ -72,7 +72,10 @@
     {{- end -}}
   </h1>
 
-  <h2>{{ .Review.Movie.Title }} ({{ .Review.Movie.ReleaseDate.Year }})</h2>
+  {{ if ne .Review.Movie.Title "" }}
+    <h2>{{ .Review.Movie.Title }} ({{ .Review.Movie.ReleaseDate.Year }})</h2>
+  {{ end }}
+
 
   <div class="my-5">
     {{ if not .Review.Movie.Title }}
@@ -121,9 +124,8 @@
     hx-push-url="true"
     hx-disabled-elt="input, select, textarea, .btn"
   >
-    <input type="hidden" name="tmdb-id" value="{{ .Review.Movie.TmdbID }}" />
-    {{ if ne .Review.ID 0 }}
-      <input name="review-id" type="hidden" value="{{ .Review.ID }}" />
+    {{ if not $isEditing }}
+      <input type="hidden" name="tmdb-id" value="{{ .Review.Movie.TmdbID }}" />
     {{ end }}
     <div class="mb-3">
       <label for="rating" class="form-label">Rating</label>
@@ -170,7 +172,9 @@
 
     <div class="mb-3">
       <label for="blurb" class="form-label">Other thoughts? (Optional)</label>
-      <textarea id="blurb" class="form-control">{{ .Review.Blurb }}</textarea>
+      <textarea id="blurb" name="blurb" class="form-control">
+{{ .Review.Blurb }}</textarea
+      >
     </div>
 
     {{ if $isEditing }}

@@ -59,7 +59,7 @@
           export PLAYWRIGHT_BROWSERS_PATH=${playwright_dep.playwright-driver.browsers}
           export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
 
-          export PS1="$(__git_ps1 '%s') $ "
+          export PS1='$(__git_ps1 "(%s)")\$ '
 
           echo "shellcheck" "$(shellcheck --version | grep '^version:')"
           sqlfluff --version

@@ -135,6 +135,8 @@ func (s Server) reviewsDelete() http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("Failed to delete review: %v", err), http.StatusInternalServerError)
 			return
 		}
+
+		http.Redirect(w, r, "/reviews", http.StatusSeeOther)
 	}
 }
 

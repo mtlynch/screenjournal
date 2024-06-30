@@ -73,7 +73,9 @@ var moviePageFns = template.FuncMap{
 }
 
 var reviewPageFns = template.FuncMap{
-	"formatWatchDate": formatWatchDate,
+	"formatDate": func(t time.Time) string {
+		return t.Format(time.DateOnly)
+	},
 	"iterate": func(n uint8) []uint8 {
 		var arr []uint8
 		var i uint8
@@ -84,9 +86,6 @@ var reviewPageFns = template.FuncMap{
 	},
 	"minus": func(a, b uint8) uint8 {
 		return a - b
-	},
-	"formatDate": func(t time.Time) string {
-		return t.Format(time.DateOnly)
 	},
 }
 

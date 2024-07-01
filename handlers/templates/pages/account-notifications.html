@@ -8,7 +8,9 @@
   <form
     class="d-flex flex-column my-4"
     hx-put="/account/notifications"
+    hx-swap="textContent"
     hx-disabled-elt="input, .btn"
+    hx-target=".alert-danger"
   >
     <div class="form-check my-2">
       <input
@@ -46,11 +48,40 @@
       <span class="visually-hidden">Loading...</span>
     </div>
   </form>
-  <div id="success" class="alert alert-success invisible" role="alert">
+  <div id="success" class="alert alert-success d-none" role="alert">
     Changes saved
   </div>
 
-  <div id="error" class="alert alert-danger invisible" role="alert">
+  <div id="error" class="alert alert-danger d-none" role="alert">
     Placeholder error
   </div>
+{{ end }}
+
+{{ define "script-tags" }}
+  <script type="module" nonce="{{ .CspNonce }}">
+    import { showElement, hideElement } from "/js/lib/bootstrap.js";
+
+    const successAlert = document.querySelector(".alert-success");
+    const errorAlert = document.querySelector(".alert-danger");
+
+    function isSuccessCode(status) {
+      return status >= 200 && status < 400;
+    }
+
+    document.body.addEventListener("htmx:afterOnLoad", function (evt) {
+      if (isSuccessCode(evt.detail.xhr.status)) {
+        showElement(successAlert);
+        hideElement(errorAlert);
+      } else {
+        errorAlert.innerText = evt.detail.xhr.responseText;
+        hideElement(successAlert);
+        showElement(errorAlert);
+      }
+    });
+
+    document.body.addEventListener("htmx:beforeRequest", function () {
+      hideElement(errorAlert);
+      hideElement(successAlert);
+    });
+  </script>
 {{ end }}

@@ -72,6 +72,12 @@ var moviePageFns = template.FuncMap{
 	"posterPathToURL": posterPathToURL,
 }
 
+var reviewPageFns = template.FuncMap{
+	"formatDate": func(t time.Time) string {
+		return t.Format(time.DateOnly)
+	},
+}
+
 func (s Server) indexGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").
@@ -350,27 +356,9 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsEditGet() http.HandlerFunc {
-	fns := template.FuncMap{
-		"formatWatchDate": formatWatchDate,
-		"iterate": func(n uint8) []uint8 {
-			var arr []uint8
-			var i uint8
-			for i = 0; i < n; i++ {
-				arr = append(arr, i)
-			}
-			return arr
-		},
-		"minus": func(a, b uint8) uint8 {
-			return a - b
-		},
-		"formatDate": func(t time.Time) string {
-			return t.Format(time.DateOnly)
-		},
-	}
-
 	t := template.Must(
 		template.New("base.html").
-			Funcs(fns).
+			Funcs(reviewPageFns).
 			ParseFS(
 				templatesFS,
 				append(baseTemplates, "templates/pages/reviews-edit.html")...))
@@ -459,23 +447,18 @@ func (s Server) reviewsDeleteGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsNewGet() http.HandlerFunc {
-	fns := template.FuncMap{
-		"formatDate": func(t time.Time) string {
-			return t.Format(time.DateOnly)
-		},
-	}
 	t := template.Must(
 		template.New("base.html").
-			Funcs(fns).
+			Funcs(reviewPageFns).
 			ParseFS(
 				templatesFS,
 				append(
 					baseTemplates,
-					"templates/pages/reviews-new.html")...))
+					"templates/pages/reviews-edit.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		var title screenjournal.MediaTitle
-		var tmdbID screenjournal.TmdbID
+		review := screenjournal.Review{}
+
 		if mid, err := movieIDFromQueryParams(r); err == nil {
 			movie, err := s.getDB(r).ReadMovie(mid)
 			if err == store.ErrMovieNotFound {
@@ -486,8 +469,7 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 				http.Error(w, "Failed to retrieve movie information", http.StatusInternalServerError)
 				return
 			}
-			title = movie.Title
-			tmdbID = movie.TmdbID
+			review.Movie = movie
 		} else if err == ErrMovieIDNotProvided {
 			// Movie ID is optional for this view.
 		} else {
@@ -503,21 +485,21 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 				return
 			}
 
-			title = info.Title
-			tmdbID = tid
+			review.Movie.Title = info.Title
+			review.Movie.ReleaseDate = info.ReleaseDate
+			review.Movie.TmdbID = info.TmdbID
 		}
+		review.Watched = screenjournal.WatchDate(time.Now())
 
 		if err := t.Execute(w, struct {
 			commonProps
-			MediaTitle    string
-			TmdbID        int32
 			RatingOptions []int
+			Review        screenjournal.Review
 			Today         time.Time
 		}{
 			commonProps:   makeCommonProps(r.Context()),
-			MediaTitle:    title.String(),
-			TmdbID:        tmdbID.Int32(),
 			RatingOptions: []int{1, 2, 3, 4, 5},
+			Review:        review,
 			Today:         time.Now(),
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

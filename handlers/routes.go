@@ -25,7 +25,6 @@ func (s *Server) routes() {
 	authenticatedApis.HandleFunc("/comments/{commentID}", s.commentsPut()).Methods(http.MethodPut)
 	authenticatedApis.HandleFunc("/comments/{commentID}", s.commentsDelete()).Methods(http.MethodDelete)
 	authenticatedApis.HandleFunc("/search", s.searchGet()).Methods(http.MethodGet)
-	authenticatedApis.HandleFunc("/reviews/{reviewID}", s.reviewsPut()).Methods(http.MethodPut)
 	authenticatedApis.HandleFunc("/reviews/{reviewID}", s.reviewsDelete()).Methods(http.MethodDelete)
 
 	static := s.router.PathPrefix("/").Subrouter()
@@ -54,6 +53,7 @@ func (s *Server) routes() {
 	authenticatedRoutes.Use(s.requireAuthenticationForView)
 	authenticatedRoutes.Use(enforceContentSecurityPolicy)
 	authenticatedRoutes.HandleFunc("/reviews", s.reviewsPost()).Methods(http.MethodPost)
+	authenticatedRoutes.HandleFunc("/reviews/{reviewID}", s.reviewsPut()).Methods(http.MethodPut)
 
 	authenticatedViews := s.router.PathPrefix("/").Subrouter()
 	authenticatedViews.Use(s.requireAuthenticationForView)

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,6 +16,12 @@ type reviewPostRequest struct {
 	Rating    screenjournal.Rating
 	WatchDate screenjournal.WatchDate
 	Blurb     screenjournal.Blurb
+}
+
+type reviewPutRequest struct {
+	Rating  screenjournal.Rating
+	Blurb   screenjournal.Blurb
+	Watched screenjournal.WatchDate
 }
 
 func (s Server) reviewsPost() http.HandlerFunc {
@@ -82,10 +87,15 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
-		if err := updateReviewFromRequest(r, &review); err != nil {
+		parsedRequest, err := parseReviewPutRequest(r)
+		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			return
 		}
+
+		review.Rating = parsedRequest.Rating
+		review.Blurb = parsedRequest.Blurb
+		review.Watched = parsedRequest.Watched
 
 		if err := s.getDB(r).UpdateReview(review); err != nil {
 			log.Printf("failed to update review: %v", err)
@@ -93,7 +103,7 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
-		w.WriteHeader(http.StatusNoContent)
+		http.Redirect(w, r, "/reviews", http.StatusSeeOther)
 	}
 }
 
@@ -156,37 +166,27 @@ func parseReviewPostRequest(r *http.Request) (reviewPostRequest, error) {
 	return parsed, nil
 }
 
-func updateReviewFromRequest(r *http.Request, review *screenjournal.Review) error {
-	var payload struct {
-		Rating  int    `json:"rating"`
-		Watched string `json:"watched"`
-		Blurb   string `json:"blurb"`
-	}
-	err := json.NewDecoder(r.Body).Decode(&payload)
-	if err != nil {
-		log.Printf("failed to decode JSON request: %v", err)
-		return err
+func parseReviewPutRequest(r *http.Request) (reviewPutRequest, error) {
+	if err := r.ParseForm(); err != nil {
+		log.Printf("failed to decode review PUT request: %v", err)
+		return reviewPutRequest{}, err
 	}
 
-	rating, err := parse.Rating(payload.Rating)
-	if err != nil {
-		return err
+	parsed := reviewPutRequest{}
+	var err error
+	if parsed.Rating, err = parse.RatingFromString(r.PostFormValue("rating")); err != nil {
+		return reviewPutRequest{}, err
 	}
-	review.Rating = rating
 
-	watched, err := parse.WatchDate(payload.Watched)
-	if err != nil {
-		return err
+	if parsed.Watched, err = parse.WatchDate(r.PostFormValue("watch-date")); err != nil {
+		return reviewPutRequest{}, err
 	}
-	review.Watched = watched
 
-	blurb, err := parse.Blurb(payload.Blurb)
-	if err != nil {
-		return err
+	if parsed.Blurb, err = parse.Blurb(r.PostFormValue("blurb")); err != nil {
+		return reviewPutRequest{}, err
 	}
-	review.Blurb = blurb
 
-	return nil
+	return parsed, nil
 }
 
 func (s Server) moviefromTmdbID(db Store, tmdbID screenjournal.TmdbID) (screenjournal.Movie, error) {

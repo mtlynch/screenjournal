@@ -1,9 +1,9 @@
 {{ define "title" }}
   {{ $isEditing := ne .Review.ID 0 }}
   {{ if $isEditing }}
-    Add Review
-  {{ else }}
     Edit Review
+  {{ else }}
+    Add Review
   {{ end }}
 {{ end }}
 
@@ -64,13 +64,7 @@
   {{ $isEditing := ne .Review.ID 0 }}
 
 
-  <h1>
-    {{- if $isEditing -}}
-      Edit Rating
-    {{- else -}}
-      Add Rating
-    {{- end -}}
-  </h1>
+  <h1>{{ template "title" }}</h1>
 
   {{ if ne .Review.Movie.Title "" }}
     <h2>{{ .Review.Movie.Title }} ({{ .Review.Movie.ReleaseDate.Year }})</h2>

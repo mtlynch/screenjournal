@@ -403,49 +403,6 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 	}
 }
 
-func (s Server) reviewsDeleteGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").
-			ParseFS(
-				templatesFS,
-				append(baseTemplates, "templates/pages/reviews-delete.html")...))
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		id, err := reviewIDFromRequestPath(r)
-		if err != nil {
-			http.Error(w, "Invalid review ID", http.StatusBadRequest)
-			return
-		}
-
-		review, err := s.getDB(r).ReadReview(id)
-		if err == store.ErrReviewNotFound {
-			http.Error(w, "Invalid review ID", http.StatusNotFound)
-			return
-		} else if err != nil {
-			log.Printf("failed to read review: %v", err)
-			http.Error(w, "Failed to read review", http.StatusInternalServerError)
-			return
-		}
-
-		loggedInUsername := mustGetUsernameFromContext(r.Context())
-		if !review.Owner.Equal(loggedInUsername) {
-			http.Error(w, "You can't delete another user's review", http.StatusForbidden)
-			return
-		}
-
-		if err := t.Execute(w, struct {
-			commonProps
-			Review screenjournal.Review
-		}{
-			commonProps: makeCommonProps(r.Context()),
-			Review:      review,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-}
-
 func (s Server) reviewsNewGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").

@@ -186,7 +186,8 @@
           <a
             class="btn btn-danger"
             role="button"
-            href="/reviews/{{ .Review.ID }}/delete"
+            hx-delete="/reviews/{{ .Review.ID }}"
+            hx-confirm="Delete this review?"
           >
             <i class="fa fa-trash me-2"></i>Delete
           </a>

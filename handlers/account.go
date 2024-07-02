@@ -18,11 +18,14 @@ type accountChangePasswordPutRequest struct {
 
 func (s Server) accountChangePasswordPut() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("about to parse") // DEBUG
 		parsed, err := parseAccountChangePasswordPutRequest(r)
 		if err != nil {
+			log.Printf("invalid change password PUT request: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to change password: %v", err), http.StatusBadRequest)
 			return
 		}
+		log.Printf("parsed=%+v", parsed)
 
 		username := mustGetUsernameFromContext(r.Context())
 		if err := s.getAuthenticator(r).Authenticate(username, parsed.OldPassword); err != nil {
@@ -65,17 +68,8 @@ func parseAccountChangePasswordPutRequest(r *http.Request) (accountChangePasswor
 		return accountChangePasswordPutRequest{}, err
 	}
 
-	newPasswordConfirm, err := parse.Password(r.PostFormValue("password-confirm"))
-	if err != nil {
-		return accountChangePasswordPutRequest{}, err
-	}
-
 	if oldPassword.Equal(newPassword) {
 		return accountChangePasswordPutRequest{}, errors.New("old password is the same as the new password")
-	}
-
-	if !newPassword.Equal(newPasswordConfirm) {
-		return accountChangePasswordPutRequest{}, errors.New("password confirmation does not match")
 	}
 
 	newPasswordHash, err := auth.HashPassword(newPassword)

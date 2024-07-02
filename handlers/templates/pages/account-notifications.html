@@ -68,12 +68,15 @@
       return status >= 200 && status < 400;
     }
 
-    document.body.addEventListener("htmx:afterOnLoad", function (evt) {
-      if (isSuccessCode(evt.detail.xhr.status)) {
+    document.body.addEventListener("htmx:afterRequest", function (evt) {
+      if (evt.detail.successful) {
         showElement(successAlert);
         hideElement(errorAlert);
       } else {
-        errorAlert.innerText = evt.detail.xhr.responseText;
+        const xhrErr = evt.detail.xhr.responseText;
+        errorAlert.innerText = xhrErr
+          ? xhrErr
+          : "Failed to communicate with server";
         hideElement(successAlert);
         showElement(errorAlert);
       }

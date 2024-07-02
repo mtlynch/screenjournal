@@ -18,7 +18,6 @@ type accountChangePasswordPutRequest struct {
 
 func (s Server) accountChangePasswordPut() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("about to parse") // DEBUG
 		parsed, err := parseAccountChangePasswordPutRequest(r)
 		if err != nil {
 			log.Printf("invalid change password PUT request: %v", err)

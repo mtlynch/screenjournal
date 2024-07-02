@@ -21,7 +21,7 @@ type mockUserEntry struct {
 
 var nilMetadataFinder handlers.MetadataFinder
 
-func TestAccountChangePasswordPost(t *testing.T) {
+func TestAccountChangePasswordPut(t *testing.T) {
 	userEntries := []mockUserEntry{
 		{
 			sessionToken: "abc123",
@@ -38,49 +38,36 @@ func TestAccountChangePasswordPost(t *testing.T) {
 		expectedPassword screenjournal.Password
 	}{
 		{
-			description: "valid request changes password",
-			payload: `{
-					"oldPassword":"oldpass123",
-					"newPassword":"newpass456"
-				}`,
+			description:      "valid request changes password",
+			payload:          "old-password=oldpass123&password=newpass456",
 			sessionToken:     "abc123",
 			expectedStatus:   http.StatusOK,
 			expectedPassword: screenjournal.Password("newpass456"),
 		},
 		{
-			description: "reject password change if old password is incorrect",
-			payload: `{
-					"oldPassword":"wrongpass",
-					"newPassword":"newpass456"
-				}`,
+			description:      "reject password change if old password is incorrect",
+			payload:          "old-password=wrongpass&password=newpass456",
 			sessionToken:     "abc123",
 			expectedStatus:   http.StatusUnauthorized,
 			expectedPassword: screenjournal.Password("oldpass123"),
 		},
 		{
-			description: "reject password change if old password matches new password",
-			payload: `{
-					"oldPassword":"oldpass123",
-					"newPassword":"oldpass123"
-				}`,
+			description:      "reject password change if old password matches new password",
+			payload:          "old-password=oldpass123&password=oldpass123",
 			sessionToken:     "abc123",
 			expectedStatus:   http.StatusBadRequest,
 			expectedPassword: screenjournal.Password("oldpass123"),
 		},
 		{
-			description: "reject password change if new password doesn't meet requirements",
-			payload: `{
-					"oldPassword":"oldpass123",
-					"newPassword":"pass"
-				}`,
+			description:      "reject password change if new password doesn't meet requirements",
+			payload:          "old-password=oldpass123&password=pass",
 			sessionToken:     "abc123",
 			expectedStatus:   http.StatusBadRequest,
 			expectedPassword: screenjournal.Password("oldpass123"),
 		},
 		{
-			description: "invalid JSON does not change password",
-			payload: `{
-					"oldPassword":`,
+			description:      "missing parameters do not change password",
+			payload:          "password=newpass456",
 			sessionToken:     "abc123",
 			expectedStatus:   http.StatusBadRequest,
 			expectedPassword: screenjournal.Password("oldpass123"),
@@ -109,11 +96,11 @@ func TestAccountChangePasswordPost(t *testing.T) {
 			sessionManager := newMockSessionManager(mockSessionEntries)
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
 
-			req, err := http.NewRequest("POST", "/api/account/change-password", strings.NewReader(tt.payload))
+			req, err := http.NewRequest("PUT", "/account/password", strings.NewReader(tt.payload))
 			if err != nil {
 				t.Fatal(err)
 			}
-			req.Header.Add("Content-Type", "text/json")
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.AddCookie(&http.Cookie{
 				Name:  mockSessionTokenName,
 				Value: tt.sessionToken,

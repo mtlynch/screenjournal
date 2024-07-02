@@ -138,7 +138,7 @@ func TestAccountChangePasswordPost(t *testing.T) {
 	}
 }
 
-func TestAccountNotificationsPost(t *testing.T) {
+func TestAccountNotificationsPut(t *testing.T) {
 	for _, tt := range []struct {
 		description   string
 		payload       string
@@ -148,11 +148,8 @@ func TestAccountNotificationsPost(t *testing.T) {
 		status        int
 	}{
 		{
-			description: "allows user to subscribe to new reviews and comments",
-			payload: `{
-					"isSubscribedToNewReviews":true,
-					"isSubscribedToAllComments":true
-				}`,
+			description:  "allows user to subscribe to new reviews and comments",
+			payload:      "new-reviews=on&all-comments=on",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -169,11 +166,8 @@ func TestAccountNotificationsPost(t *testing.T) {
 			status: http.StatusOK,
 		},
 		{
-			description: "allows user to unsubscribe to new reviews but subscribe to comments",
-			payload: `{
-							"isSubscribedToNewReviews":false,
-							"isSubscribedToAllComments":true
-						}`,
+			description:  "allows user to unsubscribe to new reviews but subscribe to comments",
+			payload:      "all-comments=on",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -190,11 +184,8 @@ func TestAccountNotificationsPost(t *testing.T) {
 			status: http.StatusOK,
 		},
 		{
-			description: "allows user to subscribe to new reviews but unsubscribe from comments",
-			payload: `{
-							"isSubscribedToNewReviews":true,
-							"isSubscribedToAllComments":false
-						}`,
+			description:  "allows user to subscribe to new reviews but unsubscribe from comments",
+			payload:      "new-reviews=on",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -211,28 +202,8 @@ func TestAccountNotificationsPost(t *testing.T) {
 			status: http.StatusOK,
 		},
 		{
-			description: "rejects non-bool value for review subscription status",
-			payload: `{
-							"isSubscribedToNewReviews":"banana",
-							"isSubscribedToAllComments":true
-						}`,
-			sessionToken: "abc123",
-			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
-			},
-			status: http.StatusBadRequest,
-		},
-		{
-			description: "rejects subscription update if user is not authenticated",
-			payload: `{
-							"isSubscribedToNewReviews":true,
-							"isSubscribedToAllComments":true
-						}`,
+			description:  "rejects subscription update if user is not authenticated",
+			payload:      "new-reviews=on&all-comments=on",
 			sessionToken: "dummy-invalid-token",
 			sessions:     []mockSessionEntry{},
 			status:       http.StatusUnauthorized,
@@ -255,11 +226,11 @@ func TestAccountNotificationsPost(t *testing.T) {
 
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
 
-			req, err := http.NewRequest("POST", "/api/account/notifications", strings.NewReader(tt.payload))
+			req, err := http.NewRequest("PUT", "/account/notifications", strings.NewReader(tt.payload))
 			if err != nil {
 				t.Fatal(err)
 			}
-			req.Header.Add("Content-Type", "text/json")
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.AddCookie(&http.Cookie{
 				Name:  mockSessionTokenName,
 				Value: tt.sessionToken,

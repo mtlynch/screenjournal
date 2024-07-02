@@ -68,6 +68,11 @@
       return status >= 200 && status < 400;
     }
 
+    document.body.addEventListener("htmx:beforeRequest", function () {
+      hideElement(errorAlert);
+      hideElement(successAlert);
+    });
+
     document.body.addEventListener("htmx:afterRequest", function (evt) {
       if (evt.detail.successful) {
         showElement(successAlert);
@@ -80,11 +85,6 @@
         hideElement(successAlert);
         showElement(errorAlert);
       }
-    });
-
-    document.body.addEventListener("htmx:beforeRequest", function () {
-      hideElement(errorAlert);
-      hideElement(successAlert);
     });
   </script>
 {{ end }}

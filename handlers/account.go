@@ -103,6 +103,11 @@ func (s Server) accountNotificationsPut() http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("Failed to save notification preferences: %v", err), http.StatusInternalServerError)
 			return
 		}
+
+		w.WriteHeader(http.StatusOK)
+		if _, err := fmt.Fprint(w, "Changes saved"); err != nil {
+			log.Printf("failed to write response: %v", err)
+		}
 	}
 }
 

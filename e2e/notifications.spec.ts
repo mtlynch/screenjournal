@@ -15,32 +15,42 @@ test("notifications page reflects the backend store for new reviews", async ({
 
   await expect(page).toHaveURL("/account/notifications");
 
-  await expect(page.locator("#new-reviews-checkbox")).toBeChecked();
-  await expect(page.locator("#notifications-form .btn-primary")).toBeDisabled();
+  await expect(
+    page.getByLabel("Email me when users post reviews")
+  ).toBeChecked();
+  await expect(page.locator("form .btn-primary")).toBeDisabled();
 
   // Turn off new review notifications.
-  await page.locator("#new-reviews-checkbox").click();
-  await page.locator("#notifications-form .btn-primary").click();
+  await page.getByLabel("Email me when users post reviews").click();
+  await page.locator("form .btn-primary").click();
 
-  await expect(page.locator("#new-reviews-checkbox")).not.toBeChecked();
-  await expect(page.locator("#notifications-form .btn-primary")).toBeDisabled();
+  await expect(
+    page.getByLabel("Email me when users post reviews")
+  ).not.toBeChecked();
+  await expect(page.locator("form .btn-primary")).toBeDisabled();
 
   await page.reload();
 
-  await expect(page.locator("#new-reviews-checkbox")).not.toBeChecked();
-  await expect(page.locator("#notifications-form .btn-primary")).toBeDisabled();
+  await expect(
+    page.getByLabel("Email me when users post reviews")
+  ).not.toBeChecked();
+  await expect(page.locator("form .btn-primary")).toBeDisabled();
 
   // Turn on new review notifications.
-  await page.locator("#new-reviews-checkbox").click();
-  await page.locator("#notifications-form .btn-primary").click();
+  await page.getByLabel("Email me when users post reviews").click();
+  await page.locator("form .btn-primary").click();
 
-  await expect(page.locator("#new-reviews-checkbox")).toBeChecked();
-  await expect(page.locator("#notifications-form .btn-primary")).toBeDisabled();
+  await expect(
+    page.getByLabel("Email me when users post reviews")
+  ).toBeChecked();
+  await expect(page.locator("form .btn-primary")).toBeDisabled();
 
   await page.reload();
 
-  await expect(page.locator("#new-reviews-checkbox")).toBeChecked();
-  await expect(page.locator("#notifications-form .btn-primary")).toBeDisabled();
+  await expect(
+    page.getByLabel("Email me when users post reviews")
+  ).toBeChecked();
+  await expect(page.locator("form .btn-primary")).toBeDisabled();
 });
 
 test("notifications page reflects the backend store for new comments", async ({
@@ -51,30 +61,40 @@ test("notifications page reflects the backend store for new comments", async ({
 
   await expect(page).toHaveURL("/account/notifications");
 
-  await expect(page.locator("#all-comments-checkbox")).toBeChecked();
-  await expect(page.locator("#notifications-form .btn-primary")).toBeDisabled();
+  await expect(
+    page.getByLabel("Email me when users add comments")
+  ).toBeChecked();
+  await expect(page.locator("form .btn-primary")).toBeDisabled();
 
   // Turn off new comment notifications.
-  await page.locator("#all-comments-checkbox").click();
-  await page.locator("#notifications-form .btn-primary").click();
+  await page.getByLabel("Email me when users add comments").click();
+  await page.locator("form .btn-primary").click();
 
-  await expect(page.locator("#all-comments-checkbox")).not.toBeChecked();
-  await expect(page.locator("#notifications-form .btn-primary")).toBeDisabled();
+  await expect(
+    page.getByLabel("Email me when users add comments")
+  ).not.toBeChecked();
+  await expect(page.locator("form .btn-primary")).toBeDisabled();
 
   await page.reload();
 
-  await expect(page.locator("#all-comments-checkbox")).not.toBeChecked();
-  await expect(page.locator("#notifications-form .btn-primary")).toBeDisabled();
+  await expect(
+    page.getByLabel("Email me when users add comments")
+  ).not.toBeChecked();
+  await expect(page.locator("form .btn-primary")).toBeDisabled();
 
   // Turn on new comment notifications.
-  await page.locator("#all-comments-checkbox").click();
-  await page.locator("#notifications-form .btn-primary").click();
+  await page.getByLabel("Email me when users add comments").click();
+  await page.locator("form .btn-primary").click();
 
-  await expect(page.locator("#all-comments-checkbox")).toBeChecked();
-  await expect(page.locator("#notifications-form .btn-primary")).toBeDisabled();
+  await expect(
+    page.getByLabel("Email me when users add comments")
+  ).toBeChecked();
+  await expect(page.locator("form .btn-primary")).toBeDisabled();
 
   await page.reload();
 
-  await expect(page.locator("#all-comments-checkbox")).toBeChecked();
-  await expect(page.locator("#notifications-form .btn-primary")).toBeDisabled();
+  await expect(
+    page.getByLabel("Email me when users add comments")
+  ).toBeChecked();
+  await expect(page.locator("form .btn-primary")).toBeDisabled();
 });

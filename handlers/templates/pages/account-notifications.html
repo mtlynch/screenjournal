@@ -64,10 +64,6 @@
     const successAlert = document.querySelector(".alert-success");
     const errorAlert = document.querySelector(".alert-danger");
 
-    function isSuccessCode(status) {
-      return status >= 200 && status < 400;
-    }
-
     document.body.addEventListener("htmx:beforeRequest", function () {
       hideElement(errorAlert);
       hideElement(successAlert);

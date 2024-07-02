@@ -17,7 +17,6 @@ func (s *Server) routes() {
 	authenticatedApis := s.router.PathPrefix("/api").Subrouter()
 	authenticatedApis.Use(s.requireAuthenticationForAPI)
 	authenticatedApis.HandleFunc("/account/change-password", s.accountChangePasswordPost()).Methods(http.MethodPost)
-	authenticatedApis.HandleFunc("/account/notifications", s.accountNotificationsPost()).Methods(http.MethodPost)
 	authenticatedApis.HandleFunc("/comments", s.commentsPost()).Methods(http.MethodPost)
 	authenticatedApis.HandleFunc("/comments/add", s.commentsAddGet()).Methods(http.MethodGet)
 	authenticatedApis.HandleFunc("/comments/edit", s.commentsEditGet()).Methods(http.MethodGet)
@@ -49,8 +48,9 @@ func (s *Server) routes() {
 	// Transitional subrouter as we get rid of the idea of separate API routes vs.
 	// view routes.
 	authenticatedRoutes := s.router.PathPrefix("/").Subrouter()
-	authenticatedRoutes.Use(s.requireAuthenticationForView)
+	authenticatedRoutes.Use(s.requireAuthenticationForAPI)
 	authenticatedRoutes.Use(enforceContentSecurityPolicy)
+	authenticatedRoutes.HandleFunc("/account/notifications", s.accountNotificationsPut()).Methods(http.MethodPut)
 	authenticatedRoutes.HandleFunc("/reviews", s.reviewsPost()).Methods(http.MethodPost)
 	authenticatedRoutes.HandleFunc("/reviews/{reviewID}", s.reviewsPut()).Methods(http.MethodPut)
 	authenticatedRoutes.HandleFunc("/reviews/{reviewID}", s.reviewsDelete()).Methods(http.MethodDelete)

@@ -81,14 +81,14 @@ func changePasswordFromRequest(r *http.Request) (accountChangePasswordPostReques
 	}, nil
 }
 
-type accountNotificationsPostRequest struct {
+type accountNotificationsPutRequest struct {
 	NewReviews  bool
 	AllComments bool
 }
 
-func (s Server) accountNotificationsPost() http.HandlerFunc {
+func (s Server) accountNotificationsPut() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req, err := notificationPreferencesFromRequest(r)
+		req, err := parseAccountNotificationsPutRequest(r)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			return
@@ -106,19 +106,14 @@ func (s Server) accountNotificationsPost() http.HandlerFunc {
 	}
 }
 
-func notificationPreferencesFromRequest(r *http.Request) (accountNotificationsPostRequest, error) {
-	var payload struct {
-		NewReviews  bool `json:"isSubscribedToNewReviews"`
-		AllComments bool `json:"isSubscribedToAllComments"`
-	}
-	err := json.NewDecoder(r.Body).Decode(&payload)
-	if err != nil {
-		log.Printf("failed to decode JSON request: %v", err)
-		return accountNotificationsPostRequest{}, err
+func parseAccountNotificationsPutRequest(r *http.Request) (accountNotificationsPutRequest, error) {
+	if err := r.ParseForm(); err != nil {
+		log.Printf("failed to decode review POST request: %v", err)
+		return accountNotificationsPutRequest{}, err
 	}
 
-	return accountNotificationsPostRequest{
-		NewReviews:  payload.NewReviews,
-		AllComments: payload.AllComments,
+	return accountNotificationsPutRequest{
+		NewReviews:  parse.CheckboxToBool(r.PostFormValue("new-reviews")),
+		AllComments: parse.CheckboxToBool(r.PostFormValue("all-comments")),
 	}, nil
 }

@@ -24,7 +24,6 @@ func (s Server) accountChangePasswordPut() http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("Failed to change password: %v", err), http.StatusBadRequest)
 			return
 		}
-		log.Printf("parsed=%+v", parsed)
 
 		username := mustGetUsernameFromContext(r.Context())
 		if err := s.getAuthenticator(r).Authenticate(username, parsed.OldPassword); err != nil {

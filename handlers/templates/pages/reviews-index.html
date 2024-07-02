@@ -33,9 +33,6 @@
 {{ define "content" }}
   {{ $loggedInUsername := .LoggedInUsername }}
 
-
-  <h1>{{ .Title }}</h1>
-
   {{ if .CollectionOwner }}
     <p data-testid="collection-count">
       {{ .CollectionOwner.String }} has reviewed

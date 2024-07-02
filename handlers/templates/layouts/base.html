@@ -36,12 +36,12 @@
   </head>
 
   <body>
-    {{ block "custom-elements" . }}{{ end }}
-
     {{ template "navbar.html" . }}
 
 
     <div class="container-md mt-4 content">
+      <h1>{{ template "title" . }}</h1>
+
       {{ template "content" . }}
     </div>
 

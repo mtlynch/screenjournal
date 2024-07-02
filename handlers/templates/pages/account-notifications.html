@@ -3,14 +3,12 @@
 {{ end }}
 
 {{ define "content" }}
-  <h1>{{ template "title" }}</h1>
-
   <form
     class="d-flex flex-column my-4"
     hx-put="/account/notifications"
-    hx-swap="textContent"
     hx-disabled-elt="input, .btn"
-    hx-target=".alert-danger"
+    hx-target="#result"
+    hx-swap="textContent"
   >
     <div class="form-check my-2">
       <input
@@ -48,38 +46,39 @@
       <span class="visually-hidden">Loading...</span>
     </div>
   </form>
-  <div id="success" class="alert alert-success d-none" role="alert">
-    Changes saved
-  </div>
-
-  <div id="error" class="alert alert-danger d-none" role="alert">
-    Placeholder error
-  </div>
+  <div id="result" class="alert d-none" role="alert"></div>
 {{ end }}
 
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
     import { showElement, hideElement } from "/js/lib/bootstrap.js";
 
-    const successAlert = document.querySelector(".alert-success");
-    const errorAlert = document.querySelector(".alert-danger");
+    const resultDiv = document.getElementById("result");
 
     document.body.addEventListener("htmx:beforeRequest", function () {
-      hideElement(errorAlert);
-      hideElement(successAlert);
+      hideElement(resultDiv);
     });
 
     document.body.addEventListener("htmx:afterRequest", function (evt) {
       if (evt.detail.successful) {
-        showElement(successAlert);
-        hideElement(errorAlert);
+        resultDiv.classList.add("alert-success");
+        resultDiv.classList.remove("alert-danger");
       } else {
-        const xhrErr = evt.detail.xhr.responseText;
-        errorAlert.innerText = xhrErr
-          ? xhrErr
-          : "Failed to communicate with server";
-        hideElement(successAlert);
-        showElement(errorAlert);
+        if (!evt.detail.xhr.responseText) {
+          resultDiv.innerText = "Failed to communicate with server";
+        }
+
+        resultDiv.classList.remove("alert-success");
+        resultDiv.classList.add("alert-danger");
+      }
+
+      showElement(resultDiv);
+    });
+
+    document.body.addEventListener("htmx:beforeSwap", function (evt) {
+      // Always swap content for the result element, even on error.
+      if (evt.target.id === resultDiv.id) {
+        evt.detail.shouldSwap = true;
       }
     });
   </script>

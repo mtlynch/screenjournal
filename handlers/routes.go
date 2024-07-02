@@ -48,7 +48,7 @@ func (s *Server) routes() {
 	// Transitional subrouter as we get rid of the idea of separate API routes vs.
 	// view routes.
 	authenticatedRoutes := s.router.PathPrefix("/").Subrouter()
-	authenticatedRoutes.Use(s.requireAuthenticationForView)
+	authenticatedRoutes.Use(s.requireAuthenticationForAPI)
 	authenticatedRoutes.Use(enforceContentSecurityPolicy)
 	authenticatedRoutes.HandleFunc("/account/notifications", s.accountNotificationsPut()).Methods(http.MethodPut)
 	authenticatedRoutes.HandleFunc("/reviews", s.reviewsPost()).Methods(http.MethodPost)

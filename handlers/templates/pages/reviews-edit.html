@@ -63,9 +63,6 @@
 {{ define "content" }}
   {{ $isEditing := ne .Review.ID 0 }}
 
-
-  <h1>{{ template "title" }}</h1>
-
   {{ if ne .Review.Movie.Title "" }}
     <h2>{{ .Review.Movie.Title }} ({{ .Review.Movie.ReleaseDate.Year }})</h2>
   {{ end }}

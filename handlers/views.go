@@ -17,7 +17,6 @@ import (
 )
 
 type commonProps struct {
-	Title            string
 	IsAuthenticated  bool
 	IsAdmin          bool
 	LoggedInUsername screenjournal.Username

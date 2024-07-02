@@ -52,7 +52,6 @@
   {{ $loggedInUsername := .LoggedInUsername }}
 
   {{ with .Movie }}
-    <h1>{{ .Title }}</h1>
     <img
       class="card-img-top poster"
       src="{{ posterPathToURL .PosterPath }}"

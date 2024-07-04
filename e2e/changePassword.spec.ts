@@ -20,7 +20,7 @@ test("user can change their password and log in again", async ({ page }) => {
   await page.getByLabel("Confirm New Password").fill("password321");
   await page.getByRole("button", { name: /Change password/i }).click();
 
-  await expect(page).toHaveURL("/account/security");
+  await expect(page.getByText("Password updated")).toBeVisible();
 
   await page.getByRole("menuitem", { name: "Account" }).click();
   await page.getByRole("menuitem", { name: "Log out" }).click();

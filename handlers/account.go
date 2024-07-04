@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -12,21 +11,22 @@ import (
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-type accountChangePasswordPostRequest struct {
+type accountChangePasswordPutRequest struct {
 	OldPassword     screenjournal.Password
 	NewPasswordHash screenjournal.PasswordHash
 }
 
-func (s Server) accountChangePasswordPost() http.HandlerFunc {
+func (s Server) accountChangePasswordPut() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req, err := changePasswordFromRequest(r)
+		parsed, err := parseAccountChangePasswordPutRequest(r)
 		if err != nil {
+			log.Printf("invalid change password PUT request: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to change password: %v", err), http.StatusBadRequest)
 			return
 		}
 
 		username := mustGetUsernameFromContext(r.Context())
-		if err := s.getAuthenticator(r).Authenticate(username, req.OldPassword); err != nil {
+		if err := s.getAuthenticator(r).Authenticate(username, parsed.OldPassword); err != nil {
 			log.Printf("password change failed for user %s: %v", username, err)
 			http.Error(w, "Failed to change password: current password is incorrect", http.StatusUnauthorized)
 			return
@@ -38,44 +38,44 @@ func (s Server) accountChangePasswordPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.getDB(r).UpdateUserPassword(user.Username, req.NewPasswordHash); err != nil {
+		if err := s.getDB(r).UpdateUserPassword(user.Username, parsed.NewPasswordHash); err != nil {
 			http.Error(w, "Failed to change password: couldn't save new password", http.StatusInternalServerError)
 			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		if _, err := fmt.Fprint(w, "Password updated"); err != nil {
+			log.Printf("failed to write response: %v", err)
 		}
 	}
 }
 
-func changePasswordFromRequest(r *http.Request) (accountChangePasswordPostRequest, error) {
-	var payload struct {
-		OldPassword string `json:"oldPassword"`
-		NewPassword string `json:"newPassword"`
-	}
-	err := json.NewDecoder(r.Body).Decode(&payload)
-	if err != nil {
-		log.Printf("failed to decode JSON request: %v", err)
-		return accountChangePasswordPostRequest{}, err
+func parseAccountChangePasswordPutRequest(r *http.Request) (accountChangePasswordPutRequest, error) {
+	if err := r.ParseForm(); err != nil {
+		log.Printf("failed to decode password PUT request: %v", err)
+		return accountChangePasswordPutRequest{}, err
 	}
 
-	oldPassword, err := parse.Password(payload.OldPassword)
+	oldPassword, err := parse.Password(r.PostFormValue("old-password"))
 	if err != nil {
-		return accountChangePasswordPostRequest{}, err
+		return accountChangePasswordPutRequest{}, err
 	}
 
-	newPassword, err := parse.Password(payload.NewPassword)
+	newPassword, err := parse.Password(r.PostFormValue("password"))
 	if err != nil {
-		return accountChangePasswordPostRequest{}, err
+		return accountChangePasswordPutRequest{}, err
 	}
 
 	if oldPassword.Equal(newPassword) {
-		return accountChangePasswordPostRequest{}, errors.New("old password is the same as the new password")
+		return accountChangePasswordPutRequest{}, errors.New("old password is the same as the new password")
 	}
 
 	newPasswordHash, err := auth.HashPassword(newPassword)
 	if err != nil {
-		return accountChangePasswordPostRequest{}, err
+		return accountChangePasswordPutRequest{}, err
 	}
 
-	return accountChangePasswordPostRequest{
+	return accountChangePasswordPutRequest{
 		OldPassword:     oldPassword,
 		NewPasswordHash: newPasswordHash,
 	}, nil

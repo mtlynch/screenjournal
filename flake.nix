@@ -53,8 +53,7 @@
         ];
 
         shellHook = ''
-          GOROOT="$(dirname $(dirname $(which go)))/share/go"
-          export GOROOT
+          export GOROOT="${go_dep.go_1_21}/share/go"
 
           export PLAYWRIGHT_BROWSERS_PATH=${playwright_dep.playwright-driver.browsers}
           export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true

@@ -97,21 +97,19 @@ func WatchDate(raw string) (screenjournal.WatchDate, error) {
 }
 
 func Blurb(raw string) (screenjournal.Blurb, error) {
-	if strings.TrimSpace(raw) != raw {
-		return screenjournal.Blurb(""), ErrInvalidBlurb
-	}
-
 	if len(raw) > blurbMaxLength {
 		return screenjournal.Blurb(""), ErrInvalidBlurb
 	}
 
-	if isReservedWord(raw) {
+	blurb := strings.TrimSpace(raw)
+
+	if isReservedWord(blurb) {
 		return screenjournal.Blurb(""), ErrInvalidBlurb
 	}
 
-	if scriptTagPattern.FindString(raw) != "" {
+	if scriptTagPattern.FindString(blurb) != "" {
 		return screenjournal.Blurb(""), ErrInvalidBlurb
 	}
 
-	return screenjournal.Blurb(raw), nil
+	return screenjournal.Blurb(blurb), nil
 }

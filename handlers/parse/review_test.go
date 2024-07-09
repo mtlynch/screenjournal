@@ -284,16 +284,16 @@ func TestBlurb(t *testing.T) {
 			nil,
 		},
 		{
-			"blurb with leading spaces is invalid",
+			"blurb with leading spaces is valid",
 			" I thought it was bad.",
-			screenjournal.Blurb(""),
-			parse.ErrInvalidBlurb,
+			screenjournal.Blurb("I thought it was bad."),
+			nil,
 		},
 		{
-			"blurb with trailing spaces is invalid",
+			"blurb with trailing spaces is valid",
 			"I thought it was bad.   ",
-			screenjournal.Blurb(""),
-			parse.ErrInvalidBlurb,
+			screenjournal.Blurb("I thought it was bad."),
+			nil,
 		},
 		{
 			"blurb with more than 9000 characters is invalid",

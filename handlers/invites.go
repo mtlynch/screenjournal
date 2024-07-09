@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -32,18 +31,14 @@ func (s Server) invitesPost() http.HandlerFunc {
 		}
 	}
 }
-
 func parseInvitesPostRequest(r *http.Request) (invitesPostRequest, error) {
-	var payload struct {
-		Invitee string `json:"invitee"`
-	}
-	err := json.NewDecoder(r.Body).Decode(&payload)
+	err := r.ParseForm()
 	if err != nil {
-		log.Printf("failed to decode JSON request: %v", err)
+		log.Printf("failed to parse form: %v", err)
 		return invitesPostRequest{}, err
 	}
 
-	invitee, err := parse.Invitee(payload.Invitee)
+	invitee, err := parse.Invitee(r.FormValue("invitee"))
 	if err != nil {
 		return invitesPostRequest{}, err
 	}

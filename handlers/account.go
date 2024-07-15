@@ -94,6 +94,9 @@ func (s Server) accountNotificationsPut() http.HandlerFunc {
 			return
 		}
 
+		//http.Error(w, "Invalid request: bluh", http.StatusBadRequest)
+		//return
+
 		username := mustGetUsernameFromContext(r.Context())
 		if err = s.getDB(r).UpdateNotificationPreferences(username, screenjournal.NotificationPreferences{
 			NewReviews:     req.NewReviews,

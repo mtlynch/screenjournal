@@ -468,7 +468,10 @@ func (s Server) invitesGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").ParseFS(
 			templatesFS,
-			append(baseTemplates, "templates/pages/invites.html")...))
+			append(
+				baseTemplates,
+				"templates/fragments/invite-row.html",
+				"templates/pages/invites.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		invites, err := s.getDB(r).ReadSignupInvitations()
@@ -483,24 +486,6 @@ func (s Server) invitesGet() http.HandlerFunc {
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			Invites:     invites,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-}
-
-func (s Server) invitesNewGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").ParseFS(
-			templatesFS,
-			append(baseTemplates, "templates/pages/invites-new.html")...))
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := t.Execute(w, struct {
-			commonProps
-		}{
-			commonProps: makeCommonProps(r.Context()),
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

@@ -15,9 +15,6 @@ test("signing up with a valid invite code succeeds", async ({
   await page.getByRole("menuitem", { name: "Invites" }).click();
 
   await expect(page).toHaveURL("/admin/invites");
-  await page.getByTestId("create-invite").click();
-
-  await expect(page).toHaveURL("/admin/invites/new");
   await expect(page.getByLabel("Invitee's name")).toBeFocused();
   await page.getByLabel("Invitee's name").fill("Billy");
   await page.locator("form input[type='submit']").click();
@@ -59,9 +56,6 @@ test("signing up with an invalid invite code fails", async ({
   await page.getByRole("menuitem", { name: "Invites" }).click();
 
   await expect(page).toHaveURL("/admin/invites");
-  await page.getByTestId("create-invite").click();
-
-  await expect(page).toHaveURL("/admin/invites/new");
   await expect(page.getByLabel("Invitee's name")).toBeFocused();
   await page.getByLabel("Invitee's name").fill("Nigel");
   await page.locator("form input[type='submit']").click();

@@ -1,6 +1,10 @@
 /*
 Adapted from https://github.com/bigskysoftware/htmx-extensions/blob/492ee703bd43cf886e83de5ef88cc0a4bb8c5ef5/src/response-targets/response-targets.js
 Used under BSD Zero Clause License
+
+Note: This is currently kind of hacky for Michael Lynch's particular purposes. I
+don't recommend reusing this code.
+
 */
 
 /* global htmx */
@@ -39,24 +43,28 @@ Used under BSD Zero Clause License
       if (name == "htmx:beforeSend") {
         const srcEl = evt.target;
 
-        const targetError = api.querySelectorExt(
+        const errorTarget = api.querySelectorExt(
           srcEl,
           srcEl.getAttribute("hx-target-error")
         );
-        if (!targetError) {
+        if (!errorTarget) {
           return;
         }
-        const targetSuccess = api.querySelectorExt(
+        const successTarget = api.querySelectorExt(
           srcEl,
           srcEl.getAttribute("hx-target")
         );
-        if (!targetSuccess) {
+        if (!successTarget) {
           return true;
         }
 
-        // Clear the contents of both targets.
-        targetSuccess.innerHTML = "";
-        targetError.innerHTML = "";
+        // Only clear the contents of the success target if the swap is
+        // 'textContent' because for other swap types, we don't want to clear
+        // everything.
+        if (api.getClosestAttributeValue(srcEl, "hx-swap") === "textContent") {
+          successTarget.innerHTML = "";
+        }
+        errorTarget.innerHTML = "";
       }
       if (
         name === "htmx:beforeSwap" &&

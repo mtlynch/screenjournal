@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"encoding/json"
+	"html/template"
 	"log"
 	"net/http"
 
@@ -14,6 +14,7 @@ type invitesPostRequest struct {
 }
 
 func (s Server) invitesPost() http.HandlerFunc {
+	t := template.Must(template.ParseFS(templatesFS, "templates/fragments/invite-row.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := parseInvitesPostRequest(r)
 		if err != nil {
@@ -22,28 +23,37 @@ func (s Server) invitesPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.getDB(r).InsertSignupInvitation(screenjournal.SignupInvitation{
+		invitation := screenjournal.SignupInvitation{
 			Invitee:    req.Invitee,
 			InviteCode: screenjournal.NewInviteCode(),
-		}); err != nil {
-			log.Printf("failed to add new signup invite code: %v", err)
+		}
+		if err := s.getDB(r).InsertSignupInvitation(invitation); err != nil {
+			log.Printf("failed to add new signup invite %+v: %v", invitation, err)
 			http.Error(w, "Failed to store new signup invite", http.StatusInternalServerError)
 			return
 		}
+
+		if err := t.Execute(w, struct {
+			Invitee    screenjournal.Invitee
+			InviteCode screenjournal.InviteCode
+		}{
+			Invitee:    invitation.Invitee,
+			InviteCode: invitation.InviteCode,
+		}); err != nil {
+			http.Error(w, "Failed to render template", http.StatusInternalServerError)
+			log.Printf("failed to render invite row template: %v", err)
+			return
+		}
 	}
+
 }
 
 func parseInvitesPostRequest(r *http.Request) (invitesPostRequest, error) {
-	var payload struct {
-		Invitee string `json:"invitee"`
-	}
-	err := json.NewDecoder(r.Body).Decode(&payload)
-	if err != nil {
-		log.Printf("failed to decode JSON request: %v", err)
+	if err := r.ParseForm(); err != nil {
 		return invitesPostRequest{}, err
 	}
 
-	invitee, err := parse.Invitee(payload.Invitee)
+	invitee, err := parse.Invitee(r.PostFormValue("invitee"))
 	if err != nil {
 		return invitesPostRequest{}, err
 	}

@@ -92,7 +92,7 @@ func (sm mockSessionManager) SessionFromContext(ctx context.Context) (sessions.S
 func (sm mockSessionManager) SessionFromToken(token string) (sessions.Session, error) {
 	session, ok := sm.sessions[token]
 	if !ok {
-		return sessions.Session{}, errors.New("mock session manager: no session associated with token")
+		return sessions.Session{}, fmt.Errorf("mock session manager: no session associated with token %s", token)
 	}
 
 	return session, nil

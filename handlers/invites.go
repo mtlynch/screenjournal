@@ -28,7 +28,7 @@ func (s Server) invitesPost() http.HandlerFunc {
 			InviteCode: screenjournal.NewInviteCode(),
 		}
 		if err := s.getDB(r).InsertSignupInvitation(invitation); err != nil {
-			log.Printf("failed to add new signup invite code: %v", err)
+			log.Printf("failed to add new signup invite %+v: %v", invitation, err)
 			http.Error(w, "Failed to store new signup invite", http.StatusInternalServerError)
 			return
 		}

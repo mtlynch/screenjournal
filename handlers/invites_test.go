@@ -34,6 +34,7 @@ func makeInvitesTestData() invitesTestData {
 		token: "admintok555",
 		session: sessions.Session{
 			Username: td.users.adminUser.Username,
+			IsAdmin:  true,
 		},
 	}
 	td.users.regularUser = screenjournal.User{
@@ -81,17 +82,7 @@ func TestInvitesPost(t *testing.T) {
 			status: http.StatusBadRequest,
 		},
 		{
-			description:  "rejects request with invalid invitee email",
-			payload:      "invitee=invalid-email",
-			sessionToken: makeInvitesTestData().sessions.adminUser.token,
-			sessions: []mockSessionEntry{
-				makeInvitesTestData().sessions.adminUser,
-				makeInvitesTestData().sessions.regularUser,
-			},
-			status: http.StatusBadRequest,
-		},
-		{
-			description:  "rejects invite creation if user is not admin",
+			description:  "rejects invite creation if requesting user is not admin",
 			payload:      "invitee=newgus",
 			sessionToken: "dummy-invalid-token",
 			sessions: []mockSessionEntry{

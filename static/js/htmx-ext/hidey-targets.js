@@ -1,6 +1,10 @@
 /*
 Adapted from https://github.com/bigskysoftware/htmx-extensions/blob/492ee703bd43cf886e83de5ef88cc0a4bb8c5ef5/src/response-targets/response-targets.js
 Used under BSD Zero Clause License
+
+Note: This is currently kind of hacky for Michael Lynch's particular purposes. I
+don't recommend reusing this code.
+
 */
 
 /* global htmx */

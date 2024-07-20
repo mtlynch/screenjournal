@@ -18,12 +18,34 @@
 {{ end }}
 
 {{ define "content" }}
-  <a
-    href="/admin/invites/new"
-    class="btn btn-primary my-3"
-    data-testid="create-invite"
-    >Create Invite Link</a
+  <form
+    class="d-flex d-flex-row my-5 me-3"
+    hx-post="/admin/invites"
+    hx-disabled-elt="input, .btn"
+    hx-target="tbody"
+    hx-target-error="#result-error"
+    hx-swap="afterbegin"
   >
+    <div class="me-3">
+      <label for="invitee" class="form-label">Invitee's name</label>
+      <input
+        name="invitee"
+        id="invitee"
+        type="text"
+        autofocus="autofocus"
+        required
+      />
+    </div>
+
+    <input type="submit" class="btn btn-primary" value="Create" />
+
+    <div class="spinner-border htmx-indicator ms-3" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </form>
+
+  <div id="result-error" class="alert alert-danger" role="alert"></div>
+
   <table class="table">
     <thead>
       <tr>
@@ -33,21 +55,7 @@
     </thead>
     <tbody>
       {{ range .Invites }}
-        <tr>
-          <td>
-            <a
-              data-testid="invite-link"
-              href="/sign-up?invite={{ .InviteCode }}"
-              >{{ .Invitee }}</a
-            >
-          </td>
-
-          <td>
-            <button data-purpose="copy" data-invite-code="{{ .InviteCode }}">
-              <i class="fas fa-copy"></i>
-            </button>
-          </td>
-        </tr>
+        {{ template "invite-row.html" . }}
       {{ end }}
     </tbody>
   </table>

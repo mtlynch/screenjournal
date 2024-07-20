@@ -55,6 +55,14 @@ func (s *Server) routes() {
 	authenticatedRoutes.HandleFunc("/reviews/{reviewID}", s.reviewsPut()).Methods(http.MethodPut)
 	authenticatedRoutes.HandleFunc("/reviews/{reviewID}", s.reviewsDelete()).Methods(http.MethodDelete)
 
+	// Transitional subrouter as we get rid of the idea of separate API routes vs.
+	// view routes.
+	adminRoutes := s.router.PathPrefix("/admin").Subrouter()
+	adminRoutes.Use(s.requireAuthenticationForAPI)
+	adminRoutes.Use(s.requireAdmin)
+	adminRoutes.Use(enforceContentSecurityPolicy)
+	adminRoutes.HandleFunc("/invites", s.invitesPost()).Methods(http.MethodPost)
+
 	authenticatedViews := s.router.PathPrefix("/").Subrouter()
 	authenticatedViews.Use(s.requireAuthenticationForView)
 	authenticatedViews.Use(enforceContentSecurityPolicy)

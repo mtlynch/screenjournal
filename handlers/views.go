@@ -468,7 +468,10 @@ func (s Server) invitesGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").ParseFS(
 			templatesFS,
-			append(baseTemplates, "templates/pages/invites.html")...))
+			append(
+				baseTemplates,
+				"templates/fragments/invite-row.html",
+				"templates/pages/invites.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		invites, err := s.getDB(r).ReadSignupInvitations()

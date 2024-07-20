@@ -1,0 +1,13 @@
+<tr>
+  <td>
+    <a data-testid="invite-link" href="/sign-up?invite={{ .InviteCode }}"
+      >{{ .Invitee }}</a
+    >
+  </td>
+
+  <td>
+    <button data-purpose="copy" data-invite-code="{{ .InviteCode }}">
+      <i class="fas fa-copy"></i>
+    </button>
+  </td>
+</tr>

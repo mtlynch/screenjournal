@@ -5,7 +5,14 @@
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
     import { createInvite } from "/js/controllers/invites.js";
-    import { makeVisible, makeInvisible } from "/js/lib/bootstrap.js";
+
+    function makeInvisible(el) {
+      el.classList.add("invisible");
+    }
+
+    function makeVisible(el) {
+      el.classList.remove("invisible");
+    }
 
     document.addEventListener(
       "DOMContentLoaded",

@@ -17,6 +17,9 @@
   function getRespCodeTarget(elt, respCodeNumber) {
     if (!elt || !respCodeNumber) return null
 
+    console.log("getRespCodeTarget elt=", elt)
+    console.log("getRespCodeTarget respCodeNumber=", respCodeNumber)
+
     var respCode = respCodeNumber.toString()
 
     // '*' is the original syntax, as the obvious character for a wildcard.
@@ -45,10 +48,13 @@
     if (startsWith(respCode, '4') || startsWith(respCode, '5')) {
       attrPossibilities.push('error')
     }
+    //console.log(attrPossibilities)
 
     for (var i = 0; i < attrPossibilities.length; i++) {
       var attr = attrPrefix + attrPossibilities[i]
       var attrValue = api.getClosestAttributeValue(elt, attr)
+      //console.log("attrValue i=", i)
+      //console.log("attrValue=", attrValue)
       if (attrValue) {
         if (attrValue === 'this') {
           return api.findThisElement(elt, attr)
@@ -97,6 +103,22 @@
          * @param {Event} evt
          */
     onEvent: function(name, evt) {
+      /*if (name == 'htmx:beforeRequest') {
+        console.log("onEvent", name);
+        console.log(evt);
+      }*/
+      if (name == 'htmx:beforeSend') {
+        console.log("onEvent", name);
+        console.log(evt);
+        const srcEl = evt.target;
+        const targetSuccess = api.querySelectorExt(srcEl, srcEl.getAttribute("hx-target"));
+        targetSuccess.innerHTML = '';
+        const targetError = api.querySelectorExt(srcEl, srcEl.getAttribute("hx-target-error"));
+        targetError.innerHTML = '';
+        // Get target of hx-target-error
+        // Get target of hx-target
+        // Empty both
+      }
       if (name === 'htmx:beforeSwap' &&
                 evt.detail.xhr &&
                 evt.detail.xhr.status !== 200) {
@@ -121,6 +143,7 @@
           handleErrorFlag(evt)
           evt.detail.shouldSwap = true
           evt.detail.target = target
+          console.log("evt=", evt)
         }
         return true
       }

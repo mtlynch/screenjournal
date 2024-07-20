@@ -94,7 +94,7 @@ func (s Server) accountNotificationsPut() http.HandlerFunc {
 			return
 		}
 
-		//http.Error(w, "Invalid request: bluh", http.StatusBadRequest)
+		//http.Error(w, "Invalid request: dummy server error", http.StatusBadRequest)
 		//return
 
 		username := mustGetUsernameFromContext(r.Context())

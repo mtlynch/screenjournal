@@ -60,7 +60,7 @@ func TestInvitesPost(t *testing.T) {
 	}{
 		{
 			description:  "creates a new invite successfully",
-			payload:      "invitee=newgus",
+			payload:      "invitee=Frank",
 			sessionToken: makeInvitesTestData().sessions.adminUser.token,
 			sessions: []mockSessionEntry{
 				makeInvitesTestData().sessions.adminUser,
@@ -68,7 +68,7 @@ func TestInvitesPost(t *testing.T) {
 			},
 			status: http.StatusOK,
 			expectedInvite: screenjournal.SignupInvitation{
-				Invitee: screenjournal.Invitee("newgus"),
+				Invitee: screenjournal.Invitee("Frank"),
 			},
 		},
 		{
@@ -83,7 +83,7 @@ func TestInvitesPost(t *testing.T) {
 		},
 		{
 			description:  "rejects invite creation if requesting user is not admin",
-			payload:      "invitee=newgus",
+			payload:      "invitee=Frank",
 			sessionToken: "dummy-invalid-token",
 			sessions: []mockSessionEntry{
 				makeInvitesTestData().sessions.adminUser,
@@ -93,7 +93,7 @@ func TestInvitesPost(t *testing.T) {
 		},
 		{
 			description:  "rejects invite creation if user is not authenticated",
-			payload:      "invitee=newgus",
+			payload:      "invitee=Frank",
 			sessionToken: "dummy-invalid-token",
 			sessions: []mockSessionEntry{
 				makeInvitesTestData().sessions.adminUser,

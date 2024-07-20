@@ -43,25 +43,28 @@ don't recommend reusing this code.
       if (name == "htmx:beforeSend") {
         const srcEl = evt.target;
 
-        const targetError = api.querySelectorExt(
+        const errorTarget = api.querySelectorExt(
           srcEl,
           srcEl.getAttribute("hx-target-error")
         );
-        if (!targetError) {
+        if (!errorTarget) {
           return;
         }
-        const targetSuccess = api.querySelectorExt(
+        const successTarget = api.querySelectorExt(
           srcEl,
           srcEl.getAttribute("hx-target")
         );
-        if (!targetSuccess) {
+        if (!successTarget) {
           return true;
         }
 
+        // Only clear the contents of the success target if the swap is
+        // 'textContent' because for other swap types, we don't want to clear
+        // everything.
         if (api.getClosestAttributeValue(srcEl, "hx-swap") === "textContent") {
-          targetSuccess.innerHTML = "";
+          successTarget.innerHTML = "";
         }
-        targetError.innerHTML = "";
+        errorTarget.innerHTML = "";
       }
       if (
         name === "htmx:beforeSwap" &&

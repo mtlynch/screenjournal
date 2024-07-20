@@ -11,11 +11,12 @@ Used under BSD Zero Clause License
 
   /**
    * @param {HTMLElement} elt
-   * @param {number} respCode
    * @returns {HTMLElement | null}
    */
-  function getRespCodeTarget(elt, respCodeNumber) {
-    if (!elt || !respCodeNumber) return null;
+  function getErrorTarget(elt) {
+    if (!elt) {
+      return null;
+    }
 
     var attrValue = api.getClosestAttributeValue(elt, "hx-target-error");
     if (!attrValue) {
@@ -65,19 +66,14 @@ Used under BSD Zero Clause License
         if (evt.detail.target) {
           if (evt.detail.xhr.getAllResponseHeaders().match(/HX-Retarget:/i)) {
             evt.detail.shouldSwap = true;
-            evt.detail.isError = false;
             return true;
           }
         }
         if (!evt.detail.requestConfig) {
           return true;
         }
-        var target = getRespCodeTarget(
-          evt.detail.requestConfig.elt,
-          evt.detail.xhr.status
-        );
+        var target = getErrorTarget(evt.detail.requestConfig.elt);
         if (target) {
-          evt.detail.isError = false;
           evt.detail.shouldSwap = true;
           evt.detail.target = target;
         }

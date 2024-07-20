@@ -1,6 +1,7 @@
 package handlers_test
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -15,10 +16,6 @@ import (
 )
 
 type invitesTestData struct {
-	users struct {
-		adminUser   screenjournal.User
-		regularUser screenjournal.User
-	}
 	sessions struct {
 		adminUser   mockSessionEntry
 		regularUser mockSessionEntry
@@ -27,23 +24,17 @@ type invitesTestData struct {
 
 func makeInvitesTestData() invitesTestData {
 	td := invitesTestData{}
-	td.users.adminUser = screenjournal.User{
-		Username: screenjournal.Username("admin"),
-	}
 	td.sessions.adminUser = mockSessionEntry{
 		token: "admintok555",
 		session: sessions.Session{
-			Username: td.users.adminUser.Username,
+			Username: screenjournal.Username("admin"),
 			IsAdmin:  true,
 		},
-	}
-	td.users.regularUser = screenjournal.User{
-		Username: screenjournal.Username("regularUser"),
 	}
 	td.sessions.regularUser = mockSessionEntry{
 		token: "abc123",
 		session: sessions.Session{
-			Username: td.users.regularUser.Username,
+			Username: screenjournal.Username("regularUser"),
 		},
 	}
 	return td
@@ -106,9 +97,13 @@ func TestInvitesPost(t *testing.T) {
 			store := test_sqlite.New()
 
 			for _, s := range tt.sessions {
-				store.InsertUser(screenjournal.User{
+				if err := store.InsertUser(screenjournal.User{
 					Username: s.session.Username,
-				})
+					IsAdmin:  s.session.IsAdmin,
+					Email:    screenjournal.Email(fmt.Sprintf("%s@example.com", s.session.Username.String())),
+				}); err != nil {
+					panic(err)
+				}
 			}
 
 			authenticator := auth.New(store)

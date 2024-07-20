@@ -54,6 +54,8 @@ Used under BSD Zero Clause License
           return true;
         }
 
+        // TODO: Don't empty targetSuccess in all cases.
+
         // Clear the contents of both targets.
         targetSuccess.innerHTML = "";
         targetError.innerHTML = "";

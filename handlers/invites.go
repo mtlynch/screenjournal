@@ -50,7 +50,6 @@ func (s Server) invitesPost() http.HandlerFunc {
 
 func parseInvitesPostRequest(r *http.Request) (invitesPostRequest, error) {
 	if err := r.ParseForm(); err != nil {
-		log.Printf("failed to decode comment POST request: %v", err)
 		return invitesPostRequest{}, err
 	}
 

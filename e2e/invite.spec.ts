@@ -18,8 +18,8 @@ test("signing up with an valid invite code succeeds", async ({
   await page.getByTestId("create-invite").click();
 
   await expect(page).toHaveURL("/admin/invites/new");
-  await expect(page.locator("id=invitee")).toBeFocused();
-  await page.locator("id=invitee").fill("Billy");
+  await expect(page.getByLabel("Invitee's name")).toBeFocused();
+  await page.getByLabel("Invitee's name").fill("Billy");
   await page.locator("form input[type='submit']").click();
 
   await expect(page).toHaveURL("/admin/invites");
@@ -40,11 +40,11 @@ test("signing up with an valid invite code succeeds", async ({
   await expect(guestPage.locator(".alert-info")).toHaveText(
     "Welcome, Billy! We've been expecting you."
   );
-  await expect(guestPage.locator("id=username")).toHaveValue("billy");
-  await guestPage.locator("id=username").fill("billy123");
-  await guestPage.locator("id=email").fill("billy@example.com");
-  await guestPage.locator("id=password").fill("billypass");
-  await guestPage.locator("id=password-confirm").fill("billypass");
+  await expect(guestPage.getByLabel("Username")).toHaveValue("billy");
+  await guestPage.getByLabel("Username").fill("billy123");
+  await guestPage.getByLabel("Email Address").fill("billy@example.com");
+  await guestPage.getByLabel("Password").fill("billypass");
+  await guestPage.getByLabel("Confirm Password").fill("billypass");
   await guestPage.locator("form input[type='submit']").click();
 
   await expect(guestPage).toHaveURL("/reviews");
@@ -62,8 +62,8 @@ test("signing up with an invalid invite code fails", async ({
   await page.getByTestId("create-invite").click();
 
   await expect(page).toHaveURL("/admin/invites/new");
-  await expect(page.locator("id=invitee")).toBeFocused();
-  await page.locator("id=invitee").fill("Nigel");
+  await expect(page.getByLabel("Invitee's name")).toBeFocused();
+  await page.getByLabel("Invitee's name").fill("Nigel");
   await page.locator("form input[type='submit']").click();
 
   await expect(page).toHaveURL("/admin/invites");

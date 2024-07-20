@@ -87,15 +87,19 @@ type accountNotificationsPutRequest struct {
 }
 
 func (s Server) accountNotificationsPut() http.HandlerFunc {
+	i := 0
 	return func(w http.ResponseWriter, r *http.Request) {
+		i++
 		req, err := parseAccountNotificationsPutRequest(r)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			return
 		}
 
-		//http.Error(w, "Invalid request: dummy server error", http.StatusBadRequest)
-		//return
+		if i%2 == 0 {
+			http.Error(w, "Invalid request: dummy server error", http.StatusBadRequest)
+			return
+		}
 
 		username := mustGetUsernameFromContext(r.Context())
 		if err = s.getDB(r).UpdateNotificationPreferences(username, screenjournal.NotificationPreferences{

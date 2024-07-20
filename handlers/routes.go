@@ -34,7 +34,6 @@ func (s *Server) routes() {
 	adminViews.Use(s.requireAdmin)
 	adminViews.Use(enforceContentSecurityPolicy)
 	adminViews.HandleFunc("/invites", s.invitesGet()).Methods(http.MethodGet)
-	adminViews.HandleFunc("/invites/new", s.invitesNewGet()).Methods(http.MethodGet)
 
 	views := s.router.PathPrefix("/").Subrouter()
 	views.Use(upgradeToHttps)

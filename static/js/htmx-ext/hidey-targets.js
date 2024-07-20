@@ -9,13 +9,6 @@ Used under BSD Zero Clause License
   /** @type {import("../htmx").HtmxInternalApi} */
   var api;
 
-  var attrPrefix = "hx-target-";
-
-  // IE11 doesn't support string.startsWith
-  function startsWith(str, prefix) {
-    return str.substring(0, prefix.length) === prefix;
-  }
-
   /**
    * @param {HTMLElement} elt
    * @param {number} respCode
@@ -24,78 +17,17 @@ Used under BSD Zero Clause License
   function getRespCodeTarget(elt, respCodeNumber) {
     if (!elt || !respCodeNumber) return null;
 
-    var respCode = respCodeNumber.toString();
-
-    // '*' is the original syntax, as the obvious character for a wildcard.
-    // The 'x' alternative was added for maximum compatibility with HTML
-    // templating engines, due to ambiguity around which characters are
-    // supported in HTML attributes.
-    //
-    // Start with the most specific possible attribute and generalize from
-    // there.
-    var attrPossibilities = [
-      respCode,
-
-      respCode.substr(0, 2) + "*",
-      respCode.substr(0, 2) + "x",
-
-      respCode.substr(0, 1) + "*",
-      respCode.substr(0, 1) + "x",
-      respCode.substr(0, 1) + "**",
-      respCode.substr(0, 1) + "xx",
-
-      "*",
-      "x",
-      "***",
-      "xxx",
-    ];
-    if (startsWith(respCode, "4") || startsWith(respCode, "5")) {
-      attrPossibilities.push("error");
+    var attrValue = api.getClosestAttributeValue(elt, "hx-target-error");
+    if (!attrValue) {
+      return null;
     }
-
-    for (var i = 0; i < attrPossibilities.length; i++) {
-      var attr = attrPrefix + attrPossibilities[i];
-      var attrValue = api.getClosestAttributeValue(elt, attr);
-      if (attrValue) {
-        if (attrValue === "this") {
-          return api.findThisElement(elt, attr);
-        } else {
-          return api.querySelectorExt(elt, attrValue);
-        }
-      }
-    }
-
-    return null;
-  }
-
-  /** @param {Event} evt */
-  function handleErrorFlag(evt) {
-    if (evt.detail.isError) {
-      if (htmx.config.responseTargetUnsetsError) {
-        evt.detail.isError = false;
-      }
-    } else if (htmx.config.responseTargetSetsError) {
-      evt.detail.isError = true;
-    }
+    return api.querySelectorExt(elt, attrValue);
   }
 
   htmx.defineExtension("hidey-targets", {
     /** @param {import("../htmx").HtmxInternalApi} apiRef */
     init: function (apiRef) {
       api = apiRef;
-
-      if (htmx.config.responseTargetUnsetsError === undefined) {
-        htmx.config.responseTargetUnsetsError = true;
-      }
-      if (htmx.config.responseTargetSetsError === undefined) {
-        htmx.config.responseTargetSetsError = false;
-      }
-      if (htmx.config.responseTargetPrefersExisting === undefined) {
-        htmx.config.responseTargetPrefersExisting = false;
-      }
-      if (htmx.config.responseTargetPrefersRetargetHeader === undefined) {
-        htmx.config.responseTargetPrefersRetargetHeader = true;
-      }
     },
 
     /**
@@ -105,15 +37,24 @@ Used under BSD Zero Clause License
     onEvent: function (name, evt) {
       if (name == "htmx:beforeSend") {
         const srcEl = evt.target;
-        const targetSuccess = api.querySelectorExt(
-          srcEl,
-          srcEl.getAttribute("hx-target")
-        );
-        targetSuccess.innerHTML = "";
+
         const targetError = api.querySelectorExt(
           srcEl,
           srcEl.getAttribute("hx-target-error")
         );
+        if (!targetError) {
+          return;
+        }
+        const targetSuccess = api.querySelectorExt(
+          srcEl,
+          srcEl.getAttribute("hx-target")
+        );
+        if (!targetSuccess) {
+          return true;
+        }
+
+        // Clear the contents of both targets.
+        targetSuccess.innerHTML = "";
         targetError.innerHTML = "";
       }
       if (
@@ -122,17 +63,9 @@ Used under BSD Zero Clause License
         evt.detail.xhr.status !== 200
       ) {
         if (evt.detail.target) {
-          if (htmx.config.responseTargetPrefersExisting) {
+          if (evt.detail.xhr.getAllResponseHeaders().match(/HX-Retarget:/i)) {
             evt.detail.shouldSwap = true;
-            handleErrorFlag(evt);
-            return true;
-          }
-          if (
-            htmx.config.responseTargetPrefersRetargetHeader &&
-            evt.detail.xhr.getAllResponseHeaders().match(/HX-Retarget:/i)
-          ) {
-            evt.detail.shouldSwap = true;
-            handleErrorFlag(evt);
+            evt.detail.isError = false;
             return true;
           }
         }
@@ -144,7 +77,7 @@ Used under BSD Zero Clause License
           evt.detail.xhr.status
         );
         if (target) {
-          handleErrorFlag(evt);
+          evt.detail.isError = false;
           evt.detail.shouldSwap = true;
           evt.detail.target = target;
         }

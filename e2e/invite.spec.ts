@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
   await loginAsAdmin(page);
 });
 
-test("signing up with an valid invite code succeeds", async ({
+test("signing up with a valid invite code succeeds", async ({
   page,
   browser,
 }) => {
@@ -43,7 +43,7 @@ test("signing up with an valid invite code succeeds", async ({
   await expect(guestPage.getByLabel("Username")).toHaveValue("billy");
   await guestPage.getByLabel("Username").fill("billy123");
   await guestPage.getByLabel("Email Address").fill("billy@example.com");
-  await guestPage.getByLabel("Password").fill("billypass");
+  await guestPage.getByLabel("Password", { exact: true }).fill("billypass");
   await guestPage.getByLabel("Confirm Password").fill("billypass");
   await guestPage.locator("form input[type='submit']").click();
 

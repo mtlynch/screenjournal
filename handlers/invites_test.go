@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"strings"
 	"testing"
 
@@ -42,12 +41,12 @@ func makeInvitesTestData() invitesTestData {
 
 func TestInvitesPost(t *testing.T) {
 	for _, tt := range []struct {
-		description    string
-		payload        string
-		sessionToken   string
-		sessions       []mockSessionEntry
-		status         int
-		expectedInvite screenjournal.SignupInvitation
+		description     string
+		payload         string
+		sessionToken    string
+		sessions        []mockSessionEntry
+		status          int
+		expectedInvitee screenjournal.Invitee
 	}{
 		{
 			description:  "creates a new invite successfully",
@@ -57,10 +56,8 @@ func TestInvitesPost(t *testing.T) {
 				makeInvitesTestData().sessions.adminUser,
 				makeInvitesTestData().sessions.regularUser,
 			},
-			status: http.StatusOK,
-			expectedInvite: screenjournal.SignupInvitation{
-				Invitee: screenjournal.Invitee("Frank"),
-			},
+			status:          http.StatusOK,
+			expectedInvitee: screenjournal.Invitee("Frank"),
 		},
 		{
 			description:  "rejects request with missing invitee field",
@@ -139,9 +136,8 @@ func TestInvitesPost(t *testing.T) {
 				t.Fatalf("expected 1 invite, got %d", len(invites))
 			}
 
-			tt.expectedInvite.InviteCode = invites[0].InviteCode // Capture the generated invite code
-			if got, want := invites[0], tt.expectedInvite; !reflect.DeepEqual(got, want) {
-				t.Errorf("invite=%+v, want=%+v", got, want)
+			if got, want := invites[0].Invitee, tt.expectedInvitee; got != want {
+				t.Errorf("invitee=%+v, want=%+v", got, want)
 			}
 		})
 	}

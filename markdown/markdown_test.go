@@ -29,6 +29,23 @@ func TestRenderBlurbAndComment(t *testing.T) {
 			"<p>hello, <strong>world</strong>!</p>",
 		},
 		{
+			"formats multiline text",
+			`Instant movie of the year for me. It's such a delightful and creative way to play with the genre of musical biopics.
+
+If you think of Weird Al as just a parody music guy, give it a chance. I was never that excited about his parody music, but I always enjoy seeing him in TV and movies.
+
+Daniel Radcliffe is fantastic, and it's a great film role for Rainn Wilson. There are a million great cameos.
+
+You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, or Popstar.`,
+			`<p>Instant movie of the year for me. It's such a delightful and creative way to play with the genre of musical biopics.</p>
+
+<p>If you think of Weird Al as just a parody music guy, give it a chance. I was never that excited about his parody music, but I always enjoy seeing him in TV and movies.</p>
+
+<p>Daniel Radcliffe is fantastic, and it's a great film role for Rainn Wilson. There are a million great cameos.</p>
+
+<p>You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, or Popstar.</p>`,
+		},
+		{
 			// We don't really want this behavior, but it doesn't hurt anything right
 			// now, so keep the test to show the behavior.
 			"renders backticks",

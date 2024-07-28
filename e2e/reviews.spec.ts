@@ -167,9 +167,9 @@ test("adds a new rating that's too long to display in a card", async ({
 
 If you think of Weird Al as just a parody music guy, give it a chance. I was never that excited about his parody music, but I always enjoy seeing him in TV and movies.
 
-Daniel Radcliffe is fantastic, and it's a great film role for Rainn Wilson. There are a million great cameos.
+Daniel Radcliffe is **fantastic**, and it's a great film role for Rainn Wilson. There are a million great cameos.
 
-You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, or Popstar.`);
+You'll like it if you enjoy things like _Children's Hospital_, _Comedy Bang Bang_, or _Popstar_.`);
 
   await page.locator("form input[type='submit']").click();
 
@@ -217,14 +217,14 @@ If you think of Weird Al as just a parody music guy, give it a chance. I was nev
     page.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(0);
 
-  await expect(page.getByTestId("blurb")).toHaveText(
-    `Instant movie of the year for me. It's such a delightful and creative way to play with the genre of musical biopics.
+  await expect(page.getByTestId("blurb").innerHTML).toBe(
+    `<p>Instant movie of the year for me. It's such a delightful and creative way to play with the genre of musical biopics.</p>
 
-If you think of Weird Al as just a parody music guy, give it a chance. I was never that excited about his parody music, but I always enjoy seeing him in TV and movies.
+<p>If you think of Weird Al as just a parody music guy, give it a chance. I was never that excited about his parody music, but I always enjoy seeing him in TV and movies</p>.
 
-Daniel Radcliffe is fantastic, and it's a great film role for Rainn Wilson. There are a million great cameos.
+<p>Daniel Radcliffe is <strong>fantastic</strong>, and it's a great film role for Rainn Wilson. There are a million great cameos</p>.
 
-You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, or Popstar.`
+<p>You'll like it if you enjoy things like <em>Children's Hospital</em>, <em>Comedy Bang Bang</em>, or <em>Popstar</em>.</p>`
   );
 });
 

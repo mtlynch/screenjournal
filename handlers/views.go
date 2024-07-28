@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mtlynch/screenjournal/v2/markdown"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store"
 )
@@ -65,8 +66,11 @@ var moviePageFns = template.FuncMap{
 	"minus": func(a, b uint8) uint8 {
 		return a - b
 	},
-	"splitByNewline": func(s string) []string {
-		return strings.Split(s, "\n")
+	"renderBlurb": func(blurb screenjournal.Blurb) template.HTML {
+		return template.HTML(markdown.RenderBlurb(blurb))
+	},
+	"renderCommentText": func(comment screenjournal.CommentText) template.HTML {
+		return template.HTML(markdown.RenderComment(comment))
 	},
 	"posterPathToURL": posterPathToURL,
 }
@@ -235,13 +239,16 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			}
 			return string(elidedChars)
 		},
-		"splitByNewline": func(s string) []string {
-			return strings.Split(s, "\n")
-		},
 		"minus": func(a, b uint8) uint8 {
 			return a - b
 		},
 		"posterPathToURL": posterPathToURL,
+		"renderBlurb": func(blurb screenjournal.Blurb) template.HTML {
+			return template.HTML(markdown.RenderBlurb(blurb))
+		},
+		"splitByNewline": func(s string) []string {
+			return strings.Split(s, "\n")
+		},
 	}
 
 	t := template.Must(

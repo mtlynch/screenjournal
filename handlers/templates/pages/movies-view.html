@@ -103,11 +103,9 @@
         </div>
 
         {{ with .Blurb }}
-          <p data-testid="blurb" class="mb-0">
-            {{ range .String | splitByNewline }}
-              {{ . }}<br />
-            {{ end }}
-          </p>
+          <div data-testid="blurb" class="mb-0">
+            {{ . | renderBlurb }}
+          </div>
         {{ end }}
       </div>
 
@@ -149,11 +147,9 @@
           >{{ relativeCommentDate .Created }}</span
         >
       </p>
-      <p class="mb-0" data-sj-purpose="body">
-        {{ range .CommentText.String | splitByNewline }}
-          {{ . }}<br />
-        {{ end }}
-      </p>
+      <div class="mb-0" data-sj-purpose="body">
+        {{ .CommentText | renderCommentText }}
+      </div>
 
       {{ if eq .Owner $loggedInUsername }}
         <div class="mt-3 small">

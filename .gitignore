@@ -25,6 +25,8 @@ data/
 
 # Environment variables, which may contain secrets
 .env.*
+# .env.example is an exception as it only contains dummy secrets.
+!.env.example
 
 # Playwright output
 /playwright-report/

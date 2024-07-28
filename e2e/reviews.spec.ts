@@ -217,14 +217,14 @@ If you think of Weird Al as just a parody music guy, give it a chance. I was nev
     page.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(0);
 
-  await expect(page.getByTestId("blurb").innerHTML()).toBe(
+  await expect(
+    (await page.getByTestId("blurb").innerHTML()).replace(/^\s+/gm, "")
+  ).toEqual(
     `<p>Instant movie of the year for me. It's such a delightful and creative way to play with the genre of musical biopics.</p>
-
-<p>If you think of Weird Al as just a parody music guy, give it a chance. I was never that excited about his parody music, but I always enjoy seeing him in TV and movies</p>.
-
-<p>Daniel Radcliffe is <strong>fantastic</strong>, and it's a great film role for Rainn Wilson. There are a million great cameos</p>.
-
-<p>You'll like it if you enjoy things like <em>Children's Hospital</em>, <em>Comedy Bang Bang</em>, or <em>Popstar</em>.</p>`
+<p>If you think of Weird Al as just a parody music guy, give it a chance. I was never that excited about his parody music, but I always enjoy seeing him in TV and movies.</p>
+<p>Daniel Radcliffe is <strong>fantastic</strong>, and it's a great film role for Rainn Wilson. There are a million great cameos.</p>
+<p>You'll like it if you enjoy things like <em>Children's Hospital</em>, <em>Comedy Bang Bang</em>, or <em>Popstar</em>.</p>
+`
   );
 });
 
@@ -594,11 +594,9 @@ test("adds, edits, and deletes a comment on an existing review", async ({
         await commentDiv.locator("[data-sj-purpose='body']").innerHTML()
       ).replace(/^\s+/gm, "")
     ).toEqual(
-      `
-We must ask ourselves...<br>
-<br>
-What is "movie?"<br>
-`.trimStart()
+      `<p>We must ask ourselves...</p>
+<p>What is "movie?"</p>
+`
     );
 
     await commentDiv.getByRole("link", { name: "Edit" }).click();
@@ -664,11 +662,8 @@ test("removes leading and trailing whitespace from comments", async ({
     (
       await commentDiv.locator("[data-sj-purpose='body']").innerHTML()
     ).replace(/^\s+/gm, "")
-  ).toEqual(
-    `
-    Yes, but can you strip my whitespace?<br>
-`.trimStart()
-  );
+  ).toEqual(`<p>Yes, but can you strip my whitespace?</p>
+`);
 });
 
 test("views reviews filtered by user", async ({ page }) => {

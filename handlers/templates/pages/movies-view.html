@@ -147,9 +147,9 @@
           >{{ relativeCommentDate .Created }}</span
         >
       </p>
-      <p class="mb-0" data-sj-purpose="body">
+      <div class="mb-0" data-sj-purpose="body">
         {{ .CommentText | renderCommentText }}
-      </p>
+      </div>
 
       {{ if eq .Owner $loggedInUsername }}
         <div class="mt-3 small">

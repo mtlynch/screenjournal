@@ -25,7 +25,6 @@ set +x
 . .env.prod
 set -x
 
-export LITESTREAM_REGION
 export LITESTREAM_ENDPOINT
 export LITESTREAM_ACCESS_KEY_ID
 export LITESTREAM_SECRET_ACCESS_KEY

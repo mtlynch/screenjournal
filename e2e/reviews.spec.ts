@@ -118,6 +118,9 @@ test("adds a new rating and fills in only required fields", async ({
 
   await page.locator("form input[type='submit']").click();
 
+  await expect(page).toHaveURL("/movies/3");
+
+  await page.getByRole("menuitem", { name: "Home" }).click();
   await expect(page).toHaveURL("/reviews");
 
   const reviewCard = await page.locator(".card", {
@@ -173,6 +176,9 @@ You'll like it if you enjoy things like _Children's Hospital_, _Comedy Bang Bang
 
   await page.locator("form input[type='submit']").click();
 
+  await expect(page).toHaveURL("/movies/3");
+
+  await page.getByRole("menuitem", { name: "Home" }).click();
   await expect(page).toHaveURL("/reviews");
 
   const reviewCard = await page.locator(".card", {
@@ -253,7 +259,11 @@ test("adds a new rating and fills all fields", async ({ page }) => {
 
   await page.locator("form input[type='submit']").click();
 
+  await expect(page).toHaveURL("/movies/3");
+
+  await page.getByRole("menuitem", { name: "Home" }).click();
   await expect(page).toHaveURL("/reviews");
+
   const reviewCard = await page.locator(".card", {
     has: page.getByRole("heading", {
       name: "Eternal Sunshine of the Spotless Mind",
@@ -304,6 +314,9 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
 
   await page.locator("form input[type='submit']").click();
 
+  await expect(page).toHaveURL("/movies/3");
+
+  await page.getByRole("menuitem", { name: "Home" }).click();
   await expect(page).toHaveURL("/reviews");
   const reviewCard = await page.locator(".card", {
     has: page.getByRole("heading", {
@@ -340,6 +353,9 @@ test("adds a new rating and edits the details", async ({ page }) => {
 
   await page.locator("form input[type='submit']").click();
 
+  await expect(page).toHaveURL("/movies/3");
+
+  await page.getByRole("menuitem", { name: "Home" }).click();
   await expect(page).toHaveURL("/reviews");
   const reviewCard = await page.locator(".card", {
     has: page.getByRole("heading", { name: "There's something About Mary" }),
@@ -365,8 +381,12 @@ test("adds a new rating and edits the details", async ({ page }) => {
   );
   await page.getByLabel("Other thoughts?").fill("Not as good as I remembered");
 
+  // No submit button on this form.
   await page.locator("form .btn-primary").click();
 
+  await expect(page).toHaveURL("/movies/3");
+
+  await page.getByRole("menuitem", { name: "Home" }).click();
   await expect(page).toHaveURL("/reviews");
 
   await expect(reviewCard.locator(".card-subtitle")).toHaveText(
@@ -410,6 +430,9 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
 
   await page.locator("form input[type='submit']").click();
 
+  await expect(page).toHaveURL("/movies/3");
+
+  await page.getByRole("menuitem", { name: "Home" }).click();
   await expect(page).toHaveURL("/reviews");
   const reviewCard = await page.locator(".card", {
     has: page.getByRole("heading", { name: "The English Patient" }),
@@ -465,6 +488,9 @@ test("editing another user's review fails", async ({ page, browser }) => {
 
   await page.locator("form input[type='submit']").click();
 
+  await expect(page).toHaveURL("/movies/3");
+
+  await page.getByRole("menuitem", { name: "Home" }).click();
   await expect(page).toHaveURL("/reviews");
 
   // Switch to other user.
@@ -509,7 +535,7 @@ test("views a movie with an existing review and adds a new review", async ({
 
   await page.locator("form input[type='submit']").click();
 
-  await expect(page).toHaveURL("/reviews");
+  await expect(page).toHaveURL("/movies/1");
 });
 
 test("adds a comment to an existing review", async ({ page }) => {

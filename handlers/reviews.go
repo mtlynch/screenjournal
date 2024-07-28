@@ -60,7 +60,7 @@ func (s Server) reviewsPost() http.HandlerFunc {
 
 		s.announcer.AnnounceNewReview(review)
 
-		http.Redirect(w, r, "/reviews", http.StatusSeeOther)
+		http.Redirect(w, r, fmt.Sprintf("/movies/%d#review%d", review.Movie.ID.Int64(), review.ID.UInt64()), http.StatusSeeOther)
 	}
 }
 
@@ -103,7 +103,7 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
-		http.Redirect(w, r, "/reviews", http.StatusSeeOther)
+		http.Redirect(w, r, fmt.Sprintf("/movies/%d#review%d", review.Movie.ID.Int64(), review.ID.UInt64()), http.StatusSeeOther)
 	}
 }
 

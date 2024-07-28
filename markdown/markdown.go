@@ -30,14 +30,14 @@ func RenderComment(comment screenjournal.CommentText) string {
 }
 
 func renderUntrusted(s string) string {
-	parser := gomarkdown_parser.New()
+	parser := gomarkdown_parser.NewWithExtensions(gomarkdown_parser.NoExtensions)
 	html := string(gomarkdown.ToHTML([]byte(s), parser, untrustedRenderer))
 
 	return strings.TrimSpace(html)
 }
 
 func RenderEmail(body screenjournal.EmailBodyMarkdown) string {
-	parser := gomarkdown_parser.New()
+	parser := gomarkdown_parser.NewWithExtensions(gomarkdown_parser.Autolink)
 	html := string(gomarkdown.ToHTML([]byte(body.String()), parser, trustedRenderer))
 
 	return strings.TrimSpace(html)

@@ -8,6 +8,8 @@ import (
 	gomarkdown_parser "github.com/gomarkdown/markdown/parser"
 )
 
+// TODO: Change this to FromBlurb so that it's specific to the typed Blurb, then
+// add a different one for trusted strings.
 func Render(markdown string) string {
 	parser := gomarkdown_parser.New()
 

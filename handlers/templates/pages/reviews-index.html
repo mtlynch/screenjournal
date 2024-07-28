@@ -115,9 +115,7 @@
             </div>
             {{ with .Blurb | elideBlurb }}
               <p class="card-text">
-                {{ range . | splitByNewline }}
-                  {{ . }}<br />
-                {{ end }}
+                {{ . | renderMarkdown }}
               </p>
             {{ end }}
             <p>

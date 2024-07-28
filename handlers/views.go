@@ -242,10 +242,13 @@ func (s Server) reviewsGet() http.HandlerFunc {
 		"minus": func(a, b uint8) uint8 {
 			return a - b
 		},
+		"posterPathToURL": posterPathToURL,
 		"renderBlurb": func(blurb screenjournal.Blurb) template.HTML {
 			return template.HTML(markdown.RenderBlurb(blurb))
 		},
-		"posterPathToURL": posterPathToURL,
+		"splitByNewline": func(s string) []string {
+			return strings.Split(s, "\n")
+		},
 	}
 
 	t := template.Must(

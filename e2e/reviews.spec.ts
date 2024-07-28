@@ -217,7 +217,7 @@ If you think of Weird Al as just a parody music guy, give it a chance. I was nev
     page.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(0);
 
-  await expect(page.getByTestId("blurb").innerHTML).toBe(
+  await expect(page.getByTestId("blurb").innerHTML()).toBe(
     `<p>Instant movie of the year for me. It's such a delightful and creative way to play with the genre of musical biopics.</p>
 
 <p>If you think of Weird Al as just a parody music guy, give it a chance. I was never that excited about his parody music, but I always enjoy seeing him in TV and movies</p>.

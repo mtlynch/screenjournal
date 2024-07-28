@@ -99,8 +99,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 
 <p>-ScreenJournal Bot</p>
 
-<p>To manage your notifications, visit <a href="https://dev.thescreenjournal.com/account/notifications">https://dev.thescreenjournal.com/account/notifications</a></p>
-`,
+<p>To manage your notifications, visit <a href="https://dev.thescreenjournal.com/account/notifications">https://dev.thescreenjournal.com/account/notifications</a></p>`,
 				},
 				{
 					From: mail.Address{
@@ -132,8 +131,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 
 <p>-ScreenJournal Bot</p>
 
-<p>To manage your notifications, visit <a href="https://dev.thescreenjournal.com/account/notifications">https://dev.thescreenjournal.com/account/notifications</a></p>
-`,
+<p>To manage your notifications, visit <a href="https://dev.thescreenjournal.com/account/notifications">https://dev.thescreenjournal.com/account/notifications</a></p>`,
 				},
 			},
 		},
@@ -253,8 +251,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 
 <p>-ScreenJournal Bot</p>
 
-<p>To manage your notifications, visit <a href="https://dev.thescreenjournal.com/account/notifications">https://dev.thescreenjournal.com/account/notifications</a></p>
-`,
+<p>To manage your notifications, visit <a href="https://dev.thescreenjournal.com/account/notifications">https://dev.thescreenjournal.com/account/notifications</a></p>`,
 				},
 				{
 					From: mail.Address{
@@ -286,8 +283,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 
 <p>-ScreenJournal Bot</p>
 
-<p>To manage your notifications, visit <a href="https://dev.thescreenjournal.com/account/notifications">https://dev.thescreenjournal.com/account/notifications</a></p>
-`,
+<p>To manage your notifications, visit <a href="https://dev.thescreenjournal.com/account/notifications">https://dev.thescreenjournal.com/account/notifications</a></p>`,
 				},
 			},
 		},

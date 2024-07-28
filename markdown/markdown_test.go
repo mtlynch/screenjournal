@@ -4,9 +4,10 @@ import (
 	"testing"
 
 	"github.com/mtlynch/screenjournal/v2/markdown"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-func TestRender(t *testing.T) {
+func TestRenderBlurbAndComment(t *testing.T) {
 	for _, tt := range []struct {
 		description string
 		in          string
@@ -63,7 +64,74 @@ func TestRender(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			if got, want := markdown.Render(tt.in), tt.out; got != want {
+			if got, want := markdown.RenderBlurb(screenjournal.Blurb(tt.in)), tt.out; got != want {
+				t.Errorf("rendered blurb=%s, want=%s", got, want)
+			}
+			if got, want := markdown.RenderComment(screenjournal.CommentText(tt.in)), tt.out; got != want {
+				t.Errorf("rendered comment=%s, want=%s", got, want)
+			}
+		})
+	}
+}
+
+func TestRenderEmail(t *testing.T) {
+	for _, tt := range []struct {
+		description string
+		in          string
+		out         string
+	}{
+		{
+			"renders unformatted text",
+			"hello, world!",
+			"<p>hello, world!</p>",
+		},
+		{
+			"formats italics",
+			"hello, _world_!",
+			"<p>hello, <em>world</em>!</p>",
+		},
+		{
+			"formats bold text",
+			"hello, **world**!",
+			"<p>hello, <strong>world</strong>!</p>",
+		},
+		{
+			"renders links",
+			"Check out their [latest review](http://example.com/review)",
+			`<p>Check out their <a href="http://example.com/review">latest review</a></p>`,
+		},
+		{
+			// We don't really want this behavior, but it doesn't hurt anything right
+			// now, so keep the test to show the behavior.
+			"renders backticks",
+			"hello, `world`!",
+			"<p>hello, <code>world</code>!</p>",
+		},
+		{
+			// We don't really want this behavior, but it doesn't hurt anything right
+			// now, so keep the test to show the behavior.
+			"renders triple backticks",
+			"hello, ```world```!",
+			"<p>hello, <code>world</code>!</p>",
+		},
+		{
+			"does not render script tags",
+			"hello, <script>alert(1)</script>",
+			"<p>hello, alert(1)</p>",
+		},
+		{
+			"does not render images",
+			"check out my cat! ![photo of a cat](https://example.com/cat.jpg \"My Cat Milo\")",
+			"<p>check out my cat! </p>",
+		},
+		{
+			"does not render HTML images",
+			`check out my cat! <img src="http://example.com/cat.jpg">`,
+			"<p>check out my cat! </p>",
+		},
+	} {
+		t.Run(tt.description, func(t *testing.T) {
+			if got, want := markdown.RenderEmail(tt.in), tt.out; got != want {
 				t.Errorf("rendered=%s, want=%s", got, want)
 			}
 		})

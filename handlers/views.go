@@ -66,8 +66,11 @@ var moviePageFns = template.FuncMap{
 	"minus": func(a, b uint8) uint8 {
 		return a - b
 	},
-	"renderMarkdown": func(s string) template.HTML {
-		return template.HTML(markdown.Render(s))
+	"renderBlurb": func(blurb screenjournal.Blurb) template.HTML {
+		return template.HTML(markdown.RenderBlurb(blurb))
+	},
+	"renderCommentText": func(comment screenjournal.CommentText) template.HTML {
+		return template.HTML(markdown.RenderComment(comment))
 	},
 	"posterPathToURL": posterPathToURL,
 }
@@ -239,8 +242,8 @@ func (s Server) reviewsGet() http.HandlerFunc {
 		"minus": func(a, b uint8) uint8 {
 			return a - b
 		},
-		"renderMarkdown": func(s string) template.HTML {
-			return template.HTML(markdown.Render(s))
+		"renderBlurb": func(blurb screenjournal.Blurb) template.HTML {
+			return template.HTML(markdown.RenderBlurb(blurb))
 		},
 		"posterPathToURL": posterPathToURL,
 	}

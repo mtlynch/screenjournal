@@ -104,7 +104,7 @@
 
         {{ with .Blurb }}
           <p data-testid="blurb" class="mb-0">
-            {{ .String | renderMarkdown }}
+            {{ . | renderBlurb }}
           </p>
         {{ end }}
       </div>
@@ -148,7 +148,7 @@
         >
       </p>
       <p class="mb-0" data-sj-purpose="body">
-        {{ .CommentText.String | renderMarkdown }}
+        {{ .CommentText | renderCommentText }}
       </p>
 
       {{ if eq .Owner $loggedInUsername }}

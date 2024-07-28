@@ -63,7 +63,7 @@ func (a Announcer) AnnounceNewReview(r screenjournal.Review) {
 			MovieID:   r.Movie.ID.Int64(),
 			ReviewID:  r.ID.UInt64(),
 		})
-		bodyHtml := markdown.Render(bodyMarkdown)
+		bodyHtml := markdown.RenderEmail(bodyMarkdown)
 		msg := email.Message{
 			From: mail.Address{
 				Name:    "ScreenJournal",
@@ -116,7 +116,7 @@ func (a Announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 			MovieID:       rc.Review.Movie.ID.Int64(),
 			CommentID:     rc.ID.UInt64(),
 		})
-		bodyHtml := markdown.Render(bodyMarkdown)
+		bodyHtml := markdown.RenderEmail(bodyMarkdown)
 		msg := email.Message{
 			From: mail.Address{
 				Name:    "ScreenJournal",

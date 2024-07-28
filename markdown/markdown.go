@@ -10,6 +10,17 @@ import (
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
+var (
+	untrustedRenderer *html.Renderer
+	trustedRenderer   *html.Renderer
+)
+
+func init() {
+
+	untrustedRenderer = html.NewRenderer(html.RendererOptions{Flags: html.SkipHTML | html.SkipImages | html.SkipLinks})
+	trustedRenderer = html.NewRenderer(html.RendererOptions{Flags: html.SkipHTML | html.SkipImages})
+}
+
 func RenderBlurb(blurb screenjournal.Blurb) string {
 	return renderUntrusted(blurb.String())
 }
@@ -20,20 +31,14 @@ func RenderComment(comment screenjournal.CommentText) string {
 
 func renderUntrusted(s string) string {
 	parser := gomarkdown_parser.New()
-
-	renderer := html.NewRenderer(html.RendererOptions{Flags: html.SkipHTML | html.SkipImages | html.SkipLinks})
-
-	html := string(gomarkdown.ToHTML([]byte(s), parser, renderer))
+	html := string(gomarkdown.ToHTML([]byte(s), parser, untrustedRenderer))
 
 	return strings.TrimSpace(html)
 }
 
 func RenderEmail(body screenjournal.EmailBodyMarkdown) string {
 	parser := gomarkdown_parser.New()
-
-	renderer := html.NewRenderer(html.RendererOptions{Flags: html.SkipHTML | html.SkipImages})
-
-	html := string(gomarkdown.ToHTML([]byte(body.String()), parser, renderer))
+	html := string(gomarkdown.ToHTML([]byte(body.String()), parser, trustedRenderer))
 
 	return strings.TrimSpace(html)
 }

@@ -76,7 +76,7 @@ func (a Announcer) AnnounceNewReview(r screenjournal.Review) {
 				},
 			},
 			Subject:  fmt.Sprintf("%s posted a new review: %s", r.Owner.String(), r.Movie.Title),
-			TextBody: bodyMarkdown,
+			TextBody: bodyMarkdown.String(),
 			HtmlBody: bodyHtml,
 		}
 		if err := a.sender.Send(msg); err != nil {
@@ -129,7 +129,7 @@ func (a Announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 				},
 			},
 			Subject:  fmt.Sprintf("%s commented on %s's review of %s", rc.Owner.String(), rc.Review.Owner, rc.Review.Movie.Title),
-			TextBody: bodyMarkdown,
+			TextBody: bodyMarkdown.String(),
 			HtmlBody: bodyHtml,
 		}
 		if err := a.sender.Send(msg); err != nil {
@@ -142,7 +142,7 @@ func (a Announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 //go:embed templates
 var templatesFS embed.FS
 
-func mustRenderTemplate(templateFilename string, templateVars interface{}) string {
+func mustRenderTemplate(templateFilename string, templateVars interface{}) screenjournal.EmailBodyMarkdown {
 	t := template.New(templateFilename)
 	t = template.Must(
 		t.ParseFS(
@@ -153,5 +153,5 @@ func mustRenderTemplate(templateFilename string, templateVars interface{}) strin
 	if err := t.ExecuteTemplate(buf, templateFilename, templateVars); err != nil {
 		panic(err)
 	}
-	return buf.String()
+	return screenjournal.EmailBodyMarkdown(buf.String())
 }

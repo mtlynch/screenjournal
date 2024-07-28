@@ -28,12 +28,12 @@ func renderUntrusted(s string) string {
 	return strings.TrimSpace(html)
 }
 
-func RenderEmail(email string) string {
+func RenderEmail(body screenjournal.EmailBodyMarkdown) string {
 	parser := gomarkdown_parser.New()
 
 	renderer := html.NewRenderer(html.RendererOptions{Flags: html.SkipHTML | html.SkipImages})
 
-	html := string(gomarkdown.ToHTML([]byte(email), parser, renderer))
+	html := string(gomarkdown.ToHTML([]byte(body.String()), parser, renderer))
 
 	return strings.TrimSpace(html)
 }

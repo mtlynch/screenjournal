@@ -148,7 +148,7 @@ func TestRenderEmail(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			if got, want := markdown.RenderEmail(tt.in), tt.out; got != want {
+			if got, want := markdown.RenderEmail(screenjournal.EmailBodyMarkdown(tt.in)), tt.out; got != want {
 				t.Errorf("rendered=%s, want=%s", got, want)
 			}
 		})

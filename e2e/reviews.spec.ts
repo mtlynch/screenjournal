@@ -382,9 +382,11 @@ test("adds a new rating and edits the details", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "There's Something About Mary (1998)" })
   ).toBeVisible();
+  await expect(
+    page.getByLabel("Rating").locator("option[selected]")
+  ).toHaveText("4.5");
 
-  await expect(page.getByLabel("Rating")).toHaveValue("4.5");
-  await page.getByLabel("Rating").selectOption({ label: "4.0" });
+  await page.getByLabel("Rating").selectOption({ label: "3.5" });
 
   await expect(page.getByLabel("When did you watch?")).toHaveValue(
     "2022-10-29"
@@ -413,13 +415,13 @@ test("adds a new rating and edits the details", async ({ page }) => {
   ).toHaveAttribute("title", "2022-10-22");
   await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
-  ).toHaveCount(4);
+  ).toHaveCount(3);
   await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
   ).toHaveCount(1);
   await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
-  ).toHaveCount(0);
+  ).toHaveCount(1);
   await expect(reviewCard.locator(".card-text")).toHaveText(
     "Not as good as I remembered"
   );

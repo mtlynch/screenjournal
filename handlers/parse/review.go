@@ -28,7 +28,7 @@ var (
 
 	scriptTagPattern = regexp.MustCompile(`(?i)<\s*/?script\s*>`)
 	MinRating        = uint8(1)
-	MaxRating        = uint8(5)
+	MaxRating        = uint8(10)
 	blurbMaxLength   = 9000
 )
 

@@ -71,7 +71,7 @@ func (s Server) populateDummyData() http.HandlerFunc {
 		{
 			ID:     screenjournal.ReviewID(1),
 			Owner:  screenjournal.Username("userB"),
-			Rating: screenjournal.Rating(5),
+			Rating: screenjournal.Rating(10),
 			Movie: screenjournal.Movie{
 				ID:    screenjournal.MovieID(1),
 				Title: screenjournal.MediaTitle("The Waterboy"),
@@ -89,7 +89,7 @@ func (s Server) populateDummyData() http.HandlerFunc {
 		{
 			ID:     screenjournal.ReviewID(2),
 			Owner:  screenjournal.Username("userB"),
-			Rating: screenjournal.Rating(2),
+			Rating: screenjournal.Rating(3),
 			Movie: screenjournal.Movie{
 				ID:    screenjournal.MovieID(2),
 				Title: screenjournal.MediaTitle("Billy Madison"),

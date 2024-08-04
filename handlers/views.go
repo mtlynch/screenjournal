@@ -34,6 +34,54 @@ var baseTemplates = []string{
 	"templates/partials/navbar.html",
 }
 
+type ratingOption struct {
+	Value uint8
+	Label string
+}
+
+var ratingOptions = []ratingOption{
+	{
+		Value: 1,
+		Label: "0.5",
+	},
+	{
+		Value: 2,
+		Label: "1.0",
+	},
+	{
+		Value: 3,
+		Label: "1.5",
+	},
+	{
+		Value: 4,
+		Label: "2.0",
+	},
+	{
+		Value: 5,
+		Label: "2.5",
+	},
+	{
+		Value: 6,
+		Label: "3.0",
+	},
+	{
+		Value: 7,
+		Label: "3.5",
+	},
+	{
+		Value: 8,
+		Label: "4.0",
+	},
+	{
+		Value: 9,
+		Label: "4.5",
+	},
+	{
+		Value: 10,
+		Label: "5.0",
+	},
+}
+
 var moviePageFns = template.FuncMap{
 	"dict": func(values ...interface{}) map[string]interface{} {
 		if len(values)%2 != 0 {
@@ -375,12 +423,12 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 
 		if err := t.Execute(w, struct {
 			commonProps
-			RatingOptions []int
+			RatingOptions []ratingOption
 			Review        screenjournal.Review
 			Today         time.Time
 		}{
 			commonProps:   makeCommonProps(r.Context()),
-			RatingOptions: []int{1, 2, 3, 4, 5},
+			RatingOptions: ratingOptions,
 			Review:        review,
 			Today:         time.Now(),
 		}); err != nil {
@@ -437,12 +485,12 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 
 		if err := t.Execute(w, struct {
 			commonProps
-			RatingOptions []int
+			RatingOptions []ratingOption
 			Review        screenjournal.Review
 			Today         time.Time
 		}{
 			commonProps:   makeCommonProps(r.Context()),
-			RatingOptions: []int{1, 2, 3, 4, 5},
+			RatingOptions: ratingOptions,
 			Review:        review,
 			Today:         time.Now(),
 		}); err != nil {
@@ -547,13 +595,17 @@ func (s Server) accountSecurityGet() http.HandlerFunc {
 }
 
 func ratingToStars(rating screenjournal.Rating) []string {
-	stars := make([]string, 5)
+	stars := make([]string, parse.MaxRating/2)
 	// Add whole stars.
-	for i := uint8(0); i < rating.UInt8(); i++ {
+	for i := uint8(0); i < rating.UInt8()/2; i++ {
 		stars = append(stars, "fa-solid fa-star")
 	}
+	if rating.UInt8()%2 != 0 {
+		stars = append(stars, "fa-solid fa-star-half-stroke")
+	}
 	// Add empty stars.
-	for i := rating.UInt8(); i < parse.MaxRating; i++ {
+	emptyStars := (parse.MaxRating / 2) - (rating.UInt8() / 2) - rating.UInt8()%2
+	for i := uint8(0); i < emptyStars; i++ {
 		stars = append(stars, "fa-regular fa-star")
 	}
 	return stars

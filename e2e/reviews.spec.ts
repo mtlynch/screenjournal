@@ -43,7 +43,10 @@ test("index page renders card for review without comments", async ({
   ).toHaveAttribute("title", "2023-02-05");
   await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
-  ).toHaveCount(2);
+  ).toHaveCount(1);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(1);
   await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(3);
@@ -112,7 +115,7 @@ test("adds a new rating and fills in only required fields", async ({
     page.getByRole("heading", { name: "Slow Learners" })
   ).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "1" });
+  await page.getByLabel("Rating").selectOption({ label: "1.0" });
 
   await page.getByLabel("When did you watch?").fill("2022-10-21");
 
@@ -136,6 +139,9 @@ test("adds a new rating and fills in only required fields", async ({
   await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
   ).toHaveCount(1);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(0);
   await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(4);
@@ -163,7 +169,7 @@ test("adds a new rating that's too long to display in a card", async ({
 
   await page.getByLabel("When did you watch?").fill("2022-11-11");
 
-  await page.getByLabel("Rating").selectOption({ label: "5" });
+  await page.getByLabel("Rating").selectOption({ label: "5.0" });
 
   await page.getByLabel("Other thoughts?")
     .fill(`Instant movie of the year for me. It's such a delightful and creative way to play with the genre of musical biopics.
@@ -195,6 +201,9 @@ You'll like it if you enjoy things like _Children's Hospital_, _Comedy Bang Bang
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
   ).toHaveCount(5);
   await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(0);
+  await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(0);
 
@@ -219,6 +228,9 @@ If you think of Weird Al as just a parody music guy, give it a chance. I was nev
   await expect(
     page.locator("[data-testid='rating'] .fa-star.fa-solid")
   ).toHaveCount(5);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(0);
   await expect(
     page.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(0);
@@ -251,7 +263,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
     page.getByRole("heading", { name: "Eternal Sunshine of the Spotless Mind" })
   ).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "5" });
+  await page.getByLabel("Rating").selectOption({ label: "5.0" });
 
   await page.getByLabel("When did you watch?").fill("2022-10-29");
 
@@ -280,6 +292,9 @@ test("adds a new rating and fills all fields", async ({ page }) => {
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
   ).toHaveCount(5);
   await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(0);
+  await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(0);
   await expect(reviewCard.locator(".card-text")).toHaveText(
@@ -304,7 +319,7 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
     page.getByRole("heading", { name: "Eternal Sunshine of the Spotless Mind" })
   ).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "5" });
+  await page.getByLabel("Rating").selectOption({ label: "5.0" });
 
   await page.getByLabel("When did you watch?").fill("2022-10-29");
 
@@ -345,7 +360,7 @@ test("adds a new rating and edits the details", async ({ page }) => {
     page.getByRole("heading", { name: "There's Something About Mary" })
   ).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "5" });
+  await page.getByLabel("Rating").selectOption({ label: "4.5" });
 
   await page.getByLabel("When did you watch?").fill("2022-10-29");
 
@@ -367,9 +382,11 @@ test("adds a new rating and edits the details", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "There's Something About Mary (1998)" })
   ).toBeVisible();
+  await expect(
+    page.getByLabel("Rating").locator("option[selected]")
+  ).toHaveText("4.5");
 
-  await expect(page.getByLabel("Rating")).toHaveValue("5");
-  await page.getByLabel("Rating").selectOption({ label: "4" });
+  await page.getByLabel("Rating").selectOption({ label: "3.5" });
 
   await expect(page.getByLabel("When did you watch?")).toHaveValue(
     "2022-10-29"
@@ -398,7 +415,10 @@ test("adds a new rating and edits the details", async ({ page }) => {
   ).toHaveAttribute("title", "2022-10-22");
   await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
-  ).toHaveCount(4);
+  ).toHaveCount(3);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(1);
   await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(1);
@@ -422,7 +442,7 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
     page.getByRole("heading", { name: "The English Patient" })
   ).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "4" });
+  await page.getByLabel("Rating").selectOption({ label: "4.0" });
   await page.getByLabel("When did you watch?").fill("2022-10-29");
   await page
     .getByLabel("Other thoughts?")
@@ -440,7 +460,7 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   await reviewCard.getByTestId("edit-rating").click();
 
   // Make edits that will be ignored when we cancel the edit.
-  await page.getByLabel("Rating").selectOption({ label: "1" });
+  await page.getByLabel("Rating").selectOption({ label: "1.0" });
   await page.getByLabel("When did you watch?").fill("2022-10-22");
   await page.getByLabel("Other thoughts?").fill("Ignore this edit");
 
@@ -458,6 +478,9 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
   ).toHaveCount(4);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(0);
   await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(1);
@@ -480,7 +503,7 @@ test("editing another user's review fails", async ({ page, browser }) => {
     page.getByRole("heading", { name: "The English Patient" })
   ).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "4" });
+  await page.getByLabel("Rating").selectOption({ label: "4.0" });
   await page.getByLabel("When did you watch?").fill("2022-10-29");
   await page
     .getByLabel("Other thoughts?")
@@ -529,7 +552,7 @@ test("views a movie with an existing review and adds a new review", async ({
 
   await expect(page.getByPlaceholder("Search")).not.toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "5" });
+  await page.getByLabel("Rating").selectOption({ label: "5.0" });
   await page.getByLabel("When did you watch?").fill("2023-01-05");
   await page.getByLabel("Other thoughts?").fill("Relevant as ever");
 

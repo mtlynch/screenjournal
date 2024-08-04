@@ -595,7 +595,7 @@ func (s Server) accountSecurityGet() http.HandlerFunc {
 }
 
 func ratingToStars(rating screenjournal.Rating) []string {
-	stars := make([]string, 5)
+	stars := make([]string, parse.MaxRating/2)
 	// Add whole stars.
 	for i := uint8(0); i < rating.UInt8()/2; i++ {
 		stars = append(stars, "fa-solid fa-star")

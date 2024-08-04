@@ -8,5 +8,7 @@ dbs:
         path: db
         endpoint: ${LITESTREAM_ENDPOINT}
         force-path-style: true
-        retention: 720h
+        retention: 24000h # 1000 days, roughly 3 years
         snapshot-interval: 24h
+        validation-interval: 72h
+        sync-interval: 10m

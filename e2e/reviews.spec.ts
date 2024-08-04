@@ -112,7 +112,7 @@ test("adds a new rating and fills in only required fields", async ({
     page.getByRole("heading", { name: "Slow Learners" })
   ).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "1" });
+  await page.getByLabel("Rating").selectOption({ label: "1.0" });
 
   await page.getByLabel("When did you watch?").fill("2022-10-21");
 
@@ -163,7 +163,7 @@ test("adds a new rating that's too long to display in a card", async ({
 
   await page.getByLabel("When did you watch?").fill("2022-11-11");
 
-  await page.getByLabel("Rating").selectOption({ label: "5" });
+  await page.getByLabel("Rating").selectOption({ label: "5.0" });
 
   await page.getByLabel("Other thoughts?")
     .fill(`Instant movie of the year for me. It's such a delightful and creative way to play with the genre of musical biopics.
@@ -251,7 +251,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
     page.getByRole("heading", { name: "Eternal Sunshine of the Spotless Mind" })
   ).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "5" });
+  await page.getByLabel("Rating").selectOption({ label: "5.0" });
 
   await page.getByLabel("When did you watch?").fill("2022-10-29");
 
@@ -304,7 +304,7 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
     page.getByRole("heading", { name: "Eternal Sunshine of the Spotless Mind" })
   ).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "5" });
+  await page.getByLabel("Rating").selectOption({ label: "5.0" });
 
   await page.getByLabel("When did you watch?").fill("2022-10-29");
 
@@ -345,7 +345,7 @@ test("adds a new rating and edits the details", async ({ page }) => {
     page.getByRole("heading", { name: "There's Something About Mary" })
   ).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "5" });
+  await page.getByLabel("Rating").selectOption({ label: "4.5" });
 
   await page.getByLabel("When did you watch?").fill("2022-10-29");
 
@@ -368,8 +368,8 @@ test("adds a new rating and edits the details", async ({ page }) => {
     page.getByRole("heading", { name: "There's Something About Mary (1998)" })
   ).toBeVisible();
 
-  await expect(page.getByLabel("Rating")).toHaveValue("5");
-  await page.getByLabel("Rating").selectOption({ label: "4" });
+  await expect(page.getByLabel("Rating")).toHaveValue("4.5");
+  await page.getByLabel("Rating").selectOption({ label: "4.0" });
 
   await expect(page.getByLabel("When did you watch?")).toHaveValue(
     "2022-10-29"
@@ -400,8 +400,11 @@ test("adds a new rating and edits the details", async ({ page }) => {
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
   ).toHaveCount(4);
   await expect(
-    reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
   ).toHaveCount(1);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
+  ).toHaveCount(0);
   await expect(reviewCard.locator(".card-text")).toHaveText(
     "Not as good as I remembered"
   );
@@ -422,7 +425,7 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
     page.getByRole("heading", { name: "The English Patient" })
   ).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "4" });
+  await page.getByLabel("Rating").selectOption({ label: "4.0" });
   await page.getByLabel("When did you watch?").fill("2022-10-29");
   await page
     .getByLabel("Other thoughts?")
@@ -440,7 +443,7 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   await reviewCard.getByTestId("edit-rating").click();
 
   // Make edits that will be ignored when we cancel the edit.
-  await page.getByLabel("Rating").selectOption({ label: "1" });
+  await page.getByLabel("Rating").selectOption({ label: "1.0" });
   await page.getByLabel("When did you watch?").fill("2022-10-22");
   await page.getByLabel("Other thoughts?").fill("Ignore this edit");
 
@@ -480,7 +483,7 @@ test("editing another user's review fails", async ({ page, browser }) => {
     page.getByRole("heading", { name: "The English Patient" })
   ).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "4" });
+  await page.getByLabel("Rating").selectOption({ label: "4.0" });
   await page.getByLabel("When did you watch?").fill("2022-10-29");
   await page
     .getByLabel("Other thoughts?")
@@ -529,7 +532,7 @@ test("views a movie with an existing review and adds a new review", async ({
 
   await expect(page.getByPlaceholder("Search")).not.toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "5" });
+  await page.getByLabel("Rating").selectOption({ label: "5.0" });
   await page.getByLabel("When did you watch?").fill("2023-01-05");
   await page.getByLabel("Other thoughts?").fill("Relevant as ever");
 

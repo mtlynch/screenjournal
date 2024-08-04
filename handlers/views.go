@@ -34,6 +34,54 @@ var baseTemplates = []string{
 	"templates/partials/navbar.html",
 }
 
+type ratingOption struct {
+	Value uint8
+	Label string
+}
+
+var ratingOptions = []ratingOption{
+	{
+		Value: 1,
+		Label: "0.5",
+	},
+	{
+		Value: 2,
+		Label: "1.0",
+	},
+	{
+		Value: 3,
+		Label: "1.5",
+	},
+	{
+		Value: 4,
+		Label: "2.0",
+	},
+	{
+		Value: 5,
+		Label: "2.5",
+	},
+	{
+		Value: 6,
+		Label: "3.0",
+	},
+	{
+		Value: 7,
+		Label: "3.5",
+	},
+	{
+		Value: 8,
+		Label: "4.0",
+	},
+	{
+		Value: 9,
+		Label: "4.5",
+	},
+	{
+		Value: 10,
+		Label: "5.0",
+	},
+}
+
 var moviePageFns = template.FuncMap{
 	"dict": func(values ...interface{}) map[string]interface{} {
 		if len(values)%2 != 0 {
@@ -375,12 +423,12 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 
 		if err := t.Execute(w, struct {
 			commonProps
-			RatingOptions []int
+			RatingOptions []ratingOption
 			Review        screenjournal.Review
 			Today         time.Time
 		}{
 			commonProps:   makeCommonProps(r.Context()),
-			RatingOptions: []int{1, 2, 3, 4, 5},
+			RatingOptions: ratingOptions,
 			Review:        review,
 			Today:         time.Now(),
 		}); err != nil {
@@ -437,12 +485,12 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 
 		if err := t.Execute(w, struct {
 			commonProps
-			RatingOptions []int
+			RatingOptions []ratingOption
 			Review        screenjournal.Review
 			Today         time.Time
 		}{
 			commonProps:   makeCommonProps(r.Context()),
-			RatingOptions: []int{1, 2, 3, 4, 5},
+			RatingOptions: ratingOptions,
 			Review:        review,
 			Today:         time.Now(),
 		}); err != nil {

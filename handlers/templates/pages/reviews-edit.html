@@ -132,12 +132,12 @@
         {{ if eq $selectedRating 0 }}
           <option selected></option>
         {{ end }}
-        {{ range $i := .RatingOptions }}
+        {{ range .RatingOptions }}
           <option
-            value="{{ . }}"
-            {{ if (eq $i $selectedRating) }}selected{{ end }}
+            value="{{ .Value }}"
+            {{ if (eq .Value $selectedRating) }}selected{{ end }}
           >
-            {{ . }}
+            {{ .Label }}
           </option>
         {{ end }}
       </select>

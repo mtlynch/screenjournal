@@ -94,7 +94,7 @@
           >
         </h6>
         <div data-testid="rating">
-          {{ range (ratingToStars .Rating.UInt8) }}
+          {{ range (ratingToStars .Rating) }}
             <i class="{{ . }}"></i>
           {{ end }}
         </div>

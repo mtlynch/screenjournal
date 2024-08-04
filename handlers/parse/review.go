@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -17,7 +18,7 @@ const watchDateFormat = time.DateOnly
 var (
 	ErrInvalidReviewID             = errors.New("invalid review ID")
 	ErrInvalidMediaTitle           = errors.New("invalid media title")
-	ErrInvalidRating               = fmt.Errorf("rating must be between %d and %d", minRating, maxRating)
+	ErrInvalidRating               = fmt.Errorf("rating must be between %d and %d", MinRating, MaxRating)
 	ErrWatchDateUnrecognizedFormat = fmt.Errorf("unrecognized format for watch date, must be in %s format", watchDateFormat)
 	ErrWatchDateTooLate            = fmt.Errorf("watch time must be no later than %s", time.Now().Format(time.DateOnly))
 	ErrInvalidBlurb                = errors.New("invalid blurb")
@@ -26,8 +27,8 @@ var (
 	MediaTitleMaxLength = 160
 
 	scriptTagPattern = regexp.MustCompile(`(?i)<\s*/?script\s*>`)
-	minRating        = 1
-	maxRating        = 5
+	MinRating        = uint8(1)
+	MaxRating        = uint8(5)
 	blurbMaxLength   = 9000
 )
 
@@ -74,7 +75,11 @@ func RatingFromString(raw string) (screenjournal.Rating, error) {
 }
 
 func Rating(raw int) (screenjournal.Rating, error) {
-	if raw < minRating || raw > maxRating {
+	if raw > math.MaxUint8 {
+		return screenjournal.Rating(0), ErrInvalidRating
+	}
+	ratingUint8 := uint8(raw)
+	if ratingUint8 < MinRating || ratingUint8 > MaxRating {
 		return screenjournal.Rating(0), ErrInvalidRating
 	}
 

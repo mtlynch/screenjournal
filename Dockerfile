@@ -19,10 +19,10 @@ WORKDIR /app
 
 RUN TARGETPLATFORM="${TARGETPLATFORM}" ./dev-scripts/build-backend "prod"
 
-FROM debian:stable-20211011-slim AS litestream_downloader
+FROM debian:stable-20240311-slim AS litestream_downloader
 
 ARG TARGETPLATFORM
-ARG litestream_version="v0.3.9"
+ARG litestream_version="v0.3.13"
 
 WORKDIR /litestream
 
@@ -41,7 +41,7 @@ RUN set -x && \
       ARCH="amd64" ; \
     fi && \
     set -u && \
-    litestream_binary_tgz_filename="litestream-${litestream_version}-linux-${ARCH}-static.tar.gz" && \
+    litestream_binary_tgz_filename="litestream-${litestream_version}-linux-${ARCH}.tar.gz" && \
     wget "https://github.com/benbjohnson/litestream/releases/download/${litestream_version}/${litestream_binary_tgz_filename}" && \
     mv "${litestream_binary_tgz_filename}" litestream.tgz
 RUN tar -xvzf litestream.tgz

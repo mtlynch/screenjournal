@@ -597,11 +597,15 @@ func (s Server) accountSecurityGet() http.HandlerFunc {
 func ratingToStars(rating screenjournal.Rating) []string {
 	stars := make([]string, 5)
 	// Add whole stars.
-	for i := uint8(0); i < rating.UInt8(); i++ {
+	for i := uint8(0); i < rating.UInt8()/2; i++ {
 		stars = append(stars, "fa-solid fa-star")
 	}
+	if rating.UInt8()%2 != 0 {
+		stars = append(stars, "fa-solid fa-star-half-stroke")
+	}
 	// Add empty stars.
-	for i := rating.UInt8(); i < parse.MaxRating; i++ {
+	emptyStars := (parse.MaxRating / 2) - (rating.UInt8() / 2) - rating.UInt8()%2
+	for i := uint8(0); i < emptyStars; i++ {
 		stars = append(stars, "fa-regular fa-star")
 	}
 	return stars

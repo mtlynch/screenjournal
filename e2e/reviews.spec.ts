@@ -43,7 +43,10 @@ test("index page renders card for review without comments", async ({
   ).toHaveAttribute("title", "2023-02-05");
   await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
-  ).toHaveCount(2);
+  ).toHaveCount(1);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(1);
   await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(3);
@@ -137,6 +140,9 @@ test("adds a new rating and fills in only required fields", async ({
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
   ).toHaveCount(1);
   await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(0);
+  await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(4);
   await expect(reviewCard.locator(".card-text")).toHaveCount(0);
@@ -195,6 +201,9 @@ You'll like it if you enjoy things like _Children's Hospital_, _Comedy Bang Bang
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
   ).toHaveCount(5);
   await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(0);
+  await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(0);
 
@@ -219,6 +228,9 @@ If you think of Weird Al as just a parody music guy, give it a chance. I was nev
   await expect(
     page.locator("[data-testid='rating'] .fa-star.fa-solid")
   ).toHaveCount(5);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(0);
   await expect(
     page.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(0);
@@ -279,6 +291,9 @@ test("adds a new rating and fills all fields", async ({ page }) => {
   await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
   ).toHaveCount(5);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(0);
   await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(0);
@@ -461,6 +476,9 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
   ).toHaveCount(4);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(0);
   await expect(
     reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
   ).toHaveCount(1);

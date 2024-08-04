@@ -106,11 +106,8 @@
               >
             </h6>
             <div data-testid="rating">
-              {{ range iterate .Rating.UInt8 }}
-                <i class="fa-solid fa-star"></i>
-              {{ end }}
-              {{ range iterate (minus 5 .Rating.UInt8) }}
-                <i class="fa-regular fa-star"></i>
+              {{ range (ratingToStars .Rating) }}
+                <i class="{{ . }}"></i>
               {{ end }}
             </div>
             {{ with .Blurb | elideBlurb }}

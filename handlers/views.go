@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/markdown"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store"
@@ -55,17 +56,7 @@ var moviePageFns = template.FuncMap{
 	},
 	"formatWatchDate":   formatWatchDate,
 	"formatCommentTime": formatIso8601Datetime,
-	"iterate": func(n uint8) []uint8 {
-		var arr []uint8
-		var i uint8
-		for i = 0; i < n; i++ {
-			arr = append(arr, i)
-		}
-		return arr
-	},
-	"minus": func(a, b uint8) uint8 {
-		return a - b
-	},
+	"ratingToStars":     ratingToStars,
 	"renderBlurb": func(blurb screenjournal.Blurb) template.HTML {
 		return template.HTML(markdown.RenderBlurb(blurb))
 	},
@@ -213,14 +204,6 @@ func (s Server) reviewsGet() http.HandlerFunc {
 	fns := template.FuncMap{
 		"relativeWatchDate": relativeWatchDate,
 		"formatWatchDate":   formatWatchDate,
-		"iterate": func(n uint8) []uint8 {
-			var arr []uint8
-			var i uint8
-			for i = 0; i < n; i++ {
-				arr = append(arr, i)
-			}
-			return arr
-		},
 		"elideBlurb": func(b screenjournal.Blurb) string {
 			score := 0
 			var elidedChars []rune
@@ -239,9 +222,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			}
 			return string(elidedChars)
 		},
-		"minus": func(a, b uint8) uint8 {
-			return a - b
-		},
+		"ratingToStars":   ratingToStars,
 		"posterPathToURL": posterPathToURL,
 		"renderBlurb": func(blurb screenjournal.Blurb) template.HTML {
 			return template.HTML(markdown.RenderBlurb(blurb))
@@ -563,6 +544,19 @@ func (s Server) accountSecurityGet() http.HandlerFunc {
 			return
 		}
 	}
+}
+
+func ratingToStars(rating screenjournal.Rating) []string {
+	stars := make([]string, 5)
+	// Add whole stars.
+	for i := uint8(0); i < rating.UInt8(); i++ {
+		stars = append(stars, "fa-solid fa-star")
+	}
+	// Add empty stars.
+	for i := rating.UInt8(); i < parse.MaxRating; i++ {
+		stars = append(stars, "fa-regular fa-star")
+	}
+	return stars
 }
 
 func relativeWatchDate(t screenjournal.WatchDate) string {

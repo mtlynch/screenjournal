@@ -1,4 +1,8 @@
 version: 2.1
+executors:
+  go:
+    docker:
+      - image: cimg/go:1.23.0
 jobs:
   check_whitespace:
     docker:
@@ -38,8 +42,7 @@ jobs:
           name: Check lint
           command: npm run lint
   test_go:
-    docker:
-      - image: cimg/go:1.21.1
+    executor: go
     resource_class: medium
     steps:
       - checkout
@@ -61,8 +64,7 @@ jobs:
           paths:
             - ~/go/pkg/mod
   build_backend:
-    docker:
-      - image: cimg/go:1.21.1
+    executor: go
     steps:
       - checkout
       - attach_workspace:

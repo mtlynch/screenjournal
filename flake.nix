@@ -26,19 +26,33 @@
     litestream-nixpkgs.url = "github:NixOS/nixpkgs/a343533bccc62400e8a9560423486a3b6c11a23b";
   };
 
-  outputs = { self, flake-utils, go-nixpkgs, nodejs-nixpkgs, shellcheck-nixpkgs, sqlfluff-nixpkgs, playwright-nixpkgs, flyctl-nixpkgs, litestream-nixpkgs }@inputs:
+  outputs =
+    { self
+    , flake-utils
+    , go-nixpkgs
+    , nodejs-nixpkgs
+    , shellcheck-nixpkgs
+    , sqlfluff-nixpkgs
+    , playwright-nixpkgs
+    , flyctl-nixpkgs
+    , litestream-nixpkgs
+    }@inputs:
     flake-utils.lib.eachDefaultSystem (system:
-      let
-        go = go-nixpkgs.legacyPackages.${system}.go_1_23;
-        nodejs = nodejs-nixpkgs.legacyPackages.${system}.nodejs_20;
-        shellcheck = shellcheck-nixpkgs.legacyPackages.${system}.shellcheck;
-        sqlfluff = sqlfluff-nixpkgs.legacyPackages.${system}.sqlfluff;
-        playwright = playwright-nixpkgs.legacyPackages.${system}.playwright-driver.browsers;
-        flyctl = flyctl-nixpkgs.legacyPackages.${system}.flyctl;
-        litestream = litestream-nixpkgs.legacyPackages.${system}.litestream;
-      in
-      {
-        devShells.default = go-nixpkgs.legacyPackages.${system}.mkShell.override { stdenv = go-nixpkgs.legacyPackages.${system}.pkgsStatic.stdenv; } {
+    let
+      go = go-nixpkgs.legacyPackages.${system}.go_1_23;
+      nodejs = nodejs-nixpkgs.legacyPackages.${system}.nodejs_20;
+      shellcheck = shellcheck-nixpkgs.legacyPackages.${system}.shellcheck;
+      sqlfluff = sqlfluff-nixpkgs.legacyPackages.${system}.sqlfluff;
+      playwright = playwright-nixpkgs.legacyPackages.${system}.playwright-driver.browsers;
+      flyctl = flyctl-nixpkgs.legacyPackages.${system}.flyctl;
+      litestream = litestream-nixpkgs.legacyPackages.${system}.litestream;
+    in
+    {
+      devShells.default = go-nixpkgs.legacyPackages.${system}.mkShell.override
+        {
+          stdenv = go-nixpkgs.legacyPackages.${system}.pkgsStatic.stdenv;
+        }
+        {
           packages = [
             go-nixpkgs.legacyPackages.${system}.gotools
             go-nixpkgs.legacyPackages.${system}.gopls

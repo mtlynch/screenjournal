@@ -2,7 +2,8 @@ version: 2.1
 executors:
   go:
     docker:
-      - image: cimg/go:1.23.0
+      # cimg version wasn't available at upgrade time.
+      - image: golang:1.23.0
 jobs:
   check_whitespace:
     docker:

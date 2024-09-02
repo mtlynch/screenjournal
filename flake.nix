@@ -29,37 +29,37 @@
   outputs = { self, flake-utils, go-nixpkgs, nodejs-nixpkgs, shellcheck-nixpkgs, sqlfluff-nixpkgs, playwright-nixpkgs, flyctl-nixpkgs, litestream-nixpkgs }@inputs :
     flake-utils.lib.eachDefaultSystem (system:
     let
-      go-nixpkgs = inputs.go-nixpkgs.legacyPackages.${system};
-      nodejs-nixpkgs = inputs.nodejs-nixpkgs.legacyPackages.${system};
-      shellcheck-nixpkgs = inputs.shellcheck-nixpkgs.legacyPackages.${system};
-      sqlfluff-nixpkgs = inputs.sqlfluff-nixpkgs.legacyPackages.${system};
-      playwright-nixpkgs = inputs.playwright-nixpkgs.legacyPackages.${system};
-      flyctl-nixpkgs = inputs.flyctl-nixpkgs.legacyPackages.${system};
-      litestream-nixpkgs = inputs.litestream-nixpkgs.legacyPackages.${system};
+      go = go-nixpkgs.legacyPackages.${system}.go_1_23;
+      nodejs = nodejs-nixpkgs.legacyPackages.${system}.nodejs_20;
+      shellcheck = shellcheck-nixpkgs.legacyPackages.${system}.shellcheck;
+      sqlfluff = sqlfluff-nixpkgs.legacyPackages.${system}.sqlfluff;
+      playwright = playwright-nixpkgs.legacyPackages.${system}.playwright-driver.browsers;
+      flyctl = flyctl-nixpkgs.legacyPackages.${system}.flyctl;
+      litestream = litestream-nixpkgs.legacyPackages.${system}.litestream;
     in
     {
-      devShells.default = go-nixpkgs.mkShell.override { stdenv = go-nixpkgs.pkgsStatic.stdenv; } {
+      devShells.default = go-nixpkgs.legacyPackages.${system}.mkShell.override { stdenv = go-nixpkgs.legacyPackages.${system}.pkgsStatic.stdenv; } {
         packages = [
-          go-nixpkgs.gotools
-          go-nixpkgs.gopls
-          go-nixpkgs.go-outline
-          go-nixpkgs.gopkgs
-          go-nixpkgs.gocode-gomod
-          go-nixpkgs.godef
-          go-nixpkgs.golint
-          go-nixpkgs.go_1_23
-          nodejs-nixpkgs.nodejs_20
-          shellcheck-nixpkgs.shellcheck
-          sqlfluff-nixpkgs.sqlfluff
-          playwright-nixpkgs.playwright-driver.browsers
-          flyctl-nixpkgs.flyctl
-          litestream-nixpkgs.litestream
+          go-nixpkgs.legacyPackages.${system}.gotools
+          go-nixpkgs.legacyPackages.${system}.gopls
+          go-nixpkgs.legacyPackages.${system}.go-outline
+          go-nixpkgs.legacyPackages.${system}.gopkgs
+          go-nixpkgs.legacyPackages.${system}.gocode-gomod
+          go-nixpkgs.legacyPackages.${system}.godef
+          go-nixpkgs.legacyPackages.${system}.golint
+          go
+          nodejs
+          shellcheck
+          sqlfluff
+          playwright
+          flyctl
+          litestream
         ];
 
         shellHook = ''
-          export GOROOT="${go-nixpkgs.go_1_23}/share/go"
+          export GOROOT="${go}/share/go"
 
-          export PLAYWRIGHT_BROWSERS_PATH=${playwright-nixpkgs.playwright-driver.browsers}
+          export PLAYWRIGHT_BROWSERS_PATH=${playwright}
           export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
 
           echo "shellcheck" "$(shellcheck --version | grep '^version:')"

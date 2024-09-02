@@ -26,9 +26,18 @@
     litestream-nixpkgs.url = "github:NixOS/nixpkgs/a343533bccc62400e8a9560423486a3b6c11a23b";
   };
 
-  outputs = { self, flake-utils, go-nixpkgs, nodejs-nixpkgs, shellcheck-nixpkgs, sqlfluff-nixpkgs, playwright-nixpkgs, flyctl-nixpkgs, litestream-nixpkgs }@inputs :
-    flake-utils.lib.eachDefaultSystem (system:
-    let
+  outputs = {
+    self,
+    flake-utils,
+    go-nixpkgs,
+    nodejs-nixpkgs,
+    shellcheck-nixpkgs,
+    sqlfluff-nixpkgs,
+    playwright-nixpkgs,
+    flyctl-nixpkgs,
+    litestream-nixpkgs,
+  } @ inputs:
+    flake-utils.lib.eachDefaultSystem (system: let
       go = go-nixpkgs.legacyPackages.${system}.go_1_23;
       nodejs = nodejs-nixpkgs.legacyPackages.${system}.nodejs_20;
       shellcheck = shellcheck-nixpkgs.legacyPackages.${system}.shellcheck;
@@ -36,40 +45,46 @@
       playwright = playwright-nixpkgs.legacyPackages.${system}.playwright-driver.browsers;
       flyctl = flyctl-nixpkgs.legacyPackages.${system}.flyctl;
       litestream = litestream-nixpkgs.legacyPackages.${system}.litestream;
-    in
-    {
-      devShells.default = go-nixpkgs.legacyPackages.${system}.mkShell.override { stdenv = go-nixpkgs.legacyPackages.${system}.pkgsStatic.stdenv; } {
-        packages = [
-          go-nixpkgs.legacyPackages.${system}.gotools
-          go-nixpkgs.legacyPackages.${system}.gopls
-          go-nixpkgs.legacyPackages.${system}.go-outline
-          go-nixpkgs.legacyPackages.${system}.gopkgs
-          go-nixpkgs.legacyPackages.${system}.gocode-gomod
-          go-nixpkgs.legacyPackages.${system}.godef
-          go-nixpkgs.legacyPackages.${system}.golint
-          go
-          nodejs
-          shellcheck
-          sqlfluff
-          playwright
-          flyctl
-          litestream
-        ];
+    in {
+      devShells.default =
+        go-nixpkgs.legacyPackages.${system}.mkShell.override
+        {
+          stdenv = go-nixpkgs.legacyPackages.${system}.pkgsStatic.stdenv;
+        }
+        {
+          packages = [
+            go-nixpkgs.legacyPackages.${system}.gotools
+            go-nixpkgs.legacyPackages.${system}.gopls
+            go-nixpkgs.legacyPackages.${system}.go-outline
+            go-nixpkgs.legacyPackages.${system}.gopkgs
+            go-nixpkgs.legacyPackages.${system}.gocode-gomod
+            go-nixpkgs.legacyPackages.${system}.godef
+            go-nixpkgs.legacyPackages.${system}.golint
+            go
+            nodejs
+            shellcheck
+            sqlfluff
+            playwright
+            flyctl
+            litestream
+          ];
 
-        shellHook = ''
-          export GOROOT="${go}/share/go"
+          shellHook = ''
+            export GOROOT="${go}/share/go"
 
-          export PLAYWRIGHT_BROWSERS_PATH=${playwright}
-          export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+            export PLAYWRIGHT_BROWSERS_PATH=${playwright}
+            export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
 
-          echo "shellcheck" "$(shellcheck --version | grep '^version:')"
-          sqlfluff --version
-          fly version | cut -d ' ' -f 1-3
-          echo "litestream" "$(litestream version)"
-          echo "node" "$(node --version)"
-          echo "npm" "$(npm --version)"
-          go version
-        '';
-      };
+            echo "shellcheck" "$(shellcheck --version | grep '^version:')"
+            sqlfluff --version
+            fly version | cut -d ' ' -f 1-3
+            echo "litestream" "$(litestream version)"
+            echo "node" "$(node --version)"
+            echo "npm" "$(npm --version)"
+            go version
+          '';
+        };
+
+      formatter = go-nixpkgs.legacyPackages.${system}.alejandra;
     });
 }

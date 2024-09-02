@@ -4,8 +4,8 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
 
-    # 1.21.1 release
-    go_dep.url = "github:NixOS/nixpkgs/78058d810644f5ed276804ce7ea9e82d92bee293";
+    # 1.23.0 release
+    go_dep.url = "github:NixOS/nixpkgs/0cb2fd7c59fed0cd82ef858cbcbdb552b9a33465";
 
     # 20.6.1 release
     nodejs_dep.url = "github:NixOS/nixpkgs/78058d810644f5ed276804ce7ea9e82d92bee293";
@@ -43,12 +43,11 @@
           go_dep.gotools
           go_dep.gopls
           go_dep.go-outline
-          go_dep.gocode
           go_dep.gopkgs
           go_dep.gocode-gomod
           go_dep.godef
           go_dep.golint
-          go_dep.go_1_21
+          go_dep.go_1_23
           nodejs_dep.nodejs_20
           shellcheck_dep.shellcheck
           sqlfluff_dep.sqlfluff
@@ -58,7 +57,7 @@
         ];
 
         shellHook = ''
-          export GOROOT="${go_dep.go_1_21}/share/go"
+          export GOROOT="${go_dep.go_1_23}/share/go"
 
           export PLAYWRIGHT_BROWSERS_PATH=${playwright_dep.playwright-driver.browsers}
           export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true

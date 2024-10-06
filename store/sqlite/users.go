@@ -15,7 +15,7 @@ import (
 
 func (s Store) CountUsers() (uint, error) {
 	var c uint
-	if err := s.ctx.QueryRow(`SELECT COUNT(*)   AS user_count FROM users`).Scan(&c); err != nil {
+	if err := s.ctx.QueryRow(`SELECT COUNT(*)	AS user_count FROM users`).Scan(&c); err != nil {
 		return 0, err
 	}
 	return c, nil

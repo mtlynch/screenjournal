@@ -11,34 +11,34 @@ import (
 
 func (s Store) ReadMovie(id screenjournal.MovieID) (screenjournal.Movie, error) {
 	row := s.ctx.QueryRow(`
-    SELECT
-        id,
-        tmdb_id,
-        imdb_id,
-        title,
-        release_date,
-        poster_path
-    FROM
-        movies
-    WHERE
-        id = :id`, sql.Named("id", id.Int64()))
+	SELECT
+		id,
+		tmdb_id,
+		imdb_id,
+		title,
+		release_date,
+		poster_path
+	FROM
+		movies
+	WHERE
+		id = :id`, sql.Named("id", id.Int64()))
 
 	return movieFromRow(row)
 }
 
 func (s Store) ReadMovieByTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movie, error) {
 	row := s.ctx.QueryRow(`
-    SELECT
-        id,
-        tmdb_id,
-        imdb_id,
-        title,
-        release_date,
-        poster_path
-    FROM
-        movies
-    WHERE
-        tmdb_id = :tmdb_id`, sql.Named("tmdb_id", tmdbID.Int32()))
+	SELECT
+		id,
+		tmdb_id,
+		imdb_id,
+		title,
+		release_date,
+		poster_path
+	FROM
+		movies
+	WHERE
+		tmdb_id = :tmdb_id`, sql.Named("tmdb_id", tmdbID.Int32()))
 
 	return movieFromRow(row)
 }
@@ -47,18 +47,18 @@ func (s Store) InsertMovie(m screenjournal.Movie) (screenjournal.MovieID, error)
 	log.Printf("inserting new movie %s", m.Title)
 
 	res, err := s.ctx.Exec(`
-    INSERT INTO
-        movies
-    (
-        tmdb_id,
-        imdb_id,
-        title,
-        release_date,
-        poster_path
-    )
-    VALUES (
-        :tmdb_id, :imdb_id, :title, :release_date, :poster_path
-    )`,
+	INSERT INTO
+		movies
+	(
+		tmdb_id,
+		imdb_id,
+		title,
+		release_date,
+		poster_path
+	)
+	VALUES (
+		:tmdb_id, :imdb_id, :title, :release_date, :poster_path
+	)`,
 		sql.Named("tmdb_id", m.TmdbID),
 		sql.Named("imdb_id", m.ImdbID),
 		sql.Named("title", m.Title),
@@ -81,14 +81,14 @@ func (s Store) UpdateMovie(m screenjournal.Movie) error {
 	log.Printf("updating movie information for %s (id=%v)", m.Title, m.ID)
 
 	if _, err := s.ctx.Exec(`
-    UPDATE movies
-    SET
-        title = :title,
-        imdb_id = :imdb_id,
-        release_date = :release_date,
-        poster_path = :poster_path
-    WHERE
-        id = :id`,
+	UPDATE movies
+	SET
+		title = :title,
+		imdb_id = :imdb_id,
+		release_date = :release_date,
+		poster_path = :poster_path
+	WHERE
+		id = :id`,
 		sql.Named("title", m.Title),
 		sql.Named("imdb_id", m.ImdbID),
 		sql.Named("release_date", formatReleaseDate(m.ReleaseDate)),

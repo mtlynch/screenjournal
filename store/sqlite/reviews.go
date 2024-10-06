@@ -15,19 +15,19 @@ import (
 
 func (s Store) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, error) {
 	row := s.ctx.QueryRow(`
-    SELECT
-        id,
-        review_owner,
-        movie_id,
-        rating,
-        blurb,
-        watched_date,
-        created_time,
-        last_modified_time
-    FROM
-        reviews
-    WHERE
-        reviews.id = :id`, sql.Named("id", id))
+	SELECT
+		id,
+		review_owner,
+		movie_id,
+		rating,
+		blurb,
+		watched_date,
+		created_time,
+		last_modified_time
+	FROM
+		reviews
+	WHERE
+		reviews.id = :id`, sql.Named("id", id))
 
 	review, err := reviewFromRow(row)
 	if err != nil {
@@ -60,27 +60,27 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 	}
 
 	query := `
-    SELECT
-        id,
-        review_owner,
-        movie_id,
-        rating,
-        blurb,
-        watched_date,
-        created_time,
-        last_modified_time
-    FROM
-        reviews`
+	SELECT
+		id,
+		review_owner,
+		movie_id,
+		rating,
+		blurb,
+		watched_date,
+		created_time,
+		last_modified_time
+	FROM
+		reviews`
 	if len(queryArgs) > 0 {
 		query += fmt.Sprintf("\n\tWHERE\n\t\t%s", strings.Join(whereClauses, "\n\t\t"))
 	}
 	query += "\nORDER BY"
 	if params.Order != nil && *params.Order == screenjournal.ByRating {
-		query += "      rating DESC,\n"
+		query += "	  rating DESC,\n"
 	} else {
-		query += "      watched_date DESC,\n"
+		query += "	  watched_date DESC,\n"
 	}
-	query += "      created_time DESC\n"
+	query += "	  created_time DESC\n"
 
 	rows, err := s.ctx.Query(query, queryArgs...)
 	if err != nil {
@@ -114,21 +114,21 @@ func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, err
 	now := time.Now()
 
 	res, err := s.ctx.Exec(`
-    INSERT INTO
-        reviews
-    (
-        review_owner,
-        movie_id,
-        rating,
-        blurb,
-        watched_date,
-        created_time,
-        last_modified_time
-    )
-    VALUES (
-        :owner, :movie_id, :rating, :blurb, :watched_date, :created_time, :last_modified_time
-    )
-    `,
+	INSERT INTO
+		reviews
+	(
+		review_owner,
+		movie_id,
+		rating,
+		blurb,
+		watched_date,
+		created_time,
+		last_modified_time
+	)
+	VALUES (
+		:owner, :movie_id, :rating, :blurb, :watched_date, :created_time, :last_modified_time
+	)
+	`,
 		sql.Named("owner", r.Owner),
 		sql.Named("movie_id", r.Movie.ID),
 		sql.Named("rating", r.Rating),
@@ -158,14 +158,14 @@ func (s Store) UpdateReview(r screenjournal.Review) error {
 	now := time.Now()
 
 	if _, err := s.ctx.Exec(`
-    UPDATE reviews
-    SET
-        rating = :rating,
-        blurb = :blurb,
-        watched_date = :watched_date,
-        last_modified_time = :last_modified_time
-    WHERE
-        id = :id`,
+	UPDATE reviews
+	SET
+		rating = :rating,
+		blurb = :blurb,
+		watched_date = :watched_date,
+		last_modified_time = :last_modified_time
+	WHERE
+		id = :id`,
 		sql.Named("rating", r.Rating),
 		sql.Named("blurb", r.Blurb),
 		sql.Named("watched_date", formatWatchDate(r.Watched)),

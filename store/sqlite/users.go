@@ -23,13 +23,13 @@ func (s Store) CountUsers() (uint, error) {
 
 func (s Store) ReadUsers() ([]screenjournal.User, error) {
 	rows, err := s.ctx.Query(`
-    SELECT
-        username,
-        is_admin,
-        email,
-        password_hash
-    FROM
-        users`)
+	SELECT
+		username,
+		is_admin,
+		email,
+		password_hash
+	FROM
+		users`)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return []screenjournal.User{}, nil
@@ -50,15 +50,15 @@ func (s Store) ReadUsers() ([]screenjournal.User, error) {
 
 func (s Store) ReadUser(username screenjournal.Username) (screenjournal.User, error) {
 	row := s.ctx.QueryRow(`
-    SELECT
-        username,
-        is_admin,
-        email,
-        password_hash
-    FROM
-        users
-    WHERE
-        username = :username`, sql.Named("username", username.String()))
+	SELECT
+		username,
+		is_admin,
+		email,
+		password_hash
+	FROM
+		users
+	WHERE
+		username = :username`, sql.Named("username", username.String()))
 	user, err := userFromRow(row)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -97,20 +97,20 @@ func (s Store) InsertUser(user screenjournal.User) error {
 	}
 
 	if _, err := tx.Exec(`
-    INSERT INTO
-        users
-    (
-        username,
-        is_admin,
-        email,
-        password_hash,
-        created_time,
-        last_modified_time
-    )
-    VALUES (
-        :username, :is_admin, :email, :password_hash, :created_time, :last_modified_time
-    )
-    `,
+	INSERT INTO
+		users
+	(
+		username,
+		is_admin,
+		email,
+		password_hash,
+		created_time,
+		last_modified_time
+	)
+	VALUES (
+		:username, :is_admin, :email, :password_hash, :created_time, :last_modified_time
+	)
+	`,
 		sql.Named("username", user.Username.String()),
 		sql.Named("is_admin", user.IsAdmin),
 		sql.Named("email", user.Email.String()),
@@ -132,18 +132,18 @@ func (s Store) InsertUser(user screenjournal.User) error {
 	}
 
 	if _, err := tx.Exec(`
-    INSERT INTO
-        notification_preferences
-    (
-        username,
-        new_reviews,
-        all_new_comments,
-        comments_on_my_reviews
-    )
-    VALUES (
-        :username, 1, 1, 1
-    )
-    `,
+	INSERT INTO
+		notification_preferences
+	(
+		username,
+		new_reviews,
+		all_new_comments,
+		comments_on_my_reviews
+	)
+	VALUES (
+		:username, 1, 1, 1
+	)
+	`,
 		sql.Named("username", user.Username.String())); err != nil {
 		return err
 	}
@@ -155,11 +155,11 @@ func (s Store) UpdateUserPassword(username screenjournal.Username, newPasswordHa
 	log.Printf("updating password user %s", username.String())
 
 	if _, err := s.ctx.Exec(`
-    UPDATE users
-    SET
-        password_hash = :password_hash
-    WHERE
-        username = :username`,
+	UPDATE users
+	SET
+		password_hash = :password_hash
+	WHERE
+		username = :username`,
 		sql.Named("password_hash", encodePasswordHash(newPasswordHash.Bytes())),
 		sql.Named("username", username.String())); err != nil {
 		return err

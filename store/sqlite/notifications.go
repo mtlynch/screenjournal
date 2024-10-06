@@ -9,14 +9,14 @@ import (
 
 func (s Store) ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error) {
 	rows, err := s.ctx.Query(`
-    SELECT
-        users.username AS username,
-        users.email AS email
-    FROM
-        users, notification_preferences
-    WHERE
-        users.username = notification_preferences.username AND
-        notification_preferences.new_reviews = 1`)
+	SELECT
+		users.username AS username,
+		users.email AS email
+	FROM
+		users, notification_preferences
+	WHERE
+		users.username = notification_preferences.username AND
+		notification_preferences.new_reviews = 1`)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return []screenjournal.EmailSubscriber{}, nil
@@ -37,14 +37,14 @@ func (s Store) ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error) 
 
 func (s Store) ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error) {
 	rows, err := s.ctx.Query(`
-    SELECT
-        users.username AS username,
-        users.email AS email
-    FROM
-        users, notification_preferences
-    WHERE
-        users.username = notification_preferences.username AND
-        notification_preferences.all_new_comments = 1`)
+	SELECT
+		users.username AS username,
+		users.email AS email
+	FROM
+		users, notification_preferences
+	WHERE
+		users.username = notification_preferences.username AND
+		notification_preferences.all_new_comments = 1`)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return []screenjournal.EmailSubscriber{}, nil
@@ -67,13 +67,13 @@ func (s Store) ReadNotificationPreferences(username screenjournal.Username) (scr
 	var newReviews bool
 	var allNewComments bool
 	err := s.ctx.QueryRow(`
-    SELECT
-        new_reviews,
-        all_new_comments
-    FROM
-        notification_preferences
-    WHERE
-        username = :username`, sql.Named("username", username.String())).Scan(&newReviews, &allNewComments)
+	SELECT
+		new_reviews,
+		all_new_comments
+	FROM
+		notification_preferences
+	WHERE
+		username = :username`, sql.Named("username", username.String())).Scan(&newReviews, &allNewComments)
 	if err != nil {
 		return screenjournal.NotificationPreferences{}, err
 	}
@@ -87,12 +87,12 @@ func (s Store) ReadNotificationPreferences(username screenjournal.Username) (scr
 func (s Store) UpdateNotificationPreferences(username screenjournal.Username, prefs screenjournal.NotificationPreferences) error {
 	log.Printf("updating notifications preferences for %s: newReviews=%v, allNewComments=%v", username, prefs.NewReviews, prefs.AllNewComments)
 	if _, err := s.ctx.Exec(`
-    UPDATE notification_preferences
-    SET
-        new_reviews = :new_reviews,
-        all_new_comments = :all_new_comments
-    WHERE
-        username = :username`,
+	UPDATE notification_preferences
+	SET
+		new_reviews = :new_reviews,
+		all_new_comments = :all_new_comments
+	WHERE
+		username = :username`,
 		sql.Named("new_reviews", prefs.NewReviews),
 		sql.Named("all_new_comments", prefs.AllNewComments),
 		sql.Named("username", username)); err != nil {

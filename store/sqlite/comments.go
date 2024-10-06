@@ -73,19 +73,19 @@ func (s Store) InsertComment(rc screenjournal.ReviewComment) (screenjournal.Comm
 	now := time.Now()
 
 	res, err := s.ctx.Exec(`
-    INSERT INTO
-        review_comments
-    (
-        review_id,
-        comment_owner,
-        comment_text,
-        created_time,
-        last_modified_time
-    )
-    VALUES (
-        :review_id, :comment_owner, :comment_text, :created_time, :last_modified_time
-    )
-    `,
+	INSERT INTO
+		review_comments
+	(
+		review_id,
+		comment_owner,
+		comment_text,
+		created_time,
+		last_modified_time
+	)
+	VALUES (
+		:review_id, :comment_owner, :comment_text, :created_time, :last_modified_time
+	)
+	`,
 		sql.Named("review_id", rc.Review.ID),
 		sql.Named("comment_owner", rc.Owner),
 		sql.Named("comment_text", rc.CommentText),
@@ -107,13 +107,13 @@ func (s Store) UpdateComment(rc screenjournal.ReviewComment) error {
 	log.Printf("updating comment %v from %v", rc.ID, rc.Owner)
 
 	_, err := s.ctx.Exec(`
-        UPDATE review_comments
-        SET
-            comment_text = :comment_text,
-            last_modified_time = :last_modified_time
-        WHERE
-            id = :id;
-        `,
+		UPDATE review_comments
+		SET
+			comment_text = :comment_text,
+			last_modified_time = :last_modified_time
+		WHERE
+			id = :id;
+		`,
 		sql.Named("comment_text", rc.CommentText.String()),
 		sql.Named("last_modified_time", formatTime(time.Now())),
 		sql.Named("id", rc.ID.UInt64()))

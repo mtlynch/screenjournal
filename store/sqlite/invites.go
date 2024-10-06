@@ -14,17 +14,17 @@ func (s Store) InsertSignupInvitation(invite screenjournal.SignupInvitation) err
 	now := time.Now()
 
 	if _, err := s.ctx.Exec(`
-    INSERT INTO
-        invites
-    (
-        invitee,
-        code,
-        created_time
-    )
-    VALUES (
-        :invitee, :code, :created_time
-    )
-    `,
+	INSERT INTO
+		invites
+	(
+		invitee,
+		code,
+		created_time
+	)
+	VALUES (
+		:invitee, :code, :created_time
+	)
+	`,
 		sql.Named("invitee", invite.Invitee),
 		sql.Named("code", invite.InviteCode),
 		sql.Named("created_time", formatTime(now))); err != nil {
@@ -37,12 +37,12 @@ func (s Store) InsertSignupInvitation(invite screenjournal.SignupInvitation) err
 func (s Store) ReadSignupInvitation(code screenjournal.InviteCode) (screenjournal.SignupInvitation, error) {
 	var invitee string
 	if err := s.ctx.QueryRow(`
-        SELECT
-            invitee
-        FROM
-            invites
-        WHERE
-            code = :code`, sql.Named("code", code)).Scan(&invitee); err != nil {
+		SELECT
+			invitee
+		FROM
+			invites
+		WHERE
+			code = :code`, sql.Named("code", code)).Scan(&invitee); err != nil {
 		return screenjournal.SignupInvitation{}, err
 	}
 
@@ -54,13 +54,13 @@ func (s Store) ReadSignupInvitation(code screenjournal.InviteCode) (screenjourna
 
 func (s Store) ReadSignupInvitations() ([]screenjournal.SignupInvitation, error) {
 	rows, err := s.ctx.Query(`
-        SELECT
-            invitee,
-            code
-        FROM
-            invites
-        ORDER BY
-            created_time DESC`)
+		SELECT
+			invitee,
+			code
+		FROM
+			invites
+		ORDER BY
+			created_time DESC`)
 	if err != nil {
 		return []screenjournal.SignupInvitation{}, err
 	}

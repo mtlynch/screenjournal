@@ -51,18 +51,18 @@ func (s Store) ReadComments(rid screenjournal.ReviewID) ([]screenjournal.ReviewC
 
 func (s Store) ReadComment(cid screenjournal.CommentID) (screenjournal.ReviewComment, error) {
 	row := s.ctx.QueryRow(`
-		SELECT
-			id,
-			review_id,
-			comment_owner,
-			comment_text,
-			created_time,
-			last_modified_time
-		FROM
-			review_comments
-		WHERE
-			id = :id
-		`, sql.Named("id", cid))
+	SELECT
+		id,
+		review_id,
+		comment_owner,
+		comment_text,
+		created_time,
+		last_modified_time
+	FROM
+		review_comments
+	WHERE
+		id = :id
+	`, sql.Named("id", cid))
 
 	return reviewCommentFromRow(row)
 }

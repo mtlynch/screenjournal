@@ -16,20 +16,20 @@ func (s Store) ReadComments(rid screenjournal.ReviewID) ([]screenjournal.ReviewC
 	}
 
 	rows, err := s.ctx.Query(`
-	SELECT
-		id,
-		review_id,
-		comment_owner,
-		comment_text,
-		created_time,
-		last_modified_time
-	FROM
-		review_comments
-	WHERE
-		review_id = ?
-	ORDER BY
-		created_time ASC
-	`, rid)
+    SELECT
+        id,
+        review_id,
+        comment_owner,
+        comment_text,
+        created_time,
+        last_modified_time
+    FROM
+        review_comments
+    WHERE
+        review_id = :review_id
+    ORDER BY
+        created_time ASC
+    `, sql.Named("review_id", rid))
 	if err != nil {
 		return []screenjournal.ReviewComment{}, err
 	}
@@ -51,18 +51,18 @@ func (s Store) ReadComments(rid screenjournal.ReviewID) ([]screenjournal.ReviewC
 
 func (s Store) ReadComment(cid screenjournal.CommentID) (screenjournal.ReviewComment, error) {
 	row := s.ctx.QueryRow(`
-	SELECT
-		id,
-		review_id,
-		comment_owner,
-		comment_text,
-		created_time,
-		last_modified_time
-	FROM
-		review_comments
-	WHERE
-		id = ?
-	`, cid)
+    SELECT
+        id,
+        review_id,
+        comment_owner,
+        comment_text,
+        created_time,
+        last_modified_time
+    FROM
+        review_comments
+    WHERE
+        id = :id
+    `, sql.Named("id", cid))
 
 	return reviewCommentFromRow(row)
 }
@@ -73,24 +73,24 @@ func (s Store) InsertComment(rc screenjournal.ReviewComment) (screenjournal.Comm
 	now := time.Now()
 
 	res, err := s.ctx.Exec(`
-	INSERT INTO
-		review_comments
-	(
-		review_id,
-		comment_owner,
-		comment_text,
-		created_time,
-		last_modified_time
-	)
-	VALUES (
-		?, ?, ?, ?, ?
-	)
-	`,
-		rc.Review.ID,
-		rc.Owner,
-		rc.CommentText,
-		formatTime(now),
-		formatTime(now))
+    INSERT INTO
+        review_comments
+    (
+        review_id,
+        comment_owner,
+        comment_text,
+        created_time,
+        last_modified_time
+    )
+    VALUES (
+        :review_id, :comment_owner, :comment_text, :created_time, :last_modified_time
+    )
+    `,
+		sql.Named("review_id", rc.Review.ID),
+		sql.Named("comment_owner", rc.Owner),
+		sql.Named("comment_text", rc.CommentText),
+		sql.Named("created_time", formatTime(now)),
+		sql.Named("last_modified_time", formatTime(now)))
 	if err != nil {
 		return screenjournal.CommentID(0), err
 	}
@@ -107,16 +107,16 @@ func (s Store) UpdateComment(rc screenjournal.ReviewComment) error {
 	log.Printf("updating comment %v from %v", rc.ID, rc.Owner)
 
 	_, err := s.ctx.Exec(`
-		UPDATE review_comments
-		SET
-			comment_text = ?,
-			last_modified_time = ?
-		WHERE
-			id = ?;
-		`,
-		rc.CommentText.String(),
-		formatTime(time.Now()),
-		rc.ID.UInt64())
+        UPDATE review_comments
+        SET
+            comment_text = :comment_text,
+            last_modified_time = :last_modified_time
+        WHERE
+            id = :id;
+        `,
+		sql.Named("comment_text", rc.CommentText.String()),
+		sql.Named("last_modified_time", formatTime(time.Now())),
+		sql.Named("id", rc.ID.UInt64()))
 	if err != nil {
 		return err
 	}
@@ -126,7 +126,7 @@ func (s Store) UpdateComment(rc screenjournal.ReviewComment) error {
 
 func (s Store) DeleteComment(cid screenjournal.CommentID) error {
 	log.Printf("deleting comment ID=%v", cid)
-	_, err := s.ctx.Exec(`DELETE FROM review_comments WHERE id = ?`, cid.String())
+	_, err := s.ctx.Exec(`DELETE FROM review_comments WHERE id = :id`, sql.Named("id", cid.String()))
 	if err != nil {
 		return err
 	}

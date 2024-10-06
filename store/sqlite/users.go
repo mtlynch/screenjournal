@@ -58,7 +58,7 @@ func (s Store) ReadUser(username screenjournal.Username) (screenjournal.User, er
 	FROM
 		users
 	WHERE
-		username = ?`, username.String())
+		username = :username`, sql.Named("username", username.String()))
 	user, err := userFromRow(row)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -108,15 +108,15 @@ func (s Store) InsertUser(user screenjournal.User) error {
 		last_modified_time
 	)
 	VALUES (
-		?, ?, ?, ?, ?, ?
+		:username, :is_admin, :email, :password_hash, :created_time, :last_modified_time
 	)
 	`,
-		user.Username.String(),
-		user.IsAdmin,
-		user.Email.String(),
-		encodePasswordHash(user.PasswordHash),
-		formatTime(now),
-		formatTime(now)); err != nil {
+		sql.Named("username", user.Username.String()),
+		sql.Named("is_admin", user.IsAdmin),
+		sql.Named("email", user.Email.String()),
+		sql.Named("password_hash", encodePasswordHash(user.PasswordHash)),
+		sql.Named("created_time", formatTime(now)),
+		sql.Named("last_modified_time", formatTime(now))); err != nil {
 		var sqliteErr sqlite3.Error
 		if errors.As(err, &sqliteErr) {
 			if errors.Is(sqliteErr.Code, sqlite3.ErrConstraint) {
@@ -141,10 +141,10 @@ func (s Store) InsertUser(user screenjournal.User) error {
 		comments_on_my_reviews
 	)
 	VALUES (
-		?, 1, 1, 1
+		:username, 1, 1, 1
 	)
 	`,
-		user.Username.String()); err != nil {
+		sql.Named("username", user.Username.String())); err != nil {
 		return err
 	}
 
@@ -157,9 +157,11 @@ func (s Store) UpdateUserPassword(username screenjournal.Username, newPasswordHa
 	if _, err := s.ctx.Exec(`
 	UPDATE users
 	SET
-		password_hash = ?
+		password_hash = :password_hash
 	WHERE
-		username = ?`, encodePasswordHash(newPasswordHash.Bytes()), username.String()); err != nil {
+		username = :username`,
+		sql.Named("password_hash", encodePasswordHash(newPasswordHash.Bytes())),
+		sql.Named("username", username.String())); err != nil {
 		return err
 	}
 

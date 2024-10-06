@@ -27,7 +27,7 @@ func (s Store) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, erro
 	FROM
 		reviews
 	WHERE
-		reviews.id = ?`, id)
+		reviews.id = :id`, sql.Named("id", id))
 
 	review, err := reviewFromRow(row)
 	if err != nil {
@@ -51,12 +51,12 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 	queryArgs := []any{}
 
 	if params.Filters.Username != nil {
-		whereClauses = append(whereClauses, "review_owner = ?")
-		queryArgs = append(queryArgs, params.Filters.Username.String())
+		whereClauses = append(whereClauses, "review_owner = :username")
+		queryArgs = append(queryArgs, sql.Named("username", params.Filters.Username.String()))
 	}
 	if params.Filters.MovieID != nil {
-		whereClauses = append(whereClauses, "movie_id = ?")
-		queryArgs = append(queryArgs, params.Filters.MovieID.Int64())
+		whereClauses = append(whereClauses, "movie_id = :movie_id")
+		queryArgs = append(queryArgs, sql.Named("movie_id", params.Filters.MovieID.Int64()))
 	}
 
 	query := `
@@ -126,16 +126,16 @@ func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, err
 		last_modified_time
 	)
 	VALUES (
-		?, ?, ?, ?, ?, ?, ?
+		:owner, :movie_id, :rating, :blurb, :watched_date, :created_time, :last_modified_time
 	)
 	`,
-		r.Owner,
-		r.Movie.ID,
-		r.Rating,
-		r.Blurb,
-		formatWatchDate(r.Watched),
-		formatTime(now),
-		formatTime(now))
+		sql.Named("owner", r.Owner),
+		sql.Named("movie_id", r.Movie.ID),
+		sql.Named("rating", r.Rating),
+		sql.Named("blurb", r.Blurb),
+		sql.Named("watched_date", formatWatchDate(r.Watched)),
+		sql.Named("created_time", formatTime(now)),
+		sql.Named("last_modified_time", formatTime(now)))
 	if err != nil {
 		return screenjournal.ReviewID(0), err
 	}
@@ -160,17 +160,17 @@ func (s Store) UpdateReview(r screenjournal.Review) error {
 	if _, err := s.ctx.Exec(`
 	UPDATE reviews
 	SET
-		rating = ?,
-		blurb = ?,
-		watched_date = ?,
-		last_modified_time = ?
+		rating = :rating,
+		blurb = :blurb,
+		watched_date = :watched_date,
+		last_modified_time = :last_modified_time
 	WHERE
-		id = ?`,
-		r.Rating,
-		r.Blurb,
-		formatWatchDate(r.Watched),
-		formatTime(now),
-		r.ID.UInt64()); err != nil {
+		id = :id`,
+		sql.Named("rating", r.Rating),
+		sql.Named("blurb", r.Blurb),
+		sql.Named("watched_date", formatWatchDate(r.Watched)),
+		sql.Named("last_modified_time", formatTime(now)),
+		sql.Named("id", r.ID.UInt64())); err != nil {
 		return err
 	}
 
@@ -185,11 +185,11 @@ func (s Store) DeleteReview(id screenjournal.ReviewID) error {
 		return err
 	}
 
-	if _, err := tx.Exec(`DELETE FROM reviews WHERE id = ?`, id.UInt64()); err != nil {
+	if _, err := tx.Exec(`DELETE FROM reviews WHERE id = :id`, sql.Named("id", id.UInt64())); err != nil {
 		return err
 	}
 
-	if _, err := tx.Exec(`DELETE FROM review_comments WHERE review_id = ?`, id.UInt64()); err != nil {
+	if _, err := tx.Exec(`DELETE FROM review_comments WHERE review_id = :review_id`, sql.Named("review_id", id.UInt64())); err != nil {
 		return err
 	}
 

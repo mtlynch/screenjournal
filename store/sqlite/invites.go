@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"database/sql"
 	"log"
 	"time"
 
@@ -21,10 +22,12 @@ func (s Store) InsertSignupInvitation(invite screenjournal.SignupInvitation) err
 		created_time
 	)
 	VALUES (
-		?, ?, ?
+		:invitee, :code, :created_time
 	)
 	`,
-		invite.Invitee, invite.InviteCode, formatTime(now)); err != nil {
+		sql.Named("invitee", invite.Invitee),
+		sql.Named("code", invite.InviteCode),
+		sql.Named("created_time", formatTime(now))); err != nil {
 		return err
 	}
 
@@ -39,7 +42,7 @@ func (s Store) ReadSignupInvitation(code screenjournal.InviteCode) (screenjourna
 		FROM
 			invites
 		WHERE
-			code = ?`, code).Scan(&invitee); err != nil {
+			code = :code`, sql.Named("code", code)).Scan(&invitee); err != nil {
 		return screenjournal.SignupInvitation{}, err
 	}
 
@@ -81,7 +84,7 @@ func (s Store) ReadSignupInvitations() ([]screenjournal.SignupInvitation, error)
 
 func (s Store) DeleteSignupInvitation(code screenjournal.InviteCode) error {
 	log.Printf("deleting signup code: %s", code)
-	_, err := s.ctx.Exec(`DELETE FROM invites WHERE code = ?`, code.String())
+	_, err := s.ctx.Exec(`DELETE FROM invites WHERE code = :code`, sql.Named("code", code.String()))
 	if err != nil {
 		return err
 	}

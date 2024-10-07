@@ -7,7 +7,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-func TestMovieIDFromSTring(t *testing.T) {
+func TestMovieIDFromString(t *testing.T) {
 	for _, tt := range []struct {
 		description string
 		in          string

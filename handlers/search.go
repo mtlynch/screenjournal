@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -13,7 +12,7 @@ import (
 
 type (
 	searchGetRequest struct {
-		Query     string // TODO: Replace with better type
+		Query     screenjournal.SearchQuery
 		MediaType screenjournal.MediaType
 	}
 
@@ -67,9 +66,9 @@ func (s Server) searchGet() http.HandlerFunc {
 }
 
 func parseSearchGetRequest(r *http.Request) (searchGetRequest, error) {
-	query := r.URL.Query().Get("query")
-	if len(query) < 2 {
-		return searchGetRequest{}, errors.New("invalid search query")
+	query, err := parse.SearchQuery(r.URL.Query().Get("query"))
+	if err != nil {
+		return searchGetRequest{}, err
 	}
 
 	mediaType, err := parse.MediaType(r.URL.Query().Get("media-type"))

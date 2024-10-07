@@ -104,11 +104,7 @@ test("adds a new rating and fills in only required fields", async ({
   await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.getByPlaceholder("Search").pressSequentially("slow lear");
-  const matchingTitle = await page.locator(
-    "#search-results-list li:first-child span"
-  );
-  await expect(matchingTitle).toHaveText("Slow Learners (2015)");
-  await matchingTitle.click();
+  await page.getByText("Slow Learners (2015)").click();
 
   await expect(page).toHaveURL("/reviews/new?tmdbId=333287");
   await expect(
@@ -156,11 +152,7 @@ test("adds a new rating that's too long to display in a card", async ({
   await page
     .getByPlaceholder("Search")
     .pressSequentially("Weird: The Al Yankovic Story");
-  const matchingTitle = await page.locator(
-    "#search-results-list li:first-child span"
-  );
-  await expect(matchingTitle).toHaveText("Weird: The Al Yankovic Story (2022)");
-  await matchingTitle.click();
+  await page.getByText("Weird: The Al Yankovic Story (2022)").click();
 
   await expect(page).toHaveURL("/reviews/new?tmdbId=928344");
   await expect(
@@ -250,13 +242,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.getByPlaceholder("Search").pressSequentially("eternal sunshine");
-  const matchingTitle = await page.locator(
-    "#search-results-list li:first-child span"
-  );
-  await expect(matchingTitle).toHaveText(
-    "Eternal Sunshine of the Spotless Mind (2004)"
-  );
-  await matchingTitle.click();
+  await page.getByText("Eternal Sunshine of the Spotless Mind (2004)").click();
 
   await expect(page).toHaveURL("/reviews/new?tmdbId=38");
   await expect(
@@ -306,13 +292,7 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.getByPlaceholder("Search").pressSequentially("eternal sunshine");
-  const matchingTitle = await page.locator(
-    "#search-results-list li:first-child span"
-  );
-  await expect(matchingTitle).toHaveText(
-    "Eternal Sunshine of the Spotless Mind (2004)"
-  );
-  await matchingTitle.click();
+  await page.getByText("Eternal Sunshine of the Spotless Mind (2004)").click();
 
   await expect(page).toHaveURL("/reviews/new?tmdbId=38");
   await expect(
@@ -349,11 +329,7 @@ test("adds a new rating and edits the details", async ({ page }) => {
   await page
     .getByPlaceholder("Search")
     .pressSequentially("something about mary");
-  const matchingTitle = await page.locator(
-    "#search-results-list li:first-child span"
-  );
-  await expect(matchingTitle).toHaveText("There's Something About Mary (1998)");
-  await matchingTitle.click();
+  await page.getByText("There's Something About Mary (1998)").click();
 
   await expect(page).toHaveURL("/reviews/new?tmdbId=544");
   await expect(
@@ -431,11 +407,7 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.getByPlaceholder("Search").pressSequentially("the english pati");
-  const matchingTitle = await page.locator(
-    "#search-results-list li:first-child span"
-  );
-  await expect(matchingTitle).toHaveText("The English Patient (1996)");
-  await matchingTitle.click();
+  await page.getByText("The English Patient (1996)").click();
 
   await expect(page).toHaveURL("/reviews/new?tmdbId=409");
   await expect(
@@ -493,10 +465,7 @@ test("editing another user's review fails", async ({ page, browser }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.getByPlaceholder("Search").pressSequentially("the english pati");
-  const matchingTitle = await page.locator(
-    "#search-results-list li:first-child span"
-  );
-  await matchingTitle.click();
+  await page.getByText("The English Patient (1996)").click();
 
   await expect(page).toHaveURL("/reviews/new?tmdbId=409");
   await expect(

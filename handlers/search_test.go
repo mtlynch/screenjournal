@@ -48,7 +48,7 @@ func TestSearchGet(t *testing.T) {
 	}{
 		{
 			description:  "matches search results",
-			url:          "/api/search?query=waterbo",
+			url:          "/api/search?media-type=movie&query=waterbo",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -80,7 +80,7 @@ func TestSearchGet(t *testing.T) {
 		},
 		{
 			description:  "returns empty result on no matches",
-			url:          "/api/search?query=matchesnothing555",
+			url:          "/api/search?media-type=movie&query=matchesnothing555",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -99,7 +99,7 @@ func TestSearchGet(t *testing.T) {
 		},
 		{
 			description:  "returns empty string when query is too short",
-			url:          "/api/search?query=a",
+			url:          "/api/search?media-type=movie&query=a",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -114,7 +114,7 @@ func TestSearchGet(t *testing.T) {
 		},
 		{
 			description:  "prevents an unauthenticated user from searching",
-			url:          "/api/search?query=waterbo",
+			url:          "/api/search?media-type=movie&query=waterbo",
 			sessionToken: "",
 			sessions: []mockSessionEntry{
 				{

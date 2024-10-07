@@ -29,11 +29,12 @@ func (s Server) searchGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := parseSearchGetRequest(r)
 		if err != nil {
+			log.Printf("failed to parse search query: %v", err)
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
 
-		res, err := s.metadataFinder.Search(req.Query, req.MediaType)
+		res, err := s.metadataFinder.Search(req.Query)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to query metadata: %v", err), http.StatusInternalServerError)
 		}

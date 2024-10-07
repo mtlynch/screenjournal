@@ -431,10 +431,10 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.getByPlaceholder("Search").pressSequentially("the english pati");
-  const matchingTitle = await page.locator(
-    "#search-results-list li:first-child span"
-  );
-  await expect(matchingTitle).toHaveText("The English Patient (1996)");
+  const matchingTitle = await page
+    .getByText("The English Patient (1996)")
+    .filter({ has: page.locator("#search-results-list li:first-child span") });
+  await matchingTitle.waitFor({ state: "visible" });
   await matchingTitle.click();
 
   await expect(page).toHaveURL("/reviews/new?tmdbId=409");

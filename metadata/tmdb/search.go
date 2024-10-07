@@ -5,10 +5,11 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-func (f Finder) Search(query string) ([]metadata.MovieInfo, error) {
-	tmdbResults, err := f.tmdbAPI.SearchMovie(query, map[string]string{
+func (f Finder) Search(query screenjournal.SearchQuery) ([]metadata.MovieInfo, error) {
+	tmdbResults, err := f.tmdbAPI.SearchMovie(query.String(), map[string]string{
 		"include_adult": "false",
 	})
 	if err != nil {

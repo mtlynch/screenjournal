@@ -5,24 +5,35 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+
+	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-type searchMatch struct {
-	TmdbID      int32
-	Title       string
-	ReleaseYear int
-	PosterURL   string
-}
+type (
+	searchGetRequest struct {
+		Query screenjournal.SearchQuery
+	}
+
+	searchMatch struct {
+		TmdbID      int32
+		Title       string
+		ReleaseYear int
+		PosterURL   string
+	}
+)
 
 func (s Server) searchGet() http.HandlerFunc {
 	t := template.Must(template.ParseFS(templatesFS, "templates/fragments/search-results.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
-		query := r.URL.Query().Get("query")
-		if len(query) < 2 {
+		req, err := parseSearchGetRequest(r)
+		if err != nil {
+			log.Printf("failed to parse search query request: %v", err)
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
-		res, err := s.metadataFinder.Search(query)
+
+		res, err := s.metadataFinder.Search(req.Query)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to query metadata: %v", err), http.StatusInternalServerError)
 		}
@@ -51,4 +62,15 @@ func (s Server) searchGet() http.HandlerFunc {
 			return
 		}
 	}
+}
+
+func parseSearchGetRequest(r *http.Request) (searchGetRequest, error) {
+	query, err := parse.SearchQuery(r.URL.Query().Get("query"))
+	if err != nil {
+		return searchGetRequest{}, err
+	}
+
+	return searchGetRequest{
+		Query: query,
+	}, nil
 }

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mtlynch/screenjournal/v2/parse"
+	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 

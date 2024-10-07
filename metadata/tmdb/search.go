@@ -52,3 +52,48 @@ func (f Finder) Search(query screenjournal.SearchQuery) ([]metadata.MovieInfo, e
 
 	return matches, nil
 }
+
+func (f Finder) SearchTvShows(query screenjournal.SearchQuery) ([]metadata.TvShowInfo, error) {
+	tmdbResults, err := f.tmdbAPI.SearchTv(query.String(), map[string]string{
+		"include_adult": "false",
+	})
+	if err != nil {
+		return []metadata.TvShowInfo{}, err
+	}
+
+	matches := []metadata.TvShowInfo{}
+	for _, match := range tmdbResults.Results {
+		info := metadata.TvShowInfo{}
+
+		info.TmdbID, err = parse.TmdbID(match.ID)
+		if err != nil {
+			return []metadata.TvShowInfo{}, err
+		}
+
+		info.Title, err = parse.MediaTitle(match.Name)
+		if err != nil {
+			return []metadata.TvShowInfo{}, err
+		}
+
+		if match.FirstAirDate == "" {
+			continue
+		}
+		info.ReleaseDate, err = ParseReleaseDate(match.FirstAirDate)
+		if err != nil {
+			return []metadata.TvShowInfo{}, err
+		}
+
+		if match.PosterPath == "" {
+			continue
+		}
+		pp, err := url.Parse(match.PosterPath)
+		if err != nil {
+			return []metadata.TvShowInfo{}, err
+		}
+		info.PosterPath = *pp
+
+		matches = append(matches, info)
+	}
+
+	return matches, nil
+}

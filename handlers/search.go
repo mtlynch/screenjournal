@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
@@ -71,14 +72,9 @@ func parseSearchGetRequest(r *http.Request) (searchGetRequest, error) {
 		return searchGetRequest{}, errors.New("invalid search query")
 	}
 
-	mt := r.URL.Query().Get("media-type")
-	var mediaType screenjournal.MediaType
-	if mt == screenjournal.MediaTypeMovie.String() {
-		mediaType = screenjournal.MediaTypeMovie
-	} else if mt == screenjournal.MediaTypeTvShow.String() {
-		mediaType = screenjournal.MediaTypeTvShow
-	} else {
-		return searchGetRequest{}, errors.New("invalid media type")
+	mediaType, err := parse.MediaType(r.URL.Query().Get("media-type"))
+	if err != nil {
+		return searchGetRequest{}, err
 	}
 
 	return searchGetRequest{

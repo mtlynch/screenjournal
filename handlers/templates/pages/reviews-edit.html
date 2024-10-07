@@ -78,7 +78,11 @@
 {{ end }}
 
 {{ define "find-title" }}
-  <form>
+  <form
+    hx-get="/api/search"
+    hx-trigger="submit, search from:#media-title, keyup changed from:#media-title, change from:input[name='media-type']"
+    hx-target="#search-results-list"
+  >
     <label for="media-title" class="form-label">Title</label>
     <input
       id="media-title"
@@ -89,10 +93,23 @@
       aria-label="Search"
       autofocus="autofocus"
       required
-      hx-get="/api/search"
-      hx-trigger="search, keyup delay:200ms changed"
-      hx-target="#search-results-list"
     />
+    <fieldset>
+      <div>
+        <input
+          type="radio"
+          id="movies"
+          name="media-type"
+          value="movies"
+          checked
+        />
+        <label for="movies">Movies</label>
+      </div>
+      <div>
+        <input type="radio" id="tv-shows" name="media-type" value="tv-shows" />
+        <label for="tv-shows">TV Shows</label>
+      </div>
+    </fieldset>
 
     <div class="alert alert-danger" role="alert" hidden>Placeholder error</div>
   </form>

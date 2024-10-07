@@ -1,28 +1,39 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-type searchMatch struct {
-	TmdbID      int32
-	Title       string
-	ReleaseYear int
-	PosterURL   string
-}
+type (
+	searchGetRequest struct {
+		Query     string // TODO: Replace with better type
+		MediaType screenjournal.MediaType
+	}
+
+	searchMatch struct {
+		TmdbID      int32
+		Title       string
+		ReleaseYear int
+		PosterURL   string
+	}
+)
 
 func (s Server) searchGet() http.HandlerFunc {
 	t := template.Must(template.ParseFS(templatesFS, "templates/fragments/search-results.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
-		query := r.URL.Query().Get("query")
-		if len(query) < 2 {
+		req, err := parseSearchGetRequest(r)
+		if err != nil {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
-		res, err := s.metadataFinder.Search(query)
+
+		res, err := s.metadataFinder.Search(req.Query, req.MediaType)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to query metadata: %v", err), http.StatusInternalServerError)
 		}
@@ -51,4 +62,26 @@ func (s Server) searchGet() http.HandlerFunc {
 			return
 		}
 	}
+}
+
+func parseSearchGetRequest(r *http.Request) (searchGetRequest, error) {
+	query := r.URL.Query().Get("query")
+	if len(query) < 2 {
+		return searchGetRequest{}, errors.New("invalid search query")
+	}
+
+	mt := r.URL.Query().Get("media-type")
+	var mediaType screenjournal.MediaType
+	if mt == screenjournal.MediaTypeMovie.String() {
+		mediaType = screenjournal.MediaTypeMovie
+	} else if mt == screenjournal.MediaTypeTvShow.String() {
+		mediaType = screenjournal.MediaTypeTvShow
+	} else {
+		return searchGetRequest{}, errors.New("invalid media type")
+	}
+
+	return searchGetRequest{
+		Query:     query,
+		MediaType: screenjournal.MediaType(mediaType),
+	}, nil
 }

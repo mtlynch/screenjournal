@@ -21,7 +21,7 @@ func (s Store) ReadMovie(id screenjournal.MovieID) (screenjournal.Movie, error) 
 	FROM
 		movies
 	WHERE
-		id = ?`, id.Int64())
+		id = :id`, sql.Named("id", id.Int64()))
 
 	return movieFromRow(row)
 }
@@ -38,7 +38,7 @@ func (s Store) ReadMovieByTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Mov
 	FROM
 		movies
 	WHERE
-		tmdb_id = ?`, tmdbID.Int32())
+		tmdb_id = :tmdb_id`, sql.Named("tmdb_id", tmdbID.Int32()))
 
 	return movieFromRow(row)
 }
@@ -57,13 +57,13 @@ func (s Store) InsertMovie(m screenjournal.Movie) (screenjournal.MovieID, error)
 		poster_path
 	)
 	VALUES (
-		?, ?, ?, ?, ?
+		:tmdb_id, :imdb_id, :title, :release_date, :poster_path
 	)`,
-		m.TmdbID,
-		m.ImdbID,
-		m.Title,
-		formatReleaseDate(m.ReleaseDate),
-		m.PosterPath.String(),
+		sql.Named("tmdb_id", m.TmdbID),
+		sql.Named("imdb_id", m.ImdbID),
+		sql.Named("title", m.Title),
+		sql.Named("release_date", formatReleaseDate(m.ReleaseDate)),
+		sql.Named("poster_path", m.PosterPath.String()),
 	)
 	if err != nil {
 		return screenjournal.MovieID(0), err
@@ -83,17 +83,17 @@ func (s Store) UpdateMovie(m screenjournal.Movie) error {
 	if _, err := s.ctx.Exec(`
 	UPDATE movies
 	SET
-		title = ?,
-		imdb_id = ?,
-		release_date = ?,
-		poster_path = ?
+		title = :title,
+		imdb_id = :imdb_id,
+		release_date = :release_date,
+		poster_path = :poster_path
 	WHERE
-		id = ?`,
-		m.Title,
-		m.ImdbID,
-		formatReleaseDate(m.ReleaseDate),
-		m.PosterPath.String(),
-		m.ID.Int64()); err != nil {
+		id = :id`,
+		sql.Named("title", m.Title),
+		sql.Named("imdb_id", m.ImdbID),
+		sql.Named("release_date", formatReleaseDate(m.ReleaseDate)),
+		sql.Named("poster_path", m.PosterPath.String()),
+		sql.Named("id", m.ID.Int64())); err != nil {
 		return err
 	}
 

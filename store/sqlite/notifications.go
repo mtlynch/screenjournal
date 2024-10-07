@@ -73,7 +73,7 @@ func (s Store) ReadNotificationPreferences(username screenjournal.Username) (scr
 	FROM
 		notification_preferences
 	WHERE
-		username = ?`, username.String()).Scan(&newReviews, &allNewComments)
+		username = :username`, sql.Named("username", username.String())).Scan(&newReviews, &allNewComments)
 	if err != nil {
 		return screenjournal.NotificationPreferences{}, err
 	}
@@ -89,10 +89,13 @@ func (s Store) UpdateNotificationPreferences(username screenjournal.Username, pr
 	if _, err := s.ctx.Exec(`
 	UPDATE notification_preferences
 	SET
-		new_reviews = ?,
-		all_new_comments = ?
+		new_reviews = :new_reviews,
+		all_new_comments = :all_new_comments
 	WHERE
-		username = ?`, prefs.NewReviews, prefs.AllNewComments, username); err != nil {
+		username = :username`,
+		sql.Named("new_reviews", prefs.NewReviews),
+		sql.Named("all_new_comments", prefs.AllNewComments),
+		sql.Named("username", username)); err != nil {
 		return err
 	}
 

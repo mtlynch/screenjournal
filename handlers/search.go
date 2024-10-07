@@ -1,18 +1,18 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 
+	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 type (
 	searchGetRequest struct {
-		Query     string // TODO: Replace with better type
+		Query     screenjournal.SearchQuery
 		MediaType screenjournal.MediaType
 	}
 
@@ -66,19 +66,14 @@ func (s Server) searchGet() http.HandlerFunc {
 }
 
 func parseSearchGetRequest(r *http.Request) (searchGetRequest, error) {
-	query := r.URL.Query().Get("query")
-	if len(query) < 2 {
-		return searchGetRequest{}, errors.New("invalid search query")
+	query, err := parse.SearchQuery(r.URL.Query().Get("query"))
+	if err != nil {
+		return searchGetRequest{}, err
 	}
 
-	mt := r.URL.Query().Get("media-type")
-	var mediaType screenjournal.MediaType
-	if mt == screenjournal.MediaTypeMovie.String() {
-		mediaType = screenjournal.MediaTypeMovie
-	} else if mt == screenjournal.MediaTypeTvShow.String() {
-		mediaType = screenjournal.MediaTypeTvShow
-	} else {
-		return searchGetRequest{}, errors.New("invalid media type")
+	mediaType, err := parse.MediaType(r.URL.Query().Get("media-type"))
+	if err != nil {
+		return searchGetRequest{}, err
 	}
 
 	return searchGetRequest{

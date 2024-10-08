@@ -451,6 +451,8 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		review := screenjournal.Review{}
 
+		// TODO: track movie vs. TV here
+
 		if mid, err := movieIDFromQueryParams(r); err == nil {
 			movie, err := s.getDB(r).ReadMovie(mid)
 			if err == store.ErrMovieNotFound {

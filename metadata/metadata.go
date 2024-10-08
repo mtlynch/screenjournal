@@ -7,21 +7,7 @@ import (
 )
 
 type (
-	MovieSearchResult struct {
-		TmdbID      screenjournal.TmdbID
-		Title       string
-		ReleaseDate string
-		PosterPath  string
-	}
-
-	MovieSearchResults struct {
-		Matches      []MovieSearchResult
-		Page         int
-		TotalPages   int
-		TotalResults int
-	}
-
-	MovieInfo struct {
+	SearchResult struct {
 		TmdbID      screenjournal.TmdbID
 		ImdbID      screenjournal.ImdbID
 		Title       screenjournal.MediaTitle
@@ -29,7 +15,7 @@ type (
 		PosterPath  url.URL
 	}
 
-	TvShowInfo struct {
+	MovieInfo struct {
 		TmdbID      screenjournal.TmdbID
 		ImdbID      screenjournal.ImdbID
 		Title       screenjournal.MediaTitle

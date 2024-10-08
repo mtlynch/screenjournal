@@ -32,8 +32,8 @@ type (
 	}
 
 	MetadataFinder interface {
-		Search(query screenjournal.SearchQuery) ([]metadata.MovieInfo, error)
-		SearchTvShows(query screenjournal.SearchQuery) ([]metadata.TvShowInfo, error)
+		Search(query screenjournal.SearchQuery) ([]metadata.SearchResult, error)
+		SearchTvShows(query screenjournal.SearchQuery) ([]metadata.SearchResult, error)
 		GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, error)
 	}
 

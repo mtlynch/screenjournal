@@ -113,11 +113,11 @@ type mockMetadataFinder struct {
 	db []metadata.MovieInfo
 }
 
-func (mf mockMetadataFinder) Search(query screenjournal.SearchQuery) ([]metadata.MovieInfo, error) {
-	matches := []metadata.MovieInfo{}
+func (mf mockMetadataFinder) Search(query screenjournal.SearchQuery) ([]metadata.SearchResult, error) {
+	matches := []metadata.SearchResult{}
 	for _, v := range mf.db {
 		if strings.Contains(strings.ToLower(v.Title.String()), strings.ToLower(query.String())) {
-			matches = append(matches, metadata.MovieInfo{
+			matches = append(matches, metadata.SearchResult{
 				TmdbID:      v.TmdbID,
 				Title:       v.Title,
 				ReleaseDate: v.ReleaseDate,

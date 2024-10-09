@@ -8,26 +8,26 @@ import (
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-func (f Finder) Search(query screenjournal.SearchQuery) ([]metadata.MovieInfo, error) {
+func (f Finder) Search(query screenjournal.SearchQuery) ([]metadata.SearchResult, error) {
 	tmdbResults, err := f.tmdbAPI.SearchMovie(query.String(), map[string]string{
 		"include_adult": "false",
 	})
 	if err != nil {
-		return []metadata.MovieInfo{}, err
+		return []metadata.SearchResult{}, err
 	}
 
-	matches := []metadata.MovieInfo{}
+	matches := []metadata.SearchResult{}
 	for _, match := range tmdbResults.Results {
-		info := metadata.MovieInfo{}
+		info := metadata.SearchResult{}
 
 		info.TmdbID, err = parse.TmdbID(match.ID)
 		if err != nil {
-			return []metadata.MovieInfo{}, err
+			return []metadata.SearchResult{}, err
 		}
 
 		info.Title, err = parse.MediaTitle(match.Title)
 		if err != nil {
-			return []metadata.MovieInfo{}, err
+			return []metadata.SearchResult{}, err
 		}
 
 		if match.ReleaseDate == "" {
@@ -35,7 +35,7 @@ func (f Finder) Search(query screenjournal.SearchQuery) ([]metadata.MovieInfo, e
 		}
 		info.ReleaseDate, err = ParseReleaseDate(match.ReleaseDate)
 		if err != nil {
-			return []metadata.MovieInfo{}, err
+			return []metadata.SearchResult{}, err
 		}
 
 		if match.PosterPath == "" {
@@ -43,7 +43,7 @@ func (f Finder) Search(query screenjournal.SearchQuery) ([]metadata.MovieInfo, e
 		}
 		pp, err := url.Parse(match.PosterPath)
 		if err != nil {
-			return []metadata.MovieInfo{}, err
+			return []metadata.SearchResult{}, err
 		}
 		info.PosterPath = *pp
 

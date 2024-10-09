@@ -110,12 +110,13 @@ func (sm mockSessionManager) WrapRequest(next http.Handler) http.Handler {
 }
 
 type mockMetadataFinder struct {
-	db []metadata.MovieInfo
+	movies  []metadata.MovieInfo
+	tvShows []metadata.TvShowInfo
 }
 
 func (mf mockMetadataFinder) Search(query screenjournal.SearchQuery) ([]metadata.SearchResult, error) {
 	matches := []metadata.SearchResult{}
-	for _, v := range mf.db {
+	for _, v := range mf.movies {
 		if strings.Contains(strings.ToLower(v.Title.String()), strings.ToLower(query.String())) {
 			matches = append(matches, metadata.SearchResult{
 				TmdbID:      v.TmdbID,
@@ -128,8 +129,18 @@ func (mf mockMetadataFinder) Search(query screenjournal.SearchQuery) ([]metadata
 	return matches, nil
 }
 
+func (mf mockMetadataFinder) SearchTvShows(query screenjournal.SearchQuery) ([]metadata.SearchResult, error) {
+	matches := []metadata.SearchResult{}
+	for _, v := range mf.tvShows {
+		if strings.Contains(strings.ToLower(v.Title.String()), strings.ToLower(query.String())) {
+			matches = append(matches, metadata.SearchResult(v))
+		}
+	}
+	return matches, nil
+}
+
 func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, error) {
-	for _, m := range mf.db {
+	for _, m := range mf.movies {
 		if id.Equal(m.TmdbID) {
 			return m, nil
 		}
@@ -138,9 +149,15 @@ func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.Mov
 }
 
 func NewMockMetadataFinder(movies []metadata.MovieInfo) mockMetadataFinder {
-	db := make([]metadata.MovieInfo, len(movies))
-	copy(db, movies)
-	return mockMetadataFinder{db}
+	moviesCopy := make([]metadata.MovieInfo, len(movies))
+	copy(moviesCopy, movies)
+
+	tvShowsCopy := make([]metadata.TvShowInfo, 1)
+
+	return mockMetadataFinder{
+		movies:  moviesCopy,
+		tvShows: tvShowsCopy,
+	}
 }
 
 func TestReviewsPostAcceptsValidRequest(t *testing.T) {

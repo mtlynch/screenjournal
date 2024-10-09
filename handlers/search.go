@@ -12,7 +12,8 @@ import (
 
 type (
 	searchGetRequest struct {
-		Query screenjournal.SearchQuery
+		Query     screenjournal.SearchQuery
+		MediaType screenjournal.MediaType
 	}
 
 	searchMatch struct {
@@ -28,7 +29,7 @@ func (s Server) searchGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := parseSearchGetRequest(r)
 		if err != nil {
-			log.Printf("failed to parse search query request: %v", err)
+			log.Printf("failed to parse search query: %v", err)
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
@@ -70,7 +71,13 @@ func parseSearchGetRequest(r *http.Request) (searchGetRequest, error) {
 		return searchGetRequest{}, err
 	}
 
+	mediaType, err := parse.MediaType(r.URL.Query().Get("media-type"))
+	if err != nil {
+		return searchGetRequest{}, err
+	}
+
 	return searchGetRequest{
-		Query: query,
+		Query:     query,
+		MediaType: screenjournal.MediaType(mediaType),
 	}, nil
 }

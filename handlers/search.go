@@ -37,7 +37,7 @@ func (s Server) searchGet() http.HandlerFunc {
 
 		var searchFn func(screenjournal.SearchQuery) ([]metadata.SearchResult, error)
 		if req.MediaType == screenjournal.MediaTypeMovie {
-			searchFn = s.metadataFinder.Search
+			searchFn = s.metadataFinder.SearchMovies
 		} else if req.MediaType == screenjournal.MediaTypeTvShow {
 			searchFn = s.metadataFinder.SearchTvShows
 		} else {

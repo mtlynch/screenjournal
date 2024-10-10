@@ -514,20 +514,6 @@ func (s Server) movieMetadataFromQueryParams(r *http.Request) (*screenjournal.Mo
 	return &movie, nil
 }
 
-func readMovieIDFromQueryParamsIfAvailable(r *http.Request) (*screenjournal.MovieID, error) {
-	mid, err := movieIDFromQueryParams(r)
-	if err == ErrMovieIDNotProvided {
-		return nil, nil
-	} else if err == store.ErrMovieNotFound {
-		return nil, store.ErrMovieNotFound
-	} else if err != nil {
-		log.Printf("failed to read movie metadata: %v", err)
-		return nil, err
-	}
-
-	return &mid, nil
-}
-
 func (s Server) invitesGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").ParseFS(

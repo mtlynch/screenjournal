@@ -8,6 +8,9 @@ type (
 	// MovieID represents the ID for a movie in the local datastore.
 	MovieID int64
 
+	// TvShowID represents the ID for a TV Show in the local datastore.
+	TvShowID int64
+
 	TmdbID int32
 	ImdbID string
 )
@@ -22,6 +25,18 @@ func (mid MovieID) Int64() int64 {
 
 func (mid MovieID) String() string {
 	return strconv.FormatInt(mid.Int64(), 10)
+}
+
+func (tvID TvShowID) Equal(o TvShowID) bool {
+	return tvID.Int64() == o.Int64()
+}
+
+func (tvID TvShowID) Int64() int64 {
+	return int64(tvID)
+}
+
+func (tvID TvShowID) String() string {
+	return strconv.FormatInt(tvID.Int64(), 10)
 }
 
 func (m TmdbID) Equal(o TmdbID) bool {

@@ -31,6 +31,15 @@ func movieIDFromQueryParams(r *http.Request) (screenjournal.MovieID, error) {
 	return parse.MovieIDFromString(raw)
 }
 
+func tvShowIDFromQueryParams(r *http.Request) (screenjournal.TvShowID, error) {
+	raw := r.URL.Query().Get("tvShowId")
+	if raw == "" {
+		return screenjournal.TvShowID(0), ErrMovieIDNotProvided
+	}
+
+	return parse.TvShowIDFromString(raw)
+}
+
 func tmdbIDFromQueryParams(r *http.Request) (screenjournal.TmdbID, error) {
 	raw := r.URL.Query().Get("tmdbId")
 	if raw == "" {

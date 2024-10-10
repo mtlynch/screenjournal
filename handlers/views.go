@@ -451,22 +451,17 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		review := screenjournal.Review{}
 
-		if mid, err := movieIDFromQueryParams(r); err == nil {
-			movie, err := s.getDB(r).ReadMovie(mid)
-			if err == store.ErrMovieNotFound {
-				http.Error(w, "Invalid movie ID", http.StatusNotFound)
-				return
-			} else if err != nil {
-				log.Printf("failed to read movie metadata: %v", err)
-				http.Error(w, "Failed to retrieve movie information", http.StatusInternalServerError)
-				return
-			}
-			review.Movie = movie
-		} else if err == ErrMovieIDNotProvided {
-			// Movie ID is optional for this view.
-		} else {
-			http.Error(w, "Invalid movie ID", http.StatusBadRequest)
-			return
+		// TODO: track movie vs. TV here
+
+		// TODO: Double check this refactor.
+		movie, err := s.movieMetadataFromQueryParams(r)
+		if err != nil {
+			log.Printf("failed to read movie metadata: %v", err)
+			http.Error(w, "Failed to retrieve movie information", http.StatusInternalServerError)
+		}
+
+		if movie != nil {
+			review.Movie = *movie
 		}
 
 		if tid, err := tmdbIDFromQueryParams(r); err == nil {
@@ -498,6 +493,25 @@ func (s Server) reviewsNewGet() http.HandlerFunc {
 			return
 		}
 	}
+}
+
+func (s Server) movieMetadataFromQueryParams(r *http.Request) (*screenjournal.Movie, error) {
+	mid, err := movieIDFromQueryParams(r)
+	if err == ErrMovieIDNotProvided {
+		return nil, nil
+	} else if err == store.ErrMovieNotFound {
+		return nil, store.ErrMovieNotFound
+	} else if err != nil {
+		log.Printf("failed to read movie metadata: %v", err)
+		return nil, err
+	}
+
+	movie, err := s.getDB(r).ReadMovie(mid)
+	if err == store.ErrMovieNotFound {
+		return nil, err
+	}
+
+	return &movie, nil
 }
 
 func (s Server) invitesGet() http.HandlerFunc {

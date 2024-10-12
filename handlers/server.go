@@ -32,7 +32,7 @@ type (
 	}
 
 	MetadataFinder interface {
-		Search(query screenjournal.SearchQuery) ([]metadata.SearchResult, error)
+		SearchMovies(query screenjournal.SearchQuery) ([]metadata.SearchResult, error)
 		GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, error)
 	}
 

@@ -438,7 +438,29 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 	}
 }
 
-func (s Server) reviewsNewGet() http.HandlerFunc {
+func (s Server) reviewsNewTitleSearchGet() http.HandlerFunc {
+	t := template.Must(
+		template.New("base.html").
+			Funcs(reviewPageFns).
+			ParseFS(
+				templatesFS,
+				append(
+					baseTemplates,
+					"templates/pages/reviews-new.html")...))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := t.Execute(w, struct {
+			commonProps
+		}{
+			commonProps: makeCommonProps(r.Context()),
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").
 			Funcs(reviewPageFns).

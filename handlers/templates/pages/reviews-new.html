@@ -1,0 +1,97 @@
+{{ define "title" }}
+  Add Review
+{{ end }}
+
+{{ define "style-tags" }}
+  <style nonce="{{ .CspNonce }}">
+    #search-results-list li {
+      border-top: 1px solid #c2c2c2;
+    }
+
+    #search-results-list li a {
+      display: block;
+      text-decoration: none;
+      color: black;
+    }
+
+    #search-results-list li a:hover {
+      background-color: #def0ff;
+    }
+
+    #search-results-list img {
+      max-height: 100px;
+    }
+
+    @media screen and (min-width: 1024px) {
+      #search-results-list img {
+        max-height: 80px;
+      }
+    }
+  </style>
+{{ end }}
+
+{{ define "script-tags" }}
+  <script type="module" nonce="{{ .CspNonce }}">
+    function is2xxCode(status) {
+      return (status / 100) * 100 === 200;
+    }
+    const alertEl = document.querySelector(".alert");
+
+    document.querySelector("form").addEventListener("input", function (evt) {
+      alertEl.hidden = true;
+    });
+
+    document.body.addEventListener("htmx:beforeSwap", function (evt) {
+      if (is2xxCode(evt.detail.xhr.status)) {
+        return;
+      }
+      alertEl.innerText = evt.detail.xhr.responseText;
+      alertEl.hidden = false;
+    });
+  </script>
+{{ end }}
+
+{{ define "content" }}
+
+  <div class="my-5">
+    <form
+      hx-get="/api/search"
+      hx-trigger="submit, search from:#media-title, keyup changed from:#media-title, change from:input[name='media-type']"
+      hx-target="#search-results-list"
+    >
+      <label for="media-title" class="form-label">Title</label>
+      <input
+        id="media-title"
+        name="query"
+        class="form-control"
+        type="search"
+        placeholder="Search"
+        aria-label="Search"
+        autofocus="autofocus"
+        required
+      />
+      <fieldset>
+        <div>
+          <input
+            type="radio"
+            id="movies"
+            name="media-type"
+            value="movie"
+            checked
+          />
+          <label for="movies">Movies</label>
+        </div>
+        <div>
+          <input type="radio" id="tv-shows" name="media-type" value="tv-show" />
+          <label for="tv-shows">TV Shows</label>
+        </div>
+      </fieldset>
+
+      <div class="alert alert-danger" role="alert" hidden>
+        Placeholder error
+      </div>
+    </form>
+
+    <div id="search-results-list" class="p-0"></div>
+  </div>
+{{ end }}

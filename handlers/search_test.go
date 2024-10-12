@@ -81,14 +81,14 @@ func TestSearchGet(t *testing.T) {
 			response: `
 <ul class="py-0 my-0 list-unstyled border border-success">
 	<li>
-			<a href="/reviews/new?tmdbId=1"
+			<a href="/reviews/new/write?tmdbId=1"
 				><img src="https://image.tmdb.org/t/p/w92/the-waterboy.jpg" /><span class="mx-3"
 					>The Waterboy (1998)</span
 				></a
 			>
 		</li>
 	<li>
-			<a href="/reviews/new?tmdbId=2"
+			<a href="/reviews/new/write?tmdbId=2"
 				><img src="https://image.tmdb.org/t/p/w92/waterboys.jpg" /><span class="mx-3"
 					>Waterboys (2011)</span
 				></a

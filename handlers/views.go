@@ -480,7 +480,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 		var movieID *screenjournal.MovieID
 		mid, err := movieIDFromQueryParams(r)
 		if err == ErrMovieIDNotProvided {
-			// That's okay
+			// It's okay for the movie ID to be absent, as it's optional.
 		} else if err != nil {
 			log.Printf("invalid movie ID: %v", err)
 			http.Error(w, "Invalid movie ID", http.StatusBadRequest)
@@ -492,7 +492,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 		var tmdbID *screenjournal.TmdbID
 		tid, err := tmdbIDFromQueryParams(r)
 		if err == ErrTmdbIDNotProvided {
-			// That's okay.
+			// It's okay for the TMDB ID to be absent, as it's optional.
 		} else if err != nil {
 			log.Printf("invalid TMDB ID: %v", err)
 			http.Error(w, "Invalid TMDB ID", http.StatusBadRequest)

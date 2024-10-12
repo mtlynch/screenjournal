@@ -71,7 +71,8 @@ func (s *Server) routes() {
 	authenticatedViews.HandleFunc("/movies/{movieID}", s.moviesReadGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews", s.reviewsGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews/by/{username}", s.reviewsGet()).Methods(http.MethodGet)
-	authenticatedViews.HandleFunc("/reviews/new", s.reviewsNewGet()).Methods(http.MethodGet)
+	authenticatedViews.HandleFunc("/reviews/new", s.reviewsNewTitleSearchGet()).Methods(http.MethodGet)
+	authenticatedViews.HandleFunc("/reviews/new/write", s.reviewsNewWriteReviewGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews/{reviewID}/edit", s.reviewsEditGet()).Methods(http.MethodGet)
 
 	s.addDevRoutes()

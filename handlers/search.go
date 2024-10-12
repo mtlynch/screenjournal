@@ -30,7 +30,7 @@ func (s Server) searchGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := parseSearchGetRequest(r)
 		if err != nil {
-			log.Printf("failed to parse search query: %v", err)
+			log.Printf("failed to parse search query request: %v", err)
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}

@@ -30,6 +30,27 @@
   </style>
 {{ end }}
 
+{{ define "script-tags" }}
+  <script type="module" nonce="{{ .CspNonce }}">
+    function is2xxCode(status) {
+      return (status / 100) * 100 === 200;
+    }
+    const alertEl = document.querySelector(".alert");
+
+    document.querySelector("form").addEventListener("input", function (evt) {
+      alertEl.hidden = true;
+    });
+
+    document.body.addEventListener("htmx:beforeSwap", function (evt) {
+      if (is2xxCode(evt.detail.xhr.status)) {
+        return;
+      }
+      alertEl.innerText = evt.detail.xhr.responseText;
+      alertEl.hidden = false;
+    });
+  </script>
+{{ end }}
+
 {{ define "content" }}
 
   <div class="my-5">

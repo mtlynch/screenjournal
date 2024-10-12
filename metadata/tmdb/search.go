@@ -8,7 +8,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-func (f Finder) Search(query screenjournal.SearchQuery) ([]metadata.SearchResult, error) {
+func (f Finder) SearchMovies(query screenjournal.SearchQuery) ([]metadata.SearchResult, error) {
 	tmdbResults, err := f.tmdbAPI.SearchMovie(query.String(), map[string]string{
 		"include_adult": "false",
 	})

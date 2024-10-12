@@ -45,111 +45,113 @@
 
 
   <div class="my-5">
-    {{ template "rate-movie" . }}
-  </div>
-{{ end }}
-
-{{ define "rate-movie" }}
-  {{ $isEditing := ne .Review.ID 0 }}
+    {{ $isEditing := ne .Review.ID 0 }}
 
 
-  <form
-    class="d-flex flex-column"
-    {{ if $isEditing }}
-      hx-put="/reviews/{{ .Review.ID }}"
-    {{ else }}
-      hx-post="/reviews"
-    {{ end }}
-    hx-target="body"
-    hx-push-url="true"
-    hx-disabled-elt="input, select, textarea, .btn"
-  >
-    {{ if not $isEditing }}
-      <input type="hidden" name="tmdb-id" value="{{ .Review.Movie.TmdbID }}" />
-    {{ end }}
-    <div class="mb-3">
-      <label for="rating" class="form-label">Rating</label>
-      <select
-        id="rating"
-        name="rating"
-        class="form-select"
-        aria-label="Rating"
-        required
-        autofocus
-      >
-        {{ $selectedRating := .Review.Rating.UInt8 }}
-        {{ if eq $selectedRating 0 }}
-          <option selected></option>
-        {{ end }}
-        {{ range .RatingOptions }}
-          <option
-            value="{{ .Value }}"
-            {{ if (eq .Value $selectedRating) }}selected{{ end }}
-          >
-            {{ .Label }}
-          </option>
-        {{ end }}
-      </select>
-    </div>
-
-    <div class="mb-3">
-      <label for="watch-date" class="form-label">When did you watch?</label>
-      {{ $defaultWatchDate := .Review.Watched.Time }}
-      {{ if not $isEditing }}
-        {{ $defaultWatchDate = .Today }}
+    <form
+      class="d-flex flex-column"
+      {{ if $isEditing }}
+        hx-put="/reviews/{{ .Review.ID }}"
+      {{ else }}
+        hx-post="/reviews"
       {{ end }}
-      <input
-        id="watch-date"
-        name="watch-date"
-        class="form-control"
-        type="date"
-        value="{{ $defaultWatchDate | formatDate }}"
-        min="2000-01-01"
-        max="{{ .Today | formatDate }}"
-        required
-      />
-    </div>
-
-    <div class="mb-3">
-      <label for="blurb" class="form-label">Other thoughts? (Optional)</label>
-      <textarea id="blurb" name="blurb" class="form-control">
-{{ .Review.Blurb }}</textarea
-      >
-    </div>
-
-    {{ if $isEditing }}
-      <div class="d-flex justify-content-between flex-row-reverse">
-        <div class="d-flex">
-          <button class="btn btn-primary me-2" value="Save">
-            <i class="fa-solid fa-floppy-disk"></i>
-            Save
-          </button>
-          <a class="btn btn-outline-secondary" role="button" href="/reviews"
-            >Cancel</a
-          >
-        </div>
-        <div class="d-flex">
-          <a
-            class="btn btn-danger"
-            role="button"
-            hx-delete="/reviews/{{ .Review.ID }}"
-            hx-confirm="Delete this review?"
-          >
-            <i class="fa fa-trash me-2"></i>Delete
-          </a>
-        </div>
-      </div>
-    {{ else }}
+      hx-target="body"
+      hx-push-url="true"
+      hx-disabled-elt="input, select, textarea, .btn"
+    >
+      {{ if not $isEditing }}
+        <input
+          type="hidden"
+          name="tmdb-id"
+          value="{{ .Review.Movie.TmdbID }}"
+        />
+      {{ end }}
       <div class="mb-3">
-        <input type="submit" class="btn btn-primary" value="Submit" />
+        <label for="rating" class="form-label">Rating</label>
+        <select
+          id="rating"
+          name="rating"
+          class="form-select"
+          aria-label="Rating"
+          required
+          autofocus
+        >
+          {{ $selectedRating := .Review.Rating.UInt8 }}
+          {{ if eq $selectedRating 0 }}
+            <option selected></option>
+          {{ end }}
+          {{ range .RatingOptions }}
+            <option
+              value="{{ .Value }}"
+              {{ if (eq .Value $selectedRating) }}selected{{ end }}
+            >
+              {{ .Label }}
+            </option>
+          {{ end }}
+        </select>
       </div>
-    {{ end }}
+
+      <div class="mb-3">
+        <label for="watch-date" class="form-label">When did you watch?</label>
+        {{ $defaultWatchDate := .Review.Watched.Time }}
+        {{ if not $isEditing }}
+          {{ $defaultWatchDate = .Today }}
+        {{ end }}
+        <input
+          id="watch-date"
+          name="watch-date"
+          class="form-control"
+          type="date"
+          value="{{ $defaultWatchDate | formatDate }}"
+          min="2000-01-01"
+          max="{{ .Today | formatDate }}"
+          required
+        />
+      </div>
+
+      <div class="mb-3">
+        <label for="blurb" class="form-label">Other thoughts? (Optional)</label>
+        <textarea id="blurb" name="blurb" class="form-control">
+{{ .Review.Blurb }}</textarea
+        >
+      </div>
+
+      {{ if $isEditing }}
+        <div class="d-flex justify-content-between flex-row-reverse">
+          <div class="d-flex">
+            <button class="btn btn-primary me-2" value="Save">
+              <i class="fa-solid fa-floppy-disk"></i>
+              Save
+            </button>
+            <a class="btn btn-outline-secondary" role="button" href="/reviews"
+              >Cancel</a
+            >
+          </div>
+          <div class="d-flex">
+            <a
+              class="btn btn-danger"
+              role="button"
+              hx-delete="/reviews/{{ .Review.ID }}"
+              hx-confirm="Delete this review?"
+            >
+              <i class="fa fa-trash me-2"></i>Delete
+            </a>
+          </div>
+        </div>
+      {{ else }}
+        <div class="mb-3">
+          <input type="submit" class="btn btn-primary" value="Submit" />
+        </div>
+      {{ end }}
 
 
-    <div class="spinner-border htmx-indicator" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
+      <div class="spinner-border htmx-indicator" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
 
-    <div class="alert alert-danger" role="alert" hidden>Placeholder error</div>
-  </form>
+      <div class="alert alert-danger" role="alert" hidden>
+        Placeholder error
+      </div>
+    </form>
+  </div>
 {{ end }}

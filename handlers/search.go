@@ -34,7 +34,7 @@ func (s Server) searchGet() http.HandlerFunc {
 			return
 		}
 
-		res, err := s.metadataFinder.Search(req.Query)
+		res, err := s.metadataFinder.SearchMovies(req.Query)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to query metadata: %v", err), http.StatusInternalServerError)
 		}

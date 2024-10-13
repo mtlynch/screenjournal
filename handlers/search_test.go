@@ -67,7 +67,7 @@ func TestSearchGet(t *testing.T) {
 	}{
 		{
 			description:  "returns valid results for valid movie query",
-			url:          "/api/search?media-type=movie&query=waterbo",
+			url:          "/api/search?mediaType=movie&query=waterbo",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -81,14 +81,16 @@ func TestSearchGet(t *testing.T) {
 			response: `
 <ul class="py-0 my-0 list-unstyled border border-success">
 	<li>
-			<a href="/reviews/new/write?tmdbId=1"
+			<a
+				href="/reviews/new/write?tmdbId=1&mediaType=movie"
 				><img src="https://image.tmdb.org/t/p/w92/the-waterboy.jpg" /><span class="mx-3"
 					>The Waterboy (1998)</span
 				></a
 			>
 		</li>
 	<li>
-			<a href="/reviews/new/write?tmdbId=2"
+			<a
+				href="/reviews/new/write?tmdbId=2&mediaType=movie"
 				><img src="https://image.tmdb.org/t/p/w92/waterboys.jpg" /><span class="mx-3"
 					>Waterboys (2011)</span
 				></a
@@ -99,7 +101,7 @@ func TestSearchGet(t *testing.T) {
 		},
 		{
 			description:  "returns valid results for valid TV query",
-			url:          "/api/search?media-type=tv-show&query=party%20down",
+			url:          "/api/search?mediaType=tv-show&query=party%20down",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -113,14 +115,16 @@ func TestSearchGet(t *testing.T) {
 			response: `
 <ul class="py-0 my-0 list-unstyled border border-success">
 	<li>
-			<a href="/reviews/new/write?tmdbId=3"
+			<a
+				href="/reviews/new/write?tmdbId=3&mediaType=tv-show"
 				><img src="https://image.tmdb.org/t/p/w92/party-down.jpg" /><span class="mx-3"
 					>Party Down (2009)</span
 				></a
 			>
 		</li>
 	<li>
-			<a href="/reviews/new/write?tmdbId=4"
+			<a
+				href="/reviews/new/write?tmdbId=4&mediaType=tv-show"
 				><img src="https://image.tmdb.org/t/p/w92/party-down-south.jpg" /><span class="mx-3"
 					>Party Down South (2014)</span
 				></a
@@ -131,7 +135,7 @@ func TestSearchGet(t *testing.T) {
 		},
 		{
 			description:  "returns empty result on no matches",
-			url:          "/api/search?media-type=movie&query=matchesnothing555",
+			url:          "/api/search?mediaType=movie&query=matchesnothing555",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -150,7 +154,7 @@ func TestSearchGet(t *testing.T) {
 		},
 		{
 			description:  "returns empty string when query is too short",
-			url:          "/api/search?media-type=movie&query=a",
+			url:          "/api/search?mediaType=movie&query=a",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{
@@ -165,7 +169,7 @@ func TestSearchGet(t *testing.T) {
 		},
 		{
 			description:  "prevents an unauthenticated user from searching",
-			url:          "/api/search?media-type=movie&query=waterbo",
+			url:          "/api/search?mediaType=movie&query=waterbo",
 			sessionToken: "",
 			sessions: []mockSessionEntry{
 				{

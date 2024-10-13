@@ -79,7 +79,7 @@ func inviteCodeFromQueryParams(r *http.Request) (screenjournal.InviteCode, error
 }
 
 func sortOrderFromQueryParams(r *http.Request) (screenjournal.SortOrder, error) {
-	raw := r.URL.Query().Get("sort-by")
+	raw := r.URL.Query().Get("sortBy")
 	if raw == "" {
 		return screenjournal.SortOrder(""), ErrSortOrderNotProvided
 	}

@@ -93,16 +93,12 @@
 
       <div class="mb-3">
         <label for="watch-date" class="form-label">When did you watch?</label>
-        {{ $defaultWatchDate := .Review.Watched.Time }}
-        {{ if not $isEditing }}
-          {{ $defaultWatchDate = .Today }}
-        {{ end }}
         <input
           id="watch-date"
           name="watch-date"
           class="form-control"
           type="date"
-          value="{{ $defaultWatchDate | formatDate }}"
+          value="{{ .Review.Watched.Time | formatDate }}"
           min="2000-01-01"
           max="{{ .Today | formatDate }}"
           required

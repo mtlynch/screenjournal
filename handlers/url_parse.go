@@ -92,3 +92,12 @@ func sortOrderFromQueryParams(r *http.Request) (screenjournal.SortOrder, error) 
 	}
 	return screenjournal.SortOrder(""), errors.New("unrecognized sort order")
 }
+
+func searchQueryFromQueryParams(r *http.Request) (screenjournal.SearchQuery, error) {
+	raw := r.URL.Query().Get("query")
+	if raw == "" {
+		return screenjournal.SearchQuery(""), ErrSearchQueryNotProvided
+	}
+
+	return parse.SearchQuery(raw)
+}

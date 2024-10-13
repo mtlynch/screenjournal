@@ -379,12 +379,14 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 
 		if err := t.Execute(w, struct {
 			commonProps
-			Movie   screenjournal.Movie
-			Reviews []screenjournal.Review
+			Movie     screenjournal.Movie
+			Reviews   []screenjournal.Review
+			MediaType screenjournal.MediaType
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			Movie:       movie,
 			Reviews:     reviews,
+			MediaType:   screenjournal.MediaTypeMovie,
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

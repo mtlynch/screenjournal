@@ -20,7 +20,7 @@ var (
 )
 
 func mediaTypeFromQueryParams(r *http.Request) (screenjournal.MediaType, error) {
-	raw := r.URL.Query().Get("media-type")
+	raw := r.URL.Query().Get("mediaType")
 	if raw == "" {
 		return screenjournal.MediaType(""), ErrMediaTypeNotProvided
 	}

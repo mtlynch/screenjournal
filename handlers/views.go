@@ -500,15 +500,21 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			tmdbID = &tid
 		}
 
-		var movie metadata.MovieInfo
-		var tvShow metadata.TvShowInfo
-		mediaType, err := mediaTypeFromQueryParams(r)
-		if err != nil {
-			log.Printf("invalid media type: %v", err)
-			http.Error(w, "Invalid media type", http.StatusBadRequest)
-			return
+		var mediaType screenjournal.MediaType
+		if movieID != nil {
+			mediaType = screenjournal.MediaTypeMovie
+		} else {
+			mt, err := mediaTypeFromQueryParams(r)
+			if err != nil {
+				log.Printf("invalid media type: %v", err)
+				http.Error(w, "Invalid media type", http.StatusBadRequest)
+				return
+			}
+			mediaType = mt
 		}
 
+		var movie metadata.MovieInfo
+		var tvShow metadata.TvShowInfo
 		if mediaType == screenjournal.MediaTypeMovie {
 			m, err := s.getMovieInfo(r, movieID, tmdbID)
 			if err != nil {

@@ -523,7 +523,7 @@ test("views a movie with an existing review and adds a new review", async ({
 
   await page.getByRole("button", { name: "Add Rating" }).click();
 
-  await expect(page).toHaveURL("/reviews/new/write?movieId=1&media-type=movie");
+  await expect(page).toHaveURL("/reviews/new/write?movieId=1");
 
   await expect(
     page.getByRole("heading", { name: "The Waterboy" })

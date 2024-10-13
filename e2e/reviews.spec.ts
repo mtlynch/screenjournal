@@ -475,7 +475,9 @@ test("editing another user's review fails", async ({ page, browser }) => {
   await page.getByPlaceholder("Search").pressSequentially("the english pati");
   await page.getByText("The English Patient (1996)").click();
 
-  await expect(page).toHaveURL("/reviews/new/write?tmdbId=409");
+  await expect(page).toHaveURL(
+    "/reviews/new/write?tmdbId=409&media-type=movie"
+  );
   await expect(
     page.getByRole("heading", { name: "The English Patient" })
   ).toBeVisible();

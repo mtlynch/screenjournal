@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -460,6 +461,12 @@ func (s Server) reviewsNewTitleSearchGet() http.HandlerFunc {
 	}
 }
 
+type mediaMetadata struct {
+	Title       screenjournal.MediaTitle
+	ReleaseDate screenjournal.ReleaseDate
+	TmdbID      screenjournal.TmdbID
+}
+
 func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").
@@ -471,42 +478,51 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 					"templates/pages/reviews-edit.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		review := screenjournal.Review{}
 
-		// TODO: track movie vs. TV here
+		// Review must have either a movieID (cached information in the database),
+		// or a TMDB ID (no movie info cached yet).
 
-		if mid, err := movieIDFromQueryParams(r); err == nil {
-			movie, err := s.getDB(r).ReadMovie(mid)
-			if err == store.ErrMovieNotFound {
-				http.Error(w, "Invalid movie ID", http.StatusNotFound)
-				return
-			} else if err != nil {
-				log.Printf("failed to read movie metadata: %v", err)
-				http.Error(w, "Failed to retrieve movie information", http.StatusInternalServerError)
-				return
-			}
-			review.Movie = movie
-		} else if err == ErrMovieIDNotProvided {
-			// Movie ID is optional for this view because it may not be in the
-			// database before the review is published.
-		} else {
+		var movieID *screenjournal.MovieID
+		mid, err := movieIDFromQueryParams(r)
+		if err == ErrMovieIDNotProvided {
+			// It's okay for the movie ID to be absent, as it's optional.
+		} else if err != nil {
+			log.Printf("invalid movie ID: %v", err)
 			http.Error(w, "Invalid movie ID", http.StatusBadRequest)
 			return
+		} else {
+			movieID = &mid
 		}
 
-		if tid, err := tmdbIDFromQueryParams(r); err == nil {
-			info, err := s.metadataFinder.GetMovieInfo(tid)
-			if err != nil {
-				http.Error(w, "Failed to get movie info", http.StatusFailedDependency)
-				log.Printf("failed to get movie info for TMDB ID %v: %v", tid, err)
-				return
-			}
-
-			review.Movie.Title = info.Title
-			review.Movie.ReleaseDate = info.ReleaseDate
-			review.Movie.TmdbID = info.TmdbID
+		var tvShowID *screenjournal.TvShowID
+		tvid, err := tvShowIDFromQueryParams(r)
+		if err == ErrTvShowIDNotProvided {
+			// It's okay for the TV show ID to be absent, as it's optional.
+		} else if err != nil {
+			log.Printf("invalid TV show ID: %v", err)
+			http.Error(w, "Invalid TV show ID", http.StatusBadRequest)
+			return
+		} else {
+			tvShowID = &tvid
 		}
-		review.Watched = screenjournal.WatchDate(time.Now())
+
+		var tmdbID *screenjournal.TmdbID
+		tid, err := tmdbIDFromQueryParams(r)
+		if err == ErrTmdbIDNotProvided {
+			// It's okay for the TMDB ID to be absent, as it's optional.
+		} else if err != nil {
+			log.Printf("invalid TMDB ID: %v", err)
+			http.Error(w, "Invalid TMDB ID", http.StatusBadRequest)
+		} else {
+			tmdbID = &tid
+		}
+
+		meta, err := s.getMediaMetadata(r, movieID, tvShowID, tmdbID)
+		if err != nil {
+			http.Error(w, "Failed to get movie info", http.StatusFailedDependency)
+			log.Printf("failed to get movie info with movie ID=%v, TMDB ID=%v: %v", movieID, tmdbID, err)
+			return
+		}
 
 		if err := t.Execute(w, struct {
 			commonProps
@@ -516,13 +532,56 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 		}{
 			commonProps:   makeCommonProps(r.Context()),
 			RatingOptions: ratingOptions,
-			Review:        review,
-			Today:         time.Now(),
+			Review: screenjournal.Review{
+				Movie: screenjournal.Movie{
+					Title:       meta.Title,
+					ReleaseDate: meta.ReleaseDate,
+					TmdbID:      meta.TmdbID,
+				},
+				Watched: screenjournal.WatchDate(time.Now()),
+			},
+			Today: time.Now(),
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
+}
+
+func (s Server) getMediaMetadata(r *http.Request, movieID *screenjournal.MovieID, tvShowID *screenjournal.TvShowID, tmdbID *screenjournal.TmdbID) (mediaMetadata, error) {
+	// Try to get the movie information from the database.
+	if movieID != nil {
+		m, err := s.getDB(r).ReadMovie(*movieID)
+		if err != nil {
+			return mediaMetadata{}, err
+		}
+		return mediaMetadata{
+			TmdbID:      m.TmdbID,
+			Title:       m.Title,
+			ReleaseDate: m.ReleaseDate,
+		}, nil
+	}
+
+	// Try to get the TV show metadata from the database.
+	if tvShowID != nil {
+		// TODO: finish this.
+	}
+
+	// If we can't read the movie information from the database, use the TMDB ID
+	// to get information from TMDB.
+	if tmdbID != nil {
+		m, err := s.metadataFinder.GetMovieInfo(*tmdbID)
+		if err != nil {
+			return mediaMetadata{}, err
+		}
+		return mediaMetadata{
+			TmdbID:      m.TmdbID,
+			Title:       m.Title,
+			ReleaseDate: m.ReleaseDate,
+		}, nil
+	}
+
+	return mediaMetadata{}, errors.New("need movie ID, TV show ID, or TMDB ID to retrieve movie metadata")
 }
 
 func (s Server) invitesGet() http.HandlerFunc {

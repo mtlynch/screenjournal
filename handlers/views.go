@@ -562,6 +562,11 @@ func (s Server) getMediaMetadata(r *http.Request, movieID *screenjournal.MovieID
 		}, nil
 	}
 
+	// Try to get the TV show metadata from the database.
+	if tvShowID != nil {
+		// TODO: finish this.
+	}
+
 	// If we can't read the movie information from the database, use the TMDB ID
 	// to get information from TMDB.
 	if tmdbID != nil {

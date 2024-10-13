@@ -89,6 +89,6 @@ func parseSearchGetRequest(r *http.Request) (searchGetRequest, error) {
 
 	return searchGetRequest{
 		Query:     query,
-		MediaType: screenjournal.MediaType(mediaType),
+		MediaType: mediaType,
 	}, nil
 }

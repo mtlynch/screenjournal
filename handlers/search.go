@@ -18,6 +18,7 @@ type (
 	}
 
 	searchMatch struct {
+		MediaType   screenjournal.MediaType
 		TmdbID      int32
 		Title       string
 		ReleaseYear int
@@ -55,6 +56,7 @@ func (s Server) searchGet() http.HandlerFunc {
 				break
 			}
 			matches = append(matches, searchMatch{
+				MediaType:   req.MediaType,
 				TmdbID:      m.TmdbID.Int32(),
 				Title:       m.Title.String(),
 				ReleaseYear: m.ReleaseDate.Year(),

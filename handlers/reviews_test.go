@@ -134,7 +134,12 @@ func (mf mockMetadataFinder) SearchTvShows(query screenjournal.SearchQuery) ([]m
 
 	for _, v := range mf.tvShows {
 		if strings.Contains(strings.ToLower(v.Title.String()), strings.ToLower(query.String())) {
-			matches = append(matches, metadata.SearchResult(v))
+			matches = append(matches, metadata.SearchResult{
+				TmdbID:      v.TmdbID,
+				Title:       v.Title,
+				ReleaseDate: v.ReleaseDate,
+				PosterPath:  v.PosterPath,
+			})
 		}
 	}
 	return matches, nil
@@ -147,6 +152,15 @@ func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.Mov
 		}
 	}
 	return metadata.MovieInfo{}, fmt.Errorf("could not find movie with id %d in mock DB", id.Int32())
+}
+
+func (mf mockMetadataFinder) GetTvShowInfo(id screenjournal.TmdbID) (metadata.TvShowInfo, error) {
+	for _, t := range mf.tvShows {
+		if id.Equal(t.TmdbID) {
+			return t, nil
+		}
+	}
+	return metadata.TvShowInfo{}, fmt.Errorf("could not find TV show with id %d in mock DB", id.Int32())
 }
 
 func NewMockMetadataFinder(movies []metadata.MovieInfo, tvShows []metadata.TvShowInfo) mockMetadataFinder {

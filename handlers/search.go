@@ -80,7 +80,7 @@ func parseSearchGetRequest(r *http.Request) (searchGetRequest, error) {
 		return searchGetRequest{}, err
 	}
 
-	mediaType, err := parse.MediaType(r.URL.Query().Get("media-type"))
+	mediaType, err := parse.MediaType(r.URL.Query().Get("mediaType"))
 	if err != nil {
 		return searchGetRequest{}, err
 	}

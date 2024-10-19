@@ -488,14 +488,23 @@ func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
 			return
 		}
 
+		log.Printf("season count=%d", tvShow.SeasonCount)
+		seasonOptions := make([]uint8, tvShow.SeasonCount)
+		for i := uint8(0); i < tvShow.SeasonCount; i++ {
+			// Add 1 so that Season 1 doesn't show as Season 0, etc.
+			seasonOptions[i] = i + 1
+		}
+
 		if err := t.Execute(w, struct {
 			commonProps
-			TvShowTitle screenjournal.MediaTitle
-			ReleaseYear int
+			TvShowTitle   screenjournal.MediaTitle
+			ReleaseYear   int
+			SeasonOptions []uint8
 		}{
-			commonProps: makeCommonProps(r.Context()),
-			TvShowTitle: tvShow.Title,
-			ReleaseYear: tvShow.ReleaseDate.Year(),
+			commonProps:   makeCommonProps(r.Context()),
+			TvShowTitle:   tvShow.Title,
+			ReleaseYear:   tvShow.ReleaseDate.Year(),
+			SeasonOptions: seasonOptions,
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

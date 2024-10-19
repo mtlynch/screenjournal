@@ -106,7 +106,9 @@ test("adds a new rating and fills in only required fields", async ({
   await page.getByPlaceholder("Search").pressSequentially("slow lear");
   await page.getByText("Slow Learners (2015)").click();
 
-  await expect(page).toHaveURL("/reviews/new/write?tmdbId=333287");
+  await expect(page).toHaveURL(
+    "/reviews/new/write?tmdbId=333287&mediaType=movie"
+  );
   await expect(
     page.getByRole("heading", { name: "Slow Learners" })
   ).toBeVisible();
@@ -154,7 +156,9 @@ test("adds a new rating that's too long to display in a card", async ({
     .pressSequentially("Weird: The Al Yankovic Story");
   await page.getByText("Weird: The Al Yankovic Story (2022)").click();
 
-  await expect(page).toHaveURL("/reviews/new/write?tmdbId=928344");
+  await expect(page).toHaveURL(
+    "/reviews/new/write?tmdbId=928344&mediaType=movie"
+  );
   await expect(
     page.getByRole("heading", { name: "Weird: The Al Yankovic Story" })
   ).toBeVisible();
@@ -244,7 +248,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
   await page.getByPlaceholder("Search").pressSequentially("eternal sunshine");
   await page.getByText("Eternal Sunshine of the Spotless Mind (2004)").click();
 
-  await expect(page).toHaveURL("/reviews/new/write?tmdbId=38");
+  await expect(page).toHaveURL("/reviews/new/write?tmdbId=38&mediaType=movie");
   await expect(
     page.getByRole("heading", { name: "Eternal Sunshine of the Spotless Mind" })
   ).toBeVisible();
@@ -294,7 +298,7 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
   await page.getByPlaceholder("Search").pressSequentially("eternal sunshine");
   await page.getByText("Eternal Sunshine of the Spotless Mind (2004)").click();
 
-  await expect(page).toHaveURL("/reviews/new/write?tmdbId=38");
+  await expect(page).toHaveURL("/reviews/new/write?tmdbId=38&mediaType=movie");
   await expect(
     page.getByRole("heading", { name: "Eternal Sunshine of the Spotless Mind" })
   ).toBeVisible();
@@ -331,7 +335,7 @@ test("adds a new rating and edits the details", async ({ page }) => {
     .pressSequentially("something about mary");
   await page.getByText("There's Something About Mary (1998)").click();
 
-  await expect(page).toHaveURL("/reviews/new/write?tmdbId=544");
+  await expect(page).toHaveURL("/reviews/new/write?tmdbId=544&mediaType=movie");
   await expect(
     page.getByRole("heading", { name: "There's Something About Mary" })
   ).toBeVisible();
@@ -409,7 +413,7 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   await page.getByPlaceholder("Search").pressSequentially("the english pati");
   await page.getByText("The English Patient (1996)").click();
 
-  await expect(page).toHaveURL("/reviews/new/write?tmdbId=409");
+  await expect(page).toHaveURL("/reviews/new/write?tmdbId=409&mediaType=movie");
   await expect(
     page.getByRole("heading", { name: "The English Patient" })
   ).toBeVisible();
@@ -467,7 +471,7 @@ test("editing another user's review fails", async ({ page, browser }) => {
   await page.getByPlaceholder("Search").pressSequentially("the english pati");
   await page.getByText("The English Patient (1996)").click();
 
-  await expect(page).toHaveURL("/reviews/new/write?tmdbId=409");
+  await expect(page).toHaveURL("/reviews/new/write?tmdbId=409&mediaType=movie");
   await expect(
     page.getByRole("heading", { name: "The English Patient" })
   ).toBeVisible();

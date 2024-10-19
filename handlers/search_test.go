@@ -99,7 +99,7 @@ func TestSearchGet(t *testing.T) {
 		},
 		{
 			description:  "returns valid results for valid TV query",
-			url:          "/api/search?media-type=tv-show&query=party%20down",
+			url:          "/api/search?mediaType=tv-show&query=party%20down",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
 				{

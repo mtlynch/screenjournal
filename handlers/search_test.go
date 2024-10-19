@@ -18,7 +18,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
-var mockSearchableData = []metadata.MovieInfo{
+var mockSearchableMovies = []metadata.MovieInfo{
 	{
 		TmdbID:      screenjournal.TmdbID(1),
 		Title:       screenjournal.MediaTitle("The Waterboy"),
@@ -37,6 +37,25 @@ var mockSearchableData = []metadata.MovieInfo{
 	},
 }
 
+var mockSearchableTvShows = []metadata.TvShowInfo{
+	{
+		TmdbID:      screenjournal.TmdbID(3),
+		Title:       screenjournal.MediaTitle("Party Down"),
+		ReleaseDate: mustParseReleaseDate("2009-01-01"),
+		PosterPath: url.URL{
+			Path: "/party-down.jpg",
+		},
+	},
+	{
+		TmdbID:      screenjournal.TmdbID(4),
+		Title:       screenjournal.MediaTitle("Party Down South"),
+		ReleaseDate: mustParseReleaseDate("2014-05-09"),
+		PosterPath: url.URL{
+			Path: "/party-down-south.jpg",
+		},
+	},
+}
+
 func TestSearchGet(t *testing.T) {
 	for _, tt := range []struct {
 		description  string
@@ -47,7 +66,7 @@ func TestSearchGet(t *testing.T) {
 		response     string
 	}{
 		{
-			description:  "matches search results",
+			description:  "returns valid results for valid movie query",
 			url:          "/api/search?mediaType=movie&query=waterbo",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
@@ -72,6 +91,38 @@ func TestSearchGet(t *testing.T) {
 			<a href="/reviews/new/write?tmdbId=2"
 				><img src="https://image.tmdb.org/t/p/w92/waterboys.jpg" /><span class="mx-3"
 					>Waterboys (2011)</span
+				></a
+			>
+		</li>
+</ul>
+`,
+		},
+		{
+			description:  "returns valid results for valid TV query",
+			url:          "/api/search?mediaType=tv-show&query=party%20down",
+			sessionToken: "abc123",
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("user123"),
+					},
+				},
+			},
+			status: http.StatusOK,
+			response: `
+<ul class="py-0 my-0 list-unstyled border border-success">
+	<li>
+			<a href="/reviews/new/write?tmdbId=3"
+				><img src="https://image.tmdb.org/t/p/w92/party-down.jpg" /><span class="mx-3"
+					>Party Down (2009)</span
+				></a
+			>
+		</li>
+	<li>
+			<a href="/reviews/new/write?tmdbId=4"
+				><img src="https://image.tmdb.org/t/p/w92/party-down-south.jpg" /><span class="mx-3"
+					>Party Down South (2014)</span
 				></a
 			>
 		</li>
@@ -140,7 +191,7 @@ func TestSearchGet(t *testing.T) {
 
 			authenticator := auth.New(store)
 			sessionManager := newMockSessionManager(tt.sessions)
-			metadataFinder := NewMockMetadataFinder(mockSearchableData)
+			metadataFinder := NewMockMetadataFinder(mockSearchableMovies, mockSearchableTvShows)
 			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, metadataFinder)
 
 			req, err := http.NewRequest("GET", tt.url, nil)

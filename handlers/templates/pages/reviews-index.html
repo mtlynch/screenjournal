@@ -8,7 +8,7 @@
       let newLocation = new URL(window.location.href);
       newLocation.search = (() => {
         let s = new URLSearchParams(newLocation.search);
-        s.set("sort-by", sortByField);
+        s.set("sortBy", sortByField);
         return s.toString();
       })();
       window.location = newLocation;

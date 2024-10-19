@@ -76,7 +76,7 @@ test("index page sorts cards based on desired sorting", async ({ page }) => {
   await page.locator("#sort-by").selectOption("rating");
 
   // Verify the sorting is now by rating.
-  await expect(page).toHaveURL("/reviews?sort-by=rating");
+  await expect(page).toHaveURL("/reviews?sortBy=rating");
   await expect(page.locator(":nth-match(.card, 1) .card-title")).toHaveText(
     "The Waterboy"
   );
@@ -89,7 +89,7 @@ test("index page sorts cards based on desired sorting", async ({ page }) => {
   await page.locator("#sort-by").selectOption("watch-date");
 
   // Verify the sorting is now by watch date.
-  await expect(page).toHaveURL("/reviews?sort-by=watch-date");
+  await expect(page).toHaveURL("/reviews?sortBy=watch-date");
   await expect(page.locator(":nth-match(.card, 1) .card-title")).toHaveText(
     "Billy Madison"
   );

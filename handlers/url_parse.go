@@ -11,12 +11,13 @@ import (
 )
 
 var (
-	ErrMediaTypeNotProvided = errors.New("no media type in query parameters")
-	ErrMovieIDNotProvided   = errors.New("no movie ID in query parameters")
-	ErrTmdbIDNotProvided    = errors.New("no TMDB ID in query parameters")
-	ErrReviewIDNotProvided  = errors.New("no review ID in query parameters")
-	ErrSortOrderNotProvided = errors.New("no sort order in query parameters")
-	ErrCommentIDNotProvided = errors.New("no comment ID in query parameters")
+	ErrMediaTypeNotProvided   = errors.New("no media type in query parameters")
+	ErrMovieIDNotProvided     = errors.New("no movie ID in query parameters")
+	ErrTmdbIDNotProvided      = errors.New("no TMDB ID in query parameters")
+	ErrReviewIDNotProvided    = errors.New("no review ID in query parameters")
+	ErrSortOrderNotProvided   = errors.New("no sort order in query parameters")
+	ErrCommentIDNotProvided   = errors.New("no comment ID in query parameters")
+	ErrSearchQueryNotProvided = errors.New("no search query in query parameters")
 )
 
 func mediaTypeFromQueryParams(r *http.Request) (screenjournal.MediaType, error) {
@@ -89,7 +90,7 @@ func inviteCodeFromQueryParams(r *http.Request) (screenjournal.InviteCode, error
 }
 
 func sortOrderFromQueryParams(r *http.Request) (screenjournal.SortOrder, error) {
-	raw := r.URL.Query().Get("sort-by")
+	raw := r.URL.Query().Get("sortBy")
 	if raw == "" {
 		return screenjournal.SortOrder(""), ErrSortOrderNotProvided
 	}
@@ -100,4 +101,13 @@ func sortOrderFromQueryParams(r *http.Request) (screenjournal.SortOrder, error) 
 		return screenjournal.ByWatchDate, nil
 	}
 	return screenjournal.SortOrder(""), errors.New("unrecognized sort order")
+}
+
+func searchQueryFromQueryParams(r *http.Request) (screenjournal.SearchQuery, error) {
+	raw := r.URL.Query().Get("query")
+	if raw == "" {
+		return screenjournal.SearchQuery(""), ErrSearchQueryNotProvided
+	}
+
+	return parse.SearchQuery(raw)
 }

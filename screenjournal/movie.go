@@ -18,6 +18,9 @@ type (
 	}
 
 	// TODO: Move to another file
+
+	TvShowSeason uint8
+
 	TvShow struct {
 		TmdbID      TmdbID
 		ImdbID      ImdbID

@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 
@@ -110,4 +111,18 @@ func searchQueryFromQueryParams(r *http.Request) (screenjournal.SearchQuery, err
 	}
 
 	return parse.SearchQuery(raw)
+}
+
+func tvShowSeasonFromQueryParams(r *http.Request) (screenjournal.TvShowSeason, error) {
+	raw := r.URL.Query().Get("season")
+	if raw == "" {
+		return screenjournal.TvShowSeason(0), errors.New("dummy error") // TODO
+	}
+
+	u, err := strconv.ParseUint(raw, 10, 64)
+	if err != nil {
+		return screenjournal.TvShowSeason(0), err
+	}
+
+	return screenjournal.TvShowSeason(u), nil
 }

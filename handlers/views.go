@@ -472,7 +472,7 @@ func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
 				templatesFS,
 				append(
 					baseTemplates,
-					"templates/pages/reviews-new.html")...))
+					"templates/pages/reviews-tv-pick-season.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		tmdbID, err := tmdbIDFromQueryParams(r)
@@ -481,12 +481,21 @@ func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
 			http.Error(w, "Invalid TMDB ID", http.StatusBadRequest)
 		}
 
+		tvShow, err := s.getTvShowInfo(&tmdbID)
+		if err != nil {
+			http.Error(w, "Failed to get TV show info", http.StatusFailedDependency)
+			log.Printf("failed to get TV show info with, TMDB ID=%v: %v", tmdbID, err)
+			return
+		}
+
 		if err := t.Execute(w, struct {
 			commonProps
-			TmdbID screenjournal.TmdbID
+			TvShowTitle screenjournal.MediaTitle
+			ReleaseYear int
 		}{
 			commonProps: makeCommonProps(r.Context()),
-			TmdbID:      tmdbID,
+			TvShowTitle: tvShow.Title,
+			ReleaseYear: tvShow.ReleaseDate.Year(),
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

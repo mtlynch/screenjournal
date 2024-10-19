@@ -80,15 +80,17 @@ func TestSearchGet(t *testing.T) {
 			status: http.StatusOK,
 			response: `
 <ul class="py-0 my-0 list-unstyled border border-success">
-	<li>
-			<a href="/reviews/new/write?tmdbId=1&mediaType=movie"
+		<li>
+			<a
+				href="/reviews/new/write?tmdbId=1&mediaType=movie"
 				><img src="https://image.tmdb.org/t/p/w92/the-waterboy.jpg" /><span class="mx-3"
 					>The Waterboy (1998)</span
 				></a
 			>
 		</li>
-	<li>
-			<a href="/reviews/new/write?tmdbId=2&mediaType=movie"
+		<li>
+			<a
+				href="/reviews/new/write?tmdbId=2&mediaType=movie"
 				><img src="https://image.tmdb.org/t/p/w92/waterboys.jpg" /><span class="mx-3"
 					>Waterboys (2011)</span
 				></a
@@ -112,15 +114,17 @@ func TestSearchGet(t *testing.T) {
 			status: http.StatusOK,
 			response: `
 <ul class="py-0 my-0 list-unstyled border border-success">
-	<li>
-			<a href="/reviews/new/tv/pick-season?tmdbId=3&mediaType=tv-show"
+		<li>
+			<a
+				href="/reviews/new/tv/pick-season?tmdbId=3"
 				><img src="https://image.tmdb.org/t/p/w92/party-down.jpg" /><span class="mx-3"
 					>Party Down (2009)</span
 				></a
 			>
 		</li>
-	<li>
-			<a href="/reviews/new/tv/pick-season?tmdbId=4&mediaType=tv-show"
+		<li>
+			<a
+				href="/reviews/new/tv/pick-season?tmdbId=4"
 				><img src="https://image.tmdb.org/t/p/w92/party-down-south.jpg" /><span class="mx-3"
 					>Party Down South (2014)</span
 				></a

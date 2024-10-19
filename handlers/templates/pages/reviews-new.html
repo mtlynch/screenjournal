@@ -56,7 +56,7 @@
   <div class="my-5">
     <form
       hx-get="/api/search"
-      hx-trigger="submit, search from:#media-title, keyup changed from:#media-title, change from:input[name='media-type']"
+      hx-trigger="submit, search from:#media-title, keyup changed from:#media-title, change from:input[name='mediaType']"
       hx-target="#search-results-list"
     >
       <fieldset class="my-3">
@@ -64,14 +64,14 @@
           <input
             type="radio"
             id="movies"
-            name="media-type"
+            name="mediaType"
             value="movie"
             checked
           />
           <label for="movies">Movie</label>
         </div>
         <div>
-          <input type="radio" id="tv-shows" name="media-type" value="tv-show" />
+          <input type="radio" id="tv-shows" name="mediaType" value="tv-show" />
           <label for="tv-shows">TV Show</label>
         </div>
       </fieldset>

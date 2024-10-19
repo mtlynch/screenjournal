@@ -6,12 +6,14 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 type (
 	searchGetRequest struct {
-		Query screenjournal.SearchQuery
+		Query     screenjournal.SearchQuery
+		MediaType screenjournal.MediaType
 	}
 
 	searchMatch struct {
@@ -69,7 +71,13 @@ func parseSearchGetRequest(r *http.Request) (searchGetRequest, error) {
 		return searchGetRequest{}, err
 	}
 
+	mediaType, err := parse.MediaType(r.URL.Query().Get("mediaType"))
+	if err != nil {
+		return searchGetRequest{}, err
+	}
+
 	return searchGetRequest{
-		Query: q,
+		Query:     q,
+		MediaType: mediaType,
 	}, nil
 }

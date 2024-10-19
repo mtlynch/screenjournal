@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
@@ -77,7 +76,7 @@ func (s Server) searchGet() http.HandlerFunc {
 }
 
 func parseSearchGetRequest(r *http.Request) (searchGetRequest, error) {
-	query, err := parse.SearchQuery(r.URL.Query().Get("query"))
+	q, err := searchQueryFromQueryParams(r)
 	if err != nil {
 		return searchGetRequest{}, err
 	}
@@ -88,7 +87,7 @@ func parseSearchGetRequest(r *http.Request) (searchGetRequest, error) {
 	}
 
 	return searchGetRequest{
-		Query:     query,
+		Query:     q,
 		MediaType: mediaType,
 	}, nil
 }

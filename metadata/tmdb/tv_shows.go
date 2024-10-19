@@ -19,8 +19,6 @@ func (f Finder) GetTvShowInfo(id screenjournal.TmdbID) (metadata.TvShowInfo, err
 	info := metadata.TvShowInfo{
 		TmdbID: id,
 	}
-	log.Printf("TMDB at metadata fetcher call is %v", id)     // DEBUG
-	log.Printf("TMDB at metadata fetcher is %v", info.TmdbID) // DEBUG
 
 	info.Title, err = parse.MediaTitle(m.Name)
 	if err != nil {

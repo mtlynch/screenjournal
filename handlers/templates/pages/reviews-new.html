@@ -59,6 +59,22 @@
       hx-trigger="submit, search from:#media-title, keyup changed from:#media-title, change from:input[name='media-type']"
       hx-target="#search-results-list"
     >
+      <fieldset class="my-3">
+        <div>
+          <input
+            type="radio"
+            id="movies"
+            name="media-type"
+            value="movie"
+            checked
+          />
+          <label for="movies">Movie</label>
+        </div>
+        <div>
+          <input type="radio" id="tv-shows" name="media-type" value="tv-show" />
+          <label for="tv-shows">TV Show</label>
+        </div>
+      </fieldset>
       <label for="media-title" class="form-label">Title</label>
       <input
         id="media-title"
@@ -70,22 +86,6 @@
         autofocus="autofocus"
         required
       />
-      <fieldset>
-        <div>
-          <input
-            type="radio"
-            id="movies"
-            name="media-type"
-            value="movie"
-            checked
-          />
-          <label for="movies">Movies</label>
-        </div>
-        <div>
-          <input type="radio" id="tv-shows" name="media-type" value="tv-show" />
-          <label for="tv-shows">TV Shows</label>
-        </div>
-      </fieldset>
 
       <div class="alert alert-danger" role="alert" hidden>
         Placeholder error

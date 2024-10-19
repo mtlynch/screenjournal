@@ -1,0 +1,30 @@
+{{ define "title" }}
+  Pick Season
+{{ end }}
+
+{{ define "content" }}
+
+  <div class="my-5">
+    <form>
+      <div class="mb-3">
+        <label for="season" class="form-label">Season</label>
+        <select
+          id="season"
+          name="season"
+          class="form-select"
+          aria-label="Season"
+          required
+          autofocus
+        >
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+        </select>
+      </div>
+
+      <div class="alert alert-danger" role="alert" hidden>
+        Placeholder error
+      </div>
+    </form>
+  </div>
+{{ end }}

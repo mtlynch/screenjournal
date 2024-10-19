@@ -464,6 +464,36 @@ func (s Server) reviewsNewTitleSearchGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
+	t := template.Must(
+		template.New("base.html").
+			Funcs(reviewPageFns).
+			ParseFS(
+				templatesFS,
+				append(
+					baseTemplates,
+					"templates/pages/reviews-new.html")...))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		tmdbID, err := tmdbIDFromQueryParams(r)
+		if err != nil {
+			log.Printf("invalid TMDB ID: %v", err)
+			http.Error(w, "Invalid TMDB ID", http.StatusBadRequest)
+		}
+
+		if err := t.Execute(w, struct {
+			commonProps
+			TmdbID screenjournal.TmdbID
+		}{
+			commonProps: makeCommonProps(r.Context()),
+			TmdbID:      tmdbID,
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").

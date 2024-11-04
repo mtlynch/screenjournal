@@ -44,10 +44,6 @@ func movieIDFromQueryParams(r *http.Request) (screenjournal.MovieID, error) {
 	return parse.MovieIDFromString(raw)
 }
 
-func tvShowIDFromRequestPath(r *http.Request) (screenjournal.TvShowID, error) {
-	return parse.TvShowIDFromString(mux.Vars(r)["tvShowID"])
-}
-
 func tvShowIDFromQueryParams(r *http.Request) (screenjournal.TvShowID, error) {
 	raw := r.URL.Query().Get("tvShowId")
 	if raw == "" {

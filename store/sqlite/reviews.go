@@ -19,6 +19,7 @@ func (s Store) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, erro
 		id,
 		review_owner,
 		movie_id,
+		tv_show_id,
 		rating,
 		blurb,
 		watched_date,
@@ -34,9 +35,16 @@ func (s Store) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, erro
 		return screenjournal.Review{}, err
 	}
 
-	review.Movie, err = s.ReadMovie(review.Movie.ID)
-	if err != nil {
-		return screenjournal.Review{}, err
+	if !review.Movie.ID.IsZero() {
+		review.Movie, err = s.ReadMovie(review.Movie.ID)
+		if err != nil {
+			return screenjournal.Review{}, err
+		}
+	} else {
+		review.TvShow, err = s.ReadTvShow(review.TvShow.ID)
+		if err != nil {
+			return screenjournal.Review{}, err
+		}
 	}
 
 	return review, nil
@@ -58,12 +66,17 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 		whereClauses = append(whereClauses, "movie_id = :movie_id")
 		queryArgs = append(queryArgs, sql.Named("movie_id", params.Filters.MovieID.Int64()))
 	}
+	if params.Filters.TvShowID != nil {
+		whereClauses = append(whereClauses, "tv_show_id = :tv_show_id")
+		queryArgs = append(queryArgs, sql.Named("tv_show_id", params.Filters.TvShowID.Int64()))
+	}
 
 	query := `
 	SELECT
 		id,
 		review_owner,
 		movie_id,
+		tv_show_id,
 		rating,
 		blurb,
 		watched_date,
@@ -94,8 +107,14 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 			return []screenjournal.Review{}, err
 		}
 
-		if review.Movie, err = s.ReadMovie(review.Movie.ID); err != nil {
-			return []screenjournal.Review{}, err
+		if !review.Movie.ID.IsZero() {
+			if review.Movie, err = s.ReadMovie(review.Movie.ID); err != nil {
+				return []screenjournal.Review{}, err
+			}
+		} else {
+			if review.TvShow, err = s.ReadTvShow(review.TvShow.ID); err != nil {
+				return []screenjournal.Review{}, err
+			}
 		}
 
 		if review.Comments, err = s.ReadComments(review.ID); err != nil {
@@ -205,18 +224,30 @@ func (s Store) DeleteReview(id screenjournal.ReviewID) error {
 func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 	var id int
 	var owner string
-	var movie_id int
+	var movieIDRaw *int
+	var tvShowIDRaw *int
 	var rating screenjournal.Rating
 	var blurb string
 	var watchedDateRaw string
 	var createdTimeRaw string
 	var lastModifiedTimeRaw string
 
-	err := row.Scan(&id, &owner, &movie_id, &rating, &blurb, &watchedDateRaw, &createdTimeRaw, &lastModifiedTimeRaw)
+	err := row.Scan(&id, &owner, &movieIDRaw, &tvShowIDRaw, &rating, &blurb, &watchedDateRaw, &createdTimeRaw, &lastModifiedTimeRaw)
 	if err == sql.ErrNoRows {
 		return screenjournal.Review{}, store.ErrReviewNotFound
 	} else if err != nil {
+		log.Printf("failed to read review from SQL row: %v", err)
 		return screenjournal.Review{}, err
+	}
+
+	var movieID screenjournal.MovieID
+	if movieIDRaw != nil {
+		movieID = screenjournal.MovieID(*movieIDRaw)
+	}
+
+	var tvShowID screenjournal.TvShowID
+	if tvShowIDRaw != nil {
+		tvShowID = screenjournal.TvShowID(*tvShowIDRaw)
 	}
 
 	wd, err := parseDatetime(watchedDateRaw)
@@ -243,7 +274,10 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 		Created:  ct,
 		Modified: lmt,
 		Movie: screenjournal.Movie{
-			ID: screenjournal.MovieID(movie_id),
+			ID: screenjournal.MovieID(movieID),
+		},
+		TvShow: screenjournal.TvShow{
+			ID: screenjournal.TvShowID(tvShowID),
 		},
 	}, nil
 }

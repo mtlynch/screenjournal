@@ -498,6 +498,8 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			tmdbID = &tid
 		}
 
+		// TODO: track movie vs. TV here
+
 		movie, err := s.getMovieInfo(r, movieID, tmdbID)
 		if err != nil {
 			http.Error(w, "Failed to get movie info", http.StatusFailedDependency)

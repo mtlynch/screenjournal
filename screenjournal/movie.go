@@ -22,6 +22,7 @@ type (
 	TvShowSeason uint8
 
 	TvShow struct {
+		ID          TvShowID
 		TmdbID      TmdbID
 		ImdbID      ImdbID
 		Title       MediaTitle

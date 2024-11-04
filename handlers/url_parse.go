@@ -14,6 +14,7 @@ import (
 var (
 	ErrMediaTypeNotProvided   = errors.New("no media type in query parameters")
 	ErrMovieIDNotProvided     = errors.New("no movie ID in query parameters")
+	ErrTvShowIDNotProvided    = errors.New("no TV show ID in query parameters")
 	ErrTmdbIDNotProvided      = errors.New("no TMDB ID in query parameters")
 	ErrReviewIDNotProvided    = errors.New("no review ID in query parameters")
 	ErrSortOrderNotProvided   = errors.New("no sort order in query parameters")
@@ -41,6 +42,15 @@ func movieIDFromQueryParams(r *http.Request) (screenjournal.MovieID, error) {
 	}
 
 	return parse.MovieIDFromString(raw)
+}
+
+func tvShowIDFromQueryParams(r *http.Request) (screenjournal.TvShowID, error) {
+	raw := r.URL.Query().Get("tvShowId")
+	if raw == "" {
+		return screenjournal.TvShowID(0), ErrTvShowIDNotProvided
+	}
+
+	return parse.TvShowIDFromString(raw)
 }
 
 func tmdbIDFromQueryParams(r *http.Request) (screenjournal.TmdbID, error) {

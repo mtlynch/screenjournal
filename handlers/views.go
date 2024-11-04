@@ -379,12 +379,14 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 
 		if err := t.Execute(w, struct {
 			commonProps
-			Movie   screenjournal.Movie
-			Reviews []screenjournal.Review
+			Movie     screenjournal.Movie
+			Reviews   []screenjournal.Review
+			MediaType screenjournal.MediaType
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			Movie:       movie,
 			Reviews:     reviews,
+			MediaType:   screenjournal.MediaTypeMovie,
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -498,11 +500,37 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			tmdbID = &tid
 		}
 
-		movie, err := s.getMovieInfo(r, movieID, tmdbID)
-		if err != nil {
-			http.Error(w, "Failed to get movie info", http.StatusFailedDependency)
-			log.Printf("failed to get movie info with movie ID=%v, TMDB ID=%v: %v", movieID, tmdbID, err)
-			return
+		var mediaType screenjournal.MediaType
+		if movieID != nil {
+			mediaType = screenjournal.MediaTypeMovie
+		} else {
+			mt, err := mediaTypeFromQueryParams(r)
+			if err != nil {
+				log.Printf("invalid media type: %v", err)
+				http.Error(w, "Invalid media type", http.StatusBadRequest)
+				return
+			}
+			mediaType = mt
+		}
+
+		var movie metadata.MovieInfo
+		var tvShow metadata.TvShowInfo
+		if mediaType == screenjournal.MediaTypeMovie {
+			m, err := s.getMovieInfo(r, movieID, tmdbID)
+			if err != nil {
+				http.Error(w, "Failed to get movie info", http.StatusFailedDependency)
+				log.Printf("failed to get movie info with movie ID=%v, TMDB ID=%v: %v", movieID, tmdbID, err)
+				return
+			}
+			movie = m
+		} else if mediaType == screenjournal.MediaTypeTvShow {
+			t, err := s.getTvShowInfo(tmdbID)
+			if err != nil {
+				http.Error(w, "Failed to get TV show info", http.StatusFailedDependency)
+				log.Printf("failed to get TV show info with, TMDB ID=%v: %v", tmdbID, err)
+				return
+			}
+			tvShow = t
 		}
 
 		if err := t.Execute(w, struct {
@@ -518,6 +546,11 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 					Title:       movie.Title,
 					ReleaseDate: movie.ReleaseDate,
 					TmdbID:      movie.TmdbID,
+				},
+				TvShow: screenjournal.TvShow{
+					Title:   tvShow.Title,
+					AirDate: tvShow.ReleaseDate,
+					TmdbID:  tvShow.TmdbID,
 				},
 				Watched: screenjournal.WatchDate(time.Now()),
 			},
@@ -552,6 +585,14 @@ func (s Server) getMovieInfo(r *http.Request, movieID *screenjournal.MovieID, tm
 	}
 
 	return metadata.MovieInfo{}, errors.New("need movie ID or TMDB ID to retrieve movie metadata")
+}
+
+func (s Server) getTvShowInfo(tmdbID *screenjournal.TmdbID) (metadata.TvShowInfo, error) {
+	if tmdbID != nil {
+		return s.metadataFinder.GetTvShowInfo(*tmdbID)
+	}
+
+	return metadata.TvShowInfo{}, errors.New("need TMDB ID to retrieve TV show metadata")
 }
 
 func (s Server) invitesGet() http.HandlerFunc {

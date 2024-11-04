@@ -24,6 +24,7 @@ type (
 
 	TvShowInfo struct {
 		TmdbID      screenjournal.TmdbID
+		ImdbID      screenjournal.ImdbID
 		Title       screenjournal.MediaTitle
 		ReleaseDate screenjournal.ReleaseDate
 		PosterPath  url.URL

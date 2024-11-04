@@ -541,6 +541,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 					"templates/pages/reviews-edit.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		var mediaType screenjournal.MediaType
 
 		// Review must have either a movieID (cached information in the database),
 		// or a TMDB ID (no movie info cached yet).
@@ -554,6 +555,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			return
 		} else {
 			movieID = &mid
+			mediaType = screenjournal.MediaTypeMovie
 		}
 
 		var tvShowID *screenjournal.TvShowID
@@ -566,6 +568,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			return
 		} else {
 			tvShowID = &tvid
+			mediaType = screenjournal.MediaTypeTvShow
 		}
 
 		var tmdbID *screenjournal.TmdbID
@@ -579,16 +582,19 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			tmdbID = &tid
 		}
 
+		// If we can't infer the media type from other query params, check for an
+		// explicity media type query param.
+		if mediaType.IsEmpty() {
+			if mediaType, err = mediaTypeFromQueryParams(r); err != nil {
+				log.Printf("invalid media type: %v", err)
+				http.Error(w, "Invalid media type", http.StatusBadRequest)
+				return
+			}
+		}
+
 		var movie metadata.MovieInfo
 		var tvShow metadata.TvShowInfo
 		var tvShowSeason screenjournal.TvShowSeason
-		mediaType, err := mediaTypeFromQueryParams(r)
-		if err != nil {
-			log.Printf("invalid media type: %v", err)
-			http.Error(w, "Invalid media type", http.StatusBadRequest)
-			return
-		}
-
 		if mediaType == screenjournal.MediaTypeMovie {
 			m, err := s.getMovieInfo(r, movieID, tmdbID)
 			if err != nil {

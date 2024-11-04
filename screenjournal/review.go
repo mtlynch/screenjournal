@@ -54,6 +54,10 @@ func (id ReviewID) IsZero() bool {
 	return id == ReviewID(0)
 }
 
+func (mt MediaType) IsEmpty() bool {
+	return mt.String() == ""
+}
+
 func (mt MediaType) String() string {
 	return string(mt)
 }

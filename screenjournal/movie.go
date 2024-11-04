@@ -17,12 +17,17 @@ type (
 		PosterPath  url.URL
 	}
 
+	// TODO: Move to another file
+
+	TvShowSeason uint8
+
 	TvShow struct {
-		TmdbID     TmdbID
-		ImdbID     ImdbID
-		Title      MediaTitle
-		AirDate    ReleaseDate
-		PosterPath url.URL
+		TmdbID      TmdbID
+		ImdbID      ImdbID
+		Title       MediaTitle
+		AirDate     ReleaseDate
+		SeasonCount uint8
+		PosterPath  url.URL
 	}
 )
 

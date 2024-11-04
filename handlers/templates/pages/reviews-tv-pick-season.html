@@ -1,0 +1,41 @@
+{{ define "title" }}
+  Add Review
+{{ end }}
+
+{{ define "content" }}
+
+  {{ $tmdbID := .TmdbID }}
+
+
+  <div class="my-5">
+    <h2>{{ .TvShowTitle }} ({{ .ReleaseYear }})</h2>
+    <form>
+      <div class="mb-3">
+        <label for="season" class="form-label">Season</label>
+        <select
+          id="season"
+          name="season"
+          class="form-select"
+          aria-label="Season"
+          required
+          autofocus
+          hx-target="body"
+        >
+          {{ range .SeasonOptions }}
+            <option
+              value="{{ . }}"
+              hx-push-url="true"
+              hx-get="/reviews/new/write?mediaType=tv-show&tmdbId={{ $tmdbID }}&season={{ . }}"
+            >
+              {{ . }}
+            </option>
+          {{ end }}
+        </select>
+      </div>
+
+      <div class="alert alert-danger" role="alert" hidden>
+        Placeholder error
+      </div>
+    </form>
+  </div>
+{{ end }}

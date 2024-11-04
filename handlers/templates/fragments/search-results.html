@@ -1,8 +1,23 @@
 <ul class="py-0 my-0 list-unstyled border border-success">
   {{ range .Results -}}
+
+    {{ $nextUrl := "" }}
+    {{ $isMovie := true }}
+    {{ if eq .MediaType "movie" }}
+      {{ $nextUrl = "/reviews/new/write" }}
+      {{ $isMovie = true }}
+    {{ else }}
+      {{ $nextUrl = "/reviews/new/tv/pick-season" }}
+      {{ $isMovie = false }}
+    {{ end }}
+
+
     <li>
       <a
-        href="/reviews/new/write?tmdbId={{ .TmdbID }}&mediaType={{ .MediaType }}"
+        href="{{ $nextUrl }}?tmdbId={{ .TmdbID }}
+        {{- if $isMovie -}}
+          &mediaType={{ .MediaType }}
+        {{- end }}"
         ><img src="{{ .PosterURL }}" /><span class="mx-3"
           >{{ .Title }} ({{ .ReleaseYear }})</span
         ></a

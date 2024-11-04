@@ -27,6 +27,7 @@ type (
 		ImdbID      screenjournal.ImdbID
 		Title       screenjournal.MediaTitle
 		ReleaseDate screenjournal.ReleaseDate
+		SeasonCount uint8
 		PosterPath  url.URL
 	}
 )

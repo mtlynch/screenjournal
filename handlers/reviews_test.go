@@ -188,7 +188,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 	}{
 		{
 			description:  "valid request with all fields populated and movie information is in local DB",
-			payload:      "tmdb-id=38&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
+			payload:      "media-type=movie&tmdb-id=38&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
 			sessionToken: "abc123",
 			localMovies: []screenjournal.Movie{
 				{
@@ -224,7 +224,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 		},
 		{
 			description:  "valid request without a blurb",
-			payload:      "tmdb-id=14577&rating=4&watch-date=2022-10-21&blurb=",
+			payload:      "media-type=movie&tmdb-id=14577&rating=4&watch-date=2022-10-21&blurb=",
 			sessionToken: "abc123",
 			localMovies: []screenjournal.Movie{
 				{
@@ -261,7 +261,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 		},
 		{
 			description:  "valid request but we have to query metadata finder for movie info",
-			payload:      "tmdb-id=38&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
+			payload:      "media-type=movie&tmdb-id=38&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
 			sessionToken: "abc123",
 			remoteMovieInfo: []metadata.MovieInfo{
 				{

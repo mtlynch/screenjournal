@@ -60,6 +60,50 @@ func TestReviewIDFromString(t *testing.T) {
 	}
 }
 
+func TestMediaType(t *testing.T) {
+	for _, tt := range []struct {
+		description string
+		in          string
+		mediaType   screenjournal.MediaType
+		err         error
+	}{
+		{
+			"movie type is a valid media type",
+			"movie",
+			screenjournal.MediaTypeMovie,
+			nil,
+		},
+		{
+			"tv-show type is a valid media type",
+			"tv-show",
+			screenjournal.MediaTypeTvShow,
+			nil,
+		},
+		{
+			"banana is an invalid media type",
+			"banana",
+			screenjournal.MediaType(""),
+			parse.ErrInvalidMediaType,
+		},
+		{
+			"empty string is an invalid media type",
+			"",
+			screenjournal.MediaType(""),
+			parse.ErrInvalidMediaType,
+		},
+	} {
+		t.Run(tt.description, func(t *testing.T) {
+			mt, err := parse.MediaType(tt.in)
+			if got, want := err, tt.err; got != want {
+				t.Fatalf("err=%v, want=%v", got, want)
+			}
+			if got, want := mt.String(), tt.mediaType.String(); got != want {
+				t.Errorf("mediaType=%s, want=%s", got, want)
+			}
+		})
+	}
+}
+
 func TestMediaTitle(t *testing.T) {
 	for _, tt := range []struct {
 		description string

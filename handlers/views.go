@@ -530,12 +530,6 @@ func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
 	}
 }
 
-type mediaMetadata struct {
-	Title       screenjournal.MediaTitle
-	ReleaseDate screenjournal.ReleaseDate
-	TmdbID      screenjournal.TmdbID
-}
-
 func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").
@@ -651,43 +645,6 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			return
 		}
 	}
-}
-
-// TODO: Delete this?
-func (s Server) getMediaMetadata(r *http.Request, movieID *screenjournal.MovieID, tvShowID *screenjournal.TvShowID, tmdbID *screenjournal.TmdbID) (mediaMetadata, error) {
-	// Try to get the movie information from the database.
-	if movieID != nil {
-		m, err := s.getDB(r).ReadMovie(*movieID)
-		if err != nil {
-			return mediaMetadata{}, err
-		}
-		return mediaMetadata{
-			TmdbID:      m.TmdbID,
-			Title:       m.Title,
-			ReleaseDate: m.ReleaseDate,
-		}, nil
-	}
-
-	// Try to get the TV show metadata from the database.
-	if tvShowID != nil {
-		// TODO: finish this.
-	}
-
-	// If we can't read the movie information from the database, use the TMDB ID
-	// to get information from TMDB.
-	if tmdbID != nil {
-		m, err := s.metadataFinder.GetMovieInfo(*tmdbID)
-		if err != nil {
-			return mediaMetadata{}, err
-		}
-		return mediaMetadata{
-			TmdbID:      m.TmdbID,
-			Title:       m.Title,
-			ReleaseDate: m.ReleaseDate,
-		}, nil
-	}
-
-	return mediaMetadata{}, errors.New("need movie ID, TV show ID, or TMDB ID to retrieve movie metadata")
 }
 
 func (s Server) getMovieInfo(r *http.Request, movieID *screenjournal.MovieID, tmdbID *screenjournal.TmdbID) (metadata.MovieInfo, error) {

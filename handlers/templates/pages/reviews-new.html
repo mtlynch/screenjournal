@@ -54,7 +54,27 @@
 {{ define "content" }}
 
   <div class="my-5">
-    <form>
+    <form
+      hx-get="/api/search"
+      hx-trigger="submit, search from:#media-title, keyup changed from:#media-title, change from:input[name='mediaType']"
+      hx-target="#search-results-list"
+    >
+      <fieldset class="my-3">
+        <div>
+          <input
+            type="radio"
+            id="movies"
+            name="mediaType"
+            value="movie"
+            checked
+          />
+          <label for="movies">Movie</label>
+        </div>
+        <div>
+          <input type="radio" id="tv-shows" name="mediaType" value="tv-show" />
+          <label for="tv-shows">TV Show</label>
+        </div>
+      </fieldset>
       <label for="media-title" class="form-label">Title</label>
       <input
         id="media-title"
@@ -65,9 +85,6 @@
         aria-label="Search"
         autofocus="autofocus"
         required
-        hx-get="/api/search"
-        hx-trigger="search, keyup delay:200ms changed"
-        hx-target="#search-results-list"
       />
 
       <div class="alert alert-danger" role="alert" hidden>

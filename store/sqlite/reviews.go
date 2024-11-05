@@ -72,7 +72,7 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 	FROM
 		reviews`
 	if len(queryArgs) > 0 {
-		query += fmt.Sprintf("\n\tWHERE\n\t\t%s", strings.Join(whereClauses, "\n\t\t"))
+		query += fmt.Sprintf("\n\tWHERE\n\t\t%s", strings.Join(whereClauses, " AND\n\t\t"))
 	}
 	query += "\nORDER BY"
 	if params.Order != nil && *params.Order == screenjournal.ByRating {

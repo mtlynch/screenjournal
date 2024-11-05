@@ -67,10 +67,6 @@
         <li>
           <a href="https://www.imdb.com/title/{{ .ImdbID }}">IMDB</a>
         </li>
-      {{ else if .TmdbID }}
-        <li>
-          <a href="https://www.themoviedb.org/tv/{{ .TmdbID }}">TMDB</a>
-        </li>
       {{ end }}
     </ul>
   {{ end }}

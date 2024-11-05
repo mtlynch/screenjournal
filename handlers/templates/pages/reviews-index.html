@@ -94,7 +94,12 @@
           /></a>
           <div class="card-body">
             <h5 class="card-title">
-              <a href="{{ $reviewRoute }}">{{ $media.Title }}</a>
+              <a href="{{ $reviewRoute }}"
+                >{{ $media.Title }}
+                {{- if ne .TvShowSeason 0 }}
+                  (Season {{ .TvShowSeason }})
+                {{ end -}}
+              </a>
             </h5>
             <h6 class="card-subtitle mb-2 text-muted">
               <b

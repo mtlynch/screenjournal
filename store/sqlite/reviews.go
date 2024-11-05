@@ -20,6 +20,7 @@ func (s Store) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, erro
 		review_owner,
 		movie_id,
 		tv_show_id,
+		tv_show_season,
 		rating,
 		blurb,
 		watched_date,
@@ -77,6 +78,7 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 		review_owner,
 		movie_id,
 		tv_show_id,
+		tv_show_season,
 		rating,
 		blurb,
 		watched_date,
@@ -143,6 +145,7 @@ func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, err
 		review_owner,
 		movie_id,
 		tv_show_id,
+		tv_show_season,
 		rating,
 		blurb,
 		watched_date,
@@ -150,12 +153,13 @@ func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, err
 		last_modified_time
 	)
 	VALUES (
-		:owner, :movie_id, :tv_show_id, :rating, :blurb, :watched_date, :created_time, :last_modified_time
+		:owner, :movie_id, :tv_show_id, :tv_show_season, :rating, :blurb, :watched_date, :created_time, :last_modified_time
 	)
 	`,
 		sql.Named("owner", r.Owner),
 		sql.Named("movie_id", r.Movie.ID),
 		sql.Named("tv_show_id", r.TvShow.ID),
+		sql.Named("tv_show_season", r.TvShowSeason.UInt8()),
 		sql.Named("rating", r.Rating),
 		sql.Named("blurb", r.Blurb),
 		sql.Named("watched_date", formatWatchDate(r.Watched)),
@@ -226,13 +230,14 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 	var owner string
 	var movieIDRaw *int
 	var tvShowIDRaw *int
+	var tvShowSeason int
 	var rating screenjournal.Rating
 	var blurb string
 	var watchedDateRaw string
 	var createdTimeRaw string
 	var lastModifiedTimeRaw string
 
-	err := row.Scan(&id, &owner, &movieIDRaw, &tvShowIDRaw, &rating, &blurb, &watchedDateRaw, &createdTimeRaw, &lastModifiedTimeRaw)
+	err := row.Scan(&id, &owner, &movieIDRaw, &tvShowIDRaw, &tvShowSeason, &rating, &blurb, &watchedDateRaw, &createdTimeRaw, &lastModifiedTimeRaw)
 	if err == sql.ErrNoRows {
 		return screenjournal.Review{}, store.ErrReviewNotFound
 	} else if err != nil {
@@ -279,5 +284,6 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 		TvShow: screenjournal.TvShow{
 			ID: screenjournal.TvShowID(tvShowID),
 		},
+		TvShowSeason: screenjournal.TvShowSeason(tvShowSeason),
 	}, nil
 }

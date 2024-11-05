@@ -12,11 +12,12 @@ import (
 )
 
 type reviewPostRequest struct {
-	MediaType screenjournal.MediaType
-	TmdbID    screenjournal.TmdbID
-	Rating    screenjournal.Rating
-	WatchDate screenjournal.WatchDate
-	Blurb     screenjournal.Blurb
+	MediaType    screenjournal.MediaType
+	TmdbID       screenjournal.TmdbID
+	TvShowSeason screenjournal.TvShowSeason
+	Rating       screenjournal.Rating
+	WatchDate    screenjournal.WatchDate
+	Blurb        screenjournal.Blurb
 }
 
 type reviewPutRequest struct {
@@ -35,11 +36,12 @@ func (s Server) reviewsPost() http.HandlerFunc {
 		}
 
 		review := screenjournal.Review{
-			Owner:    mustGetUsernameFromContext(r.Context()),
-			Rating:   req.Rating,
-			Watched:  req.WatchDate,
-			Blurb:    req.Blurb,
-			Comments: []screenjournal.ReviewComment{},
+			Owner:        mustGetUsernameFromContext(r.Context()),
+			TvShowSeason: req.TvShowSeason,
+			Rating:       req.Rating,
+			Watched:      req.WatchDate,
+			Blurb:        req.Blurb,
+			Comments:     []screenjournal.ReviewComment{},
 		}
 
 		if req.MediaType == screenjournal.MediaTypeMovie {
@@ -76,7 +78,7 @@ func (s Server) reviewsPost() http.HandlerFunc {
 		if review.MediaType() == screenjournal.MediaTypeMovie {
 			http.Redirect(w, r, fmt.Sprintf("/movies/%d#review%d", review.Movie.ID.Int64(), review.ID.UInt64()), http.StatusSeeOther)
 		} else {
-			http.Redirect(w, r, fmt.Sprintf("/tv-shows/%d#review%d", review.TvShow.ID.Int64(), review.ID.UInt64()), http.StatusSeeOther)
+			http.Redirect(w, r, fmt.Sprintf("/tv-shows/%d?season=%d#review%d", review.TvShow.ID.Int64(), review.TvShowSeason.UInt8(), review.ID.UInt64()), http.StatusSeeOther)
 		}
 
 	}
@@ -173,6 +175,12 @@ func parseReviewPostRequest(r *http.Request) (reviewPostRequest, error) {
 
 	if parsed.TmdbID, err = parse.TmdbIDFromString(r.PostFormValue("tmdb-id")); err != nil {
 		return reviewPostRequest{}, err
+	}
+
+	if parsed.MediaType == screenjournal.MediaTypeTvShow {
+		if parsed.TvShowSeason, err = parse.TvShowSeason(r.PostFormValue("season")); err != nil {
+			return reviewPostRequest{}, err
+		}
 	}
 
 	if parsed.Rating, err = parse.RatingFromString(r.PostFormValue("rating")); err != nil {

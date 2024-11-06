@@ -83,7 +83,7 @@ test("index page sorts cards based on desired sorting", async ({ page }) => {
     "Seinfeld (Season 1)"
   );
   await expect(page.locator(":nth-match(.card, 3) .card-title")).toHaveText(
-    "The Waterboy"
+    "Billy Madison"
   );
   await expect(page.locator(":nth-match(.card, 4) .card-title")).toHaveText(
     "The Waterboy"
@@ -181,7 +181,7 @@ test("adds a new TV show rating and fills in only required fields", async ({
   await page.getByText("30 Rock (2006)").click();
 
   await expect(page).toHaveURL("/reviews/new/tv/pick-season?tmdbId=4608");
-  await page.getByRole("option").selectOption({ label: "Season 5" });
+  await page.getByLabel("Season").selectOption({ label: "5" });
 
   await expect(page).toHaveURL(
     "/reviews/new/write?tmdbId=333287&mediaType=tv-show"

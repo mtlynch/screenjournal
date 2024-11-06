@@ -105,10 +105,10 @@ test("index page sorts cards based on desired sorting", async ({ page }) => {
     "The Waterboy"
   );
   await expect(page.locator(":nth-match(.card, 2) .card-title")).toHaveText(
-    "Seinfeld (Season 2)"
+    "Seinfeld (Season 1)"
   );
   await expect(page.locator(":nth-match(.card, 3) .card-title")).toHaveText(
-    "Seinfeld (Season 1)"
+    "Seinfeld (Season 2)"
   );
   await expect(page.locator(":nth-match(.card, 4) .card-title")).toHaveText(
     "Billy Madison"

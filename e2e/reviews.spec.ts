@@ -101,23 +101,35 @@ test("index page sorts cards based on desired sorting", async ({ page }) => {
 
   // Verify the sorting is now by rating.
   await expect(page).toHaveURL("/reviews?sortBy=rating");
-  await expect(page.locator(":nth-match(.card, 2) .card-title")).toHaveText(
+  await expect(page.locator(":nth-match(.card, 1) .card-title")).toHaveText(
     "The Waterboy"
   );
+  await expect(page.locator(":nth-match(.card, 2) .card-title")).toHaveText(
+    "Seinfeld (Season 2)"
+  );
   await expect(page.locator(":nth-match(.card, 3) .card-title")).toHaveText(
+    "Seinfeld (Season 1)"
+  );
+  await expect(page.locator(":nth-match(.card, 4) .card-title")).toHaveText(
     "Billy Madison"
   );
 
-  // Choose to sort by rating.
+  // Choose to sort by watch date.
   await page.locator("#sort-btn").click();
   await page.locator("#sort-by").selectOption("watch-date");
 
   // Verify the sorting is now by watch date.
   await expect(page).toHaveURL("/reviews?sortBy=watch-date");
+  await expect(page.locator(":nth-match(.card, 1) .card-title")).toHaveText(
+    "Seinfeld (Season 2)"
+  );
   await expect(page.locator(":nth-match(.card, 2) .card-title")).toHaveText(
-    "Billy Madison"
+    "Seinfeld (Season 1)"
   );
   await expect(page.locator(":nth-match(.card, 3) .card-title")).toHaveText(
+    "Billy Madison"
+  );
+  await expect(page.locator(":nth-match(.card, 4) .card-title")).toHaveText(
     "The Waterboy"
   );
 });

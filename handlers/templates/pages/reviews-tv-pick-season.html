@@ -20,13 +20,12 @@
           required
           autofocus
           hx-target="body"
+          hx-push-url="true"
+          hx-get="/reviews/new/write"
+          hx-vals='{"mediaType": "tv-show", "tmdbId": {{ $tmdbID }}}'
         >
           {{ range .SeasonOptions }}
-            <option
-              value="{{ . }}"
-              hx-push-url="true"
-              hx-get="/reviews/new/write?mediaType=tv-show&tmdbId={{ $tmdbID }}&season={{ . }}"
-            >
+            <option>
               {{ . }}
             </option>
           {{ end }}

@@ -7,7 +7,9 @@ test.beforeEach(async ({ page }) => {
   await loginAsUserA(page);
 });
 
-test("index page renders card for review with comments", async ({ page }) => {
+test("index page renders card for movie review with comments", async ({
+  page,
+}) => {
   const reviewCard = await page.locator(".card", {
     has: page.getByRole("heading", { name: "The Waterboy" }),
   });
@@ -28,7 +30,7 @@ test("index page renders card for review with comments", async ({ page }) => {
   await expect(reviewCard.getByTestId("comment-count")).toHaveText(" 1");
 });
 
-test("index page renders card for review without comments", async ({
+test("index page renders card for movie review without comments", async ({
   page,
 }) => {
   const reviewCard = await page.locator(".card", {
@@ -54,6 +56,22 @@ test("index page renders card for review without comments", async ({
     "A staggering lack of water."
   );
   await expect(reviewCard.getByTestId("comment-count")).toHaveCount(0);
+});
+
+test("index page renders card for TV show review", async ({ page }) => {
+  const reviewCard = await page.locator(".card", {
+    has: page.getByRole("heading", { name: "Seinfeld (Season 1)" }),
+  });
+  await expect(reviewCard.locator(".card-subtitle")).toHaveText(
+    /userB watched this .+ ago/,
+    { useInnerText: true }
+  );
+  await expect(
+    reviewCard.locator(".card-subtitle [data-testid='watch-date']")
+  ).toHaveAttribute("title", "2024-11-04");
+  await expect(reviewCard.locator(".card-text")).toHaveText(
+    "I see what the fuss is about!"
+  );
 });
 
 test("index page sorts cards based on desired sorting", async ({ page }) => {

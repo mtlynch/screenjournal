@@ -48,20 +48,33 @@ func (a Announcer) AnnounceNewReview(r screenjournal.Review) {
 		if subscriber.Username.Equal(r.Owner) {
 			continue
 		}
+
+		var title screenjournal.MediaTitle
+		var reviewRoute string
+		var seasonSuffix string
+		if !r.Movie.ID.IsZero() {
+			title = r.Movie.Title
+			reviewRoute = fmt.Sprintf("/movies/%d#review%d", r.Movie.ID.Int64(), r.ID.UInt64())
+		} else {
+			title = r.TvShow.Title
+			seasonSuffix = fmt.Sprintf(" (Season %d)", r.TvShowSeason.UInt8())
+			reviewRoute = fmt.Sprintf("/tv-shows/%d?season=%d#review%d", r.TvShow.ID.Int64(), r.TvShowSeason.UInt8(), r.ID.UInt64())
+		}
+
 		bodyMarkdown := mustRenderTemplate("new-review.tmpl.txt", struct {
-			Recipient string
-			Title     string
-			Author    string
-			BaseURL   string
-			MovieID   int64
-			ReviewID  uint64
+			Recipient    string
+			Title        string
+			SeasonSuffix string
+			Author       string
+			BaseURL      string
+			ReviewRoute  string
 		}{
-			Recipient: subscriber.Username.String(),
-			Title:     r.Movie.Title.String(),
-			Author:    r.Owner.String(),
-			BaseURL:   a.baseURL,
-			MovieID:   r.Movie.ID.Int64(),
-			ReviewID:  r.ID.UInt64(),
+			Recipient:    subscriber.Username.String(),
+			Title:        title.String(),
+			SeasonSuffix: seasonSuffix,
+			Author:       r.Owner.String(),
+			BaseURL:      a.baseURL,
+			ReviewRoute:  reviewRoute,
 		})
 		bodyHtml := markdown.RenderEmail(bodyMarkdown)
 		msg := email.Message{
@@ -75,7 +88,7 @@ func (a Announcer) AnnounceNewReview(r screenjournal.Review) {
 					Address: subscriber.Email.String(),
 				},
 			},
-			Subject:  fmt.Sprintf("%s posted a new review: %s", r.Owner.String(), r.Movie.Title),
+			Subject:  fmt.Sprintf("%s posted a new review: %s%s", r.Owner.String(), title, seasonSuffix),
 			TextBody: bodyMarkdown.String(),
 			HtmlBody: bodyHtml,
 		}
@@ -101,16 +114,19 @@ func (a Announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 		}
 		var title screenjournal.MediaTitle
 		var commentRoute string
+		var seasonSuffix string
 		if !rc.Review.Movie.ID.IsZero() {
 			title = rc.Review.Movie.Title
 			commentRoute = fmt.Sprintf("/movies/%d#comment%d", rc.Review.Movie.ID.Int64(), rc.ID.UInt64())
 		} else {
 			title = rc.Review.TvShow.Title
+			seasonSuffix = fmt.Sprintf(" (Season %d)", rc.Review.TvShowSeason.UInt8())
 			commentRoute = fmt.Sprintf("/tv-shows/%d?season=%d#comment%d", rc.Review.TvShow.ID.Int64(), rc.Review.TvShowSeason.UInt8(), rc.ID.UInt64())
 		}
 		bodyMarkdown := mustRenderTemplate("new-comment.tmpl.txt", struct {
 			Recipient     string
 			Title         string
+			SeasonSuffix  string
 			CommentAuthor string
 			ReviewAuthor  string
 			BaseURL       string
@@ -118,6 +134,7 @@ func (a Announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 		}{
 			Recipient:     u.Username.String(),
 			Title:         title.String(),
+			SeasonSuffix:  seasonSuffix,
 			CommentAuthor: rc.Owner.String(),
 			ReviewAuthor:  rc.Review.Owner.String(),
 			BaseURL:       a.baseURL,
@@ -135,7 +152,7 @@ func (a Announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 					Address: u.Email.String(),
 				},
 			},
-			Subject:  fmt.Sprintf("%s commented on %s's review of %s", rc.Owner.String(), rc.Review.Owner, readMediaTitle(rc.Review)),
+			Subject:  fmt.Sprintf("%s commented on %s's review of %s%s", rc.Owner.String(), rc.Review.Owner, title, seasonSuffix),
 			TextBody: bodyMarkdown.String(),
 			HtmlBody: bodyHtml,
 		}
@@ -161,11 +178,4 @@ func mustRenderTemplate(templateFilename string, templateVars interface{}) scree
 		panic(err)
 	}
 	return screenjournal.EmailBodyMarkdown(buf.String())
-}
-
-func readMediaTitle(r screenjournal.Review) screenjournal.MediaTitle {
-	if !r.Movie.ID.IsZero() {
-		return r.Movie.Title
-	}
-	return r.TvShow.Title
 }

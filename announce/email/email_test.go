@@ -171,12 +171,12 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 							Address: "alice.amberson@example.com",
 						},
 					},
-					Subject: "bob posted a new review: 30 Rock",
+					Subject: "bob posted a new review: 30 Rock (Season 3)",
 					TextBody: `Hey alice,
 
 bob just posted a new review of *30 Rock* (Season 3)! Check it out:
 
-https://dev.thescreenjournal.com/tv-shows/789#review456
+https://dev.thescreenjournal.com/tv-shows/789?season=3#review456
 
 -ScreenJournal Bot
 
@@ -186,7 +186,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 
 <p>bob just posted a new review of <em>30 Rock</em> (Season 3)! Check it out:</p>
 
-<p><a href="https://dev.thescreenjournal.com/tv-shows/789#review456">https://dev.thescreenjournal.com/tv-shows/789#review456</a></p>
+<p><a href="https://dev.thescreenjournal.com/tv-shows/789?season=3#review456">https://dev.thescreenjournal.com/tv-shows/789?season=3#review456</a></p>
 
 <p>-ScreenJournal Bot</p>
 
@@ -385,12 +385,12 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 							Address: "bob.bobberton@example.com",
 						},
 					},
-					Subject: "alice commented on bob's review of 30 Rock",
+					Subject: "alice commented on bob's review of 30 Rock (Season 3)",
 					TextBody: `Hey bob,
 
-alice just commented on bob's review of *30 Rock*! Check it out:
+alice just commented on bob's review of *30 Rock* (Season 3)! Check it out:
 
-https://dev.thescreenjournal.com/tv-shows/789#comment707
+https://dev.thescreenjournal.com/tv-shows/789?season=3#comment707
 
 -ScreenJournal Bot
 
@@ -400,7 +400,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 
 <p>alice just commented on bob's review of <em>30 Rock</em> (Season 3)! Check it out:</p>
 
-<p><a href="https://dev.thescreenjournal.com/tv-shows/789#comment707">https://dev.thescreenjournal.com/tv-shows/789#comment707</a></p>
+<p><a href="https://dev.thescreenjournal.com/tv-shows/789?season=3#comment707">https://dev.thescreenjournal.com/tv-shows/789?season=3#comment707</a></p>
 
 <p>-ScreenJournal Bot</p>
 

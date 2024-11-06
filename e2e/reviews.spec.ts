@@ -76,10 +76,10 @@ test("index page renders card for TV show review", async ({ page }) => {
 
 test("index page sorts cards based on desired sorting", async ({ page }) => {
   // By default, sort by watch date.
-  await expect(page.locator(":nth-match(.card, 1) .card-title")).toHaveText(
+  await expect(page.locator(":nth-match(.card, 2) .card-title")).toHaveText(
     "Billy Madison"
   );
-  await expect(page.locator(":nth-match(.card, 2) .card-title")).toHaveText(
+  await expect(page.locator(":nth-match(.card, 3) .card-title")).toHaveText(
     "The Waterboy"
   );
 
@@ -95,10 +95,10 @@ test("index page sorts cards based on desired sorting", async ({ page }) => {
 
   // Verify the sorting is now by rating.
   await expect(page).toHaveURL("/reviews?sortBy=rating");
-  await expect(page.locator(":nth-match(.card, 1) .card-title")).toHaveText(
+  await expect(page.locator(":nth-match(.card, 2) .card-title")).toHaveText(
     "The Waterboy"
   );
-  await expect(page.locator(":nth-match(.card, 2) .card-title")).toHaveText(
+  await expect(page.locator(":nth-match(.card, 3) .card-title")).toHaveText(
     "Billy Madison"
   );
 
@@ -108,10 +108,10 @@ test("index page sorts cards based on desired sorting", async ({ page }) => {
 
   // Verify the sorting is now by watch date.
   await expect(page).toHaveURL("/reviews?sortBy=watch-date");
-  await expect(page.locator(":nth-match(.card, 1) .card-title")).toHaveText(
+  await expect(page.locator(":nth-match(.card, 2) .card-title")).toHaveText(
     "Billy Madison"
   );
-  await expect(page.locator(":nth-match(.card, 2) .card-title")).toHaveText(
+  await expect(page.locator(":nth-match(.card, 3) .card-title")).toHaveText(
     "The Waterboy"
   );
 });
@@ -426,7 +426,7 @@ test("adds a new rating and edits the details", async ({ page }) => {
   });
   await reviewCard.getByTestId("edit-rating").click();
 
-  await expect(page).toHaveURL("/reviews/3/edit");
+  await expect(page).toHaveURL("/reviews/5/edit");
 
   await expect(
     page.getByRole("heading", { name: "There's Something About Mary (1998)" })
@@ -569,7 +569,7 @@ test("editing another user's review fails", async ({ page, browser }) => {
   await guestPage.goto("/");
   await loginAsUserB(guestPage);
 
-  const response = await guestPage.goto("/reviews/3/edit");
+  const response = await guestPage.goto("/reviews/5/edit");
   await expect(response?.status()).toBe(403);
 
   await guestContext.close();

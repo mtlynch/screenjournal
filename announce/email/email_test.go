@@ -398,7 +398,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 `,
 					HtmlBody: `<p>Hey bob,</p>
 
-<p>alice just commented on bob's review of <em>The Matrix</em>! Check it out:</p>
+<p>alice just commented on bob's review of <em>30 Rock</em> (Season 3)! Check it out:</p>
 
 <p><a href="https://dev.thescreenjournal.com/tv-shows/789#comment707">https://dev.thescreenjournal.com/tv-shows/789#comment707</a></p>
 

@@ -99,22 +99,29 @@ func (a Announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 		if u.Username == rc.Owner {
 			continue
 		}
+		var title screenjournal.MediaTitle
+		var commentRoute string
+		if !rc.Review.Movie.ID.IsZero() {
+			title = rc.Review.Movie.Title
+			commentRoute = fmt.Sprintf("/movies/%d#comment%d", rc.Review.Movie.ID.Int64(), rc.ID.UInt64())
+		} else {
+			title = rc.Review.TvShow.Title
+			commentRoute = fmt.Sprintf("/tv-shows/%d?season=%d#comment%d", rc.Review.TvShow.ID.Int64(), rc.Review.TvShowSeason.UInt8(), rc.ID.UInt64())
+		}
 		bodyMarkdown := mustRenderTemplate("new-comment.tmpl.txt", struct {
 			Recipient     string
 			Title         string
 			CommentAuthor string
 			ReviewAuthor  string
 			BaseURL       string
-			MovieID       int64
-			CommentID     uint64
+			CommentRoute  string
 		}{
 			Recipient:     u.Username.String(),
-			Title:         rc.Review.Movie.Title.String(),
+			Title:         title.String(),
 			CommentAuthor: rc.Owner.String(),
 			ReviewAuthor:  rc.Review.Owner.String(),
 			BaseURL:       a.baseURL,
-			MovieID:       rc.Review.Movie.ID.Int64(),
-			CommentID:     rc.ID.UInt64(),
+			CommentRoute:  commentRoute,
 		})
 		bodyHtml := markdown.RenderEmail(bodyMarkdown)
 		msg := email.Message{

@@ -1,7 +1,13 @@
 Hey {{ .Recipient }},
 
+
 {{ .CommentAuthor }} just commented on {{ .ReviewAuthor }}'s review of *{{ .Title }}*! Check it out:
 
+
+{{ $reviewRoute := printf "/movies/%s#review%s" .Movie.ID.String .CommentID }}
+{{ if eq .Movie.ID.Int64 0 }}
+  {{ $reviewRoute = printf "/tv-shows/%s?season=%d#comment%s" .TvShow.ID.String .TvShowSeason.UInt8 .CommentID }}
+{{ end }}
 {{ .BaseURL }}/movies/{{ .MovieID }}#comment{{ .CommentID }}
 
 -ScreenJournal Bot

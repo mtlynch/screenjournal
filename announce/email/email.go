@@ -128,7 +128,7 @@ func (a Announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 					Address: u.Email.String(),
 				},
 			},
-			Subject:  fmt.Sprintf("%s commented on %s's review of %s", rc.Owner.String(), rc.Review.Owner, rc.Review.Movie.Title),
+			Subject:  fmt.Sprintf("%s commented on %s's review of %s", rc.Owner.String(), rc.Review.Owner, readMediaTitle(rc.Review)),
 			TextBody: bodyMarkdown.String(),
 			HtmlBody: bodyHtml,
 		}
@@ -154,4 +154,11 @@ func mustRenderTemplate(templateFilename string, templateVars interface{}) scree
 		panic(err)
 	}
 	return screenjournal.EmailBodyMarkdown(buf.String())
+}
+
+func readMediaTitle(r screenjournal.Review) screenjournal.MediaTitle {
+	if !r.Movie.ID.IsZero() {
+		return r.Movie.Title
+	}
+	return r.TvShow.Title
 }

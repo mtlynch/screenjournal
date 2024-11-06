@@ -184,7 +184,7 @@ test("adds a new TV show rating and fills in only required fields", async ({
   await page.getByLabel("Season").selectOption({ label: "5" });
 
   await expect(page).toHaveURL(
-    "/reviews/new/write?tmdbId=333287&mediaType=tv-show"
+    "/reviews/new/write?season=5&mediaType=tv-show&tmdbId=4608"
   );
   await expect(page.getByRole("heading", { name: "30 Rock" })).toBeVisible();
 

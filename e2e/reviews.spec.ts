@@ -76,10 +76,16 @@ test("index page renders card for TV show review", async ({ page }) => {
 
 test("index page sorts cards based on desired sorting", async ({ page }) => {
   // By default, sort by watch date.
+  await expect(page.locator(":nth-match(.card, 1) .card-title")).toHaveText(
+    "Seinfeld (Season 2)"
+  );
   await expect(page.locator(":nth-match(.card, 2) .card-title")).toHaveText(
-    "Billy Madison"
+    "Seinfeld (Season 1)"
   );
   await expect(page.locator(":nth-match(.card, 3) .card-title")).toHaveText(
+    "The Waterboy"
+  );
+  await expect(page.locator(":nth-match(.card, 4) .card-title")).toHaveText(
     "The Waterboy"
   );
 
@@ -169,7 +175,7 @@ test("adds a new TV show rating and fills in only required fields", async ({
 }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
-  await page.getByRole("option").selectOption({ label: "TV Show" });
+  await page.getByLabel("TV show").click();
 
   await page.getByPlaceholder("Search").pressSequentially("30 r");
   await page.getByText("30 Rock (2006)").click();
@@ -773,6 +779,6 @@ test("views reviews filtered by user", async ({ page }) => {
   ).toBeVisible();
 
   await expect(page.getByTestId("collection-count")).toHaveText(
-    "userB has reviewed 2 movies"
+    "userB has reviewed 4 movies"
   );
 });

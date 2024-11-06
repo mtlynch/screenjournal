@@ -116,7 +116,7 @@ test("index page sorts cards based on desired sorting", async ({ page }) => {
   );
 });
 
-test("adds a new rating and fills in only required fields", async ({
+test("adds a new movie rating and fills in only required fields", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
@@ -164,7 +164,58 @@ test("adds a new rating and fills in only required fields", async ({
   await expect(reviewCard.locator(".card-text")).toHaveCount(0);
 });
 
-test("adds a new rating that's too long to display in a card", async ({
+test("adds a new TV show rating and fills in only required fields", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "Add Rating" }).click();
+
+  await page.getByRole("option").selectOption({ label: "TV Show" });
+
+  await page.getByPlaceholder("Search").pressSequentially("30 r");
+  await page.getByText("30 Rock (2006)").click();
+
+  await expect(page).toHaveURL("/reviews/new/tv/pick-season?tmdbId=4608");
+  await page.getByRole("option").selectOption({ label: "Season 5" });
+
+  await expect(page).toHaveURL(
+    "/reviews/new/write?tmdbId=333287&mediaType=tv-show"
+  );
+  await expect(page.getByRole("heading", { name: "30 Rock" })).toBeVisible();
+
+  await page.getByLabel("Rating").selectOption({ label: "4.5" });
+
+  await page.getByLabel("When did you watch?").fill("2024-10-05");
+
+  await page.locator("form input[type='submit']").click();
+
+  await expect(page).toHaveURL("/tv-shows/2?season=5");
+
+  await page.getByRole("menuitem", { name: "Home" }).click();
+  await expect(page).toHaveURL("/reviews");
+
+  const reviewCard = await page.locator(".card", {
+    has: page.getByRole("heading", { name: "30 Rock (Season 5)" }),
+  });
+  await expect(reviewCard.locator(".card-subtitle")).toHaveText(
+    /userA watched this .+ ago/,
+    { useInnerText: true }
+  );
+  await expect(
+    reviewCard.locator(".card-subtitle [data-testid='watch-date']")
+  ).toHaveAttribute("title", "2024-10-05");
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
+  ).toHaveCount(4);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(1);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
+  ).toHaveCount(0);
+  await expect(reviewCard.locator(".card-text")).toHaveCount(0);
+});
+
+test("adds a new movie rating that's too long to display in a card", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();

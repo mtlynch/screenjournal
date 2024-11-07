@@ -221,12 +221,13 @@ workflows:
             - check_bash
             - check_frontend
             - test_go
+            - lint_sql
             - build_backend
           filters:
-            tags:
-              only: /[0-9]+(\.[0-9]+){2}/
             branches:
-              ignore: /.*/
+              only: master
+            tags:
+              only: /.*/
       - deploy:
           requires:
             - check_whitespace

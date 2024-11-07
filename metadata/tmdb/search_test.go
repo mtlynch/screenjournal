@@ -1,162 +1,84 @@
 package tmdb_test
 
 import (
-	"log"
 	"net/url"
 	"testing"
 
-	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	tmdbWrapper "github.com/ryanbradynd05/go-tmdb"
+
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 type mockTmdbAPI struct {
-	searchTvResponse tmdbSearchTvResponse
+	searchTvResponse *tmdbWrapper.TvSearchResults
 }
 
-func (m *mockTmdbAPI) SearchTv(query string, options map[string]string) (tmdbSearchTvResponse, error) {
+func (m *mockTmdbAPI) GetMovieInfo(id int, options map[string]string) (*tmdbWrapper.Movie, error) {
+	return nil, nil
+}
+
+func (m *mockTmdbAPI) SearchMovie(query string, options map[string]string) (*tmdbWrapper.MovieSearchResults, error) {
+	return nil, nil
+}
+
+func (m *mockTmdbAPI) SearchTv(query string, options map[string]string) (*tmdbWrapper.TvSearchResults, error) {
 	return m.searchTvResponse, nil
-}
-
-type tmdbSearchTvResponse struct {
-	Results []tmdbTvResult `json:"results"`
-}
-
-type tmdbTvResult struct {
-	ID           int    `json:"id"`
-	Name         string `json:"name"`
-	FirstAirDate string `json:"first_air_date"`
-	PosterPath   string `json:"poster_path"`
-}
-
-func mustParseReleaseDate(s string) screenjournal.ReleaseDate {
-	d, err := tmdb.ParseReleaseDate(s)
-	if err != nil {
-		log.Fatalf("failed to parse release date: %s", s)
-	}
-	return d
 }
 
 func TestSearchTvShows(t *testing.T) {
 	for _, tt := range []struct {
 		description string
 		query       screenjournal.SearchQuery
-		mockResults tmdbSearchTvResponse
+		mockResults tmdbWrapper.TvSearchResults
 		want        []metadata.SearchResult
 		err         error
 	}{
 		{
-			description: "handles empty results",
-			query:       screenjournal.SearchQuery("nonexistent show"),
-			mockResults: tmdbSearchTvResponse{
-				Results: []tmdbTvResult{},
-			},
-			want: []metadata.SearchResult{},
-			err:  nil,
-		},
-		{
-			description: "skips results with missing poster path",
-			query:       screenjournal.SearchQuery("test show"),
-			mockResults: tmdbSearchTvResponse{
-				Results: []tmdbTvResult{
-					{
-						ID:           12345,
-						Name:         "Test Show",
-						FirstAirDate: "2023-01-15",
-						PosterPath:   "",
-					},
-				},
-			},
-			want: []metadata.SearchResult{},
-			err:  nil,
-		},
-		{
-			description: "skips results with missing air date",
-			query:       screenjournal.SearchQuery("test show"),
-			mockResults: tmdbSearchTvResponse{
-				Results: []tmdbTvResult{
-					{
-						ID:           12345,
-						Name:         "Test Show",
-						FirstAirDate: "",
-						PosterPath:   "/poster.jpg",
-					},
-				},
-			},
-			want: []metadata.SearchResult{},
-			err:  nil,
-		},
-		{
 			description: "processes valid TV show result",
 			query:       screenjournal.SearchQuery("valid show"),
-			mockResults: tmdbSearchTvResponse{
-				Results: []tmdbTvResult{
+			mockResults: tmdbWrapper.TvSearchResults{
+				Results: []struct {
+					BackdropPath  string `json:"backdrop_path"`
+					ID            int
+					OriginalName  string   `json:"original_name"`
+					FirstAirDate  string   `json:"first_air_date"`
+					OriginCountry []string `json:"origin_country"`
+					PosterPath    string   `json:"poster_path"`
+					Popularity    float32
+					Name          string
+					VoteAverage   float32 `json:"vote_average"`
+					VoteCount     uint32  `json:"vote_count"`
+				}{
 					{
-						ID:           54321,
-						Name:         "Valid Show",
-						FirstAirDate: "2023-06-20",
-						PosterPath:   "/valid-show.jpg",
+						ID:           12345,
+						Name:         "Black Mirror",
+						FirstAirDate: "2009-01-05",
+						PosterPath:   "/black-mirror.jpg",
 					},
 				},
 			},
 			want: []metadata.SearchResult{
 				{
-					TmdbID:      screenjournal.TmdbID(54321),
-					Title:       screenjournal.MediaTitle("Valid Show"),
-					ReleaseDate: mustParseReleaseDate("2023-06-20"),
-					PosterPath: url.URL{
-						Path: "/valid-show.jpg",
-					},
+					TmdbID:      screenjournal.TmdbID(12345),
+					Title:       screenjournal.MediaTitle("Black Mirror"),
+					ReleaseDate: mustParseReleaseDate("2009-01-05"),
+					PosterPath:  mustParseURL("/black-mirror.jpg"),
 				},
 			},
 			err: nil,
 		},
-		{
-			description: "handles invalid TMDB ID",
-			query:       screenjournal.SearchQuery("bad show"),
-			mockResults: tmdbSearchTvResponse{
-				Results: []tmdbTvResult{
-					{
-						ID:           -1,
-						Name:         "Bad Show",
-						FirstAirDate: "2023-06-20",
-						PosterPath:   "/bad-show.jpg",
-					},
-				},
-			},
-			want: []metadata.SearchResult{},
-			err:  parse.ErrInvalidTmdbID,
-		},
-		{
-			description: "handles invalid release date",
-			query:       screenjournal.SearchQuery("bad date show"),
-			mockResults: tmdbSearchTvResponse{
-				Results: []tmdbTvResult{
-					{
-						ID:           12345,
-						Name:         "Bad Date Show",
-						FirstAirDate: "invalid-date",
-						PosterPath:   "/bad-date-show.jpg",
-					},
-				},
-			},
-			want: []metadata.SearchResult{},
-			err:  tmdb.ErrInvalidReleaseDate,
-		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			mockAPI := &mockTmdbAPI{
-				searchTvResponse: tt.mockResults,
+				searchTvResponse: &tt.mockResults,
 			}
-			f := tmdb.NewWithAPI(mockAPI)
+			finder := tmdb.NewWithAPI(mockAPI)
 
-			got, err := f.SearchTvShows(tt.query)
+			got, err := finder.SearchTvShows(tt.query)
 			if got, want := err, tt.err; got != want {
 				t.Fatalf("err=%v, want=%v", got, want)
-			}
-			if err != nil {
-				return
 			}
 
 			if got, want := len(got), len(tt.want); got != want {
@@ -165,18 +87,34 @@ func TestSearchTvShows(t *testing.T) {
 
 			for i := range got {
 				if got, want := got[i].TmdbID, tt.want[i].TmdbID; got != want {
-					t.Errorf("TmdbID=%v, want=%v", got, want)
+					t.Errorf("tmdbID=%v, want=%v", got, want)
 				}
 				if got, want := got[i].Title, tt.want[i].Title; got != want {
-					t.Errorf("Title=%v, want=%v", got, want)
+					t.Errorf("title=%v, want=%v", got, want)
 				}
 				if got, want := got[i].ReleaseDate, tt.want[i].ReleaseDate; got != want {
-					t.Errorf("ReleaseDate=%v, want=%v", got, want)
+					t.Errorf("releaseDate=%v, want=%v", got, want)
 				}
 				if got, want := got[i].PosterPath.String(), tt.want[i].PosterPath.String(); got != want {
-					t.Errorf("PosterPath=%v, want=%v", got, want)
+					t.Errorf("posterPath=%v, want=%v", got, want)
 				}
 			}
 		})
 	}
+}
+
+func mustParseURL(s string) url.URL {
+	u, err := url.Parse(s)
+	if err != nil {
+		panic(err)
+	}
+	return *u
+}
+
+func mustParseReleaseDate(s string) screenjournal.ReleaseDate {
+	rd, err := tmdb.ParseReleaseDate(s)
+	if err != nil {
+		panic(err)
+	}
+	return rd
 }

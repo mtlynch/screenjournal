@@ -33,7 +33,11 @@ func main() {
 
 	authenticator := auth.New(store)
 
-	sessionManager, err := sessions.NewManager(*dbPath)
+	useTls := isTlsRequired()
+	if !useTls {
+		log.Printf("TLS has not been marked as required, so session cookies will not have Secure flag")
+	}
+	sessionManager, err := sessions.NewManager(*dbPath, useTls)
 	if err != nil {
 		log.Fatalf("failed to create session manager: %v", err)
 	}
@@ -98,4 +102,11 @@ func isLitestreamEnabled() bool {
 
 func isSmtpEnabled() bool {
 	return os.Getenv("SJ_SMTP_USERNAME") != ""
+}
+
+func isTlsRequired() bool {
+	if os.Getenv("SJ_REQUIRE_TLS") == "false" {
+		return false
+	}
+	return defaultIsTlsRequired
 }

@@ -1,8 +1,6 @@
 import { expect } from "@playwright/test";
 
 export async function loginAsUser(page, username, password) {
-  await page.goto("/");
-
   await page.getByRole("menuitem", { name: "Log in" }).click();
 
   await page.getByRole("textbox", { name: /username/i }).fill(username);

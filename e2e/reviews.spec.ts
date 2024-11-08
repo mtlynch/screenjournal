@@ -493,6 +493,7 @@ test("editing another user's review fails", async ({ page, browser }) => {
     readDbTokenCookie(await page.context().cookies()),
   ]);
   const guestPage = await guestContext.newPage();
+  await guestPage.goto("/");
   await loginAsUserB(guestPage);
 
   const response = await guestPage.goto("/reviews/3/edit");

@@ -1,8 +1,6 @@
 package tmdb
 
 import (
-	"net/url"
-
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -41,11 +39,10 @@ func (f Finder) SearchMovies(query screenjournal.SearchQuery) ([]metadata.Search
 		if match.PosterPath == "" {
 			continue
 		}
-		pp, err := url.Parse(match.PosterPath)
+		info.PosterPath, err = parse.PosterPath(match.PosterPath)
 		if err != nil {
 			return []metadata.SearchResult{}, err
 		}
-		info.PosterPath = *pp
 
 		matches = append(matches, info)
 	}
@@ -86,11 +83,10 @@ func (f Finder) SearchTvShows(query screenjournal.SearchQuery) ([]metadata.Searc
 		if match.PosterPath == "" {
 			continue
 		}
-		pp, err := url.Parse(match.PosterPath)
+		info.PosterPath, err = parse.PosterPath(match.PosterPath)
 		if err != nil {
 			return []metadata.SearchResult{}, err
 		}
-		info.PosterPath = *pp
 
 		matches = append(matches, info)
 	}

@@ -4,9 +4,6 @@
 
 {{ define "content" }}
 
-  {{ $tmdbID := .TmdbID }}
-
-
   <div class="my-5">
     <h2>{{ .TvShowTitle }} ({{ .ReleaseYear }})</h2>
     <form>
@@ -22,7 +19,7 @@
           hx-target="body"
           hx-push-url="true"
           hx-get="/reviews/new/write"
-          hx-vals='{"mediaType": "tv-show", "tmdbId": {{ $tmdbID }}}'
+          hx-vals='{"mediaType": "tv-show", "tmdbId": {{ .TmdbID }}}'
         >
           {{ range .SeasonOptions }}
             <option>

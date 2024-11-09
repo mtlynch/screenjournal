@@ -1,6 +1,7 @@
 package screenjournal
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -53,6 +54,10 @@ func (m TmdbID) Equal(o TmdbID) bool {
 
 func (m TmdbID) Int32() int32 {
 	return int32(m)
+}
+
+func (m TmdbID) String() string {
+	return fmt.Sprintf("%d", m)
 }
 
 func (id ImdbID) String() string {

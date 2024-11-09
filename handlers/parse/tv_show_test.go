@@ -57,3 +57,54 @@ func TestTvShowIDFromString(t *testing.T) {
 		})
 	}
 }
+
+func TestTvShowSeason(t *testing.T) {
+	for _, tt := range []struct {
+		description    string
+		in             string
+		seasonExpected screenjournal.TvShowSeason
+		errExpected    error
+	}{
+		{
+			"parses valid TV show season",
+			"5",
+			screenjournal.TvShowSeason(5),
+			nil,
+		},
+		{
+			"rejects 0 as an invalid TV show season",
+			"0",
+			screenjournal.TvShowSeason(0),
+			parse.ErrInvalidTvShowSeason,
+		},
+		{
+			"rejects decimal as an invalid TV show season",
+			"2.4",
+			screenjournal.TvShowSeason(0),
+			parse.ErrInvalidTvShowSeason,
+		},
+		{
+			"rejects non-number as an invalid TV show season",
+			"banana",
+			screenjournal.TvShowSeason(0),
+			parse.ErrInvalidTvShowSeason,
+		},
+		{
+			"rejects negative number as an invalid TV show season",
+			"-5",
+			screenjournal.TvShowSeason(0),
+			parse.ErrInvalidTvShowSeason,
+		},
+	} {
+		t.Run(tt.description, func(t *testing.T) {
+			idActual, err := parse.TvShowSeason(tt.in)
+
+			if got, want := err, tt.errExpected; got != want {
+				t.Fatalf("err=%v, want=%v", got, want)
+			}
+			if got, want := idActual, tt.seasonExpected; !got.Equal(want) {
+				t.Errorf("tvShowID=%v, want=%v", got, want)
+			}
+		})
+	}
+}

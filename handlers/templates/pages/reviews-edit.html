@@ -78,6 +78,7 @@
     >
       {{ if not $isEditing }}
         <input type="hidden" name="tmdb-id" value="{{ $tmdbID }}" />
+        <input type="hidden" name="season" value="{{ .Review.TvShowSeason }}" />
         <input type="hidden" name="media-type" value="{{ .MediaType }}" />
       {{ end }}
 

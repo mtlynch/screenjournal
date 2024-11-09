@@ -1,5 +1,7 @@
+<!-- TODO: Rename this file to be movie/tv agnostic. -->
+
 {{ define "title" }}
-  {{ .Movie.Title }}
+  {{ .Media.Title }}
 {{ end }}
 
 {{ define "style-tags" }}
@@ -48,16 +50,25 @@
 {{ end }}
 
 {{ define "content" }}
-
   {{ $loggedInUsername := .LoggedInUsername }}
 
-  {{ with .Movie }}
+  {{ if ne .Media.SeasonNumber 0 }}
+    <h2>Season {{ .Media.SeasonNumber }}</h2>
+  {{ end }}
+
+  {{ $newReviewRoute := printf "/reviews/new/write?movieId=%d" .Media.ID }}
+  {{ if .Media.IsTvShow }}
+    {{ $newReviewRoute = printf "/reviews/new/write?season=%d&mediaType=%s&tmdbId=%s" .Media.SeasonNumber .Media.Type .Media.TmdbID }}
+  {{ end }}
+
+  {{ with .Media }}
     <img
       class="card-img-top poster"
       src="{{ posterPathToURL .PosterPath }}"
       alt="Poster for {{ .Title }}"
     />
     <ul class="metadata mt-2">
+      <!-- TODO: Fix release date for TV season -->
       <li class="release-date">
         Released:
         {{ formatReleaseDate .ReleaseDate }}
@@ -69,15 +80,11 @@
         </li>
       {{ end }}
     </ul>
+
+    <a href="{{ $newReviewRoute }}" class="btn btn-primary my-3" role="button"
+      >Add Rating</a
+    >
   {{ end }}
-
-
-  <a
-    href="/reviews/new/write?movieId={{ .Movie.ID }}"
-    class="btn btn-primary my-3"
-    role="button"
-    >Add Rating</a
-  >
 
   {{ range .Reviews }}
     <div class="review mb-5" data-review-id="{{ .ID }}">

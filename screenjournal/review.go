@@ -78,10 +78,6 @@ func (b Blurb) String() string {
 	return string(b)
 }
 
-func (s TvShowSeason) UInt8() uint8 {
-	return uint8(s)
-}
-
 func (r Review) MediaType() MediaType {
 	if !r.Movie.ID.IsZero() {
 		return MediaTypeMovie

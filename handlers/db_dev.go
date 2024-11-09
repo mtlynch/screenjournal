@@ -67,6 +67,18 @@ func (s Server) populateDummyData() http.HandlerFunc {
 			},
 		},
 	}
+	tvShows := []screenjournal.TvShow{
+		{
+			ID:      screenjournal.TvShowID(1),
+			TmdbID:  screenjournal.TmdbID(1400),
+			ImdbID:  screenjournal.ImdbID("tt0098904"),
+			Title:   screenjournal.MediaTitle("Seinfeld"),
+			AirDate: mustParseReleaseDate("1989-07-05"),
+			PosterPath: url.URL{
+				Path: "/aCw8ONfyz3AhngVQa1E2Ss4KSUQ.jpg",
+			},
+		},
+	}
 	reviews := []screenjournal.Review{
 		{
 			ID:     screenjournal.ReviewID(1),
@@ -97,6 +109,30 @@ func (s Server) populateDummyData() http.HandlerFunc {
 			Watched: mustParseWatchDate("2023-02-05"),
 			Blurb:   screenjournal.Blurb("A staggering lack of water."),
 		},
+		{
+			ID:     screenjournal.ReviewID(3),
+			Owner:  screenjournal.Username("userB"),
+			Rating: screenjournal.Rating(10),
+			TvShow: screenjournal.TvShow{
+				ID:    screenjournal.TvShowID(1),
+				Title: screenjournal.MediaTitle("Seinfeld"),
+			},
+			TvShowSeason: screenjournal.TvShowSeason(1),
+			Watched:      mustParseWatchDate("2024-11-04"),
+			Blurb:        screenjournal.Blurb("I see what the fuss is about!"),
+		},
+		{
+			ID:     screenjournal.ReviewID(3),
+			Owner:  screenjournal.Username("userB"),
+			Rating: screenjournal.Rating(9),
+			TvShow: screenjournal.TvShow{
+				ID:    screenjournal.TvShowID(1),
+				Title: screenjournal.MediaTitle("Seinfeld"),
+			},
+			TvShowSeason: screenjournal.TvShowSeason(2),
+			Watched:      mustParseWatchDate("2024-11-05"),
+			Blurb:        screenjournal.Blurb("Loving this second season!"),
+		},
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -107,6 +143,11 @@ func (s Server) populateDummyData() http.HandlerFunc {
 		}
 		for _, movie := range movies {
 			if _, err := s.getDB(r).InsertMovie(movie); err != nil {
+				panic(err)
+			}
+		}
+		for _, tvShow := range tvShows {
+			if _, err := s.getDB(r).InsertTvShow(tvShow); err != nil {
 				panic(err)
 			}
 		}

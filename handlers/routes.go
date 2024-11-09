@@ -69,6 +69,7 @@ func (s *Server) routes() {
 	authenticatedViews.HandleFunc("/account/notifications", s.accountNotificationsGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/account/security", s.accountSecurityGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/movies/{movieID}", s.moviesReadGet()).Methods(http.MethodGet)
+	authenticatedViews.HandleFunc("/tv-shows/{tvShowID}", s.tvShowsReadGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews", s.reviewsGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews/by/{username}", s.reviewsGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews/new", s.reviewsNewTitleSearchGet()).Methods(http.MethodGet)

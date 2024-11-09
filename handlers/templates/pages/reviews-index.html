@@ -80,7 +80,7 @@
       {{ $media := .Movie }}
       {{ if eq .Movie.ID.Int64 0 }}
         {{ $media = .TvShow }}
-        {{ $reviewRoute = printf "/tv-shows/%s#review%s" .TvShow.ID.String .ID.String }}
+        {{ $reviewRoute = printf "/tv-shows/%s?season=%d#review%s" .TvShow.ID.String .TvShowSeason.UInt8 .ID.String }}
       {{ end }}
 
 

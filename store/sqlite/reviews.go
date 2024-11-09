@@ -142,6 +142,16 @@ func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, err
 
 	now := time.Now()
 
+	var movieID *screenjournal.MovieID
+	var tvShowID *screenjournal.TvShowID
+	var tvShowSeason *screenjournal.TvShowSeason
+	if !r.Movie.ID.IsZero() {
+		movieID = &r.Movie.ID
+	} else {
+		tvShowID = &r.TvShow.ID
+		tvShowSeason = &r.TvShowSeason
+	}
+
 	res, err := s.ctx.Exec(`
 	INSERT INTO
 		reviews
@@ -161,9 +171,9 @@ func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, err
 	)
 	`,
 		sql.Named("owner", r.Owner),
-		sql.Named("movie_id", r.Movie.ID),
-		sql.Named("tv_show_id", r.TvShow.ID),
-		sql.Named("tv_show_season", r.TvShowSeason.UInt8()),
+		sql.Named("movie_id", movieID),
+		sql.Named("tv_show_id", tvShowID),
+		sql.Named("tv_show_season", tvShowSeason),
 		sql.Named("rating", r.Rating),
 		sql.Named("blurb", r.Blurb),
 		sql.Named("watched_date", formatWatchDate(r.Watched)),

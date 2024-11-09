@@ -34,9 +34,9 @@
   {{ $loggedInUsername := .LoggedInUsername }}
 
   {{ if .CollectionOwner }}
-    <p data-testid="collection-count">
-      {{ .CollectionOwner.String }} has reviewed
-      <b>{{ len .Reviews }}</b> movies
+    <p>
+      {{ .CollectionOwner.String }} has written
+      <b>{{ len .Reviews }}</b> reviews
     </p>
   {{ end }}
 

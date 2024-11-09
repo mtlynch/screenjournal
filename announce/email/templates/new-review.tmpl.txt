@@ -1,8 +1,8 @@
 Hey {{ .Recipient }},
 
-{{ .Author }} just posted a new review of *{{ .Title }}*! Check it out:
+{{ .Author }} just posted a new review of *{{ .Title }}*{{ .SeasonSuffix }}! Check it out:
 
-{{ .BaseURL }}/movies/{{ .MovieID }}#review{{ .ReviewID }}
+{{ .BaseURL }}{{ .ReviewRoute }}
 
 -ScreenJournal Bot
 

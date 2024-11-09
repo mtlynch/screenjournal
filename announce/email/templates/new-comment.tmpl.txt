@@ -1,8 +1,8 @@
 Hey {{ .Recipient }},
 
-{{ .CommentAuthor }} just commented on {{ .ReviewAuthor }}'s review of *{{ .Title }}*! Check it out:
+{{ .CommentAuthor }} just commented on {{ .ReviewAuthor }}'s review of *{{ .Title }}*{{ .SeasonSuffix }}! Check it out:
 
-{{ .BaseURL }}/movies/{{ .MovieID }}#comment{{ .CommentID }}
+{{ .BaseURL }}{{ .CommentRoute }}
 
 -ScreenJournal Bot
 

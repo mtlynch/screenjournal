@@ -4,12 +4,16 @@ import (
 	"errors"
 	"log"
 	"math"
+	"net/url"
 	"strconv"
 
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-var ErrInvalidTmdbID = errors.New("invalid TMDB ID")
+var (
+	ErrInvalidTmdbID     = errors.New("invalid TMDB ID")
+	ErrInvalidPosterPath = errors.New("invalid poster path")
+)
 
 func TmdbIDFromString(raw string) (screenjournal.TmdbID, error) {
 	id, err := strconv.ParseInt(raw, 10, 32)
@@ -27,4 +31,13 @@ func TmdbID(raw int) (screenjournal.TmdbID, error) {
 	}
 
 	return screenjournal.TmdbID(raw), nil
+}
+
+func PosterPath(raw string) (url.URL, error) {
+	pp, err := url.Parse(raw)
+	if err != nil {
+		return url.URL{}, ErrInvalidPosterPath
+	}
+
+	return *pp, nil
 }

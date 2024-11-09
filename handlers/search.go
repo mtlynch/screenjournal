@@ -6,12 +6,14 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 type (
 	searchGetRequest struct {
-		Query screenjournal.SearchQuery
+		Query     screenjournal.SearchQuery
+		MediaType screenjournal.MediaType
 	}
 
 	searchMatch struct {
@@ -32,7 +34,15 @@ func (s Server) searchGet() http.HandlerFunc {
 			return
 		}
 
-		res, err := s.metadataFinder.SearchMovies(req.Query)
+		var searchFn func(screenjournal.SearchQuery) ([]metadata.SearchResult, error)
+		if req.MediaType == screenjournal.MediaTypeMovie {
+			searchFn = s.metadataFinder.SearchMovies
+		} else if req.MediaType == screenjournal.MediaTypeTvShow {
+			searchFn = s.metadataFinder.SearchTvShows
+		} else {
+			log.Fatalf("unexpected media type: %v", req.MediaType)
+		}
+		res, err := searchFn(req.Query)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to query metadata: %v", err), http.StatusInternalServerError)
 		}
@@ -69,7 +79,13 @@ func parseSearchGetRequest(r *http.Request) (searchGetRequest, error) {
 		return searchGetRequest{}, err
 	}
 
+	mediaType, err := mediaTypeFromQueryParams(r)
+	if err != nil {
+		return searchGetRequest{}, err
+	}
+
 	return searchGetRequest{
-		Query: q,
+		Query:     q,
+		MediaType: mediaType,
 	}, nil
 }

@@ -7,6 +7,7 @@ import (
 
 type (
 	ReviewID   uint64
+	MediaType  string
 	MediaTitle string
 	Rating     uint8
 	Blurb      string
@@ -34,6 +35,11 @@ type (
 	}
 )
 
+const (
+	MediaTypeMovie  = MediaType("movie")
+	MediaTypeTvShow = MediaType("tv-show")
+)
+
 func (id ReviewID) UInt64() uint64 {
 	return uint64(id)
 }
@@ -44,6 +50,10 @@ func (id ReviewID) String() string {
 
 func (id ReviewID) IsZero() bool {
 	return id == ReviewID(0)
+}
+
+func (mt MediaType) String() string {
+	return string(mt)
 }
 
 func (mt MediaTitle) String() string {

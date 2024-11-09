@@ -21,6 +21,13 @@ type (
 		ReleaseDate screenjournal.ReleaseDate
 		PosterPath  url.URL
 	}
+
+	TvShowInfo struct {
+		TmdbID      screenjournal.TmdbID
+		Title       screenjournal.MediaTitle
+		ReleaseDate screenjournal.ReleaseDate
+		PosterPath  url.URL
+	}
 )
 
 func MovieFromMovieInfo(mi MovieInfo) screenjournal.Movie {

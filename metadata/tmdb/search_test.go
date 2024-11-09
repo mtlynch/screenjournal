@@ -20,6 +20,10 @@ func (m *mockTmdbAPI) GetMovieInfo(id int, options map[string]string) (*tmdbWrap
 	return nil, nil
 }
 
+func (m *mockTmdbAPI) GetTvInfo(id int, options map[string]string) (*tmdbWrapper.TV, error) {
+	return nil, nil
+}
+
 func (m *mockTmdbAPI) SearchMovie(query string, options map[string]string) (*tmdbWrapper.MovieSearchResults, error) {
 	return nil, nil
 }

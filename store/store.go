@@ -10,6 +10,7 @@ type (
 	reviewFilters struct {
 		Username *screenjournal.Username
 		MovieID  *screenjournal.MovieID
+		TvShowID *screenjournal.TvShowID
 	}
 
 	ReadReviewsParams struct {
@@ -39,6 +40,12 @@ func FilterReviewsByUsername(u screenjournal.Username) func(*ReadReviewsParams) 
 func FilterReviewsByMovieID(id screenjournal.MovieID) func(*ReadReviewsParams) {
 	return func(p *ReadReviewsParams) {
 		p.Filters.MovieID = &id
+	}
+}
+
+func FilterReviewsByTvShowID(id screenjournal.TvShowID) func(*ReadReviewsParams) {
+	return func(p *ReadReviewsParams) {
+		p.Filters.TvShowID = &id
 	}
 }
 

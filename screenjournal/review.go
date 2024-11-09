@@ -22,6 +22,7 @@ type (
 		Created  time.Time
 		Modified time.Time
 		Movie    Movie
+		TvShow   TvShow
 		Comments []ReviewComment
 	}
 

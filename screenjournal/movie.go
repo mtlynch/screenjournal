@@ -16,6 +16,14 @@ type (
 		ReleaseDate ReleaseDate
 		PosterPath  url.URL
 	}
+
+	TvShow struct {
+		TmdbID     TmdbID
+		ImdbID     ImdbID
+		Title      MediaTitle
+		AirDate    ReleaseDate
+		PosterPath url.URL
+	}
 )
 
 func (rd ReleaseDate) Year() int {

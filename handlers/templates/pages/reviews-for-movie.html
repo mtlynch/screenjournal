@@ -1,3 +1,5 @@
+<!-- TODO: Rename this file to be movie/tv agnostic. -->
+
 {{ define "title" }}
   {{ .Media.Title }}
 {{ end }}
@@ -54,6 +56,11 @@
     <h2>Season {{ .Media.SeasonNumber }}</h2>
   {{ end }}
 
+  {{ $newReviewRoute := printf "/reviews/new/write?movieId=%s" .Media.ID }}
+  {{ if .Media.IsTvShow }}
+    {{ $newReviewRoute = printf "/reviews/new/write?season=%d&mediaType=%s&tmdbId=%s" .Media.SeasonNumber .Media.Type .Media.TmdbID }}
+  {{ end }}
+
   {{ with .Media }}
     <img
       class="card-img-top poster"
@@ -74,11 +81,7 @@
       {{ end }}
     </ul>
 
-    <!-- TODO: Fix this. -->
-    <a
-      href="/reviews/new/write?movieId={{ .ID }}"
-      class="btn btn-primary my-3"
-      role="button"
+    <a href="{{ $newReviewRoute }}" class="btn btn-primary my-3" role="button"
       >Add Rating</a
     >
   {{ end }}

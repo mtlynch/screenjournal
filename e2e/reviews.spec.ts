@@ -233,6 +233,35 @@ test("adds a new TV show rating and fills in only required fields", async ({
   await expect(reviewCard.locator(".card-text")).toHaveCount(0);
 });
 
+test("views a TV show with an existing review and adds a new review", async ({
+  page,
+}) => {
+  await page
+    .getByRole("heading", { name: "Seinfeld (Season 2)" })
+    .getByRole("link")
+    .click();
+
+  await expect(page).toHaveURL("/tv-shows/1?season=2#review4");
+
+  await page.getByRole("button", { name: "Add Rating" }).click();
+
+  await expect(page).toHaveURL(
+    "/reviews/new/write?season=2&mediaType=tv-show&tmdbId=1400"
+  );
+
+  await expect(page.getByRole("heading", { name: "Seinfeld" })).toBeVisible();
+
+  await expect(page.getByPlaceholder("Search")).not.toBeVisible();
+
+  await page.getByLabel("Rating").selectOption({ label: "5.0" });
+  await page.getByLabel("When did you watch?").fill("2023-01-05");
+  await page.getByLabel("Other thoughts?").fill("I liked it, too!");
+
+  await page.locator("form input[type='submit']").click();
+
+  await expect(page).toHaveURL("/tv-shows/1?season=2");
+});
+
 test("adds a new movie rating that's too long to display in a card", async ({
   page,
 }) => {
@@ -414,7 +443,7 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
   ).toEqual("This is the &lt;b&gt;best&lt;/b&gt; movie ever!<br>");
 });
 
-test("adds a new rating and edits the details", async ({ page }) => {
+test("adds a new movie rating and edits the details", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page

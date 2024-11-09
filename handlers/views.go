@@ -379,6 +379,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 
 		type mediaStub struct {
 			IsTvShow     bool
+			Type         screenjournal.MediaType
 			ID           int64
 			Title        screenjournal.MediaTitle
 			SeasonNumber screenjournal.TvShowSeason
@@ -389,13 +390,12 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 		}
 		if err := t.Execute(w, struct {
 			commonProps
-			Media     mediaStub
-			Title     screenjournal.MediaTitle
-			Reviews   []screenjournal.Review
-			MediaType screenjournal.MediaType
+			Media   mediaStub
+			Reviews []screenjournal.Review
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			Media: mediaStub{
+				Type:        screenjournal.MediaTypeMovie,
 				IsTvShow:    false,
 				ID:          movie.ID.Int64(),
 				Title:       movie.Title,
@@ -404,9 +404,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 				TmdbID:      movie.TmdbID,
 				ReleaseDate: movie.ReleaseDate,
 			},
-			Title:     movie.Title,
-			Reviews:   reviews,
-			MediaType: screenjournal.MediaTypeMovie,
+			Reviews: reviews,
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -463,6 +461,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 		}
 
 		type mediaStub struct {
+			Type         screenjournal.MediaType
 			IsTvShow     bool
 			ID           int64
 			Title        screenjournal.MediaTitle
@@ -480,6 +479,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			Media: mediaStub{
+				Type:         screenjournal.MediaTypeTvShow,
 				IsTvShow:     true,
 				ID:           tvShow.ID.Int64(),
 				Title:        tvShow.Title,
@@ -682,6 +682,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 		} else if err != nil {
 			log.Printf("invalid TMDB ID: %v", err)
 			http.Error(w, "Invalid TMDB ID", http.StatusBadRequest)
+			return
 		} else {
 			tmdbID = &tid
 		}

@@ -3,6 +3,7 @@ package tmdb
 import (
 	"log"
 	"net/url"
+	"time"
 
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata"
@@ -39,6 +40,34 @@ func (f Finder) GetTvShowInfo(id screenjournal.TmdbID) (metadata.TvShowInfo, err
 			log.Printf("failed to parse air date (%s) from TMDB ID %v: %v", m.FirstAirDate, id, err)
 		} else {
 			info.ReleaseDate = rd
+		}
+	}
+
+	info.SeasonCount = uint8(1)
+	for _, s := range m.Seasons {
+		// Sometimes specials are listed as Season 0. (e.g., Friends)
+		if s.SeasonNumber == 0 {
+			continue
+		}
+		if s.Name == "Specials" {
+			continue
+		}
+		// Some shows list empty seasons (e.g. Nobody Wants This)
+		if s.EpisodeCount == 0 {
+			continue
+		}
+		hasAiredFn := func(airDateRaw string) bool {
+			airDate, err := ParseReleaseDate(airDateRaw)
+			if err != nil {
+				return false
+			}
+			return time.Now().After(airDate.Time())
+		}
+		if !hasAiredFn(s.AirDate) {
+			continue
+		}
+		if s.SeasonNumber > int(info.SeasonCount) {
+			info.SeasonCount = uint8(s.SeasonNumber)
 		}
 	}
 

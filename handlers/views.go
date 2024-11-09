@@ -464,6 +464,60 @@ func (s Server) reviewsNewTitleSearchGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
+	t := template.Must(
+		template.New("base.html").
+			Funcs(reviewPageFns).
+			ParseFS(
+				templatesFS,
+				append(
+					baseTemplates,
+					"templates/pages/reviews-tv-pick-season.html")...))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		tmdbID, err := tmdbIDFromQueryParams(r)
+		if err != nil {
+			log.Printf("invalid TMDB ID: %v", err)
+			http.Error(w, "Invalid TMDB ID", http.StatusBadRequest)
+		}
+
+		tvShow, err := s.getTvShowInfo(&tmdbID)
+		if err != nil {
+			http.Error(w, "Failed to get TV show info", http.StatusFailedDependency)
+			log.Printf("failed to get TV show info with, TMDB ID=%v: %v", tmdbID, err)
+			return
+		}
+
+		if tvShow.SeasonCount == 1 {
+			http.Redirect(w, r, fmt.Sprintf("/reviews/new/write?mediaType=tv-show&tmdbId=%d&season=1", tvShow.TmdbID.Int32()), http.StatusSeeOther)
+			return
+		}
+
+		seasonOptions := make([]uint8, tvShow.SeasonCount)
+		for i := uint8(0); i < tvShow.SeasonCount; i++ {
+			// Add 1 so that Season 1 doesn't show as Season 0, etc.
+			seasonOptions[i] = i + 1
+		}
+
+		if err := t.Execute(w, struct {
+			commonProps
+			TmdbID        screenjournal.TmdbID
+			TvShowTitle   screenjournal.MediaTitle
+			ReleaseYear   int
+			SeasonOptions []uint8
+		}{
+			commonProps:   makeCommonProps(r.Context()),
+			TmdbID:        tmdbID,
+			TvShowTitle:   tvShow.Title,
+			ReleaseYear:   tvShow.ReleaseDate.Year(),
+			SeasonOptions: seasonOptions,
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").
@@ -515,6 +569,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 
 		var movie metadata.MovieInfo
 		var tvShow metadata.TvShowInfo
+		var tvShowSeason screenjournal.TvShowSeason
 		if mediaType == screenjournal.MediaTypeMovie {
 			m, err := s.getMovieInfo(r, movieID, tmdbID)
 			if err != nil {
@@ -531,6 +586,14 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 				return
 			}
 			tvShow = t
+
+			season, err := tvShowSeasonFromQueryParams(r)
+			if err != nil {
+				http.Error(w, "Invalid TV show season", http.StatusBadRequest)
+				log.Printf("invalid TV show season: %v", err)
+				return
+			}
+			tvShowSeason = season
 		}
 
 		if err := t.Execute(w, struct {
@@ -552,7 +615,8 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 					AirDate: tvShow.ReleaseDate,
 					TmdbID:  tvShow.TmdbID,
 				},
-				Watched: screenjournal.WatchDate(time.Now()),
+				TvShowSeason: tvShowSeason,
+				Watched:      screenjournal.WatchDate(time.Now()),
 			},
 			Today: time.Now(),
 		}); err != nil {

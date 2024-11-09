@@ -234,7 +234,7 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 	var owner string
 	var movieIDRaw *int
 	var tvShowIDRaw *int
-	var tvShowSeason int
+	var tvShowSeason *int
 	var rating screenjournal.Rating
 	var blurb string
 	var watchedDateRaw string
@@ -274,6 +274,11 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 		return screenjournal.Review{}, err
 	}
 
+	var season screenjournal.TvShowSeason
+	if tvShowSeason != nil {
+		season = screenjournal.TvShowSeason(*tvShowSeason)
+	}
+
 	return screenjournal.Review{
 		ID:       screenjournal.ReviewID(id),
 		Owner:    screenjournal.Username(owner),
@@ -288,6 +293,6 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 		TvShow: screenjournal.TvShow{
 			ID: screenjournal.TvShowID(tvShowID),
 		},
-		TvShowSeason: screenjournal.TvShowSeason(tvShowSeason),
+		TvShowSeason: season,
 	}, nil
 }

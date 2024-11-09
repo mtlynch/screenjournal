@@ -109,7 +109,11 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 }
 
 func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, error) {
-	log.Printf("inserting new review of movie ID %v: %v", r.Movie.ID, r.Rating.UInt8())
+	if r.MediaType() == screenjournal.MediaTypeMovie {
+		log.Printf("inserting new review of movie ID %v: %v", r.Movie.ID, r.Rating.UInt8())
+	} else {
+		log.Printf("inserting new review of TV show ID %v: %v", r.TvShow.ID, r.Rating.UInt8())
+	}
 
 	now := time.Now()
 
@@ -119,6 +123,7 @@ func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, err
 	(
 		review_owner,
 		movie_id,
+		tv_show_id,
 		rating,
 		blurb,
 		watched_date,
@@ -126,11 +131,12 @@ func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, err
 		last_modified_time
 	)
 	VALUES (
-		:owner, :movie_id, :rating, :blurb, :watched_date, :created_time, :last_modified_time
+		:owner, :movie_id, :tv_show_id, :rating, :blurb, :watched_date, :created_time, :last_modified_time
 	)
 	`,
 		sql.Named("owner", r.Owner),
 		sql.Named("movie_id", r.Movie.ID),
+		sql.Named("tv_show_id", r.TvShow.ID),
 		sql.Named("rating", r.Rating),
 		sql.Named("blurb", r.Blurb),
 		sql.Named("watched_date", formatWatchDate(r.Watched)),

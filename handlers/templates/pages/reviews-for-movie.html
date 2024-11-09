@@ -56,7 +56,7 @@
     <h2>Season {{ .Media.SeasonNumber }}</h2>
   {{ end }}
 
-  {{ $newReviewRoute := printf "/reviews/new/write?movieId=%s" .Media.ID }}
+  {{ $newReviewRoute := printf "/reviews/new/write?movieId=%d" .Media.ID }}
   {{ if .Media.IsTvShow }}
     {{ $newReviewRoute = printf "/reviews/new/write?season=%d&mediaType=%s&tmdbId=%s" .Media.SeasonNumber .Media.Type .Media.TmdbID }}
   {{ end }}

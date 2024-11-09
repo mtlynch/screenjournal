@@ -74,7 +74,6 @@ func (s Server) reviewsPost() http.HandlerFunc {
 		s.announcer.AnnounceNewReview(review)
 
 		if review.MediaType() == screenjournal.MediaTypeMovie {
-
 			http.Redirect(w, r, fmt.Sprintf("/movies/%d#review%d", review.Movie.ID.Int64(), review.ID.UInt64()), http.StatusSeeOther)
 		} else {
 			http.Redirect(w, r, fmt.Sprintf("/tv-shows/%d#review%d", review.TvShow.ID.Int64(), review.ID.UInt64()), http.StatusSeeOther)

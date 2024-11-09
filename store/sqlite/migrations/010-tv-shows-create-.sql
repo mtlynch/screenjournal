@@ -10,7 +10,7 @@ CREATE TABLE tv_shows (
 );
 
 
--- Re-do reviews table to add tv_show_id column.
+-- Re-do reviews table to add tv_show_id and tv_show_season columns.
 CREATE TABLE reviews2 (
     id INTEGER PRIMARY KEY,
     movie_id INTEGER,

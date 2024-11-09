@@ -21,14 +21,33 @@ type (
 		ReleaseDate screenjournal.ReleaseDate
 		PosterPath  url.URL
 	}
+
+	TvShowInfo struct {
+		TmdbID      screenjournal.TmdbID
+		ImdbID      screenjournal.ImdbID
+		Title       screenjournal.MediaTitle
+		ReleaseDate screenjournal.ReleaseDate
+		SeasonCount uint8
+		PosterPath  url.URL
+	}
 )
 
-func MovieFromMovieInfo(mi MovieInfo) screenjournal.Movie {
+func MovieFromMovieInfo(info MovieInfo) screenjournal.Movie {
 	return screenjournal.Movie{
-		TmdbID:      mi.TmdbID,
-		ImdbID:      mi.ImdbID,
-		Title:       mi.Title,
-		ReleaseDate: mi.ReleaseDate,
-		PosterPath:  mi.PosterPath,
+		TmdbID:      info.TmdbID,
+		ImdbID:      info.ImdbID,
+		Title:       info.Title,
+		ReleaseDate: info.ReleaseDate,
+		PosterPath:  info.PosterPath,
+	}
+}
+
+func TvShowFromTvShowInfo(info TvShowInfo) screenjournal.TvShow {
+	return screenjournal.TvShow{
+		TmdbID:     info.TmdbID,
+		ImdbID:     info.ImdbID,
+		Title:      info.Title,
+		AirDate:    info.ReleaseDate,
+		PosterPath: info.PosterPath,
 	}
 }

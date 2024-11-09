@@ -17,6 +17,7 @@ const watchDateFormat = time.DateOnly
 
 var (
 	ErrInvalidReviewID             = errors.New("invalid review ID")
+	ErrInvalidMediaType            = fmt.Errorf("invalid media type - must be %s or %s", screenjournal.MediaTypeMovie.String(), screenjournal.MediaTypeTvShow.String())
 	ErrInvalidMediaTitle           = errors.New("invalid media title")
 	ErrInvalidRating               = fmt.Errorf("rating must be between %d and %d", MinRating, MaxRating)
 	ErrWatchDateUnrecognizedFormat = fmt.Errorf("unrecognized format for watch date, must be in %s format", watchDateFormat)
@@ -48,6 +49,17 @@ func ReviewIDFromString(raw string) (screenjournal.ReviewID, error) {
 	}
 
 	return ReviewID(id)
+}
+
+func MediaType(raw string) (screenjournal.MediaType, error) {
+	switch raw {
+	case screenjournal.MediaTypeMovie.String():
+		return screenjournal.MediaTypeMovie, nil
+	case screenjournal.MediaTypeTvShow.String():
+		return screenjournal.MediaTypeTvShow, nil
+	default:
+		return screenjournal.MediaType(""), ErrInvalidMediaType
+	}
 }
 
 func MediaTitle(raw string) (screenjournal.MediaTitle, error) {

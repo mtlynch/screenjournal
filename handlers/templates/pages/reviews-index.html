@@ -34,9 +34,9 @@
   {{ $loggedInUsername := .LoggedInUsername }}
 
   {{ if .CollectionOwner }}
-    <p data-testid="collection-count">
-      {{ .CollectionOwner.String }} has reviewed
-      <b>{{ len .Reviews }}</b> movies
+    <p>
+      {{ .CollectionOwner.String }} has written
+      <b>{{ len .Reviews }}</b> reviews
     </p>
   {{ end }}
 
@@ -77,18 +77,29 @@
     {{ range .Reviews }}
       {{ $reviewRoute := printf "/movies/%s#review%s" .Movie.ID.String .ID.String }}
 
+      {{ $media := .Movie }}
+      {{ if eq .Movie.ID.Int64 0 }}
+        {{ $media = .TvShow }}
+        {{ $reviewRoute = printf "/tv-shows/%s?season=%d#review%s" .TvShow.ID.String .TvShowSeason.UInt8 .ID.String }}
+      {{ end }}
+
 
       <div class="col">
         <div class="card h-100">
           <a href="{{ $reviewRoute }}"
             ><img
               class="card-img-top poster"
-              src="{{ posterPathToURL .Movie.PosterPath }}"
-              alt="Poster for {{ .Movie.Title }}"
+              src="{{ posterPathToURL $media.PosterPath }}"
+              alt="Poster for {{ $media.Title }}"
           /></a>
           <div class="card-body">
             <h5 class="card-title">
-              <a href="{{ $reviewRoute }}">{{ .Movie.Title }}</a>
+              <a href="{{ $reviewRoute }}"
+                >{{ $media.Title }}
+                {{- if ne .TvShowSeason 0 }}
+                  (Season {{ .TvShowSeason }})
+                {{ end -}}
+              </a>
             </h5>
             <h6 class="card-subtitle mb-2 text-muted">
               <b

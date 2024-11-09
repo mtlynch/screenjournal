@@ -8,8 +8,10 @@ import (
 
 type (
 	reviewFilters struct {
-		Username *screenjournal.Username
-		MovieID  *screenjournal.MovieID
+		Username     *screenjournal.Username
+		MovieID      *screenjournal.MovieID
+		TvShowID     *screenjournal.TvShowID
+		TvShowSeason *screenjournal.TvShowSeason
 	}
 
 	ReadReviewsParams struct {
@@ -22,6 +24,7 @@ type (
 
 var (
 	ErrMovieNotFound                     = errors.New("could not find movie")
+	ErrTvShowNotFound                    = errors.New("could not find TV show")
 	ErrCommentNotFound                   = errors.New("could not find comment")
 	ErrReviewNotFound                    = errors.New("could not find review")
 	ErrUserNotFound                      = errors.New("could not find user")
@@ -38,6 +41,18 @@ func FilterReviewsByUsername(u screenjournal.Username) func(*ReadReviewsParams) 
 func FilterReviewsByMovieID(id screenjournal.MovieID) func(*ReadReviewsParams) {
 	return func(p *ReadReviewsParams) {
 		p.Filters.MovieID = &id
+	}
+}
+
+func FilterReviewsByTvShowID(id screenjournal.TvShowID) func(*ReadReviewsParams) {
+	return func(p *ReadReviewsParams) {
+		p.Filters.TvShowID = &id
+	}
+}
+
+func FilterReviewsByTvShowSeason(season screenjournal.TvShowSeason) func(*ReadReviewsParams) {
+	return func(p *ReadReviewsParams) {
+		p.Filters.TvShowSeason = &season
 	}
 }
 

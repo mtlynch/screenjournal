@@ -39,8 +39,25 @@
 {{ define "content" }}
   {{ $isEditing := ne .Review.ID 0 }}
 
+  {{ $title := "" }}
+  {{ $releaseYear := 0 }}
+  {{ $tmdbID := 0 }}
+
   {{ if ne .Review.Movie.Title "" }}
-    <h2>{{ .Review.Movie.Title }} ({{ .Review.Movie.ReleaseDate.Year }})</h2>
+    {{ $title = .Review.Movie.Title }}
+    {{ $releaseYear = .Review.Movie.ReleaseDate.Year }}
+    {{ $tmdbID = .Review.Movie.TmdbID }}
+  {{ else }}
+    {{ $title = .Review.TvShow.Title }}
+    {{ $releaseYear = .Review.TvShow.AirDate.Year }}
+    {{ $tmdbID = .Review.TvShow.TmdbID }}
+  {{ end }}
+
+
+  <h2>{{ $title }} ({{ $releaseYear }})</h2>
+
+  {{ if ne .Review.TvShowSeason.UInt8 0 }}
+    <h3>Season {{ .Review.TvShowSeason.UInt8 }}</h3>
   {{ end }}
 
 
@@ -60,12 +77,12 @@
       hx-disabled-elt="input, select, textarea, .btn"
     >
       {{ if not $isEditing }}
-        <input
-          type="hidden"
-          name="tmdb-id"
-          value="{{ .Review.Movie.TmdbID }}"
-        />
+        <input type="hidden" name="tmdb-id" value="{{ $tmdbID }}" />
+        <input type="hidden" name="season" value="{{ .Review.TvShowSeason }}" />
+        <input type="hidden" name="media-type" value="{{ .MediaType }}" />
       {{ end }}
+
+
       <div class="mb-3">
         <label for="rating" class="form-label">Rating</label>
         <select

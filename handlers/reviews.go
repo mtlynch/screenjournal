@@ -12,10 +12,12 @@ import (
 )
 
 type reviewPostRequest struct {
-	TmdbID    screenjournal.TmdbID
-	Rating    screenjournal.Rating
-	WatchDate screenjournal.WatchDate
-	Blurb     screenjournal.Blurb
+	MediaType    screenjournal.MediaType
+	TmdbID       screenjournal.TmdbID
+	TvShowSeason screenjournal.TvShowSeason
+	Rating       screenjournal.Rating
+	WatchDate    screenjournal.WatchDate
+	Blurb        screenjournal.Blurb
 }
 
 type reviewPutRequest struct {
@@ -34,21 +36,34 @@ func (s Server) reviewsPost() http.HandlerFunc {
 		}
 
 		review := screenjournal.Review{
-			Owner:    mustGetUsernameFromContext(r.Context()),
-			Rating:   req.Rating,
-			Watched:  req.WatchDate,
-			Blurb:    req.Blurb,
-			Comments: []screenjournal.ReviewComment{},
+			Owner:        mustGetUsernameFromContext(r.Context()),
+			TvShowSeason: req.TvShowSeason,
+			Rating:       req.Rating,
+			Watched:      req.WatchDate,
+			Blurb:        req.Blurb,
+			Comments:     []screenjournal.ReviewComment{},
 		}
 
-		review.Movie, err = s.moviefromTmdbID(s.getDB(r), req.TmdbID)
-		if err == store.ErrMovieNotFound {
-			http.Error(w, fmt.Sprintf("Could not find movie with TMDB ID: %v", req.TmdbID), http.StatusNotFound)
-			return
-		} else if err != nil {
-			log.Printf("failed to get local media ID for TMDB ID %v: %v", req.TmdbID, err)
-			http.Error(w, fmt.Sprintf("Failed to look up TMDB ID: %v: %v", req.TmdbID, err), http.StatusInternalServerError)
-			return
+		if req.MediaType == screenjournal.MediaTypeMovie {
+			review.Movie, err = s.moviefromTmdbID(s.getDB(r), req.TmdbID)
+			if err == store.ErrMovieNotFound {
+				http.Error(w, fmt.Sprintf("Could not find movie with TMDB ID: %v", req.TmdbID), http.StatusNotFound)
+				return
+			} else if err != nil {
+				log.Printf("failed to get local media ID for movie with TMDB ID %v: %v", req.TmdbID, err)
+				http.Error(w, fmt.Sprintf("Failed to look up movie with TMDB ID: %v: %v", req.TmdbID, err), http.StatusInternalServerError)
+				return
+			}
+		} else if req.MediaType == screenjournal.MediaTypeTvShow {
+			review.TvShow, err = s.tvShowfromTmdbID(s.getDB(r), req.TmdbID)
+			if err == store.ErrTvShowNotFound {
+				http.Error(w, fmt.Sprintf("Could not find tv show with TMDB ID: %v", req.TmdbID), http.StatusNotFound)
+				return
+			} else if err != nil {
+				log.Printf("failed to get local media ID for TV show with TMDB ID %v: %v", req.TmdbID, err)
+				http.Error(w, fmt.Sprintf("Failed to look up TV show with TMDB ID: %v: %v", req.TmdbID, err), http.StatusInternalServerError)
+				return
+			}
 		}
 
 		review.ID, err = s.getDB(r).InsertReview(review)
@@ -60,7 +75,12 @@ func (s Server) reviewsPost() http.HandlerFunc {
 
 		s.announcer.AnnounceNewReview(review)
 
-		http.Redirect(w, r, fmt.Sprintf("/movies/%d#review%d", review.Movie.ID.Int64(), review.ID.UInt64()), http.StatusSeeOther)
+		if review.MediaType() == screenjournal.MediaTypeMovie {
+			http.Redirect(w, r, fmt.Sprintf("/movies/%d#review%d", review.Movie.ID.Int64(), review.ID.UInt64()), http.StatusSeeOther)
+		} else {
+			http.Redirect(w, r, fmt.Sprintf("/tv-shows/%d?season=%d#review%d", review.TvShow.ID.Int64(), review.TvShowSeason.UInt8(), review.ID.UInt64()), http.StatusSeeOther)
+		}
+
 	}
 }
 
@@ -149,8 +169,18 @@ func parseReviewPostRequest(r *http.Request) (reviewPostRequest, error) {
 	parsed := reviewPostRequest{}
 	var err error
 
+	if parsed.MediaType, err = parse.MediaType(r.PostFormValue("media-type")); err != nil {
+		return reviewPostRequest{}, err
+	}
+
 	if parsed.TmdbID, err = parse.TmdbIDFromString(r.PostFormValue("tmdb-id")); err != nil {
 		return reviewPostRequest{}, err
+	}
+
+	if parsed.MediaType == screenjournal.MediaTypeTvShow {
+		if parsed.TvShowSeason, err = parse.TvShowSeason(r.PostFormValue("season")); err != nil {
+			return reviewPostRequest{}, err
+		}
 	}
 
 	if parsed.Rating, err = parse.RatingFromString(r.PostFormValue("rating")); err != nil {
@@ -211,4 +241,26 @@ func (s Server) moviefromTmdbID(db Store, tmdbID screenjournal.TmdbID) (screenjo
 	}
 
 	return movie, nil
+}
+
+func (s Server) tvShowfromTmdbID(db Store, tmdbID screenjournal.TmdbID) (screenjournal.TvShow, error) {
+	tvShow, err := db.ReadTvShowByTmdbID(tmdbID)
+	if err != nil && err != store.ErrTvShowNotFound {
+		return screenjournal.TvShow{}, err
+	} else if err == nil {
+		return tvShow, nil
+	}
+
+	info, err := s.metadataFinder.GetTvShowInfo(tmdbID)
+	if err != nil {
+		return screenjournal.TvShow{}, err
+	}
+
+	tvShow = metadata.TvShowFromTvShowInfo(info)
+	tvShow.ID, err = db.InsertTvShow(tvShow)
+	if err != nil {
+		return screenjournal.TvShow{}, err
+	}
+
+	return tvShow, nil
 }

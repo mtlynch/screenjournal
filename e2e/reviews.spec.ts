@@ -7,7 +7,9 @@ test.beforeEach(async ({ page }) => {
   await loginAsUserA(page);
 });
 
-test("index page renders card for review with comments", async ({ page }) => {
+test("index page renders card for movie review with comments", async ({
+  page,
+}) => {
   const reviewCard = await page.locator(".card", {
     has: page.getByRole("heading", { name: "The Waterboy" }),
   });
@@ -28,7 +30,7 @@ test("index page renders card for review with comments", async ({ page }) => {
   await expect(reviewCard.getByTestId("comment-count")).toHaveText(" 1");
 });
 
-test("index page renders card for review without comments", async ({
+test("index page renders card for movie review without comments", async ({
   page,
 }) => {
   const reviewCard = await page.locator(".card", {
@@ -56,12 +58,34 @@ test("index page renders card for review without comments", async ({
   await expect(reviewCard.getByTestId("comment-count")).toHaveCount(0);
 });
 
+test("index page renders card for TV show review", async ({ page }) => {
+  const reviewCard = await page.locator(".card", {
+    has: page.getByRole("heading", { name: "Seinfeld (Season 1)" }),
+  });
+  await expect(reviewCard.locator(".card-subtitle")).toHaveText(
+    /userB watched this .+ ago/,
+    { useInnerText: true }
+  );
+  await expect(
+    reviewCard.locator(".card-subtitle [data-testid='watch-date']")
+  ).toHaveAttribute("title", "2024-11-04");
+  await expect(reviewCard.locator(".card-text")).toHaveText(
+    "I see what the fuss is about!"
+  );
+});
+
 test("index page sorts cards based on desired sorting", async ({ page }) => {
   // By default, sort by watch date.
   await expect(page.locator(":nth-match(.card, 1) .card-title")).toHaveText(
-    "Billy Madison"
+    "Seinfeld (Season 2)"
   );
   await expect(page.locator(":nth-match(.card, 2) .card-title")).toHaveText(
+    "Seinfeld (Season 1)"
+  );
+  await expect(page.locator(":nth-match(.card, 3) .card-title")).toHaveText(
+    "Billy Madison"
+  );
+  await expect(page.locator(":nth-match(.card, 4) .card-title")).toHaveText(
     "The Waterboy"
   );
 
@@ -81,24 +105,36 @@ test("index page sorts cards based on desired sorting", async ({ page }) => {
     "The Waterboy"
   );
   await expect(page.locator(":nth-match(.card, 2) .card-title")).toHaveText(
+    "Seinfeld (Season 1)"
+  );
+  await expect(page.locator(":nth-match(.card, 3) .card-title")).toHaveText(
+    "Seinfeld (Season 2)"
+  );
+  await expect(page.locator(":nth-match(.card, 4) .card-title")).toHaveText(
     "Billy Madison"
   );
 
-  // Choose to sort by rating.
+  // Choose to sort by watch date.
   await page.locator("#sort-btn").click();
   await page.locator("#sort-by").selectOption("watch-date");
 
   // Verify the sorting is now by watch date.
   await expect(page).toHaveURL("/reviews?sortBy=watch-date");
   await expect(page.locator(":nth-match(.card, 1) .card-title")).toHaveText(
-    "Billy Madison"
+    "Seinfeld (Season 2)"
   );
   await expect(page.locator(":nth-match(.card, 2) .card-title")).toHaveText(
+    "Seinfeld (Season 1)"
+  );
+  await expect(page.locator(":nth-match(.card, 3) .card-title")).toHaveText(
+    "Billy Madison"
+  );
+  await expect(page.locator(":nth-match(.card, 4) .card-title")).toHaveText(
     "The Waterboy"
   );
 });
 
-test("adds a new rating and fills in only required fields", async ({
+test("adds a new movie rating and fills in only required fields", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
@@ -106,7 +142,9 @@ test("adds a new rating and fills in only required fields", async ({
   await page.getByPlaceholder("Search").pressSequentially("slow lear");
   await page.getByText("Slow Learners (2015)").click();
 
-  await expect(page).toHaveURL("/reviews/new/write?tmdbId=333287");
+  await expect(page).toHaveURL(
+    "/reviews/new/write?tmdbId=333287&mediaType=movie"
+  );
   await expect(
     page.getByRole("heading", { name: "Slow Learners" })
   ).toBeVisible();
@@ -144,7 +182,87 @@ test("adds a new rating and fills in only required fields", async ({
   await expect(reviewCard.locator(".card-text")).toHaveCount(0);
 });
 
-test("adds a new rating that's too long to display in a card", async ({
+test("adds a new TV show rating and fills in only required fields", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "Add Rating" }).click();
+
+  await page.getByLabel("TV show").click();
+
+  await page.getByPlaceholder("Search").pressSequentially("30 r");
+  await page.getByText("30 Rock (2006)").click();
+
+  await expect(page).toHaveURL("/reviews/new/tv/pick-season?tmdbId=4608");
+  await page.getByLabel("Season").selectOption({ label: "5" });
+
+  await expect(page).toHaveURL(
+    "/reviews/new/write?season=5&mediaType=tv-show&tmdbId=4608"
+  );
+  await expect(page.getByRole("heading", { name: "30 Rock" })).toBeVisible();
+
+  await page.getByLabel("Rating").selectOption({ label: "4.5" });
+
+  await page.getByLabel("When did you watch?").fill("2024-10-05");
+
+  await page.locator("form input[type='submit']").click();
+
+  await expect(page).toHaveURL("/tv-shows/2?season=5");
+
+  await page.getByRole("menuitem", { name: "Home" }).click();
+  await expect(page).toHaveURL("/reviews");
+
+  const reviewCard = await page.locator(".card", {
+    has: page.getByRole("heading", { name: "30 Rock (Season 5)" }),
+  });
+  await expect(reviewCard.locator(".card-subtitle")).toHaveText(
+    /userA watched this .+ ago/,
+    { useInnerText: true }
+  );
+  await expect(
+    reviewCard.locator(".card-subtitle [data-testid='watch-date']")
+  ).toHaveAttribute("title", "2024-10-05");
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
+  ).toHaveCount(4);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(1);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
+  ).toHaveCount(0);
+  await expect(reviewCard.locator(".card-text")).toHaveCount(0);
+});
+
+test("views a TV show with an existing review and adds a new review", async ({
+  page,
+}) => {
+  await page
+    .getByRole("heading", { name: "Seinfeld (Season 2)" })
+    .getByRole("link")
+    .click();
+
+  await expect(page).toHaveURL("/tv-shows/1?season=2#review4");
+
+  await page.getByRole("button", { name: "Add Rating" }).click();
+
+  await expect(page).toHaveURL(
+    "/reviews/new/write?season=2&mediaType=tv-show&tmdbId=1400"
+  );
+
+  await expect(page.getByRole("heading", { name: "Seinfeld" })).toBeVisible();
+
+  await expect(page.getByPlaceholder("Search")).not.toBeVisible();
+
+  await page.getByLabel("Rating").selectOption({ label: "5.0" });
+  await page.getByLabel("When did you watch?").fill("2023-01-05");
+  await page.getByLabel("Other thoughts?").fill("I liked it, too!");
+
+  await page.locator("form input[type='submit']").click();
+
+  await expect(page).toHaveURL("/tv-shows/1?season=2");
+});
+
+test("adds a new movie rating that's too long to display in a card", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
@@ -154,7 +272,9 @@ test("adds a new rating that's too long to display in a card", async ({
     .pressSequentially("Weird: The Al Yankovic Story");
   await page.getByText("Weird: The Al Yankovic Story (2022)").click();
 
-  await expect(page).toHaveURL("/reviews/new/write?tmdbId=928344");
+  await expect(page).toHaveURL(
+    "/reviews/new/write?tmdbId=928344&mediaType=movie"
+  );
   await expect(
     page.getByRole("heading", { name: "Weird: The Al Yankovic Story" })
   ).toBeVisible();
@@ -244,7 +364,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
   await page.getByPlaceholder("Search").pressSequentially("eternal sunshine");
   await page.getByText("Eternal Sunshine of the Spotless Mind (2004)").click();
 
-  await expect(page).toHaveURL("/reviews/new/write?tmdbId=38");
+  await expect(page).toHaveURL("/reviews/new/write?tmdbId=38&mediaType=movie");
   await expect(
     page.getByRole("heading", { name: "Eternal Sunshine of the Spotless Mind" })
   ).toBeVisible();
@@ -294,7 +414,7 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
   await page.getByPlaceholder("Search").pressSequentially("eternal sunshine");
   await page.getByText("Eternal Sunshine of the Spotless Mind (2004)").click();
 
-  await expect(page).toHaveURL("/reviews/new/write?tmdbId=38");
+  await expect(page).toHaveURL("/reviews/new/write?tmdbId=38&mediaType=movie");
   await expect(
     page.getByRole("heading", { name: "Eternal Sunshine of the Spotless Mind" })
   ).toBeVisible();
@@ -323,7 +443,7 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
   ).toEqual("This is the &lt;b&gt;best&lt;/b&gt; movie ever!<br>");
 });
 
-test("adds a new rating and edits the details", async ({ page }) => {
+test("adds a new movie rating and edits the details", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page
@@ -331,7 +451,7 @@ test("adds a new rating and edits the details", async ({ page }) => {
     .pressSequentially("something about mary");
   await page.getByText("There's Something About Mary (1998)").click();
 
-  await expect(page).toHaveURL("/reviews/new/write?tmdbId=544");
+  await expect(page).toHaveURL("/reviews/new/write?tmdbId=544&mediaType=movie");
   await expect(
     page.getByRole("heading", { name: "There's Something About Mary" })
   ).toBeVisible();
@@ -353,7 +473,7 @@ test("adds a new rating and edits the details", async ({ page }) => {
   });
   await reviewCard.getByTestId("edit-rating").click();
 
-  await expect(page).toHaveURL("/reviews/3/edit");
+  await expect(page).toHaveURL("/reviews/5/edit");
 
   await expect(
     page.getByRole("heading", { name: "There's Something About Mary (1998)" })
@@ -409,7 +529,7 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   await page.getByPlaceholder("Search").pressSequentially("the english pati");
   await page.getByText("The English Patient (1996)").click();
 
-  await expect(page).toHaveURL("/reviews/new/write?tmdbId=409");
+  await expect(page).toHaveURL("/reviews/new/write?tmdbId=409&mediaType=movie");
   await expect(
     page.getByRole("heading", { name: "The English Patient" })
   ).toBeVisible();
@@ -467,7 +587,7 @@ test("editing another user's review fails", async ({ page, browser }) => {
   await page.getByPlaceholder("Search").pressSequentially("the english pati");
   await page.getByText("The English Patient (1996)").click();
 
-  await expect(page).toHaveURL("/reviews/new/write?tmdbId=409");
+  await expect(page).toHaveURL("/reviews/new/write?tmdbId=409&mediaType=movie");
   await expect(
     page.getByRole("heading", { name: "The English Patient" })
   ).toBeVisible();
@@ -496,7 +616,7 @@ test("editing another user's review fails", async ({ page, browser }) => {
   await guestPage.goto("/");
   await loginAsUserB(guestPage);
 
-  const response = await guestPage.goto("/reviews/3/edit");
+  const response = await guestPage.goto("/reviews/5/edit");
   await expect(response?.status()).toBe(403);
 
   await guestContext.close();
@@ -699,7 +819,5 @@ test("views reviews filtered by user", async ({ page }) => {
     page.getByRole("heading", { name: "userB's ratings" })
   ).toBeVisible();
 
-  await expect(page.getByTestId("collection-count")).toHaveText(
-    "userB has reviewed 2 movies"
-  );
+  await expect(page.getByText("userB has written 4 reviews")).toBeVisible();
 });

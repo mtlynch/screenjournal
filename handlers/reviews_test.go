@@ -110,12 +110,29 @@ func (sm mockSessionManager) WrapRequest(next http.Handler) http.Handler {
 }
 
 type mockMetadataFinder struct {
-	db []metadata.MovieInfo
+	movies  []metadata.MovieInfo
+	tvShows []metadata.TvShowInfo
 }
 
 func (mf mockMetadataFinder) SearchMovies(query screenjournal.SearchQuery) ([]metadata.SearchResult, error) {
 	matches := []metadata.SearchResult{}
-	for _, v := range mf.db {
+	for _, v := range mf.movies {
+		if strings.Contains(strings.ToLower(v.Title.String()), strings.ToLower(query.String())) {
+			matches = append(matches, metadata.SearchResult{
+				TmdbID:      v.TmdbID,
+				Title:       v.Title,
+				ReleaseDate: v.ReleaseDate,
+				PosterPath:  v.PosterPath,
+			})
+		}
+	}
+	return matches, nil
+}
+
+func (mf mockMetadataFinder) SearchTvShows(query screenjournal.SearchQuery) ([]metadata.SearchResult, error) {
+	matches := []metadata.SearchResult{}
+
+	for _, v := range mf.tvShows {
 		if strings.Contains(strings.ToLower(v.Title.String()), strings.ToLower(query.String())) {
 			matches = append(matches, metadata.SearchResult{
 				TmdbID:      v.TmdbID,
@@ -129,7 +146,7 @@ func (mf mockMetadataFinder) SearchMovies(query screenjournal.SearchQuery) ([]me
 }
 
 func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, error) {
-	for _, m := range mf.db {
+	for _, m := range mf.movies {
 		if id.Equal(m.TmdbID) {
 			return m, nil
 		}
@@ -137,10 +154,26 @@ func (mf mockMetadataFinder) GetMovieInfo(id screenjournal.TmdbID) (metadata.Mov
 	return metadata.MovieInfo{}, fmt.Errorf("could not find movie with id %d in mock DB", id.Int32())
 }
 
-func NewMockMetadataFinder(movies []metadata.MovieInfo) mockMetadataFinder {
-	db := make([]metadata.MovieInfo, len(movies))
-	copy(db, movies)
-	return mockMetadataFinder{db}
+func (mf mockMetadataFinder) GetTvShowInfo(id screenjournal.TmdbID) (metadata.TvShowInfo, error) {
+	for _, t := range mf.tvShows {
+		if id.Equal(t.TmdbID) {
+			return t, nil
+		}
+	}
+	return metadata.TvShowInfo{}, fmt.Errorf("could not find TV show with id %d in mock DB", id.Int32())
+}
+
+func NewMockMetadataFinder(movies []metadata.MovieInfo, tvShows []metadata.TvShowInfo) mockMetadataFinder {
+	moviesCopy := make([]metadata.MovieInfo, len(movies))
+	copy(moviesCopy, movies)
+
+	tvShowsCopy := make([]metadata.TvShowInfo, len(tvShows))
+	copy(tvShowsCopy, tvShows)
+
+	return mockMetadataFinder{
+		movies:  moviesCopy,
+		tvShows: tvShowsCopy,
+	}
 }
 
 func TestReviewsPostAcceptsValidRequest(t *testing.T) {
@@ -155,7 +188,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 	}{
 		{
 			description:  "valid request with all fields populated and movie information is in local DB",
-			payload:      "tmdb-id=38&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
+			payload:      "media-type=movie&tmdb-id=38&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
 			sessionToken: "abc123",
 			localMovies: []screenjournal.Movie{
 				{
@@ -191,7 +224,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 		},
 		{
 			description:  "valid request without a blurb",
-			payload:      "tmdb-id=14577&rating=4&watch-date=2022-10-21&blurb=",
+			payload:      "media-type=movie&tmdb-id=14577&rating=4&watch-date=2022-10-21&blurb=",
 			sessionToken: "abc123",
 			localMovies: []screenjournal.Movie{
 				{
@@ -228,7 +261,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 		},
 		{
 			description:  "valid request but we have to query metadata finder for movie info",
-			payload:      "tmdb-id=38&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
+			payload:      "media-type=movie&tmdb-id=38&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
 			sessionToken: "abc123",
 			remoteMovieInfo: []metadata.MovieInfo{
 				{
@@ -276,7 +309,9 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 
 			sessionManager := newMockSessionManager(tt.sessions)
 
-			s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo))
+			remoteTvShowInfo := []metadata.TvShowInfo{}
+
+			s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo, remoteTvShowInfo))
 
 			req, err := http.NewRequest("POST", "/reviews", strings.NewReader(tt.payload))
 			if err != nil {

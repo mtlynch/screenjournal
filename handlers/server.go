@@ -35,6 +35,7 @@ type (
 		SearchMovies(query screenjournal.SearchQuery) ([]metadata.SearchResult, error)
 		SearchTvShows(query screenjournal.SearchQuery) ([]metadata.SearchResult, error)
 		GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, error)
+		GetTvShowInfo(id screenjournal.TmdbID) (metadata.TvShowInfo, error)
 	}
 
 	Server struct {

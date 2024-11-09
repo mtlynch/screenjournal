@@ -20,6 +20,9 @@ type Store interface {
 	ReadMovieByTmdbID(screenjournal.TmdbID) (screenjournal.Movie, error)
 	InsertMovie(screenjournal.Movie) (screenjournal.MovieID, error)
 	UpdateMovie(screenjournal.Movie) error
+	ReadTvShow(screenjournal.TvShowID) (screenjournal.TvShow, error)
+	ReadTvShowByTmdbID(screenjournal.TmdbID) (screenjournal.TvShow, error)
+	InsertTvShow(screenjournal.TvShow) (screenjournal.TvShowID, error)
 	CountUsers() (uint, error)
 	ReadUser(screenjournal.Username) (screenjournal.User, error)
 	ReadUsers() ([]screenjournal.User, error)

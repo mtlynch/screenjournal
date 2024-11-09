@@ -819,7 +819,5 @@ test("views reviews filtered by user", async ({ page }) => {
     page.getByRole("heading", { name: "userB's ratings" })
   ).toBeVisible();
 
-  await expect(page.getByTestId("collection-count")).toHaveText(
-    "userB has reviewed 4 movies"
-  );
+  await expect(page.getByText("userB has written 4 reviews")).toBeVisible();
 });

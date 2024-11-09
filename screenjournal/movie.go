@@ -42,3 +42,11 @@ func (rd ReleaseDate) Year() int {
 func (rd ReleaseDate) Time() time.Time {
 	return time.Time(rd)
 }
+
+func (tvs TvShowSeason) UInt8() uint8 {
+	return uint8(tvs)
+}
+
+func (tvs TvShowSeason) Equal(o TvShowSeason) bool {
+	return tvs.UInt8() == o.UInt8()
+}

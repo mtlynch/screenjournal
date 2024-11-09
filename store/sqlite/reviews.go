@@ -71,6 +71,10 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 		whereClauses = append(whereClauses, "tv_show_id = :tv_show_id")
 		queryArgs = append(queryArgs, sql.Named("tv_show_id", params.Filters.TvShowID.Int64()))
 	}
+	if params.Filters.TvShowSeason != nil {
+		whereClauses = append(whereClauses, "tv_show_season = :tv_show_season")
+		queryArgs = append(queryArgs, sql.Named("tv_show_season", params.Filters.TvShowSeason.UInt8()))
+	}
 
 	query := `
 	SELECT

@@ -377,17 +377,121 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			reviews[i].Comments = cc
 		}
 
+		type mediaStub struct {
+			IsTvShow     bool
+			Type         screenjournal.MediaType
+			ID           int64
+			Title        screenjournal.MediaTitle
+			SeasonNumber screenjournal.TvShowSeason
+			PosterPath   url.URL
+			ImdbID       screenjournal.ImdbID
+			TmdbID       screenjournal.TmdbID
+			ReleaseDate  screenjournal.ReleaseDate
+		}
 		if err := t.Execute(w, struct {
 			commonProps
-			Movie     screenjournal.Movie
-			Reviews   []screenjournal.Review
-			MediaType screenjournal.MediaType
+			Media   mediaStub
+			Reviews []screenjournal.Review
 		}{
 			commonProps: makeCommonProps(r.Context()),
-			Movie:       movie,
-			Reviews:     reviews,
-			MediaType:   screenjournal.MediaTypeMovie,
+			Media: mediaStub{
+				Type:        screenjournal.MediaTypeMovie,
+				IsTvShow:    false,
+				ID:          movie.ID.Int64(),
+				Title:       movie.Title,
+				PosterPath:  movie.PosterPath,
+				ImdbID:      movie.ImdbID,
+				TmdbID:      movie.TmdbID,
+				ReleaseDate: movie.ReleaseDate,
+			},
+			Reviews: reviews,
 		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func (s Server) tvShowsReadGet() http.HandlerFunc {
+	t := template.Must(
+		template.New("base.html").
+			Funcs(moviePageFns).
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/reviews-for-movie.html")...))
+	return func(w http.ResponseWriter, r *http.Request) {
+		tvID, err := tvShowIDFromRequestPath(r)
+		if err != nil {
+			http.Error(w, "Invalid TV show ID", http.StatusBadRequest)
+			return
+		}
+
+		seasonNumber, err := tvShowSeasonFromQueryParams(r)
+		if err != nil {
+			log.Printf("invalid TV show season: %v", err)
+			http.Error(w, "Invalid TV show season", http.StatusBadRequest)
+			return
+		}
+
+		tvShow, err := s.getDB(r).ReadTvShow(tvID)
+		if err == store.ErrTvShowNotFound {
+			http.Error(w, "Invalid TV show ID", http.StatusNotFound)
+			return
+		} else if err != nil {
+			log.Printf("failed to read TV show metadata: %v", err)
+			http.Error(w, "Failed to retrieve TV show information", http.StatusInternalServerError)
+			return
+		}
+
+		reviews, err := s.getDB(r).ReadReviews(store.FilterReviewsByTvShowID(tvID), store.FilterReviewsByTvShowSeason(seasonNumber))
+		if err != nil {
+			log.Printf("failed to read TV show reviews: %v", err)
+			http.Error(w, "Failed to retrieve TV show reviews", http.StatusInternalServerError)
+			return
+		}
+
+		for i, review := range reviews {
+			cc, err := s.getDB(r).ReadComments(review.ID)
+			if err != nil {
+				log.Printf("failed to read reviews comments: %v", err)
+				http.Error(w, "Failed to retrieve comments", http.StatusInternalServerError)
+				return
+			}
+			reviews[i].Comments = cc
+		}
+
+		type mediaStub struct {
+			Type         screenjournal.MediaType
+			IsTvShow     bool
+			ID           int64
+			Title        screenjournal.MediaTitle
+			SeasonNumber screenjournal.TvShowSeason
+			PosterPath   url.URL
+			ImdbID       screenjournal.ImdbID
+			TmdbID       screenjournal.TmdbID
+			ReleaseDate  screenjournal.ReleaseDate
+		}
+
+		if err := t.Execute(w, struct {
+			commonProps
+			Media   mediaStub
+			Reviews []screenjournal.Review
+		}{
+			commonProps: makeCommonProps(r.Context()),
+			Media: mediaStub{
+				Type:         screenjournal.MediaTypeTvShow,
+				IsTvShow:     true,
+				ID:           tvShow.ID.Int64(),
+				Title:        tvShow.Title,
+				SeasonNumber: seasonNumber,
+				PosterPath:   tvShow.PosterPath,
+				ImdbID:       tvShow.ImdbID,
+				TmdbID:       tvShow.TmdbID,
+				ReleaseDate:  tvShow.AirDate,
+			},
+			Reviews: reviews,
+		}); err != nil {
+			log.Printf("failed to render template: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -578,6 +682,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 		} else if err != nil {
 			log.Printf("invalid TMDB ID: %v", err)
 			http.Error(w, "Invalid TMDB ID", http.StatusBadRequest)
+			return
 		} else {
 			tmdbID = &tid
 		}

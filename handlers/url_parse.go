@@ -3,7 +3,6 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 
@@ -12,14 +11,15 @@ import (
 )
 
 var (
-	ErrMediaTypeNotProvided   = errors.New("no media type in query parameters")
-	ErrMovieIDNotProvided     = errors.New("no movie ID in query parameters")
-	ErrTvShowIDNotProvided    = errors.New("no TV show ID in query parameters")
-	ErrTmdbIDNotProvided      = errors.New("no TMDB ID in query parameters")
-	ErrReviewIDNotProvided    = errors.New("no review ID in query parameters")
-	ErrSortOrderNotProvided   = errors.New("no sort order in query parameters")
-	ErrCommentIDNotProvided   = errors.New("no comment ID in query parameters")
-	ErrSearchQueryNotProvided = errors.New("no search query in query parameters")
+	ErrMediaTypeNotProvided    = errors.New("no media type in query parameters")
+	ErrMovieIDNotProvided      = errors.New("no movie ID in query parameters")
+	ErrTvShowIDNotProvided     = errors.New("no TV show ID in query parameters")
+	ErrTvShowSeasonNotProvided = errors.New("no TV show season in query parameters")
+	ErrTmdbIDNotProvided       = errors.New("no TMDB ID in query parameters")
+	ErrReviewIDNotProvided     = errors.New("no review ID in query parameters")
+	ErrSortOrderNotProvided    = errors.New("no sort order in query parameters")
+	ErrCommentIDNotProvided    = errors.New("no comment ID in query parameters")
+	ErrSearchQueryNotProvided  = errors.New("no search query in query parameters")
 )
 
 func mediaTypeFromQueryParams(r *http.Request) (screenjournal.MediaType, error) {
@@ -44,6 +44,10 @@ func movieIDFromQueryParams(r *http.Request) (screenjournal.MovieID, error) {
 	return parse.MovieIDFromString(raw)
 }
 
+func tvShowIDFromRequestPath(r *http.Request) (screenjournal.TvShowID, error) {
+	return parse.TvShowIDFromString(mux.Vars(r)["tvShowID"])
+}
+
 func tvShowIDFromQueryParams(r *http.Request) (screenjournal.TvShowID, error) {
 	raw := r.URL.Query().Get("tvShowId")
 	if raw == "" {
@@ -51,6 +55,15 @@ func tvShowIDFromQueryParams(r *http.Request) (screenjournal.TvShowID, error) {
 	}
 
 	return parse.TvShowIDFromString(raw)
+}
+
+func tvShowSeasonFromQueryParams(r *http.Request) (screenjournal.TvShowSeason, error) {
+	raw := r.URL.Query().Get("season")
+	if raw == "" {
+		return screenjournal.TvShowSeason(0), ErrTvShowSeasonNotProvided
+	}
+
+	return parse.TvShowSeason(raw)
 }
 
 func tmdbIDFromQueryParams(r *http.Request) (screenjournal.TmdbID, error) {
@@ -121,18 +134,4 @@ func searchQueryFromQueryParams(r *http.Request) (screenjournal.SearchQuery, err
 	}
 
 	return parse.SearchQuery(raw)
-}
-
-func tvShowSeasonFromQueryParams(r *http.Request) (screenjournal.TvShowSeason, error) {
-	raw := r.URL.Query().Get("season")
-	if raw == "" {
-		return screenjournal.TvShowSeason(0), errors.New("dummy error") // TODO
-	}
-
-	u, err := strconv.ParseUint(raw, 10, 64)
-	if err != nil {
-		return screenjournal.TvShowSeason(0), err
-	}
-
-	return screenjournal.TvShowSeason(u), nil
 }

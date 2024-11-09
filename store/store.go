@@ -8,9 +8,10 @@ import (
 
 type (
 	reviewFilters struct {
-		Username *screenjournal.Username
-		MovieID  *screenjournal.MovieID
-		TvShowID *screenjournal.TvShowID
+		Username     *screenjournal.Username
+		MovieID      *screenjournal.MovieID
+		TvShowID     *screenjournal.TvShowID
+		TvShowSeason *screenjournal.TvShowSeason
 	}
 
 	ReadReviewsParams struct {
@@ -46,6 +47,12 @@ func FilterReviewsByMovieID(id screenjournal.MovieID) func(*ReadReviewsParams) {
 func FilterReviewsByTvShowID(id screenjournal.TvShowID) func(*ReadReviewsParams) {
 	return func(p *ReadReviewsParams) {
 		p.Filters.TvShowID = &id
+	}
+}
+
+func FilterReviewsByTvShowSeason(season screenjournal.TvShowSeason) func(*ReadReviewsParams) {
+	return func(p *ReadReviewsParams) {
+		p.Filters.TvShowSeason = &season
 	}
 }
 

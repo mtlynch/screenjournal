@@ -9,6 +9,23 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store"
 )
 
+func (s Store) ReadTvShow(id screenjournal.TvShowID) (screenjournal.TvShow, error) {
+	row := s.ctx.QueryRow(`
+	SELECT
+		id,
+		tmdb_id,
+		imdb_id,
+		title,
+		first_air_date,
+		poster_path
+	FROM
+		tv_shows
+	WHERE
+		id = :id`, sql.Named("id", id.Int64()))
+
+	return tvShowFromRow(row)
+}
+
 func (s Store) ReadTvShowByTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.TvShow, error) {
 	row := s.ctx.QueryRow(`
 	SELECT

@@ -583,7 +583,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 		}
 
 		// If we can't infer the media type from other query params, check for an
-		// explicity media type query param.
+		// media type query param.
 		if mediaType.IsEmpty() {
 			if mediaType, err = mediaTypeFromQueryParams(r); err != nil {
 				log.Printf("invalid media type: %v", err)

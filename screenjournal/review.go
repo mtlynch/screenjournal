@@ -14,16 +14,17 @@ type (
 	WatchDate  time.Time
 
 	Review struct {
-		ID       ReviewID
-		Owner    Username
-		Rating   Rating
-		Blurb    Blurb
-		Watched  WatchDate
-		Created  time.Time
-		Modified time.Time
-		Movie    Movie
-		TvShow   TvShow
-		Comments []ReviewComment
+		ID           ReviewID
+		Owner        Username
+		Rating       Rating
+		Blurb        Blurb
+		Watched      WatchDate
+		Created      time.Time
+		Modified     time.Time
+		Movie        Movie
+		TvShow       TvShow
+		TvShowSeason TvShowSeason
+		Comments     []ReviewComment
 	}
 
 	ReviewComment struct {
@@ -71,4 +72,8 @@ func (wd WatchDate) Time() time.Time {
 
 func (b Blurb) String() string {
 	return string(b)
+}
+
+func (s TvShowSeason) UInt8() uint8 {
+	return uint8(s)
 }

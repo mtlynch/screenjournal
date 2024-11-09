@@ -13,8 +13,7 @@ import (
 )
 
 type mockTmdbAPI struct {
-	getTvInfoResponse *tmdbWrapper.TV
-	searchTvResponse  *tmdbWrapper.TvSearchResults
+	searchTvResponse *tmdbWrapper.TvSearchResults
 }
 
 func (m *mockTmdbAPI) GetMovieInfo(id int, options map[string]string) (*tmdbWrapper.Movie, error) {
@@ -22,7 +21,7 @@ func (m *mockTmdbAPI) GetMovieInfo(id int, options map[string]string) (*tmdbWrap
 }
 
 func (m *mockTmdbAPI) GetTvInfo(id int, options map[string]string) (*tmdbWrapper.TV, error) {
-	return m.getTvInfoResponse, nil
+	return nil, nil
 }
 
 func (m *mockTmdbAPI) SearchMovie(query string, options map[string]string) (*tmdbWrapper.MovieSearchResults, error) {

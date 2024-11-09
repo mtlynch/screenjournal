@@ -56,6 +56,11 @@
 
   <h2>{{ $title }} ({{ $releaseYear }})</h2>
 
+  {{ if ne .Review.TvShowSeason.UInt8 0 }}
+    <h3>Season {{ .Review.TvShowSeason.UInt8 }}</h3>
+  {{ end }}
+
+
   <div class="my-5">
     {{ $isEditing := ne .Review.ID 0 }}
 

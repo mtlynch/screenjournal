@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
@@ -80,7 +79,7 @@ func parseSearchGetRequest(r *http.Request) (searchGetRequest, error) {
 		return searchGetRequest{}, err
 	}
 
-	mediaType, err := parse.MediaType(r.URL.Query().Get("mediaType"))
+	mediaType, err := mediaTypeFromQueryParams(r)
 	if err != nil {
 		return searchGetRequest{}, err
 	}

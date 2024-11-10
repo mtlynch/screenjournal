@@ -21,7 +21,7 @@ ScreenJournal is easy to self-host.
 
 ScreenJournal uses TMDB for retrieving metadata about movies and TV shows.
 
-To host a ScreenJournal server Register [a free API key](https://www.themoviedb.org/documentation/api) from TMDB.
+To host a ScreenJournal server, register [a free API key](https://www.themoviedb.org/documentation/api) from TMDB.
 
 ### Running ScreenJournal with Docker (easiest)
 
@@ -55,6 +55,10 @@ After starting ScreenJournal, navigate to the web UI and click "Sign Up."
 Currently, ScreenJournal does not support open signups. The only way for new users to join your ScreenJournal server is if you invite them.
 
 From the nav bar, go to Admin > Invites to create invitation URLs to share with new users.
+
+### Adding reviews
+
+Once you have ScreenJournal up and running, you're ready to add reviews. Click "Add Rating" from the homepage to begin writing reviews.
 
 ## Parameters
 

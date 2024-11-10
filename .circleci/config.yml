@@ -170,7 +170,7 @@ jobs:
           paths:
             - ./dist
   build_docker_images:
-    executor: go
+    executor: base
     environment:
       BUILD_TARGETS: "linux/arm/v7,linux/arm64,linux/amd64"
     steps:

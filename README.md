@@ -9,7 +9,7 @@
 
 Like Goodreads but for couch potatoes
 
-![Animated demo of ScreenJournal](screenjournal-demo.webp)
+![Animated demo of ScreenJournal](docs/assets/screenjournal-demo.webp)
 
 ## Overview
 

@@ -9,13 +9,58 @@
 
 Like Goodreads but for couch potatoes
 
+![Animated demo of ScreenJournal](docs/assets/screenjournal-demo.webp)
+
 ## Overview
 
 ScreenJournal lets you rate movies and TV shows and share recommendations with friends.
 
-## Development status
+## Getting started
 
-ScreenJournal is in pre-alpha state and is not yet documented for other people to use it. If you can figure out how to use it, you're welcome to play around. I'm planning to get it to the point where it's useful to others soon.
+ScreenJournal is easy to self-host.
+
+### Pre-requisitite: TMDB API key
+
+ScreenJournal uses TMDB for retrieving metadata about movies and TV shows.
+
+To host a ScreenJournal server, register [a free API key](https://www.themoviedb.org/documentation/api) from TMDB.
+
+### Running ScreenJournal with Docker (easiest)
+
+To run ScreenJournal within a Docker container, run the following command:
+
+```bash
+SJ_TMDB_API='your-TMDB-api-key' # Replace with your own
+
+docker run \
+  --env 'PORT=4003' \
+  --env "SJ_TMDB_API=${SJ_TMDB_API}" \
+  --env 'SJ_REQUIRE_TLS=false' \
+  --publish 4003:4003/tcp \
+  --volume "${PWD}/data:/data" \
+  --name screenjournal \
+  mtlynch/screenjournal
+```
+
+ScreenJournal will be running at <http://localhost:4003>
+
+### Alternative methods for installing ScreenJournal
+
+See the [advanced installation instructions](docs/advanced-installation.md)
+
+### Creating an admin account
+
+After starting ScreenJournal, navigate to the web UI and click "Sign Up."
+
+### Inviting users
+
+Currently, ScreenJournal does not support open signups. The only way for new users to join your ScreenJournal server is if you invite them.
+
+From the nav bar, go to Admin > Invites to create invitation URLs to share with new users.
+
+### Adding reviews
+
+Once you have ScreenJournal up and running, you're ready to add reviews. Click "Add Rating" from the homepage to begin writing reviews.
 
 ## Parameters
 
@@ -38,3 +83,9 @@ ScreenJournal is in pre-alpha state and is not yet documented for other people t
 | `SJ_SMTP_USERNAME`   | (optional) Username for SMTP server to send notifications.                                                      |
 | `SJ_SMTP_PASSWORD`   | (optional) Password for SMTP server to send notifications.                                                      |
 | `SJ_BASE_URL`        | (optional) Base URL of ScreenJournal server (only used for notifications).                                      |
+
+## Scope and future
+
+ScreenJournal is maintained by [Michael Lynch](https://mtlynch.io) as a hobby project.
+
+Due to time limitations, I keep ScreenJournal's scope limited to only the features that fit into my workflows. That unfortunately means that I sometimes reject proposals or contributions for perfectly good features. It's nothing against those features, but I only have bandwidth to maintain features that I use.

@@ -20,6 +20,9 @@ WORKDIR /app
 RUN TARGETPLATFORM="${TARGETPLATFORM}" \
       ./dev-scripts/build-backend prod
 
+FROM scratch as artifact
+COPY --from=builder /app/bin/screenjournal ./
+
 FROM debian:stable-20240311-slim AS litestream_downloader
 
 ARG TARGETPLATFORM

@@ -9,6 +9,8 @@
 
 Like Goodreads but for couch potatoes
 
+![Animated demo of ScreenJournal](screenjournal-demo.webp)
+
 ## Overview
 
 ScreenJournal lets you rate movies and TV shows and share recommendations with friends.

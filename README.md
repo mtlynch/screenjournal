@@ -11,7 +11,7 @@ Like Goodreads but for couch potatoes
 
 ## Overview
 
-ScreenJournal lets you rate movies you've seen and share movie recommendations with friends.
+ScreenJournal lets you rate movies and TV shows and share recommendations with friends.
 
 ## Development status
 

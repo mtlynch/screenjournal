@@ -7,7 +7,7 @@ require (
 	github.com/gomarkdown/markdown v0.0.0-20240723152757-afa4a469d4f9
 	github.com/gorilla/mux v1.8.0
 	github.com/kylelemons/godebug v1.1.0
-	github.com/mattn/go-sqlite3 v1.14.16
+	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/mtlynch/gorilla-handlers v1.5.2
 	github.com/mtlynch/simpleauth/v2 v2.0.0-20241108014613-2f32145d692d
 	github.com/ryanbradynd05/go-tmdb v0.0.0-20220721194547-2ab6191c6273

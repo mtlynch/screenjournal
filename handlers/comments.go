@@ -24,9 +24,9 @@ type commentPutRequest struct {
 }
 
 func (s Server) commentsAddGet() http.HandlerFunc {
-	t := template.Must(template.New("reviews-for-movie.html").
+	t := template.Must(template.New("reviews-for-single-media-entry.html").
 		Funcs(moviePageFns).
-		ParseFS(templatesFS, "templates/pages/reviews-for-movie.html"))
+		ParseFS(templatesFS, "templates/pages/reviews-for-single-media-entry.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		reviewID, err := reviewIDFromQueryParams(r)
 		if err != nil {
@@ -98,9 +98,9 @@ func (s Server) commentsEditGet() http.HandlerFunc {
 }
 
 func (s Server) commentsGet() http.HandlerFunc {
-	t := template.Must(template.New("reviews-for-movie.html").
+	t := template.Must(template.New("reviews-for-single-media-entry.html").
 		Funcs(moviePageFns).
-		ParseFS(templatesFS, "templates/pages/reviews-for-movie.html"))
+		ParseFS(templatesFS, "templates/pages/reviews-for-single-media-entry.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := commentIDFromRequestPath(r)
 		if err != nil {
@@ -133,9 +133,9 @@ func (s Server) commentsGet() http.HandlerFunc {
 }
 
 func (s Server) commentsPost() http.HandlerFunc {
-	t := template.Must(template.New("reviews-for-movie.html").
+	t := template.Must(template.New("reviews-for-single-media-entry.html").
 		Funcs(moviePageFns).
-		ParseFS(templatesFS, "templates/pages/reviews-for-movie.html"))
+		ParseFS(templatesFS, "templates/pages/reviews-for-single-media-entry.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := parseCommentPostRequest(r)
 		if err != nil {
@@ -186,9 +186,9 @@ func (s Server) commentsPost() http.HandlerFunc {
 }
 
 func (s Server) commentsPut() http.HandlerFunc {
-	t := template.Must(template.New("reviews-for-movie.html").
+	t := template.Must(template.New("reviews-for-single-media-entry.html").
 		Funcs(moviePageFns).
-		ParseFS(templatesFS, "templates/pages/reviews-for-movie.html"))
+		ParseFS(templatesFS, "templates/pages/reviews-for-single-media-entry.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := parseCommentPutRequest(r)
 		if err != nil {

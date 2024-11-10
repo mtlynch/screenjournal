@@ -342,7 +342,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			Funcs(moviePageFns).
 			ParseFS(
 				templatesFS,
-				append(baseTemplates, "templates/pages/reviews-for-movie.html")...))
+				append(baseTemplates, "templates/pages/reviews-for-single-media-entry.html")...))
 	return func(w http.ResponseWriter, r *http.Request) {
 		mid, err := movieIDFromRequestPath(r)
 		if err != nil {
@@ -418,7 +418,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			Funcs(moviePageFns).
 			ParseFS(
 				templatesFS,
-				append(baseTemplates, "templates/pages/reviews-for-movie.html")...))
+				append(baseTemplates, "templates/pages/reviews-for-single-media-entry.html")...))
 	return func(w http.ResponseWriter, r *http.Request) {
 		tvID, err := tvShowIDFromRequestPath(r)
 		if err != nil {

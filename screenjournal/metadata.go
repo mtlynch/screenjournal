@@ -2,7 +2,9 @@ package screenjournal
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
+	"time"
 )
 
 type (
@@ -14,6 +16,29 @@ type (
 
 	TmdbID int32
 	ImdbID string
+
+	ReleaseDate time.Time
+
+	Movie struct {
+		ID          MovieID
+		TmdbID      TmdbID
+		ImdbID      ImdbID
+		Title       MediaTitle
+		ReleaseDate ReleaseDate
+		PosterPath  url.URL
+	}
+
+	TvShowSeason uint8
+
+	TvShow struct {
+		ID          TvShowID
+		TmdbID      TmdbID
+		ImdbID      ImdbID
+		Title       MediaTitle
+		AirDate     ReleaseDate
+		SeasonCount uint8
+		PosterPath  url.URL
+	}
 )
 
 func (mid MovieID) IsZero() bool {
@@ -62,4 +87,23 @@ func (m TmdbID) String() string {
 
 func (id ImdbID) String() string {
 	return string(id)
+}
+
+func (rd ReleaseDate) Year() int {
+	if rd.Time().IsZero() {
+		return 0
+	}
+	return rd.Time().Year()
+}
+
+func (rd ReleaseDate) Time() time.Time {
+	return time.Time(rd)
+}
+
+func (tvs TvShowSeason) UInt8() uint8 {
+	return uint8(tvs)
+}
+
+func (tvs TvShowSeason) Equal(o TvShowSeason) bool {
+	return tvs.UInt8() == o.UInt8()
 }

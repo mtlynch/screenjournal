@@ -18,7 +18,7 @@ COPY ./go.* /app/
 WORKDIR /app
 
 RUN TARGETPLATFORM="${TARGETPLATFORM}" \
-      ./dev-scripts/build-backend 'prod'
+      ./dev-scripts/build-backend prod
 
 FROM debian:stable-20240311-slim AS litestream_downloader
 

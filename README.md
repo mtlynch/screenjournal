@@ -29,7 +29,7 @@ ScreenJournal is in pre-alpha state and is not yet documented for other people t
 
 | Environment Variable | Meaning                                                                                                         |
 | -------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `PORT`               | TCP port on which to listen for HTTP connections (defaults to 3001).                                            |
+| `PORT`               | TCP port on which to listen for HTTP connections (defaults to 4003).                                            |
 | `SJ_TMDB_API`        | (required) API key for TMDB. You can obtain a free key at [TMDB](https://www.themoviedb.org/documentation/api). |
 | `SJ_BEHIND_PROXY`    | (optional) Set to `"true"` to improve logging when ScreenJournal is running behind a reverse proxy.             |
 | `SJ_REQUIRE_TLS`     | (optional) Set to `"false"` to set session cookies without the Secure flag.                                     |

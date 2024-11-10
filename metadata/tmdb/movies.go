@@ -5,23 +5,22 @@ import (
 	"net/url"
 
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
-	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-func (f Finder) GetMovieInfo(id screenjournal.TmdbID) (metadata.MovieInfo, error) {
+func (f Finder) GetMovie(id screenjournal.TmdbID) (screenjournal.Movie, error) {
 	m, err := f.tmdbAPI.GetMovieInfo(int(id.Int32()), map[string]string{})
 	if err != nil {
-		return metadata.MovieInfo{}, err
+		return screenjournal.Movie{}, err
 	}
 
-	info := metadata.MovieInfo{
+	info := screenjournal.Movie{
 		TmdbID: id,
 	}
 
 	info.Title, err = parse.MediaTitle(m.Title)
 	if err != nil {
-		return metadata.MovieInfo{}, err
+		return screenjournal.Movie{}, err
 	}
 
 	if len(m.ImdbID) > 0 {

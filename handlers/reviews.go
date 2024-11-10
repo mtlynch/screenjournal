@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
-	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store"
 )
@@ -229,12 +228,11 @@ func (s Server) moviefromTmdbID(db Store, tmdbID screenjournal.TmdbID) (screenjo
 		return movie, nil
 	}
 
-	mi, err := s.metadataFinder.GetMovieInfo(tmdbID)
+	movie, err = s.metadataFinder.GetMovie(tmdbID)
 	if err != nil {
 		return screenjournal.Movie{}, err
 	}
 
-	movie = metadata.MovieFromMovieInfo(mi)
 	movie.ID, err = db.InsertMovie(movie)
 	if err != nil {
 		return screenjournal.Movie{}, err
@@ -251,12 +249,11 @@ func (s Server) tvShowfromTmdbID(db Store, tmdbID screenjournal.TmdbID) (screenj
 		return tvShow, nil
 	}
 
-	info, err := s.metadataFinder.GetTvShowInfo(tmdbID)
+	tvShow, err = s.metadataFinder.GetTvShow(tmdbID)
 	if err != nil {
 		return screenjournal.TvShow{}, err
 	}
 
-	tvShow = metadata.TvShowFromTvShowInfo(info)
 	tvShow.ID, err = db.InsertTvShow(tvShow)
 	if err != nil {
 		return screenjournal.TvShow{}, err

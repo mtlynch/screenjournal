@@ -15,7 +15,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/markdown"
-	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store"
 )
@@ -597,7 +596,7 @@ func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
 		// Even if the show is in the local datastore, get the latest metadata from
 		// TMDB, as there could be new seasons since the last cache.
 		var tvShowID *screenjournal.TvShowID = nil
-		tvShow, err := s.getTvShowInfo(r, tvShowID, &tmdbID)
+		tvShow, err := s.GetTvShow(r, tvShowID, &tmdbID)
 		if err != nil {
 			http.Error(w, "Failed to get TV show info", http.StatusFailedDependency)
 			log.Printf("failed to get TV show info with, TMDB ID=%v: %v", tmdbID, err)
@@ -625,7 +624,7 @@ func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
 			commonProps:   makeCommonProps(r.Context()),
 			TmdbID:        tmdbID,
 			TvShowTitle:   tvShow.Title,
-			ReleaseYear:   tvShow.ReleaseDate.Year(),
+			ReleaseYear:   tvShow.AirDate.Year(),
 			SeasonOptions: seasonOptions,
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -697,11 +696,11 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			}
 		}
 
-		var movie metadata.MovieInfo
-		var tvShow metadata.TvShowInfo
+		var movie screenjournal.Movie
+		var tvShow screenjournal.TvShow
 		var tvShowSeason screenjournal.TvShowSeason
 		if mediaType == screenjournal.MediaTypeMovie {
-			m, err := s.getMovieInfo(r, movieID, tmdbID)
+			m, err := s.GetMovie(r, movieID, tmdbID)
 			if err != nil {
 				http.Error(w, "Failed to get movie info", http.StatusFailedDependency)
 				log.Printf("failed to get movie info with movie ID=%v, TMDB ID=%v: %v", movieID, tmdbID, err)
@@ -709,7 +708,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			}
 			movie = m
 		} else if mediaType == screenjournal.MediaTypeTvShow {
-			t, err := s.getTvShowInfo(r, tvShowID, tmdbID)
+			t, err := s.GetTvShow(r, tvShowID, tmdbID)
 			if err != nil {
 				http.Error(w, "Failed to get TV show info", http.StatusFailedDependency)
 				log.Printf("failed to get TV show info with, TMDB ID=%v: %v", tmdbID, err)
@@ -736,16 +735,8 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			commonProps:   makeCommonProps(r.Context()),
 			RatingOptions: ratingOptions,
 			Review: screenjournal.Review{
-				Movie: screenjournal.Movie{
-					Title:       movie.Title,
-					ReleaseDate: movie.ReleaseDate,
-					TmdbID:      movie.TmdbID,
-				},
-				TvShow: screenjournal.TvShow{
-					Title:   tvShow.Title,
-					AirDate: tvShow.ReleaseDate,
-					TmdbID:  tvShow.TmdbID,
-				},
+				Movie:        movie,
+				TvShow:       tvShow,
 				TvShowSeason: tvShowSeason,
 				Watched:      screenjournal.WatchDate(time.Now()),
 			},
@@ -758,52 +749,40 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 	}
 }
 
-func (s Server) getMovieInfo(r *http.Request, movieID *screenjournal.MovieID, tmdbID *screenjournal.TmdbID) (metadata.MovieInfo, error) {
+func (s Server) GetMovie(r *http.Request, movieID *screenjournal.MovieID, tmdbID *screenjournal.TmdbID) (screenjournal.Movie, error) {
 	// Try to get the movie information from the database.
 	if movieID != nil {
 		m, err := s.getDB(r).ReadMovie(*movieID)
 		if err != nil {
-			return metadata.MovieInfo{}, err
+			return screenjournal.Movie{}, err
 		}
-		return metadata.MovieInfo{
-			TmdbID:      m.TmdbID,
-			ImdbID:      m.ImdbID,
-			Title:       m.Title,
-			ReleaseDate: m.ReleaseDate,
-			PosterPath:  m.PosterPath,
-		}, nil
+		return m, nil
 	}
 
 	// If we can't read the movie information from the database, use the TMDB ID
 	// to get information from TMDB.
 	if tmdbID != nil {
-		return s.metadataFinder.GetMovieInfo(*tmdbID)
+		return s.metadataFinder.GetMovie(*tmdbID)
 	}
 
-	return metadata.MovieInfo{}, errors.New("need movie ID or TMDB ID to retrieve movie metadata")
+	return screenjournal.Movie{}, errors.New("need movie ID or TMDB ID to retrieve movie metadata")
 }
 
-func (s Server) getTvShowInfo(r *http.Request, tvShowID *screenjournal.TvShowID, tmdbID *screenjournal.TmdbID) (metadata.TvShowInfo, error) {
+func (s Server) GetTvShow(r *http.Request, tvShowID *screenjournal.TvShowID, tmdbID *screenjournal.TmdbID) (screenjournal.TvShow, error) {
 	// Try to get the TV show information from the database.
 	if tvShowID != nil {
 		t, err := s.getDB(r).ReadTvShow(*tvShowID)
 		if err != nil {
-			return metadata.TvShowInfo{}, err
+			return screenjournal.TvShow{}, err
 		}
-		return metadata.TvShowInfo{
-			TmdbID:      t.TmdbID,
-			ImdbID:      t.ImdbID,
-			Title:       t.Title,
-			ReleaseDate: t.AirDate,
-			PosterPath:  t.PosterPath,
-		}, nil
+		return t, nil
 	}
 
 	if tmdbID != nil {
-		return s.metadataFinder.GetTvShowInfo(*tmdbID)
+		return s.metadataFinder.GetTvShow(*tmdbID)
 	}
 
-	return metadata.TvShowInfo{}, errors.New("need TMDB ID to retrieve TV show metadata")
+	return screenjournal.TvShow{}, errors.New("need TMDB ID to retrieve TV show metadata")
 }
 
 func (s Server) invitesGet() http.HandlerFunc {

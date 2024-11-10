@@ -171,8 +171,6 @@ jobs:
             - ./dist
   publish_release:
     executor: base
-    environment:
-      GITHUB_TOKEN: "${GITHUB_TOKEN}"
     steps:
       - attach_workspace:
           at: ./
@@ -185,13 +183,10 @@ jobs:
             sudo apt update
             sudo apt install gh
       - run:
-          name: Create and upload release
+          name: Upload binaries to Github release
           command: |
-            gh release create "${CIRCLE_TAG}" ./dist/* \
-              --repo "${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}" \
-              --title "${CIRCLE_TAG}" \
-              --notes "Release ${CIRCLE_TAG}" \
-              --verify-tag
+            gh release upload "${CIRCLE_TAG}" ./dist/* \
+              --repo "${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}"
   publish_docker_images:
     executor: base
     environment:

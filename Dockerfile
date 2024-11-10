@@ -56,7 +56,6 @@ COPY --from=builder /app/bin/screenjournal /app/screenjournal
 COPY --from=litestream_downloader /litestream/litestream /app/litestream
 COPY ./docker-entrypoint /app/docker-entrypoint
 COPY ./litestream.yml /etc/litestream.yml
-COPY ./static /app/static
 COPY ./LICENSE /app/LICENSE
 
 WORKDIR /app

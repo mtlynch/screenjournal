@@ -13,12 +13,11 @@ import (
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
-	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
-var mockSearchableMovies = []metadata.MovieInfo{
+var mockSearchableMovies = []screenjournal.Movie{
 	{
 		TmdbID:      screenjournal.TmdbID(1),
 		Title:       screenjournal.MediaTitle("The Waterboy"),
@@ -37,19 +36,19 @@ var mockSearchableMovies = []metadata.MovieInfo{
 	},
 }
 
-var mockSearchableTvShows = []metadata.TvShowInfo{
+var mockSearchableTvShows = []screenjournal.TvShow{
 	{
-		TmdbID:      screenjournal.TmdbID(3),
-		Title:       screenjournal.MediaTitle("Party Down"),
-		ReleaseDate: mustParseReleaseDate("2009-01-01"),
+		TmdbID:  screenjournal.TmdbID(3),
+		Title:   screenjournal.MediaTitle("Party Down"),
+		AirDate: mustParseReleaseDate("2009-01-01"),
 		PosterPath: url.URL{
 			Path: "/party-down.jpg",
 		},
 	},
 	{
-		TmdbID:      screenjournal.TmdbID(4),
-		Title:       screenjournal.MediaTitle("Party Down South"),
-		ReleaseDate: mustParseReleaseDate("2014-05-09"),
+		TmdbID:  screenjournal.TmdbID(4),
+		Title:   screenjournal.MediaTitle("Party Down South"),
+		AirDate: mustParseReleaseDate("2014-05-09"),
 		PosterPath: url.URL{
 			Path: "/party-down-south.jpg",
 		},

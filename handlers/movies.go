@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
-	"github.com/mtlynch/screenjournal/v2/metadata"
 )
 
 func (s Server) repopulateMoviesGet() http.HandlerFunc {
@@ -24,19 +22,18 @@ func (s Server) repopulateMoviesGet() http.HandlerFunc {
 		// We could parallelize this, but it's a maintenance function we use rarely,
 		// so we're keeping it simple for now.
 		for _, rev := range rr {
-			movieInfo, err := s.metadataFinder.GetMovieInfo(rev.Movie.TmdbID)
+			movie, err := s.metadataFinder.GetMovie(rev.Movie.TmdbID)
 			if err != nil {
-				log.Printf("failed to get metadata for %s (tmdb ID=%v): %v", movieInfo.Title, movieInfo.TmdbID, err)
+				log.Printf("failed to get metadata for %s (tmdb ID=%v): %v", rev.Movie.Title, rev.Movie.TmdbID, err)
 				http.Error(w, fmt.Sprintf("Failed to retrieve metadata: %v", err), http.StatusInternalServerError)
 				return
 			}
 
 			// Update movie with latest metadata.
-			newMovie := metadata.MovieFromMovieInfo(movieInfo)
-			newMovie.ID = rev.Movie.ID
+			movie.ID = rev.Movie.ID
 
-			if err := s.getDB(r).UpdateMovie(newMovie); err != nil {
-				log.Printf("failed to get metadata for %s (tmdb ID=%v): %v", newMovie.Title, newMovie.TmdbID, err)
+			if err := s.getDB(r).UpdateMovie(movie); err != nil {
+				log.Printf("failed to update metadata for %s (tmdb ID=%v): %v", rev.Movie.Title, rev.Movie.TmdbID, err)
 				http.Error(w, fmt.Sprintf("Failed to save updated movie metadata: %v", err), http.StatusInternalServerError)
 				return
 			}

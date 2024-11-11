@@ -13,11 +13,20 @@ Like Goodreads but for couch potatoes
 
 ## Overview
 
-ScreenJournal lets you rate movies and TV shows and share recommendations with friends.
+ScreenJournal lets you rate movies and TV shows and share recommendations with your friends.
+
+ScreenJournal is like your own private Letterboxd.
+
+## Features
+
+- Give star ratings to movies and TV shows you've seen.
+- Write reviews to make recommendations to your friends.
+- Automatically sends email notifications when new reviews come out (or silence emails if you prefer).
+- Keep your reviews private. Only your community can access your reviews.
+- Completely free and open-source.
+- Easy to self-host.
 
 ## Getting started
-
-ScreenJournal is easy to self-host.
 
 ### Pre-requisitite: TMDB API key
 

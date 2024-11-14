@@ -323,10 +323,11 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 				Value: tt.sessionToken,
 			})
 
-			w := httptest.NewRecorder()
-			s.Router().ServeHTTP(w, req)
+			rec := httptest.NewRecorder()
+			s.Router().ServeHTTP(rec, req)
+			res := rec.Result()
 
-			if got, want := w.Code, http.StatusSeeOther; got != want {
+			if got, want := res.StatusCode, http.StatusSeeOther; got != want {
 				t.Fatalf("httpStatus=%v, want=%v", got, want)
 			}
 
@@ -436,10 +437,11 @@ func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
 				Value: tt.sessionToken,
 			})
 
-			w := httptest.NewRecorder()
-			s.Router().ServeHTTP(w, req)
+			rec := httptest.NewRecorder()
+			s.Router().ServeHTTP(rec, req)
+			res := rec.Result()
 
-			if got, want := w.Code, http.StatusBadRequest; got != want {
+			if got, want := res.StatusCode, http.StatusBadRequest; got != want {
 				t.Fatalf("/reviews POST returned wrong status: got=%v, want=%v", got, want)
 			}
 
@@ -604,10 +606,11 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 				Value: tt.sessionToken,
 			})
 
-			w := httptest.NewRecorder()
-			s.Router().ServeHTTP(w, req)
+			rec := httptest.NewRecorder()
+			s.Router().ServeHTTP(rec, req)
+			res := rec.Result()
 
-			if got, want := w.Code, http.StatusSeeOther; got != want {
+			if got, want := res.StatusCode, http.StatusSeeOther; got != want {
 				t.Fatalf("handler returned wrong status code: got %v want %v", got, want)
 			}
 
@@ -909,10 +912,11 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 				Value: tt.sessionToken,
 			})
 
-			w := httptest.NewRecorder()
-			s.Router().ServeHTTP(w, req)
+			rec := httptest.NewRecorder()
+			s.Router().ServeHTTP(rec, req)
+			res := rec.Result()
 
-			if got, want := w.Code, tt.status; got != want {
+			if got, want := res.StatusCode, tt.status; got != want {
 				t.Fatalf("%s PUT returned wrong status: got=%v, want=%v", tt.route, got, want)
 			}
 		})

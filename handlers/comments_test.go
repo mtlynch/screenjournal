@@ -226,10 +226,11 @@ func TestCommentsPost(t *testing.T) {
 				Value: tt.sessionToken,
 			})
 
-			w := httptest.NewRecorder()
-			s.Router().ServeHTTP(w, req)
+			rec := httptest.NewRecorder()
+			s.Router().ServeHTTP(rec, req)
+			res := rec.Result()
 
-			if got, want := w.Code, tt.status; got != want {
+			if got, want := res.StatusCode, tt.status; got != want {
 				t.Fatalf("httpStatus=%v, want=%v", got, want)
 			}
 
@@ -443,10 +444,11 @@ func TestCommentsPut(t *testing.T) {
 				Value: tt.sessionToken,
 			})
 
-			w := httptest.NewRecorder()
-			s.Router().ServeHTTP(w, req)
+			rec := httptest.NewRecorder()
+			s.Router().ServeHTTP(rec, req)
+			res := rec.Result()
 
-			if got, want := w.Code, tt.status; got != want {
+			if got, want := res.StatusCode, tt.status; got != want {
 				t.Fatalf("httpStatus=%v, want=%v", got, want)
 			}
 
@@ -598,10 +600,11 @@ func TestCommentsDelete(t *testing.T) {
 				Value: tt.sessionToken,
 			})
 
-			w := httptest.NewRecorder()
-			s.Router().ServeHTTP(w, req)
+			rec := httptest.NewRecorder()
+			s.Router().ServeHTTP(rec, req)
+			res := rec.Result()
 
-			if got, want := w.Code, tt.status; got != want {
+			if got, want := res.StatusCode, tt.status; got != want {
 				t.Fatalf("httpStatus=%v, want=%v", got, want)
 			}
 

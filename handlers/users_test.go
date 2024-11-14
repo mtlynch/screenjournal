@@ -170,10 +170,11 @@ func TestUsersPut(t *testing.T) {
 			}
 			req.Header.Add("Content-Type", "text/json")
 
-			w := httptest.NewRecorder()
-			s.Router().ServeHTTP(w, req)
+			rec := httptest.NewRecorder()
+			s.Router().ServeHTTP(rec, req)
+			res := rec.Result()
 
-			if got, want := w.Code, tt.status; got != want {
+			if got, want := res.StatusCode, tt.status; got != want {
 				t.Fatalf("httpStatus=%v, want=%v", got, want)
 			}
 		})

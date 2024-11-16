@@ -21,6 +21,7 @@
           hx-get="/reviews/new/write"
           hx-vals='{"mediaType": "tv-show", "tmdbId": {{ .TmdbID }}}'
         >
+          <option value="" disabled selected hidden>Pick Season</option>
           {{ range .SeasonOptions }}
             <option>
               {{ . }}

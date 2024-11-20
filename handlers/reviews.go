@@ -122,7 +122,13 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
-		http.Redirect(w, r, fmt.Sprintf("/movies/%d#review%d", review.Movie.ID.Int64(), review.ID.UInt64()), http.StatusSeeOther)
+		var newRoute string
+		if review.MediaType() == screenjournal.MediaTypeMovie {
+			newRoute = fmt.Sprintf("/movies/%d", review.Movie.ID.Int64())
+		} else {
+			newRoute = fmt.Sprintf("/tv-shows/%d?season=%d", review.TvShow.ID.Int64(), review.TvShowSeason.UInt8())
+		}
+		http.Redirect(w, r, newRoute, http.StatusSeeOther)
 	}
 }
 

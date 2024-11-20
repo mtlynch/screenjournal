@@ -111,7 +111,7 @@ func (s Server) populateDummyData() http.HandlerFunc {
 		},
 		{
 			ID:     screenjournal.ReviewID(3),
-			Owner:  screenjournal.Username("userB"),
+			Owner:  screenjournal.Username("userA"),
 			Rating: screenjournal.Rating(10),
 			TvShow: screenjournal.TvShow{
 				ID:    screenjournal.TvShowID(1),

@@ -33,6 +33,14 @@
       alertEl.innerText = evt.detail.xhr.responseText;
       alertEl.hidden = false;
     });
+
+    // Preserve the URL fragment, as server-side redirects can't.
+    document.body.addEventListener("htmx:afterRequest", function (evt) {
+      const match = evt.detail.pathInfo.requestPath.match(/\/reviews\/(\d+)/);
+      if (match) {
+        window.location.hash = `review${match[1]}`;
+      }
+    });
   </script>
 {{ end }}
 

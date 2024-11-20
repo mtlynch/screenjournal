@@ -772,6 +772,38 @@ test("adds, edits, and deletes a comment on an existing review", async ({
   await expect(page.locator("#comment2")).toHaveCount(0);
 });
 
+test("allows edits to TV show review", async ({ page }) => {
+  await page
+    .locator(".card", {
+      has: page.getByRole("heading", { name: "Seinfeld (Season 1)" }),
+    })
+    .getByText("Edit")
+    .click();
+
+  await expect(page).toHaveURL("/reviews/3/edit");
+  await page.getByLabel("Rating").selectOption({ label: "4.5" });
+  await page.getByLabel("When did you watch?").fill("2024-11-05");
+  await page
+    .getByLabel("Other thoughts?")
+    .fill("On second thought: slightly overrated.");
+  await page.getByRole("button", { name: "Save" }).click();
+
+  await expect(page).toHaveURL("/tv-shows/1?season=1#review3");
+  const reviewCard = await page.locator("div", {
+    has: page.getByText("On second thought: slightly overrated."),
+  });
+
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
+  ).toHaveCount(4);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(1);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
+  ).toHaveCount(0);
+});
+
 test("removes leading and trailing whitespace from comments", async ({
   page,
 }) => {

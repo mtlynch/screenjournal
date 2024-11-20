@@ -63,7 +63,7 @@ test("index page renders card for TV show review", async ({ page }) => {
     has: page.getByRole("heading", { name: "Seinfeld (Season 1)" }),
   });
   await expect(reviewCard.locator(".card-subtitle")).toHaveText(
-    /userB watched this .+ ago/,
+    /userA watched this .+ ago/,
     { useInnerText: true }
   );
   await expect(
@@ -497,7 +497,7 @@ test("adds a new movie rating and edits the details", async ({ page }) => {
   // No submit button on this form.
   await page.locator("form .btn-primary").click();
 
-  await expect(page).toHaveURL("/movies/3");
+  await expect(page).toHaveURL("/movies/3#review5");
 
   await page.getByRole("menuitem", { name: "Home" }).click();
   await expect(page).toHaveURL("/reviews");
@@ -851,5 +851,5 @@ test("views reviews filtered by user", async ({ page }) => {
     page.getByRole("heading", { name: "userB's ratings" })
   ).toBeVisible();
 
-  await expect(page.getByText("userB has written 4 reviews")).toBeVisible();
+  await expect(page.getByText("userB has written 3 reviews")).toBeVisible();
 });

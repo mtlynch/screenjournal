@@ -128,7 +128,6 @@ func (s Server) reviewsPut() http.HandlerFunc {
 		} else {
 			newRoute = fmt.Sprintf("/tv-shows/%d?season=%d", review.TvShow.ID.Int64(), review.TvShowSeason.UInt8())
 		}
-
 		http.Redirect(w, r, newRoute, http.StatusSeeOther)
 	}
 }

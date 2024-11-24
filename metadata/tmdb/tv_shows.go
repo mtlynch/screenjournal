@@ -1,7 +1,7 @@
 package tmdb
 
 import (
-	"errors"
+	"fmt"
 	"log"
 	"net/url"
 	"time"
@@ -31,8 +31,6 @@ func (f Finder) GetTvShow(id screenjournal.TmdbID) (screenjournal.TvShow, error)
 	} else {
 		tvShow.ImdbID = imdbID
 	}
-
-	log.Printf("imdb id=%v", tvShow.ImdbID.String())
 
 	if len(m.FirstAirDate) > 0 {
 		ad, err := ParseReleaseDate(m.FirstAirDate)
@@ -86,12 +84,12 @@ func (f Finder) GetTvShow(id screenjournal.TmdbID) (screenjournal.TvShow, error)
 func (f Finder) readImdbID(id screenjournal.TmdbID) (screenjournal.ImdbID, error) {
 	externalIDs, err := f.tmdbAPI.GetTvExternalIds(int(id.Int32()), map[string]string{})
 	if err != nil {
-		return screenjournal.ImdbID(""), errors.New("failed to read external IDs")
+		return screenjournal.ImdbID(""), fmt.Errorf("failed to read external IDs: %v", err)
 	}
 
 	imdbID, err := ParseImdbID(externalIDs.ImdbID)
 	if err != nil {
-		return screenjournal.ImdbID(""), errors.New("failed to parse IMDB ID")
+		return screenjournal.ImdbID(""), fmt.Errorf("failed to parse IMDB ID %v: %v", externalIDs.ImdbID, err)
 	}
 
 	return imdbID, nil

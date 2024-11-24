@@ -252,6 +252,9 @@ func (s Server) tvShowfromTmdbID(db Store, tmdbID screenjournal.TmdbID) (screenj
 	if err != nil && err != store.ErrTvShowNotFound {
 		return screenjournal.TvShow{}, err
 	} else if err == nil {
+		if err := s.updateTvShowDetailsInStore(db, tvShow); err != nil {
+			log.Printf("failed to refresh TV show details: %v", err)
+		}
 		return tvShow, nil
 	}
 
@@ -266,4 +269,17 @@ func (s Server) tvShowfromTmdbID(db Store, tmdbID screenjournal.TmdbID) (screenj
 	}
 
 	return tvShow, nil
+}
+
+func (s Server) updateTvShowDetailsInStore(db Store, tvShow screenjournal.TvShow) error {
+	tvShowUpdated, err := s.metadataFinder.GetTvShow(tvShow.TmdbID)
+	if err != nil {
+		return err
+	}
+
+	if err := db.UpdateTvShow(tvShowUpdated); err != nil {
+		return err
+	}
+
+	return nil
 }

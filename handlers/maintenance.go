@@ -43,7 +43,9 @@ func (s Server) repopulateMoviesGet() http.HandlerFunc {
 				return
 			}
 		}
-		fmt.Fprint(w, "Finished updating movies")
+		if _, err := fmt.Fprint(w, "Finished updating movies"); err != nil {
+			log.Printf("failed to write output: %v", err)
+		}
 	}
 }
 
@@ -82,6 +84,8 @@ func (s Server) repopulateTvShowsGet() http.HandlerFunc {
 				return
 			}
 		}
-		fmt.Fprint(w, "Finished updating TV shows")
+		if _, err := fmt.Fprint(w, "Finished updating TV shows"); err != nil {
+			log.Printf("failed to write output: %v", err)
+		}
 	}
 }

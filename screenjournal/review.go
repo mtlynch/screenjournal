@@ -58,6 +58,10 @@ func (mt MediaType) IsEmpty() bool {
 	return mt.String() == ""
 }
 
+func (mt MediaType) Equal(o MediaType) bool {
+	return mt.String() == o.String()
+}
+
 func (mt MediaType) String() string {
 	return string(mt)
 }

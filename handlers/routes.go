@@ -11,7 +11,8 @@ func (s *Server) routes() {
 	adminApis := s.router.PathPrefix("/api/admin").Subrouter()
 	adminApis.Use(s.requireAuthenticationForAPI)
 	adminApis.Use(s.requireAdmin)
-	adminApis.HandleFunc("/repopulate-movies", s.repopulateMoviesGet()).Methods(http.MethodGet)
+	adminApis.HandleFunc("/repopulate/movies", s.repopulateMoviesGet()).Methods(http.MethodGet)
+	adminApis.HandleFunc("/repopulate/tv", s.repopulateTvShowsGet()).Methods(http.MethodGet)
 	adminApis.HandleFunc("/invites", s.invitesPost()).Methods(http.MethodPost)
 
 	authenticatedApis := s.router.PathPrefix("/api").Subrouter()

@@ -24,6 +24,10 @@ func (m *mockTmdbAPI) GetTvInfo(id int, options map[string]string) (*tmdbWrapper
 	return nil, nil
 }
 
+func (m *mockTmdbAPI) GetTvExternalIds(id int, options map[string]string) (*tmdbWrapper.TvExternalIds, error) {
+	return nil, nil
+}
+
 func (m *mockTmdbAPI) SearchMovie(query string, options map[string]string) (*tmdbWrapper.MovieSearchResults, error) {
 	return nil, nil
 }

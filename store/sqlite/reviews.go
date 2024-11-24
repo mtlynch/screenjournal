@@ -192,7 +192,11 @@ func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, err
 }
 
 func (s Store) UpdateReview(r screenjournal.Review) error {
-	log.Printf("updating review of movie ID %v: %v", r.Movie.ID, r.Rating.UInt8())
+	if r.MediaType() == screenjournal.MediaTypeMovie {
+		log.Printf("updating review of movie ID %v: %v", r.Movie.ID, r.Rating.UInt8())
+	} else {
+		log.Printf("updating review of TV show ID %v: %v", r.TvShow.ID, r.Rating.UInt8())
+	}
 
 	if r.ID.IsZero() {
 		return errors.New("invalid review ID")
@@ -221,7 +225,7 @@ func (s Store) UpdateReview(r screenjournal.Review) error {
 }
 
 func (s Store) DeleteReview(id screenjournal.ReviewID) error {
-	log.Printf("deleting review of movie ID %v", id)
+	log.Printf("deleting review and commments for review ID %v", id)
 
 	tx, err := s.ctx.BeginTx(context.Background(), nil)
 	if err != nil {

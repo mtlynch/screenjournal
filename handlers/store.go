@@ -23,6 +23,7 @@ type Store interface {
 	ReadTvShow(screenjournal.TvShowID) (screenjournal.TvShow, error)
 	ReadTvShowByTmdbID(screenjournal.TmdbID) (screenjournal.TvShow, error)
 	InsertTvShow(screenjournal.TvShow) (screenjournal.TvShowID, error)
+	//UpdateTvShow(screenjournal.Movie) error
 	CountUsers() (uint, error)
 	ReadUser(screenjournal.Username) (screenjournal.User, error)
 	ReadUsers() ([]screenjournal.User, error)

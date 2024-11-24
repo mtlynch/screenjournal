@@ -7,6 +7,7 @@ import (
 type tmdbAPI interface {
 	GetMovieInfo(int, map[string]string) (*tmdbWrapper.Movie, error)
 	GetTvInfo(int, map[string]string) (*tmdbWrapper.TV, error)
+	GetTvExternalIds(int, map[string]string) (*tmdbWrapper.TvExternalIds, error)
 	SearchMovie(query string, options map[string]string) (*tmdbWrapper.MovieSearchResults, error)
 	SearchTv(query string, options map[string]string) (*tmdbWrapper.TvSearchResults, error)
 }

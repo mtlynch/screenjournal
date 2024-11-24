@@ -208,6 +208,13 @@ test("adds a new TV show rating and fills in only required fields", async ({
 
   await expect(page).toHaveURL("/tv-shows/2?season=5");
 
+  await expect(page.getByRole("heading", { name: "30 Rock" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Season 5" })).toBeVisible();
+  await expect(page.getByText("IMDB")).toHaveAttribute(
+    "href",
+    "https://www.imdb.com/title/tt0496424/"
+  );
+
   await page.getByRole("menuitem", { name: "Home" }).click();
   await expect(page).toHaveURL("/reviews");
 

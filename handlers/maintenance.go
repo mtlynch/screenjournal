@@ -43,6 +43,7 @@ func (s Server) repopulateMoviesGet() http.HandlerFunc {
 				return
 			}
 		}
+		fmt.Fprint(w, "Finished updating movies")
 	}
 }
 
@@ -81,5 +82,6 @@ func (s Server) repopulateTvShowsGet() http.HandlerFunc {
 				return
 			}
 		}
+		fmt.Fprint(w, "Finished updating TV shows")
 	}
 }

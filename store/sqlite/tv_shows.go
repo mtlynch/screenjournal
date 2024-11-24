@@ -89,13 +89,15 @@ func (s Store) UpdateTvShow(t screenjournal.TvShow) error {
 		title = :title,
 		first_air_date = :first_air_date,
 		poster_path = :poster_path
-	WHERE tmdb_id = :tmdb_id
+	WHERE
+		id = :id
 	`,
 		sql.Named("tmdb_id", t.TmdbID),
 		sql.Named("imdb_id", t.ImdbID),
 		sql.Named("title", t.Title),
 		sql.Named("first_air_date", formatReleaseDate(t.AirDate)),
 		sql.Named("poster_path", t.PosterPath.String()),
+		sql.Named("id", t.ID.Int64()),
 	)
 	if err != nil {
 		return err

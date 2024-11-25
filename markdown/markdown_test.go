@@ -46,6 +46,11 @@ You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, o
 <p>You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, or Popstar.</p>`,
 		},
 		{
+			"renders links",
+			"you can see it [on my blog](http://example.com/blog)",
+			`<p>you can see it <a href="http://example.com/blog">on my blog</a></p>`,
+		},
+		{
 			// We don't really want this behavior, but it doesn't hurt anything right
 			// now, so keep the test to show the behavior.
 			"renders backticks",
@@ -73,11 +78,6 @@ You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, o
 			"does not render HTML images",
 			`check out my cat! <img src="http://example.com/cat.jpg">`,
 			"<p>check out my cat! </p>",
-		},
-		{
-			"does not render links",
-			"you can see it [on my blog](http://example.com/blog)",
-			"<p>you can see it <tt>on my blog</tt></p>",
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {

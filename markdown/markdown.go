@@ -17,7 +17,7 @@ var (
 
 func init() {
 
-	untrustedRenderer = html.NewRenderer(html.RendererOptions{Flags: html.SkipHTML | html.SkipImages | html.SkipLinks})
+	untrustedRenderer = html.NewRenderer(html.RendererOptions{Flags: html.SkipHTML | html.SkipImages})
 	trustedRenderer = html.NewRenderer(html.RendererOptions{Flags: html.SkipHTML | html.SkipImages})
 }
 

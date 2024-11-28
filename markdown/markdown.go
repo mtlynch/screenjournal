@@ -1,28 +1,39 @@
 package markdown
 
 import (
+	"html"
 	"strings"
 
 	gomarkdown "github.com/gomarkdown/markdown"
-	"github.com/gomarkdown/markdown/html"
+	gomarkdown_html "github.com/gomarkdown/markdown/html"
 	gomarkdown_parser "github.com/gomarkdown/markdown/parser"
+	"github.com/microcosm-cc/bluemonday"
 
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 var (
-	untrustedRenderer *html.Renderer
-	trustedRenderer   *html.Renderer
+	untrustedRenderer *gomarkdown_html.Renderer
+	trustedRenderer   *gomarkdown_html.Renderer
 )
 
 func init() {
-
-	untrustedRenderer = html.NewRenderer(html.RendererOptions{Flags: html.SkipHTML | html.SkipImages})
-	trustedRenderer = html.NewRenderer(html.RendererOptions{Flags: html.SkipHTML | html.SkipImages})
+	untrustedRenderer = gomarkdown_html.NewRenderer(gomarkdown_html.RendererOptions{Flags: gomarkdown_html.SkipHTML | gomarkdown_html.SkipImages})
+	trustedRenderer = gomarkdown_html.NewRenderer(gomarkdown_html.RendererOptions{Flags: gomarkdown_html.SkipHTML | gomarkdown_html.SkipImages})
 }
 
 func RenderBlurb(blurb screenjournal.Blurb) string {
 	return renderUntrusted(blurb.String())
+}
+
+func RenderBlurbAsPlaitext(blurb screenjournal.Blurb) string {
+	asHtml := renderUntrusted(blurb.String())
+	plaintext := bluemonday.StrictPolicy().Sanitize(asHtml)
+
+	// Decode HTML entities like ' back to characters
+	plaintext = html.UnescapeString(plaintext)
+
+	return strings.TrimSpace(plaintext)
 }
 
 func RenderComment(comment screenjournal.CommentText) string {
@@ -31,14 +42,14 @@ func RenderComment(comment screenjournal.CommentText) string {
 
 func renderUntrusted(s string) string {
 	parser := gomarkdown_parser.NewWithExtensions(gomarkdown_parser.NoExtensions)
-	html := string(gomarkdown.ToHTML([]byte(s), parser, untrustedRenderer))
+	asHtml := string(gomarkdown.ToHTML([]byte(s), parser, untrustedRenderer))
 
-	return strings.TrimSpace(html)
+	return strings.TrimSpace(asHtml)
 }
 
 func RenderEmail(body screenjournal.EmailBodyMarkdown) string {
 	parser := gomarkdown_parser.NewWithExtensions(gomarkdown_parser.Autolink)
-	html := string(gomarkdown.ToHTML([]byte(body.String()), parser, trustedRenderer))
+	asHtml := string(gomarkdown.ToHTML([]byte(body.String()), parser, trustedRenderer))
 
-	return strings.TrimSpace(html)
+	return strings.TrimSpace(asHtml)
 }

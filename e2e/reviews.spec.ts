@@ -415,7 +415,9 @@ test("adds a new rating and fills all fields", async ({ page }) => {
   );
 });
 
-test("HTML tags in reviews are encoded properly", async ({ page }) => {
+test("HTML tags in reviews are stripped from review excerpt", async ({
+  page,
+}) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.getByPlaceholder("Search").pressSequentially("eternal sunshine");
@@ -447,7 +449,7 @@ test("HTML tags in reviews are encoded properly", async ({ page }) => {
   });
   await expect(
     (await reviewCard.locator(".card-text").innerHTML()).trim()
-  ).toEqual("This is the &lt;b&gt;best&lt;/b&gt; movie ever!<br>");
+  ).toEqual("This is the best movie ever!<br>");
 });
 
 test("adds a new movie rating and edits the details", async ({ page }) => {

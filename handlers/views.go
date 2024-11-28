@@ -255,8 +255,9 @@ func (s Server) reviewsGet() http.HandlerFunc {
 		"formatWatchDate":   formatWatchDate,
 		"elideBlurb": func(b screenjournal.Blurb) string {
 			score := 0
+			plaintext := markdown.RenderBlurbAsPlaitext(b)
 			var elidedChars []rune
-			for _, c := range b.String() {
+			for _, c := range plaintext {
 				if c == '\n' {
 					score += 50
 				} else {
@@ -273,9 +274,6 @@ func (s Server) reviewsGet() http.HandlerFunc {
 		},
 		"ratingToStars":   ratingToStars,
 		"posterPathToURL": posterPathToURL,
-		"renderBlurb": func(blurb screenjournal.Blurb) template.HTML {
-			return template.HTML(markdown.RenderBlurb(blurb))
-		},
 		"splitByNewline": func(s string) []string {
 			return strings.Split(s, "\n")
 		},

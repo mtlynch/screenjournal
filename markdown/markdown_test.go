@@ -90,6 +90,79 @@ You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, o
 		})
 	}
 }
+func TestRenderBlurbAsPlaintext(t *testing.T) {
+	for _, tt := range []struct {
+		description string
+		in          string
+		out         string
+	}{
+		{
+			"leaves unformatted text as-is",
+			"hello, world!",
+			"hello, world!",
+		},
+		{
+			"strips italics",
+			"hello, _world_!",
+			"hello, world!",
+		},
+		{
+			"strips bold formatting",
+			"hello, **world**!",
+			"hello, world!",
+		},
+		{
+			"leaves multiline text untouched",
+			`Instant movie of the year for me.
+
+If you think of Weird Al as just a parody music guy, give it a chance. I was never that excited about his parody music, but I always enjoy seeing him in TV and movies.`,
+			`Instant movie of the year for me.
+
+If you think of Weird Al as just a parody music guy, give it a chance. I was never that excited about his parody music, but I always enjoy seeing him in TV and movies.`,
+		},
+		{
+			"renders links",
+			"you can see it [on my blog](http://example.com/blog)",
+			`you can see it on my blog`,
+		},
+		{
+			"leaves apostrophes untouched",
+			"it's my favorite",
+			`it's my favorite`,
+		},
+		{
+			"strips backticks",
+			"hello, `world`!",
+			"hello, world!",
+		},
+		{
+			"strips triple backticks",
+			"hello, ```world```!",
+			"hello, world!",
+		},
+		{
+			"does not render script tags",
+			"hello, <script>alert(1)</script>",
+			"hello, alert(1)",
+		},
+		{
+			"does not render images",
+			"check out my cat! ![photo of a cat](https://example.com/cat.jpg \"My Cat Milo\")",
+			"check out my cat!",
+		},
+		{
+			"does not render HTML images",
+			`check out my cat! <img src="http://example.com/cat.jpg">`,
+			"check out my cat!",
+		},
+	} {
+		t.Run(tt.description, func(t *testing.T) {
+			if got, want := markdown.RenderBlurbAsPlaitext(screenjournal.Blurb(tt.in)), tt.out; got != want {
+				t.Errorf("plaintext=[%s], want=[%s]", got, want)
+			}
+		})
+	}
+}
 
 func TestRenderEmail(t *testing.T) {
 	for _, tt := range []struct {

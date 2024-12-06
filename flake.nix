@@ -45,7 +45,8 @@
     litestream-nixpkgs,
   } @ inputs:
     flake-utils.lib.eachDefaultSystem (system: let
-      go = go-nixpkgs.legacyPackages.${system}.go_1_23;
+      gopkg = go-nixpkgs.legacyPackages.${system};
+      go = gopkg.go_1_23;
       sqlite = sqlite-nixpkgs.legacyPackages.${system}.sqlite;
       nodejs = nodejs-nixpkgs.legacyPackages.${system}.nodejs_20;
       shellcheck = shellcheck-nixpkgs.legacyPackages.${system}.shellcheck;
@@ -61,13 +62,13 @@
         }
         {
           packages = [
-            go-nixpkgs.legacyPackages.${system}.gotools
-            go-nixpkgs.legacyPackages.${system}.gopls
-            go-nixpkgs.legacyPackages.${system}.go-outline
-            go-nixpkgs.legacyPackages.${system}.gopkgs
-            go-nixpkgs.legacyPackages.${system}.gocode-gomod
-            go-nixpkgs.legacyPackages.${system}.godef
-            go-nixpkgs.legacyPackages.${system}.golint
+            gopkg.gotools
+            gopkg.gopls
+            gopkg.go-outline
+            gopkg.gopkgs
+            gopkg.gocode-gomod
+            gopkg.godef
+            gopkg.golint
             go
             sqlite
             nodejs
@@ -95,6 +96,6 @@
           '';
         };
 
-      formatter = go-nixpkgs.legacyPackages.${system}.alejandra;
+      formatter = gopkg.alejandra;
     });
 }

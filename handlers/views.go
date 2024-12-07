@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"math"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -909,8 +910,12 @@ func relativeWatchDate(t screenjournal.WatchDate) string {
 	monthsAgo := int(daysAgo / 30)
 	if monthsAgo == 1 {
 		return "1 month ago"
+	} else if monthsAgo <= 23 {
+		return fmt.Sprintf("%d months ago", monthsAgo)
 	}
-	return fmt.Sprintf("%d months ago", monthsAgo)
+
+	yearsAgo := int(math.Round(float64(daysAgo) / 365.0))
+	return fmt.Sprintf("%d years ago", yearsAgo)
 }
 
 func formatWatchDate(t screenjournal.WatchDate) string {
@@ -945,11 +950,16 @@ func relativeCommentDate(t time.Time) string {
 	} else if weeksAgo < 8 {
 		return fmt.Sprintf("%d weeks ago", weeksAgo)
 	}
+
 	monthsAgo := int(daysAgo / 30)
 	if monthsAgo == 1 {
 		return "1 month ago"
+	} else if monthsAgo <= 23 {
+		return fmt.Sprintf("%d months ago", monthsAgo)
 	}
-	return fmt.Sprintf("%d months ago", monthsAgo)
+
+	yearsAgo := int(math.Round(float64(daysAgo) / 365.0))
+	return fmt.Sprintf("%d years ago", yearsAgo)
 }
 
 func formatIso8601Datetime(t time.Time) string {

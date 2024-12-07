@@ -55,6 +55,12 @@ FROM alpine:3.15
 
 RUN apk add --no-cache bash tzdata
 
+ARG TZ
+RUN if [[ -n "${TZ}" ]]; then \
+      ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime && \
+      echo "${TZ}" > /etc/timezone; \
+    fi
+
 COPY --from=builder /app/bin/screenjournal /app/screenjournal
 COPY --from=litestream_downloader /litestream/litestream /app/litestream
 COPY ./docker-entrypoint /app/docker-entrypoint

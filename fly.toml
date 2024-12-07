@@ -4,6 +4,9 @@ kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
 
+[build.args]
+  TZ = "America/New_York"
+
 [env]
   PORT = "8080"
   SJ_BEHIND_PROXY = "yes"
@@ -12,7 +15,6 @@ processes = []
   SJ_BASE_URL = "https://thescreenjournal.com"
   LITESTREAM_BUCKET="screenjournal-litestream"
   LITESTREAM_ENDPOINT="s3.us-west-002.backblazeb2.com"
-  TZ = "America/New_York"
 
 [experimental]
   allowed_public_ports = []

@@ -37,6 +37,11 @@
     document.body.addEventListener("htmx:beforeSwap", function (evt) {
       const alertEl = evt.detail.target.querySelector(".alert");
 
+      // When viewing a review page, there may not be any form visible.
+      if (!alertEl) {
+        return;
+      }
+
       if (is2xxCode(evt.detail.xhr.status)) {
         alertEl.hidden = true;
         return;

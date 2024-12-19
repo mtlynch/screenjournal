@@ -51,6 +51,13 @@ func enforceContentSecurityPolicy(next http.Handler) http.Handler {
 					"image.tmdb.org",
 				},
 			},
+			{
+				name: "media-src",
+				values: []string{
+					"'self'",
+					"data:",
+				},
+			},
 		}
 		policyParts := []string{}
 		for _, directive := range directives {

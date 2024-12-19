@@ -8,7 +8,7 @@
     hx-post="/api/comments"
   {{ end }}
   hx-swap="outerHTML"
-  hx-disabled-elt="find textarea, find .btn-primary, find button"
+  hx-disabled-elt="textarea, .btn"
 >
   {{ if not $isEditing }}
     <input type="hidden" name="review-id" value="{{ .ReviewID }}" />

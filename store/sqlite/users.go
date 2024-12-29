@@ -21,13 +21,10 @@ func (s Store) CountUsers() (uint, error) {
 	return c, nil
 }
 
-func (s Store) ReadUsers() ([]screenjournal.User, error) {
+func (s Store) ReadUsersPublicMeta() ([]screenjournal.User, error) {
 	rows, err := s.ctx.Query(`
 	SELECT
-		username,
-		is_admin,
-		email,
-		password_hash
+		username
 	FROM
 		users`)
 	if err != nil {

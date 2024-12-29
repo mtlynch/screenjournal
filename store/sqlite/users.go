@@ -21,26 +21,46 @@ func (s Store) CountUsers() (uint, error) {
 	return c, nil
 }
 
-func (s Store) ReadUsersPublicMeta() ([]screenjournal.User, error) {
+func (s Store) ReadUsersPublicMeta() ([]screenjournal.UserPublicMeta, error) {
 	rows, err := s.ctx.Query(`
 	SELECT
-		username
+    u.username,
+    u.created_time,
+    COUNT(r.id) as review_count
 	FROM
-		users`)
+		users u
+	LEFT JOIN
+		reviews r ON u.username = r.review_owner
+	GROUP BY
+		u.username,
+		u.created_time
+	ORDER BY
+		u.created_time
+`)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return []screenjournal.User{}, nil
+			return []screenjournal.UserPublicMeta{}, nil
 		}
-		return []screenjournal.User{}, err
+		return []screenjournal.UserPublicMeta{}, err
 	}
 
-	users := []screenjournal.User{}
+	users := []screenjournal.UserPublicMeta{}
 	for rows.Next() {
-		user, err := userFromRow(rows)
-		if err != nil {
-			return []screenjournal.User{}, err
+		var username string
+		var joinTimeRaw string
+		var reviewCount uint
+		if err := rows.Scan(&username, &joinTimeRaw, &reviewCount); err != nil {
+			return []screenjournal.UserPublicMeta{}, err
 		}
-		users = append(users, user)
+		joinTime, err := parseDatetime(joinTimeRaw)
+		if err != nil {
+			return []screenjournal.UserPublicMeta{}, err
+		}
+		users = append(users, screenjournal.UserPublicMeta{
+			Username:    screenjournal.Username(username),
+			JoinDate:    joinTime,
+			ReviewCount: reviewCount,
+		})
 	}
 	return users, nil
 }

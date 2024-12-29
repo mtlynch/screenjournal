@@ -3,7 +3,7 @@
 {{ end }}
 
 {{ define "content" }}
-  <ul>
+  <ol>
     {{ range .Users }}
       <li>
         <b><a href="/reviews/by/{{ .Username }}">{{ .Username }}</a></b> joined
@@ -11,5 +11,5 @@
         <a href="/reviews/by/{{ .Username }}">{{ .ReviewCount }} reviews</a>.
       </li>
     {{ end }}
-  </ul>
+  </ol>
 {{ end }}

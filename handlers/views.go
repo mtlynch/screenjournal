@@ -887,28 +887,15 @@ func (s Server) usersGet() http.HandlerFunc {
 				append(baseTemplates, "templates/pages/users.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		type User struct {
-			Username    string
-			JoinDate    time.Time
-			ReviewCount uint
-		}
-		// TODO: Fetch this from the DB.
-		users := []User{
-			{
-				Username:    "userB",
-				JoinDate:    time.Now(),
-				ReviewCount: 3,
-			},
-			{
-				Username:    "userA",
-				JoinDate:    time.Now().Add(-300 * time.Hour),
-				ReviewCount: 1,
-			},
+		users, err := s.getDB(r).ReadUsersPublicMeta()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 		if err := t.Execute(w, struct {
 			commonProps
-			Users []User
+			Users []screenjournal.UserPublicMeta
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			Users:       users,

@@ -878,6 +878,34 @@ func (s Server) accountSecurityGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) usersGet() http.HandlerFunc {
+	t := template.Must(
+		template.New("base.html").
+			Funcs(reviewPageFns).
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/users.html")...))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		users, err := s.getDB(r).ReadUsersPublicMeta()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err := t.Execute(w, struct {
+			commonProps
+			Users []screenjournal.UserPublicMeta
+		}{
+			commonProps: makeCommonProps(r.Context()),
+			Users:       users,
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func ratingToStars(rating screenjournal.Rating) []string {
 	stars := make([]string, parse.MaxRating/2)
 	// Add whole stars.

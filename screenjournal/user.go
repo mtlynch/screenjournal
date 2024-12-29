@@ -1,5 +1,7 @@
 package screenjournal
 
+import "time"
+
 type (
 	Email    string
 	Username string
@@ -19,6 +21,12 @@ type (
 		Username     Username
 		Email        Email
 		PasswordHash PasswordHash
+	}
+
+	UserPublicMeta struct {
+		Username    Username
+		JoinDate    time.Time
+		ReviewCount uint
 	}
 )
 

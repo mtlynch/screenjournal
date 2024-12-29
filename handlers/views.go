@@ -878,6 +878,63 @@ func (s Server) accountSecurityGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) usersGet() http.HandlerFunc {
+	t := template.Must(
+		template.New("base.html").
+			Funcs(reviewPageFns).
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/reviews-edit.html")...))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := reviewIDFromRequestPath(r)
+		if err != nil {
+			http.Error(w, "Invalid review ID", http.StatusBadRequest)
+			return
+		}
+
+		review, err := s.getDB(r).ReadReview(id)
+		if err == store.ErrReviewNotFound {
+			http.Error(w, "Invalid review ID", http.StatusNotFound)
+			return
+		} else if err != nil {
+			log.Printf("failed to read review: %v", err)
+			http.Error(w, "Failed to read review", http.StatusInternalServerError)
+			return
+		}
+
+		var mediaType screenjournal.MediaType
+		if review.Movie.ID.Int64() == 0 {
+			mediaType = screenjournal.MediaTypeMovie
+		} else {
+			mediaType = screenjournal.MediaTypeTvShow
+		}
+
+		loggedInUsername := mustGetUsernameFromContext(r.Context())
+		if !review.Owner.Equal(loggedInUsername) {
+			http.Error(w, "You can't edit another user's review", http.StatusForbidden)
+			return
+		}
+
+		if err := t.Execute(w, struct {
+			commonProps
+			RatingOptions []ratingOption
+			Review        screenjournal.Review
+			MediaType     screenjournal.MediaType
+			Today         time.Time
+		}{
+			commonProps:   makeCommonProps(r.Context()),
+			RatingOptions: ratingOptions,
+			Review:        review,
+			MediaType:     mediaType,
+			Today:         time.Now(),
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func ratingToStars(rating screenjournal.Rating) []string {
 	stars := make([]string, parse.MaxRating/2)
 	// Add whole stars.

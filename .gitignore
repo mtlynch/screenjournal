@@ -32,3 +32,5 @@ data/
 /playwright-report/
 /playwright/.cache/
 /e2e-results/
+
+.direnv

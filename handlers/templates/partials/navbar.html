@@ -29,6 +29,9 @@
       </ul>
       {{ if .IsAuthenticated }}
         <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="/users" role="menuitem">Users</a>
+          </li>
           <li class="nav-item dropdown">
             <a
               class="nav-link dropdown-toggle"
@@ -75,12 +78,6 @@
                 >
               </li>
             </ul>
-          </li>
-        </ul>
-
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <a class="nav-link" href="/users" role="menuitem">Users</a>
           </li>
         </ul>
 

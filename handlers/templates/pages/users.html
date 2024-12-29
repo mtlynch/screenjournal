@@ -1,0 +1,15 @@
+{{ define "title" }}
+  Users
+{{ end }}
+
+{{ define "content" }}
+  <ul>
+    {{ range .Users }}
+      <li>
+        <b><a href="/reviews/by/{{ .Username }}">{{ .Username }}</a></b> joined
+        {{ .JoinDate.Format "2006-01-02" }} and has written
+        <a href="/reviews/by/{{ .Username }}">{{ .ReviewCount }} reviews</a>.
+      </li>
+    {{ end }}
+  </ul>
+{{ end }}

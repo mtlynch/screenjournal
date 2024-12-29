@@ -892,6 +892,7 @@ func (s Server) usersGet() http.HandlerFunc {
 			JoinDate    time.Time
 			ReviewCount uint
 		}
+		// TODO: Fetch this from the DB.
 		users := []User{
 			{
 				Username:    "userB",

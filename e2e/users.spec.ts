@@ -7,18 +7,23 @@ test.beforeEach(async ({ page }) => {
   await loginAsUserA(page);
 });
 
+async function normalizedTextContent(locator: Locator): Promise<string> {
+  const text = await locator.textContent();
+  return text?.replace(/\s+/g, " ").trim() ?? "";
+}
+
 test("views list of users", async ({ page }) => {
   await page.getByRole("menuitem", { name: "Users" }).click();
 
   await expect(page).toHaveURL("/users");
 
-  await expect(page.locator("ol li:nth-child(1)")).toHaveText(
+  expect(await normalizedTextContent(page.locator("ol li").nth(0))).toMatch(
     /dummyadmin joined \d{4}-\d{2}-\d{2} and has written 0 reviews\./
   );
-  await expect(page.locator("ol li:nth-child(2)")).toHaveText(
+  expect(await normalizedTextContent(page.locator("ol li").nth(1))).toMatch(
     /userA joined \d{4}-\d{2}-\d{2} and has written 1 reviews\./
   );
-  await expect(page.locator("ol li:nth-child(3)")).toHaveText(
+  expect(await normalizedTextContent(page.locator("ol li").nth(2))).toMatch(
     /userB joined \d{4}-\d{2}-\d{2} and has written 3 reviews\./
   );
 });

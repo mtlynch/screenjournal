@@ -12,7 +12,7 @@ test("views list of users", async ({ page }) => {
 
   await expect(page).toHaveURL("/users");
 
-  await expect(page.locator("ol li:nth-child(2)")).toHaveText(
+  await expect(page.locator("ol li:nth-child(1)")).toHaveText(
     /dummyadmin joined \d{4}-\d{2}-\d{2} and has written 0 reviews\./
   );
   await expect(page.locator("ol li:nth-child(2)")).toHaveText(

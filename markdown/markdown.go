@@ -1,6 +1,7 @@
 package markdown
 
 import (
+	"fmt"
 	"html"
 	"strings"
 
@@ -11,6 +12,8 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
+
+const SpoilersKeyword = "!spoilers"
 
 var (
 	untrustedRenderer *gomarkdown_html.Renderer
@@ -23,10 +26,12 @@ func init() {
 }
 
 func RenderBlurb(blurb screenjournal.Blurb) string {
-	return renderUntrusted(trimSpacesFromEachLine(blurb.String()))
+	return renderUntrusted(blurb.String())
 }
 
 func RenderBlurbAsPlaintext(blurb screenjournal.Blurb) string {
+	// TODO: Hide spoilers from plaintext.
+
 	asHtml := renderUntrusted(blurb.String())
 	plaintext := bluemonday.StrictPolicy().Sanitize(asHtml)
 
@@ -37,14 +42,24 @@ func RenderBlurbAsPlaintext(blurb screenjournal.Blurb) string {
 }
 
 func RenderComment(comment screenjournal.CommentText) string {
-	return renderUntrusted(trimSpacesFromEachLine(comment.String()))
+	return renderUntrusted(comment.String())
 }
 
 func renderUntrusted(s string) string {
-	parser := gomarkdown_parser.NewWithExtensions(gomarkdown_parser.NoExtensions)
-	asHtml := string(gomarkdown.ToHTML([]byte(s), parser, untrustedRenderer))
+	renderMarkdown := func(markdown string) string {
+		parser := gomarkdown_parser.NewWithExtensions(gomarkdown_parser.NoExtensions)
+		trimmed := trimSpacesFromEachLine(markdown)
+		asHtml := string(gomarkdown.ToHTML([]byte(trimmed), parser, untrustedRenderer))
+		return strings.TrimSpace(asHtml)
+	}
 
-	return strings.TrimSpace(asHtml)
+	unspoiled, spoilers, hasSpoilers := strings.Cut(s, SpoilersKeyword)
+	unspoiledRendered := renderMarkdown(unspoiled)
+	if !hasSpoilers {
+		return unspoiledRendered
+	}
+
+	return fmt.Sprintf("%s\n\n<div class=\"spoilers\">\n\n%s\n\n</div>", unspoiledRendered, renderMarkdown(spoilers))
 }
 
 func RenderEmail(body screenjournal.EmailBodyMarkdown) string {

@@ -3,6 +3,7 @@ package markdown_test
 import (
 	"testing"
 
+	"github.com/kylelemons/godebug/diff"
 	"github.com/mtlynch/screenjournal/v2/markdown"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
@@ -54,16 +55,14 @@ You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, o
 			"adds divs for spoilers",
 			`Great, but predictable
 
-**Spoilers**
+!spoilers
 
 The butler did it!`,
 			`<p>Great, but predictable</p>
 
-<p><strong>Spoilers</strong></p>
-
 <div class="spoilers">
 
-<p>The butler did it!
+<p>The butler did it!</p>
 
 </div>`,
 		},
@@ -108,10 +107,10 @@ The butler did it!`,
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			if got, want := markdown.RenderBlurb(screenjournal.Blurb(tt.in)), tt.out; got != want {
-				t.Errorf("rendered blurb=%s, want=%s", got, want)
+				t.Errorf("rendered blurb=%s, want=%s, diff=%s", got, want, diff.Diff(got, want))
 			}
 			if got, want := markdown.RenderComment(screenjournal.CommentText(tt.in)), tt.out; got != want {
-				t.Errorf("rendered comment=%s, want=%s", got, want)
+				t.Errorf("rendered comment=%s, want=%s, diff=%s", got, want, diff.Diff(got, want))
 			}
 		})
 	}

@@ -13,11 +13,15 @@ import (
 )
 
 var (
+	untrustedParser   *gomarkdown_parser.Parser
+	trustedParser     *gomarkdown_parser.Parser
 	untrustedRenderer *gomarkdown_html.Renderer
 	trustedRenderer   *gomarkdown_html.Renderer
 )
 
 func init() {
+	untrustedParser = gomarkdown_parser.NewWithExtensions(gomarkdown_parser.NoExtensions)
+	trustedParser = gomarkdown_parser.NewWithExtensions(gomarkdown_parser.Autolink)
 	untrustedRenderer = gomarkdown_html.NewRenderer(gomarkdown_html.RendererOptions{Flags: gomarkdown_html.SkipHTML | gomarkdown_html.SkipImages})
 	trustedRenderer = gomarkdown_html.NewRenderer(gomarkdown_html.RendererOptions{Flags: gomarkdown_html.SkipHTML | gomarkdown_html.SkipImages})
 }
@@ -41,16 +45,12 @@ func RenderComment(comment screenjournal.CommentText) string {
 }
 
 func renderUntrusted(s string) string {
-	parser := gomarkdown_parser.NewWithExtensions(gomarkdown_parser.NoExtensions)
-	asHtml := string(gomarkdown.ToHTML([]byte(s), parser, untrustedRenderer))
-
+	asHtml := string(gomarkdown.ToHTML([]byte(s), untrustedParser, untrustedRenderer))
 	return strings.TrimSpace(asHtml)
 }
 
 func RenderEmail(body screenjournal.EmailBodyMarkdown) string {
-	parser := gomarkdown_parser.NewWithExtensions(gomarkdown_parser.Autolink)
-	asHtml := string(gomarkdown.ToHTML([]byte(body.String()), parser, trustedRenderer))
-
+	asHtml := string(gomarkdown.ToHTML([]byte(body.String()), trustedParser, trustedRenderer))
 	return strings.TrimSpace(asHtml)
 }
 

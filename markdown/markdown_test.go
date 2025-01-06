@@ -180,6 +180,15 @@ If you think of Weird Al as just a parody music guy, give it a chance. I was nev
 			`check out my cat! <img src="http://example.com/cat.jpg">`,
 			"check out my cat!",
 		},
+		{
+			"excludes spoilers from plaintext rendering",
+			`Great, but predictable
+
+!spoilers
+
+The butler did it!`,
+			"Great, but predictable",
+		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			if got, want := markdown.RenderBlurbAsPlaintext(screenjournal.Blurb(tt.in)), tt.out; got != want {

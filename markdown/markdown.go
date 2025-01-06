@@ -30,9 +30,8 @@ func RenderBlurb(blurb screenjournal.Blurb) string {
 }
 
 func RenderBlurbAsPlaintext(blurb screenjournal.Blurb) string {
-	// TODO: Hide spoilers from plaintext.
-
-	asHtml := renderUntrusted(blurb.String())
+	unspoiled, _, _ := splitSpoilers(blurb.String())
+	asHtml := renderUntrusted(unspoiled)
 	plaintext := bluemonday.StrictPolicy().Sanitize(asHtml)
 
 	// Decode HTML entities like ' back to characters
@@ -75,4 +74,8 @@ func trimSpacesFromEachLine(s string) string {
 		lines[i] = strings.TrimSpace(line)
 	}
 	return strings.Join(lines, "\n")
+}
+
+func splitSpoilers(s string) (string, string, bool) {
+	return strings.Cut(s, SpoilersKeyword)
 }

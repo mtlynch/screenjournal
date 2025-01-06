@@ -96,6 +96,15 @@ The butler did it!`,
 			`check out my cat! <img src="http://example.com/cat.jpg">`,
 			"<p>check out my cat! </p>",
 		},
+		{
+			"does not render pre tags for indented text",
+			`Remember this line?
+
+		Frank: I love pistachios...`,
+			`<p>Remember this line?</p>
+
+<p>Frank: I love pistachios...</p>`,
+		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			if got, want := markdown.RenderBlurb(screenjournal.Blurb(tt.in)), tt.out; got != want {
@@ -174,7 +183,7 @@ If you think of Weird Al as just a parody music guy, give it a chance. I was nev
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			if got, want := markdown.RenderBlurbAsPlaitext(screenjournal.Blurb(tt.in)), tt.out; got != want {
+			if got, want := markdown.RenderBlurbAsPlaintext(screenjournal.Blurb(tt.in)), tt.out; got != want {
 				t.Errorf("plaintext=[%s], want=[%s]", got, want)
 			}
 		})

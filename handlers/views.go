@@ -256,7 +256,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 		"formatWatchDate":   formatWatchDate,
 		"elideBlurb": func(b screenjournal.Blurb) string {
 			score := 0
-			plaintext := markdown.RenderBlurbAsPlaitext(b)
+			plaintext := markdown.RenderBlurbAsPlaintext(b)
 			var elidedChars []rune
 			for _, c := range plaintext {
 				if c == '\n' {

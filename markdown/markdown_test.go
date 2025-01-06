@@ -166,7 +166,7 @@ If you think of Weird Al as just a parody music guy, give it a chance. I was nev
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			if got, want := markdown.RenderBlurbAsPlaitext(screenjournal.Blurb(tt.in)), tt.out; got != want {
+			if got, want := markdown.RenderBlurbAsPlaintext(screenjournal.Blurb(tt.in)), tt.out; got != want {
 				t.Errorf("plaintext=[%s], want=[%s]", got, want)
 			}
 		})

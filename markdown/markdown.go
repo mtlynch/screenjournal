@@ -23,7 +23,7 @@ func init() {
 }
 
 func RenderBlurb(blurb screenjournal.Blurb) string {
-	return renderUntrusted(blurb.String())
+	return renderUntrusted(trimSpacesFromEachLine(blurb.String()))
 }
 
 func RenderBlurbAsPlaitext(blurb screenjournal.Blurb) string {
@@ -37,7 +37,7 @@ func RenderBlurbAsPlaitext(blurb screenjournal.Blurb) string {
 }
 
 func RenderComment(comment screenjournal.CommentText) string {
-	return renderUntrusted(comment.String())
+	return renderUntrusted(trimSpacesFromEachLine(comment.String()))
 }
 
 func renderUntrusted(s string) string {
@@ -52,4 +52,12 @@ func RenderEmail(body screenjournal.EmailBodyMarkdown) string {
 	asHtml := string(gomarkdown.ToHTML([]byte(body.String()), parser, trustedRenderer))
 
 	return strings.TrimSpace(asHtml)
+}
+
+func trimSpacesFromEachLine(s string) string {
+	lines := strings.Split(s, "\n")
+	for i, line := range lines {
+		lines[i] = strings.TrimSpace(line)
+	}
+	return strings.Join(lines, "\n")
 }

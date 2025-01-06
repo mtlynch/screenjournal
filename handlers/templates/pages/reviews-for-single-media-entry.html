@@ -16,14 +16,18 @@
 
     .review {
       max-width: 70ch;
+
+      p {
+        max-width: 100%;
+      }
+
+      .spoilers {
+        display: hidden;
+      }
     }
 
     .review + .review {
       margin-top: 2rem;
-    }
-
-    .review p {
-      max-width: 100%;
     }
   </style>
 {{ end }}

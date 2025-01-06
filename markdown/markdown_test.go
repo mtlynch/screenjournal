@@ -51,6 +51,23 @@ You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, o
 			`<p>you can see it <a href="http://example.com/blog">on my blog</a></p>`,
 		},
 		{
+			"adds divs for spoilers",
+			`Great, but predictable
+
+**Spoilers**
+
+The butler did it!`,
+			`<p>Great, but predictable</p>
+
+<p><strong>Spoilers</strong></p>
+
+<div class="spoilers">
+
+<p>The butler did it!
+
+</div>`,
+		},
+		{
 			// We don't really want this behavior, but it doesn't hurt anything right
 			// now, so keep the test to show the behavior.
 			"renders backticks",

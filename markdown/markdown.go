@@ -26,7 +26,7 @@ func RenderBlurb(blurb screenjournal.Blurb) string {
 	return renderUntrusted(trimSpacesFromEachLine(blurb.String()))
 }
 
-func RenderBlurbAsPlaitext(blurb screenjournal.Blurb) string {
+func RenderBlurbAsPlaintext(blurb screenjournal.Blurb) string {
 	asHtml := renderUntrusted(blurb.String())
 	plaintext := bluemonday.StrictPolicy().Sanitize(asHtml)
 

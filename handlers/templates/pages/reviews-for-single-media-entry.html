@@ -4,49 +4,14 @@
 
 {{ define "style-tags" }}
   <style nonce="{{ .CspNonce }}">
-    @media screen and (min-width: 768px) {
-      .poster {
-        max-width: 250px;
-      }
-    }
-
-    .metadata {
-      font-size: 0.85em;
-    }
-
-    .review {
-      max-width: 70ch;
-
-      p {
-        max-width: 100%;
-      }
-
-      .spoilers {
-        background-color: #ffc9c0;
-        border: 2px dashed red;
-        position: relative;
-        margin-top: 20px;
-        padding: 20px;
-      }
-
-      .spoilers::before {
-        content: "Spoiler alert!";
-        position: absolute;
-        top: -10px;
-        left: 10px;
-        background: #fff;
-        padding: 0 5px;
-      }
-    }
-
-    .review + .review {
-      margin-top: 2rem;
-    }
+    @import url("/css/reviews.css");
   </style>
 {{ end }}
 
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
+    import { addSpoilersRevealButtons } from "/js/lib/spoilers.js";
+
     function is2xxCode(status) {
       return (status / 100) * 100 === 200;
     }
@@ -67,17 +32,8 @@
       alertEl.hidden = false;
     });
 
-    document.querySelectorAll(".spoilers").forEach((el) => {
-      const btn = document.createElement("button");
-      btn.classList.add("btn");
-      btn.classList.add("btn-warning");
-      btn.textContent = "Show Spoilers";
-      el.after(btn);
-
-      btn.addEventListener("click", () => {
-        el.classList.remove("d-none");
-        btn.remove();
-      });
+    document.addEventListener("DOMContentLoaded", function () {
+      addSpoilersRevealButtons();
     });
   </script>
 {{ end }}

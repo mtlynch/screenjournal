@@ -1,0 +1,38 @@
+@media screen and (min-width: 768px) {
+  .poster {
+    max-width: 250px;
+  }
+}
+
+.metadata {
+  font-size: 0.85em;
+}
+
+.review {
+  max-width: 70ch;
+
+  p {
+    max-width: 100%;
+  }
+
+  .spoilers {
+    background-color: #ffc9c0;
+    border: 2px dashed red;
+    position: relative;
+    margin-top: 20px;
+    padding: 20px;
+  }
+
+  .spoilers::before {
+    content: "Spoiler alert!";
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    background: #fff;
+    padding: 0 5px;
+  }
+}
+
+.review + .review {
+  margin-top: 2rem;
+}

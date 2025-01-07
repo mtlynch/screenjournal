@@ -3,6 +3,7 @@ package markdown_test
 import (
 	"testing"
 
+	"github.com/kylelemons/godebug/diff"
 	"github.com/mtlynch/screenjournal/v2/markdown"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
@@ -51,6 +52,21 @@ You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, o
 			`<p>you can see it <a href="http://example.com/blog">on my blog</a></p>`,
 		},
 		{
+			"adds divs for spoilers",
+			`Great, but predictable
+
+!spoilers
+
+The butler did it!`,
+			`<p>Great, but predictable</p>
+
+<div class="spoilers d-none">
+
+<p>The butler did it!</p>
+
+</div>`,
+		},
+		{
 			// We don't really want this behavior, but it doesn't hurt anything right
 			// now, so keep the test to show the behavior.
 			"renders backticks",
@@ -91,10 +107,10 @@ You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, o
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			if got, want := markdown.RenderBlurb(screenjournal.Blurb(tt.in)), tt.out; got != want {
-				t.Errorf("rendered blurb=%s, want=%s", got, want)
+				t.Errorf("rendered blurb=%s, want=%s, diff=%s", got, want, diff.Diff(got, want))
 			}
 			if got, want := markdown.RenderComment(screenjournal.CommentText(tt.in)), tt.out; got != want {
-				t.Errorf("rendered comment=%s, want=%s", got, want)
+				t.Errorf("rendered comment=%s, want=%s, diff=%s", got, want, diff.Diff(got, want))
 			}
 		})
 	}
@@ -163,6 +179,15 @@ If you think of Weird Al as just a parody music guy, give it a chance. I was nev
 			"does not render HTML images",
 			`check out my cat! <img src="http://example.com/cat.jpg">`,
 			"check out my cat!",
+		},
+		{
+			"excludes spoilers from plaintext rendering",
+			`Great, but predictable
+
+!spoilers
+
+The butler did it!`,
+			"Great, but predictable",
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {

@@ -9,6 +9,8 @@
 
 {{ define "style-tags" }}
   <style nonce="{{ .CspNonce }}">
+    @import url("/css/reviews.css");
+
     .btn + .btn {
       margin-right: 0.5rem;
     }
@@ -17,6 +19,8 @@
 
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
+    import { addSpoilersRevealButtons } from "/js/lib/spoilers.js";
+
     function is2xxCode(status) {
       return (status / 100) * 100 === 200;
     }
@@ -40,6 +44,9 @@
       if (match) {
         window.location.hash = `review${match[1]}`;
       }
+    });
+    document.body.addEventListener("htmx:afterSwap", function () {
+      addSpoilersRevealButtons();
     });
   </script>
 {{ end }}

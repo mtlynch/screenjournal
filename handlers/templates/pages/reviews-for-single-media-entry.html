@@ -4,32 +4,14 @@
 
 {{ define "style-tags" }}
   <style nonce="{{ .CspNonce }}">
-    @media screen and (min-width: 768px) {
-      .poster {
-        max-width: 250px;
-      }
-    }
-
-    .metadata {
-      font-size: 0.85em;
-    }
-
-    .review {
-      max-width: 70ch;
-    }
-
-    .review + .review {
-      margin-top: 2rem;
-    }
-
-    .review p {
-      max-width: 100%;
-    }
+    @import url("/css/reviews.css");
   </style>
 {{ end }}
 
 {{ define "script-tags" }}
   <script type="module" nonce="{{ .CspNonce }}">
+    import { addSpoilersRevealButtons } from "/js/lib/spoilers.js";
+
     function is2xxCode(status) {
       return (status / 100) * 100 === 200;
     }
@@ -48,6 +30,10 @@
       }
       alertEl.innerText = evt.detail.xhr.responseText;
       alertEl.hidden = false;
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+      addSpoilersRevealButtons();
     });
   </script>
 {{ end }}

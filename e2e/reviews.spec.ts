@@ -182,6 +182,50 @@ test("adds a new movie rating and fills in only required fields", async ({
   await expect(reviewCard.locator(".card-text")).toHaveCount(0);
 });
 
+test("adds a new movie rating but hides spoilers", async ({ page }) => {
+  await page.getByRole("button", { name: "Add Rating" }).click();
+
+  await page.getByPlaceholder("Search").pressSequentially("the sixth se");
+  await page.getByText("The Sixth Sense (1999)").click();
+
+  await expect(page).toHaveURL("/reviews/new/write?tmdbId=745&mediaType=movie");
+  await expect(
+    page.getByRole("heading", { name: "The Sixth Sense (1999)" })
+  ).toBeVisible();
+
+  await page.getByLabel("Rating").selectOption({ label: "4.0" });
+
+  await page.getByLabel("When did you watch?").fill("2024-11-01");
+  await page.getByLabel("Other thoughts?").fill(`What a twist!
+
+Haley Joel Osment is going places!
+
+!spoilers
+
+I can't believe Bruce Willis was a ghost the whole time!`);
+
+  await page.locator("form input[type='submit']").click();
+
+  await expect(page).toHaveURL("/movies/3");
+
+  await expect(page.getByText("What a twist!")).toBeVisible();
+  await expect(
+    page.getByText("Haley Joel Osment is going places!")
+  ).toBeVisible();
+
+  // Make sure spoilers are not visible.
+  await expect(
+    page.getByText("I can't believe Bruce Willis was a ghost the whole time!")
+  ).not.toBeVisible();
+
+  await page.getByRole("button", { name: "Show Spoilers" }).click();
+
+  // Now, spoilers should be visible.
+  await expect(
+    page.getByText("I can't believe Bruce Willis was a ghost the whole time!")
+  ).toBeVisible();
+});
+
 test("adds a new TV show rating and fills in only required fields", async ({
   page,
 }) => {

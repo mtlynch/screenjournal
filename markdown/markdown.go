@@ -12,6 +12,8 @@ import (
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
+const SpoilersKeyword = "!spoilers"
+
 var (
 	untrustedRenderer *gomarkdown_html.Renderer
 	trustedRenderer   *gomarkdown_html.Renderer
@@ -23,11 +25,12 @@ func init() {
 }
 
 func RenderBlurb(blurb screenjournal.Blurb) string {
-	return renderUntrusted(trimSpacesFromEachLine(blurb.String()))
+	return renderUntrusted(blurb.String())
 }
 
 func RenderBlurbAsPlaintext(blurb screenjournal.Blurb) string {
-	asHtml := renderUntrusted(blurb.String())
+	unspoiled, _, _ := splitSpoilers(blurb.String())
+	asHtml := renderUntrusted(unspoiled)
 	plaintext := bluemonday.StrictPolicy().Sanitize(asHtml)
 
 	// Decode HTML entities like ' back to characters
@@ -37,14 +40,29 @@ func RenderBlurbAsPlaintext(blurb screenjournal.Blurb) string {
 }
 
 func RenderComment(comment screenjournal.CommentText) string {
-	return renderUntrusted(trimSpacesFromEachLine(comment.String()))
+	return renderUntrusted(comment.String())
 }
 
 func renderUntrusted(s string) string {
-	parser := gomarkdown_parser.NewWithExtensions(gomarkdown_parser.NoExtensions)
-	asHtml := string(gomarkdown.ToHTML([]byte(s), parser, untrustedRenderer))
+	renderMarkdown := func(markdown string) string {
+		parser := gomarkdown_parser.NewWithExtensions(gomarkdown_parser.NoExtensions)
+		trimmed := trimSpacesFromEachLine(markdown)
+		asHtml := string(gomarkdown.ToHTML([]byte(trimmed), parser, untrustedRenderer))
+		return strings.TrimSpace(asHtml)
+	}
 
-	return strings.TrimSpace(asHtml)
+	unspoiled, spoilers, hasSpoilers := strings.Cut(s, SpoilersKeyword)
+	unspoiledRendered := renderMarkdown(unspoiled)
+	if !hasSpoilers {
+		return unspoiledRendered
+	}
+
+	return strings.Join([]string{
+		unspoiledRendered,
+		`<div class="spoilers d-none">`,
+		renderMarkdown(spoilers),
+		"</div>",
+	}, "\n\n")
 }
 
 func RenderEmail(body screenjournal.EmailBodyMarkdown) string {
@@ -60,4 +78,8 @@ func trimSpacesFromEachLine(s string) string {
 		lines[i] = strings.TrimSpace(line)
 	}
 	return strings.Join(lines, "\n")
+}
+
+func splitSpoilers(s string) (string, string, bool) {
+	return strings.Cut(s, SpoilersKeyword)
 }

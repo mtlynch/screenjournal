@@ -58,7 +58,7 @@ func renderUntrusted(s string) string {
 		return unspoiledRendered
 	}
 
-	return fmt.Sprintf("%s\n\n<div class=\"spoilers\">\n\n%s\n\n</div>", unspoiledRendered, renderMarkdown(spoilers))
+	return fmt.Sprintf("%s\n\n<div class=\"spoilers d-none\">\n\n%s\n\n</div>", unspoiledRendered, renderMarkdown(spoilers))
 }
 
 func RenderEmail(body screenjournal.EmailBodyMarkdown) string {

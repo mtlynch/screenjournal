@@ -60,7 +60,7 @@ You'll like it if you enjoy things like Children's Hospital, Comedy Bang Bang, o
 The butler did it!`,
 			`<p>Great, but predictable</p>
 
-<div class="spoilers">
+<div class="spoilers d-none">
 
 <p>The butler did it!</p>
 

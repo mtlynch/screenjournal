@@ -1,7 +1,6 @@
 package markdown
 
 import (
-	"fmt"
 	"html"
 	"strings"
 
@@ -58,7 +57,12 @@ func renderUntrusted(s string) string {
 		return unspoiledRendered
 	}
 
-	return fmt.Sprintf("%s\n\n<div class=\"spoilers d-none\">\n\n%s\n\n</div>", unspoiledRendered, renderMarkdown(spoilers))
+	return strings.Join([]string{
+		unspoiledRendered,
+		`<div class="spoilers d-none">`,
+		renderMarkdown(spoilers),
+		"</div>",
+	}, "\n\n")
 }
 
 func RenderEmail(body screenjournal.EmailBodyMarkdown) string {

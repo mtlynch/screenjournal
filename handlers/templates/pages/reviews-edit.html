@@ -14,6 +14,12 @@
     .btn + .btn {
       margin-right: 0.5rem;
     }
+
+    /* Add spacing between columns. */
+    #formatting-help {
+      border-collapse: separate;
+      border-spacing: 1rem 0;
+    }
   </style>
 {{ end }}
 
@@ -161,14 +167,24 @@
         </p>
       </div>
       <div class="d-flex justify-content-end">
-        <div id="formatting-help" class="d-none">
-          <p><code>_text_</code> - Make text <i>italic</i></p>
-          <p><code>**text**</code> - Make text <strong>bold</strong></p>
-          <p><code>&gt;text</code> - Put text in a blockquote</p>
-          <p>
-            <code>!spoilers</code> - Hide everything after in a spoiler alert
-          </p>
-        </div>
+        <table id="formatting-help" class="d-none">
+          <tr>
+            <td><code>_text_</code></td>
+            <td>Make text <i>italic</i></td>
+          </tr>
+          <tr>
+            <td><code>**text**</code></td>
+            <td>Make text <strong>bold</strong></td>
+          </tr>
+          <tr>
+            <td><code>&gt;text</code></td>
+            <td>Put text in a blockquote</td>
+          </tr>
+          <tr>
+            <td><code>!spoilers</code></td>
+            <td>Hide all subsequent text behind a spoiler alert</td>
+          </tr>
+        </table>
       </div>
 
       {{ if $isEditing }}

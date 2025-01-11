@@ -14,6 +14,12 @@
     .btn + .btn {
       margin-right: 0.5rem;
     }
+
+    /* Add spacing between columns. */
+    #formatting-help {
+      border-collapse: separate;
+      border-spacing: 1rem 0;
+    }
   </style>
 {{ end }}
 
@@ -28,6 +34,14 @@
 
     document.querySelector("form").addEventListener("input", function (evt) {
       alertEl.hidden = true;
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+      document
+        .getElementById("formatting-help-icon")
+        .addEventListener("click", function (evt) {
+          document.getElementById("formatting-help").classList.toggle("d-none");
+        });
     });
 
     document.body.addEventListener("htmx:beforeSwap", function (evt) {
@@ -137,11 +151,40 @@
         />
       </div>
 
-      <div class="mb-3">
+      <div class="mb-1">
         <label for="blurb" class="form-label">Other thoughts? (Optional)</label>
         <textarea id="blurb" name="blurb" class="form-control">
 {{ .Review.Blurb }}</textarea
         >
+      </div>
+      <div class="d-flex justify-content-end">
+        <p>
+          <small>formatting options</small>&nbsp;<a
+            href="#"
+            id="formatting-help-icon"
+            ><i class="fa-solid fa-circle-info"></i
+          ></a>
+        </p>
+      </div>
+      <div class="d-flex justify-content-end">
+        <table id="formatting-help" class="d-none">
+          <tr>
+            <td><code>_text_</code></td>
+            <td>Make text <i>italic</i></td>
+          </tr>
+          <tr>
+            <td><code>**text**</code></td>
+            <td>Make text <strong>bold</strong></td>
+          </tr>
+          <tr>
+            <td><code>&gt;text</code></td>
+            <td>Put text in a blockquote</td>
+          </tr>
+          <tr>
+            <td><code>!spoilers</code></td>
+            <td>Hide all subsequent text behind a spoiler alert</td>
+          </tr>
+        </table>
       </div>
 
       {{ if $isEditing }}

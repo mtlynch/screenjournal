@@ -91,10 +91,10 @@ func TestInvitesPost(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			store := test_sqlite.New()
+			dataStore := test_sqlite.New()
 
 			for _, s := range tt.sessions {
-				if err := store.InsertUser(screenjournal.User{
+				if err := dataStore.InsertUser(screenjournal.User{
 					Username: s.session.Username,
 					IsAdmin:  s.session.IsAdmin,
 					Email:    screenjournal.Email(fmt.Sprintf("%s@example.com", s.session.Username.String())),
@@ -103,9 +103,9 @@ func TestInvitesPost(t *testing.T) {
 				}
 			}
 
-			authenticator := auth.New(store)
+			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, nilMetadataFinder)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
 
 			req, err := http.NewRequest("POST", "/admin/invites", strings.NewReader(tt.payload))
 			if err != nil {
@@ -129,7 +129,7 @@ func TestInvitesPost(t *testing.T) {
 				return
 			}
 
-			invites, err := store.ReadSignupInvitations()
+			invites, err := dataStore.ReadSignupInvitations()
 			if err != nil {
 				t.Fatalf("failed to read invites from datastore: %v", err)
 			}

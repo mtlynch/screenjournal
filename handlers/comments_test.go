@@ -191,30 +191,30 @@ func TestCommentsPost(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			store := test_sqlite.New()
+			dataStore := test_sqlite.New()
 
 			for _, s := range tt.sessions {
-				if err := store.InsertUser(screenjournal.User{
+				if err := dataStore.InsertUser(screenjournal.User{
 					Username: s.session.Username,
 				}); err != nil {
 					panic(err)
 				}
 			}
 			for _, movie := range tt.movies {
-				if _, err := store.InsertMovie(movie); err != nil {
+				if _, err := dataStore.InsertMovie(movie); err != nil {
 					panic(err)
 				}
 			}
 			for _, review := range tt.reviews {
-				if _, err := store.InsertReview(review); err != nil {
+				if _, err := dataStore.InsertReview(review); err != nil {
 					panic(err)
 				}
 			}
 
 			announcer := mockAnnouncer{}
-			authenticator := auth.New(store)
+			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(authenticator, &announcer, &sessionManager, store, nilMetadataFinder)
+			s := handlers.New(authenticator, &announcer, &sessionManager, dataStore, nilMetadataFinder)
 
 			req, err := http.NewRequest("POST", "/api/comments", strings.NewReader(tt.payload))
 			if err != nil {
@@ -238,7 +238,7 @@ func TestCommentsPost(t *testing.T) {
 				return
 			}
 
-			comments, err := store.ReadComments(screenjournal.ReviewID(1))
+			comments, err := dataStore.ReadComments(screenjournal.ReviewID(1))
 			if err != nil {
 				t.Fatalf("failed to read comments from datastore: %v", err)
 			}
@@ -406,33 +406,33 @@ func TestCommentsPut(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			store := test_sqlite.New()
+			dataStore := test_sqlite.New()
 
 			// Populate datastore with dummy users.
 			for _, s := range tt.sessions {
-				if err := store.InsertUser(screenjournal.User{
+				if err := dataStore.InsertUser(screenjournal.User{
 					Username: s.session.Username,
 				}); err != nil {
 					panic(err)
 				}
 			}
 
-			if _, err := store.InsertMovie(makeCommentsTestData().movies.theWaterBoy); err != nil {
+			if _, err := dataStore.InsertMovie(makeCommentsTestData().movies.theWaterBoy); err != nil {
 				panic(err)
 			}
 
-			if _, err := store.InsertReview(makeCommentsTestData().reviews.userBTheWaterBoy); err != nil {
+			if _, err := dataStore.InsertReview(makeCommentsTestData().reviews.userBTheWaterBoy); err != nil {
 				panic(err)
 			}
 			for _, comment := range tt.comments {
-				if _, err := store.InsertComment(comment); err != nil {
+				if _, err := dataStore.InsertComment(comment); err != nil {
 					panic(err)
 				}
 			}
 
-			authenticator := auth.New(store)
+			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, nilMetadataFinder)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {
@@ -456,7 +456,7 @@ func TestCommentsPut(t *testing.T) {
 				return
 			}
 
-			comments, err := store.ReadComments(screenjournal.ReviewID(1))
+			comments, err := dataStore.ReadComments(screenjournal.ReviewID(1))
 			if err != nil {
 				t.Fatalf("failed to read comments from datastore: %v", err)
 			}
@@ -565,30 +565,30 @@ func TestCommentsDelete(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			store := test_sqlite.New()
+			dataStore := test_sqlite.New()
 
 			for _, s := range tt.sessions {
-				if err := store.InsertUser(screenjournal.User{
+				if err := dataStore.InsertUser(screenjournal.User{
 					Username: s.session.Username,
 				}); err != nil {
 					panic(err)
 				}
 			}
-			if _, err := store.InsertMovie(makeCommentsTestData().movies.theWaterBoy); err != nil {
+			if _, err := dataStore.InsertMovie(makeCommentsTestData().movies.theWaterBoy); err != nil {
 				panic(err)
 			}
-			if _, err := store.InsertReview(makeCommentsTestData().reviews.userBTheWaterBoy); err != nil {
+			if _, err := dataStore.InsertReview(makeCommentsTestData().reviews.userBTheWaterBoy); err != nil {
 				panic(err)
 			}
 			for _, comment := range tt.comments {
-				if _, err := store.InsertComment(comment); err != nil {
+				if _, err := dataStore.InsertComment(comment); err != nil {
 					panic(err)
 				}
 			}
 
-			authenticator := auth.New(store)
+			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, nilMetadataFinder)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
 
 			req, err := http.NewRequest("DELETE", tt.route, strings.NewReader(""))
 			if err != nil {
@@ -612,7 +612,7 @@ func TestCommentsDelete(t *testing.T) {
 				return
 			}
 
-			comments, err := store.ReadComments(screenjournal.ReviewID(1))
+			comments, err := dataStore.ReadComments(screenjournal.ReviewID(1))
 			if err != nil {
 				t.Fatalf("failed to read comments from datastore: %v", err)
 			}

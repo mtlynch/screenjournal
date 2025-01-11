@@ -183,19 +183,19 @@ func TestSearchGet(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			store := test_sqlite.New()
+			dataStore := test_sqlite.New()
 
 			// Populate datastore with dummy users.
 			for _, s := range tt.sessions {
-				store.InsertUser(screenjournal.User{
+				dataStore.InsertUser(screenjournal.User{
 					Username: s.session.Username,
 				})
 			}
 
-			authenticator := auth.New(store)
+			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
 			metadataFinder := NewMockMetadataFinder(mockSearchableMovies, mockSearchableTvShows)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, store, metadataFinder)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, metadataFinder)
 
 			req, err := http.NewRequest("GET", tt.url, nil)
 			if err != nil {

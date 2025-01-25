@@ -17,7 +17,7 @@ sqlfluff --version
 
 sqlfluff_flags=("--dialect=sqlite")
 if [[ -n "${CI}" ]]; then
-  sqlfluff_flags+=("--disable_progress_bar")
+  sqlfluff_flags+=("--disable-progress-bar")
 fi
 
 sqlfluff lint \

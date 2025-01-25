@@ -18,8 +18,8 @@ CREATE TABLE reviews2 (
     watched_date TEXT,
     created_time TEXT,
     last_modified_time TEXT,
-    FOREIGN KEY(movie_id) REFERENCES movies(id),
-    FOREIGN KEY(review_owner) REFERENCES users(username)
+    FOREIGN KEY (movie_id) REFERENCES movies (id),
+    FOREIGN KEY (review_owner) REFERENCES users (username)
 );
 
 INSERT INTO reviews2

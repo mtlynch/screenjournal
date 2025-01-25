@@ -1,13 +1,16 @@
 {
   "name": "screenjournal-dev",
   "version": "1.0.0",
-  "description": "ScreenJournal dev scripts",
-  "scripts": {
-    "check-format": "prettier --check .",
-    "format": "prettier --write .",
-    "lint": "eslint ./**/*.js"
+  "description": "ScreenJournal dev tools",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mtlynch/screenjournal.git"
   },
   "author": "Michael Lynch",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/mtlynch/screenjournal/issues"
+  },
   "devDependencies": {
     "@playwright/test": "1.40.0",
     "eslint": "^8.11.0",

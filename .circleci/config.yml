@@ -39,11 +39,8 @@ jobs:
           name: Download npm packages
           command: npm install
       - run:
-          name: Check formatting
-          command: npm run check-format
-      - run:
-          name: Check lint
-          command: npm run lint
+          name: Run frontend checks
+          command: ./dev-scripts/check-frontend
   test_go:
     executor: go
     resource_class: medium

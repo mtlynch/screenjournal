@@ -437,6 +437,12 @@ func TestReviewsPut(t *testing.T) {
 					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
+				{
+					TmdbID:      screenjournal.TmdbID(14577),
+					ImdbID:      screenjournal.ImdbID("tt0120654"),
+					Title:       screenjournal.MediaTitle("Dirty Work"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
+				},
 			},
 			priorReviews: []screenjournal.Review{
 				{

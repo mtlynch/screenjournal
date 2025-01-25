@@ -34,11 +34,13 @@ func (s Server) accountChangePasswordPut() http.HandlerFunc {
 
 		user, err := s.getDB(r).ReadUser(username)
 		if err != nil {
+			log.Printf("failed to read user information for %v: %v", username, err)
 			http.Error(w, "Failed to change password: couldn't read user information", http.StatusInternalServerError)
 			return
 		}
 
 		if err := s.getDB(r).UpdateUserPassword(user.Username, parsed.NewPasswordHash); err != nil {
+			log.Printf("failed to update password for %v: %v", username, err)
 			http.Error(w, "Failed to change password: couldn't save new password", http.StatusInternalServerError)
 			return
 		}

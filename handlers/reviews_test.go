@@ -416,7 +416,6 @@ func TestReviewsPost(t *testing.T) {
 		})
 	}
 }
-
 func TestReviewsPut(t *testing.T) {
 	for _, tt := range []struct {
 		description    string
@@ -438,12 +437,6 @@ func TestReviewsPut(t *testing.T) {
 					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
-				{
-					TmdbID:      screenjournal.TmdbID(14577),
-					ImdbID:      screenjournal.ImdbID("tt0120654"),
-					Title:       screenjournal.MediaTitle("Dirty Work"),
-					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
-				},
 			},
 			priorReviews: []screenjournal.Review{
 				{
@@ -455,7 +448,7 @@ func TestReviewsPut(t *testing.T) {
 						ID:          screenjournal.MovieID(1),
 						TmdbID:      screenjournal.TmdbID(38),
 						ImdbID:      screenjournal.ImdbID("tt0338013"),
-						Title:       "Eternal Sunshine of the Spotless Mind",
+						Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 					},
 				},
@@ -481,8 +474,66 @@ func TestReviewsPut(t *testing.T) {
 					ID:          screenjournal.MovieID(1),
 					TmdbID:      screenjournal.TmdbID(38),
 					ImdbID:      screenjournal.ImdbID("tt0338013"),
-					Title:       "Eternal Sunshine of the Spotless Mind",
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+				Comments: []screenjournal.ReviewComment{},
+			},
+		},
+		{
+			description: "valid request with an empty blurb",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+				{
+					TmdbID:      screenjournal.TmdbID(14577),
+					ImdbID:      screenjournal.ImdbID("tt0120654"),
+					Title:       screenjournal.MediaTitle("Dirty Work"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
+				},
+			},
+			priorReviews: []screenjournal.Review{
+				{
+					Owner:   screenjournal.Username("userA"),
+					Rating:  screenjournal.Rating(4),
+					Watched: mustParseWatchDate("2022-10-21"),
+					Blurb:   screenjournal.Blurb("Love Norm McDonald!"),
+					Movie: screenjournal.Movie{
+						ID:          screenjournal.MovieID(2),
+						TmdbID:      screenjournal.TmdbID(14577),
+						ImdbID:      screenjournal.ImdbID("tt0120654"),
+						Title:       screenjournal.MediaTitle("Dirty Work"),
+						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
+					},
+				},
+			},
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("userA"),
+					},
+				},
+			},
+			route:          "/reviews/1",
+			payload:        "rating=3&watch-date=2022-10-28&blurb=",
+			sessionToken:   "abc123",
+			expectedStatus: http.StatusSeeOther,
+			expected: screenjournal.Review{
+				Owner:   screenjournal.Username("userA"),
+				Rating:  screenjournal.Rating(3),
+				Watched: mustParseWatchDate("2022-10-28"),
+				Blurb:   screenjournal.Blurb(""),
+				Movie: screenjournal.Movie{
+					ID:          screenjournal.MovieID(2),
+					TmdbID:      screenjournal.TmdbID(14577),
+					ImdbID:      screenjournal.ImdbID("tt0120654"),
+					Title:       screenjournal.MediaTitle("Dirty Work"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
 				},
 				Comments: []screenjournal.ReviewComment{},
 			},
@@ -508,7 +559,7 @@ func TestReviewsPut(t *testing.T) {
 						ID:          screenjournal.MovieID(1),
 						TmdbID:      screenjournal.TmdbID(38),
 						ImdbID:      screenjournal.ImdbID("tt0338013"),
-						Title:       "Eternal Sunshine of the Spotless Mind",
+						Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 					},
 				},
@@ -526,7 +577,206 @@ func TestReviewsPut(t *testing.T) {
 			sessionToken:   "abc123",
 			expectedStatus: http.StatusBadRequest,
 		},
-		// Add other test cases...
+		{
+			description: "rejects request with non-existent review ID",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+			},
+			priorReviews: []screenjournal.Review{
+				{
+					Owner:   screenjournal.Username("userA"),
+					Rating:  screenjournal.Rating(5),
+					Watched: mustParseWatchDate("2022-10-28"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+					Movie: screenjournal.Movie{
+						ID:          screenjournal.MovieID(1),
+						TmdbID:      screenjournal.TmdbID(38),
+						ImdbID:      screenjournal.ImdbID("tt0338013"),
+						Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+					},
+				},
+			},
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("userA"),
+					},
+				},
+			},
+			route:          "/reviews/9876",
+			payload:        "rating=4&watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
+			sessionToken:   "abc123",
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			description: "rejects request with missing rating field",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+			},
+			priorReviews: []screenjournal.Review{
+				{
+					ID:      screenjournal.ReviewID(1),
+					Owner:   screenjournal.Username("userA"),
+					Rating:  screenjournal.Rating(5),
+					Watched: mustParseWatchDate("2022-10-28"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+					Movie: screenjournal.Movie{
+						ID:          screenjournal.MovieID(1),
+						TmdbID:      screenjournal.TmdbID(38),
+						ImdbID:      screenjournal.ImdbID("tt0338013"),
+						Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+					},
+				},
+			},
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("userA"),
+					},
+				},
+			},
+			route:          "/reviews/1",
+			payload:        "watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
+			sessionToken:   "abc123",
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			description: "rejects request with missing watched field",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+			},
+			priorReviews: []screenjournal.Review{
+				{
+					ID:      screenjournal.ReviewID(1),
+					Owner:   screenjournal.Username("userA"),
+					Rating:  screenjournal.Rating(5),
+					Watched: mustParseWatchDate("2022-10-28"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+					Movie: screenjournal.Movie{
+						ID:          screenjournal.MovieID(1),
+						TmdbID:      screenjournal.TmdbID(38),
+						ImdbID:      screenjournal.ImdbID("tt0338013"),
+						Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+					},
+				},
+			},
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("userA"),
+					},
+				},
+			},
+			route:          "/reviews/1",
+			payload:        "rating=4&blurb=It's%20a%20pretty%20good%20movie!",
+			sessionToken:   "abc123",
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			description: "rejects request with script tag in blurb field",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+			},
+			priorReviews: []screenjournal.Review{
+				{
+					ID:      screenjournal.ReviewID(1),
+					Owner:   screenjournal.Username("userA"),
+					Rating:  screenjournal.Rating(5),
+					Watched: mustParseWatchDate("2022-10-28"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+					Movie: screenjournal.Movie{
+						ID:          screenjournal.MovieID(1),
+						TmdbID:      screenjournal.TmdbID(38),
+						ImdbID:      screenjournal.ImdbID("tt0338013"),
+						Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+					},
+				},
+			},
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("userA"),
+					},
+				},
+			},
+			route:          "/reviews/1",
+			payload:        "rating=4&watch-date=2022-10-30&blurb=Nothing%20evil%20going%20on%20here...%3Cscript%3Ealert(1)%3C%2Fscript%3E",
+			sessionToken:   "abc123",
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			description: "prevents a user from overwriting another user's review",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+			},
+			priorReviews: []screenjournal.Review{
+				{
+					ID:      screenjournal.ReviewID(1),
+					Owner:   screenjournal.Username("userA"),
+					Rating:  screenjournal.Rating(5),
+					Watched: mustParseWatchDate("2022-10-28"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+					Movie: screenjournal.Movie{
+						ID:          screenjournal.MovieID(1),
+						TmdbID:      screenjournal.TmdbID(38),
+						ImdbID:      screenjournal.ImdbID("tt0338013"),
+						Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+					},
+				},
+			},
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("userA"),
+					},
+				},
+				{
+					token: "def456",
+					session: sessions.Session{
+						Username: screenjournal.Username("userB"),
+					},
+				},
+			},
+			route:          "/reviews/1",
+			payload:        "rating=4&watch-date=2022-10-30&blurb=I'm%20overwriting%20userA's%20review!",
+			sessionToken:   "def456",
+			expectedStatus: http.StatusForbidden,
+		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()

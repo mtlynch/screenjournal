@@ -218,7 +218,7 @@ func TestReviewsPost(t *testing.T) {
 					ID:          screenjournal.MovieID(1),
 					TmdbID:      screenjournal.TmdbID(38),
 					ImdbID:      screenjournal.ImdbID("tt0338013"),
-					Title:       "Eternal Sunshine of the Spotless Mind",
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 				Comments: []screenjournal.ReviewComment{},
@@ -258,6 +258,43 @@ func TestReviewsPost(t *testing.T) {
 					ImdbID:      screenjournal.ImdbID("tt0120654"),
 					Title:       "Dirty Work",
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
+				},
+				Comments: []screenjournal.ReviewComment{},
+			},
+		},
+		{
+			description:  "valid request but we have to query metadata finder for movie info",
+			payload:      "media-type=movie&tmdb-id=38&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
+			sessionToken: "abc123",
+			remoteMovieInfo: []screenjournal.Movie{
+				{
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+			},
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("dummyadmin"),
+						IsAdmin:  true,
+					},
+				},
+			},
+			expectedStatus: http.StatusSeeOther,
+			expected: screenjournal.Review{
+				Owner:   screenjournal.Username("dummyadmin"),
+				Rating:  screenjournal.Rating(5),
+				Watched: mustParseWatchDate("2022-10-28"),
+				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				Movie: screenjournal.Movie{
+					ID:          screenjournal.MovieID(1),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       "Eternal Sunshine of the Spotless Mind",
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 				Comments: []screenjournal.ReviewComment{},
 			},
@@ -400,6 +437,12 @@ func TestReviewsPut(t *testing.T) {
 					ImdbID:      screenjournal.ImdbID("tt0338013"),
 					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+				{
+					TmdbID:      screenjournal.TmdbID(14577),
+					ImdbID:      screenjournal.ImdbID("tt0120654"),
+					Title:       screenjournal.MediaTitle("Dirty Work"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
 				},
 			},
 			priorReviews: []screenjournal.Review{

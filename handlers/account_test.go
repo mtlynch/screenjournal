@@ -86,7 +86,7 @@ func TestAccountChangePasswordPut(t *testing.T) {
 					PasswordHash: mustCreatePasswordHash(entry.password.String()),
 				}
 				if err := dataStore.InsertUser(mockUser); err != nil {
-					t.Fatalf("failed to create mock user %+v: %v", mockUser, err)
+					t.Fatalf("failed to insert mock user %+v: %v", mockUser, err)
 				}
 				mockSessionEntries = append(mockSessionEntries, mockSessionEntry{
 					token: entry.sessionToken,

@@ -16,8 +16,8 @@
     # 0.10.0 release
     shellcheck-nixpkgs.url = "github:NixOS/nixpkgs/4ae2e647537bcdbb82265469442713d066675275";
 
-    # 1.2.1 release
-    sqlfluff-nixpkgs.url = "github:NixOS/nixpkgs/7cf5ccf1cdb2ba5f08f0ac29fc3d04b0b59a07e4";
+    # 3.3.0 release
+    sqlfluff-nixpkgs.url = "github:NixOS/nixpkgs/bf689c40d035239a489de5997a4da5352434632e";
 
     # 1.40.0
     playwright-nixpkgs.url = "github:NixOS/nixpkgs/f5c27c6136db4d76c30e533c20517df6864c46ee";

@@ -24,8 +24,9 @@ INTEGER;
 
 -- Make reviews table reference movies table by ID.
 UPDATE reviews SET movie_id = (
-    SELECT movies.id FROM movies WHERE movies.title = reviews.title
-    );
+    SELECT movies.id FROM movies
+    WHERE movies.title = reviews.title
+);
 
 -- Re-do reviews table to add foreign key constraint to movie_id and drop title
 -- column.
@@ -38,7 +39,7 @@ CREATE TABLE reviews2 (
     watched_date TEXT,
     created_time TEXT,
     last_modified_time TEXT,
-    FOREIGN KEY(movie_id) REFERENCES movies(id)
+    FOREIGN KEY (movie_id) REFERENCES movies (id)
 );
 
 INSERT INTO reviews2

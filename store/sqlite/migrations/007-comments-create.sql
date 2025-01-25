@@ -5,6 +5,6 @@ CREATE TABLE review_comments (
     comment_text TEXT,
     created_time TEXT,
     last_modified_time TEXT,
-    FOREIGN KEY(review_id) REFERENCES reviews(id),
-    FOREIGN KEY(comment_owner) REFERENCES users(username)
+    FOREIGN KEY (review_id) REFERENCES reviews (id),
+    FOREIGN KEY (comment_owner) REFERENCES users (username)
 );

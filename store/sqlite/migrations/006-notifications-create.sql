@@ -1,7 +1,7 @@
 CREATE TABLE notification_preferences (
     username TEXT PRIMARY KEY,
     new_reviews INTEGER,
-    FOREIGN KEY(username) REFERENCES users(username)
+    FOREIGN KEY (username) REFERENCES users (username)
 );
 
 INSERT INTO notification_preferences (

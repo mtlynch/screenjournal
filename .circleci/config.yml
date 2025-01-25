@@ -91,7 +91,7 @@ jobs:
             - ./bin/screenjournal-dev
   lint_sql:
     docker:
-      - image: sqlfluff/sqlfluff:1.2.1
+      - image: sqlfluff/sqlfluff:3.3.0
         user: root
     steps:
       - checkout

@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"context"
+	"database/sql"
 	"embed"
 	"fmt"
 	"log"
@@ -39,6 +40,12 @@ func (s Store) applyMigrations() {
 		if err != nil {
 			log.Fatalf("failed to create migration transaction %d: %v", migration.version, err)
 		}
+
+		defer func() {
+			if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
+				log.Printf("failed to rollback migration %d: %v", migration.version, err)
+			}
+		}()
 
 		_, err = tx.Exec(migration.query)
 		if err != nil {

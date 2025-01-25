@@ -232,6 +232,12 @@ func (s Store) DeleteReview(id screenjournal.ReviewID) error {
 		return err
 	}
 
+	defer func() {
+		if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
+			log.Printf("failed to rollback delete review: %v", err)
+		}
+	}()
+
 	if _, err := tx.Exec(`DELETE FROM reviews WHERE id = :id`, sql.Named("id", id.UInt64())); err != nil {
 		return err
 	}

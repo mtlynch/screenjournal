@@ -113,6 +113,12 @@ func (s Store) InsertUser(user screenjournal.User) error {
 		return err
 	}
 
+	defer func() {
+		if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
+			log.Printf("failed to rollback insert user: %v", err)
+		}
+	}()
+
 	if _, err := tx.Exec(`
 	INSERT INTO
 		users

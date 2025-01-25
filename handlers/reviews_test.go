@@ -176,7 +176,7 @@ func NewMockMetadataFinder(movies []screenjournal.Movie, tvShows []screenjournal
 	}
 }
 
-func TestReviewsPostAcceptsValidRequest(t *testing.T) {
+func TestReviewsPost(t *testing.T) {
 	for _, tt := range []struct {
 		description     string
 		payload         string
@@ -184,6 +184,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 		localMovies     []screenjournal.Movie
 		remoteMovieInfo []screenjournal.Movie
 		sessions        []mockSessionEntry
+		expectedStatus  int
 		expected        screenjournal.Review
 	}{
 		{
@@ -207,6 +208,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 					},
 				},
 			},
+			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("dummyadmin"),
 				Rating:  screenjournal.Rating(5),
@@ -244,6 +246,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 					},
 				},
 			},
+			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("dummyadmin"),
 				Rating:  screenjournal.Rating(4),
@@ -253,7 +256,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 					ID:          screenjournal.MovieID(1),
 					TmdbID:      screenjournal.TmdbID(14577),
 					ImdbID:      screenjournal.ImdbID("tt0120654"),
-					Title:       "Dirty Work",
+					Title:       screenjournal.MediaTitle("Dirty Work"),
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
 				},
 				Comments: []screenjournal.ReviewComment{},
@@ -280,6 +283,7 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 					},
 				},
 			},
+			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("dummyadmin"),
 				Rating:  screenjournal.Rating(5),
@@ -289,11 +293,67 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 					ID:          screenjournal.MovieID(1),
 					TmdbID:      screenjournal.TmdbID(38),
 					ImdbID:      screenjournal.ImdbID("tt0338013"),
-					Title:       "Eternal Sunshine of the Spotless Mind",
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 				Comments: []screenjournal.ReviewComment{},
 			},
+		},
+		{
+			description:  "rejects empty string payload",
+			payload:      "",
+			sessionToken: "abc123",
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("userA"),
+					},
+				},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			description:  "rejects empty form fields",
+			payload:      "tmdb-id=&rating=&watch-date=&blurb=",
+			sessionToken: "abc123",
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("userA"),
+					},
+				},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			description:  "rejects invalid tmdb field (non-number)",
+			payload:      "tmdb-id=banana&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
+			sessionToken: "abc123",
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("userA"),
+					},
+				},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			description:  "rejects invalid rating field (non-number)",
+			payload:      "tmdb-id=banana&rating=banana&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
+			sessionToken: "abc123",
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("userA"),
+					},
+				},
+			},
+			expectedStatus: http.StatusBadRequest,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
@@ -301,17 +361,13 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 
 			for _, movie := range tt.localMovies {
 				if _, err := dataStore.InsertMovie(movie); err != nil {
-					panic(err)
+					t.Fatalf("failed to insert mock movie %+v: %v", movie, err)
 				}
 			}
 
 			announcer := mockAnnouncer{}
-
 			sessionManager := newMockSessionManager(tt.sessions)
-
-			remoteTvShowInfo := []screenjournal.TvShow{}
-
-			s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo, remoteTvShowInfo))
+			s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo, nil))
 
 			req, err := http.NewRequest("POST", "/reviews", strings.NewReader(tt.payload))
 			if err != nil {
@@ -327,8 +383,12 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 			s.Router().ServeHTTP(rec, req)
 			res := rec.Result()
 
-			if got, want := res.StatusCode, http.StatusSeeOther; got != want {
+			if got, want := res.StatusCode, tt.expectedStatus; got != want {
 				t.Fatalf("httpStatus=%v, want=%v", got, want)
+			}
+
+			if tt.expectedStatus != http.StatusSeeOther {
+				return
 			}
 
 			rr, err := dataStore.ReadReviews()
@@ -342,7 +402,6 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 
 			clearUnpredictableReviewProperties(&rr[0])
 			if got, want := rr[0], tt.expected; !reflect.DeepEqual(got, want) {
-				t.Errorf("db did not contain expected review of %s", want.Movie.Title)
 				t.Errorf("got=%#v, want=%#v, diff=%s", got, want, deep.Equal(got, want))
 			}
 
@@ -352,116 +411,22 @@ func TestReviewsPostAcceptsValidRequest(t *testing.T) {
 
 			clearUnpredictableReviewProperties(&announcer.announcedReviews[0])
 			if got, want := announcer.announcedReviews[0], tt.expected; !reflect.DeepEqual(got, want) {
-				t.Errorf("announcer did not announce expected review of %s", want.Movie.Title)
 				t.Errorf("got=%#v, want=%#v, diff=%s", got, want, deep.Equal(got, want))
 			}
 		})
 	}
 }
-
-func TestReviewsPostRejectsInvalidRequest(t *testing.T) {
+func TestReviewsPut(t *testing.T) {
 	for _, tt := range []struct {
-		description  string
-		payload      string
-		sessionToken string
-		sessions     []mockSessionEntry
-	}{
-		{
-			description:  "empty string",
-			payload:      "",
-			sessionToken: "abc123",
-			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
-			},
-		},
-		{
-			description:  "empty payload",
-			payload:      "tmdb-id=&rating=&watch-date=&blurb=",
-			sessionToken: "abc123",
-			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
-			},
-		},
-		{
-			description:  "invalid tmdb field (non-number)",
-			payload:      "tmdb-id=banana&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
-			sessionToken: "abc123",
-			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
-			},
-		},
-		{
-			description:  "invalid rating field (non-number)",
-			payload:      "tmdb-id=banana&rating=banana&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
-			sessionToken: "abc123",
-			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
-			},
-		},
-	} {
-		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
-
-			announcer := mockAnnouncer{}
-
-			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, mockMetadataFinder{})
-
-			req, err := http.NewRequest("POST", "/reviews", strings.NewReader(tt.payload))
-			if err != nil {
-				t.Fatal(err)
-			}
-			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			req.AddCookie(&http.Cookie{
-				Name:  mockSessionTokenName,
-				Value: tt.sessionToken,
-			})
-
-			rec := httptest.NewRecorder()
-			s.Router().ServeHTTP(rec, req)
-			res := rec.Result()
-
-			if got, want := res.StatusCode, http.StatusBadRequest; got != want {
-				t.Fatalf("/reviews POST returned wrong status: got=%v, want=%v", got, want)
-			}
-
-			if got, want := len(announcer.announcedReviews), 0; got != want {
-				t.Errorf("announcedReviews=%d, want=%d", got, want)
-			}
-		})
-	}
-}
-
-func TestReviewsPutAcceptsValidRequest(t *testing.T) {
-	for _, tt := range []struct {
-		description  string
-		localMovies  []screenjournal.Movie
-		priorReviews []screenjournal.Review
-		sessions     []mockSessionEntry
-		route        string
-		payload      string
-		sessionToken string
-		expected     screenjournal.Review
+		description    string
+		localMovies    []screenjournal.Movie
+		priorReviews   []screenjournal.Review
+		sessions       []mockSessionEntry
+		route          string
+		payload        string
+		sessionToken   string
+		expectedStatus int
+		expected       screenjournal.Review
 	}{
 		{
 			description: "valid request with all fields populated",
@@ -489,7 +454,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 						ID:          screenjournal.MovieID(1),
 						TmdbID:      screenjournal.TmdbID(38),
 						ImdbID:      screenjournal.ImdbID("tt0338013"),
-						Title:       "Eternal Sunshine of the Spotless Mind",
+						Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 					},
 				},
@@ -502,9 +467,10 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					},
 				},
 			},
-			route:        "/reviews/1",
-			payload:      "rating=4&watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
-			sessionToken: "abc123",
+			route:          "/reviews/1",
+			payload:        "rating=4&watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
+			sessionToken:   "abc123",
+			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("userA"),
 				Rating:  screenjournal.Rating(4),
@@ -514,7 +480,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					ID:          screenjournal.MovieID(1),
 					TmdbID:      screenjournal.TmdbID(38),
 					ImdbID:      screenjournal.ImdbID("tt0338013"),
-					Title:       "Eternal Sunshine of the Spotless Mind",
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 				},
 				Comments: []screenjournal.ReviewComment{},
@@ -546,7 +512,7 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 						ID:          screenjournal.MovieID(2),
 						TmdbID:      screenjournal.TmdbID(14577),
 						ImdbID:      screenjournal.ImdbID("tt0120654"),
-						Title:       "Dirty Work",
+						Title:       screenjournal.MediaTitle("Dirty Work"),
 						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
 					},
 				},
@@ -559,9 +525,10 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					},
 				},
 			},
-			route:        "/reviews/1",
-			payload:      "rating=3&watch-date=2022-10-28&blurb=",
-			sessionToken: "abc123",
+			route:          "/reviews/1",
+			payload:        "rating=3&watch-date=2022-10-28&blurb=",
+			sessionToken:   "abc123",
+			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("userA"),
 				Rating:  screenjournal.Rating(3),
@@ -571,78 +538,12 @@ func TestReviewsPutAcceptsValidRequest(t *testing.T) {
 					ID:          screenjournal.MovieID(2),
 					TmdbID:      screenjournal.TmdbID(14577),
 					ImdbID:      screenjournal.ImdbID("tt0120654"),
-					Title:       "Dirty Work",
+					Title:       screenjournal.MediaTitle("Dirty Work"),
 					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("1998-06-12")),
 				},
 				Comments: []screenjournal.ReviewComment{},
 			},
 		},
-	} {
-		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
-
-			for _, movie := range tt.localMovies {
-				if _, err := dataStore.InsertMovie(movie); err != nil {
-					panic(err)
-				}
-			}
-
-			for _, r := range tt.priorReviews {
-				if _, err := dataStore.InsertReview(r); err != nil {
-					panic(err)
-				}
-			}
-
-			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(nilAuthenticator, nilAnnouncer, &sessionManager, dataStore, mockMetadataFinder{})
-
-			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
-			if err != nil {
-				t.Fatal(err)
-			}
-			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			req.AddCookie(&http.Cookie{
-				Name:  mockSessionTokenName,
-				Value: tt.sessionToken,
-			})
-
-			rec := httptest.NewRecorder()
-			s.Router().ServeHTTP(rec, req)
-			res := rec.Result()
-
-			if got, want := res.StatusCode, http.StatusSeeOther; got != want {
-				t.Fatalf("handler returned wrong status code: got %v want %v", got, want)
-			}
-
-			rr, err := dataStore.ReadReviews()
-			if err != nil {
-				t.Fatalf("failed to retrieve review from datastore: %v", err)
-			}
-
-			if got, want := len(rr), 1; got != want {
-				t.Fatalf("unexpected review count: got %v, want %v", got, want)
-			}
-
-			clearUnpredictableReviewProperties(&rr[0])
-
-			if got, want := rr[0], tt.expected; !reflect.DeepEqual(got, want) {
-				t.Errorf("unexpected reviews, got=%+v, want=%+v, diff=%s", got, want, deep.Equal(got, want))
-			}
-		})
-	}
-}
-
-func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
-	for _, tt := range []struct {
-		description  string
-		localMovies  []screenjournal.Movie
-		priorReviews []screenjournal.Review
-		sessions     []mockSessionEntry
-		route        string
-		payload      string
-		sessionToken string
-		status       int
-	}{
 		{
 			description: "rejects request with review ID of zero",
 			localMovies: []screenjournal.Movie{
@@ -664,7 +565,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 						ID:          screenjournal.MovieID(1),
 						TmdbID:      screenjournal.TmdbID(38),
 						ImdbID:      screenjournal.ImdbID("tt0338013"),
-						Title:       "Eternal Sunshine of the Spotless Mind",
+						Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 					},
 				},
@@ -677,10 +578,10 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					},
 				},
 			},
-			route:        "/reviews/0",
-			payload:      "rating=4&watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
-			sessionToken: "abc123",
-			status:       http.StatusBadRequest,
+			route:          "/reviews/0",
+			payload:        "rating=4&watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
+			sessionToken:   "abc123",
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			description: "rejects request with non-existent review ID",
@@ -702,7 +603,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 						ID:          screenjournal.MovieID(1),
 						TmdbID:      screenjournal.TmdbID(38),
 						ImdbID:      screenjournal.ImdbID("tt0338013"),
-						Title:       "Eternal Sunshine of the Spotless Mind",
+						Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 					},
 				},
@@ -715,10 +616,10 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					},
 				},
 			},
-			route:        "/reviews/9876",
-			payload:      "rating=4&watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
-			sessionToken: "abc123",
-			status:       http.StatusNotFound,
+			route:          "/reviews/9876",
+			payload:        "rating=4&watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
+			sessionToken:   "abc123",
+			expectedStatus: http.StatusNotFound,
 		},
 		{
 			description: "rejects request with missing rating field",
@@ -741,7 +642,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 						ID:          screenjournal.MovieID(1),
 						TmdbID:      screenjournal.TmdbID(38),
 						ImdbID:      screenjournal.ImdbID("tt0338013"),
-						Title:       "Eternal Sunshine of the Spotless Mind",
+						Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 					},
 				},
@@ -754,10 +655,10 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					},
 				},
 			},
-			route:        "/reviews/1",
-			payload:      "watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
-			sessionToken: "abc123",
-			status:       http.StatusBadRequest,
+			route:          "/reviews/1",
+			payload:        "watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
+			sessionToken:   "abc123",
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			description: "rejects request with missing watched field",
@@ -780,7 +681,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 						ID:          screenjournal.MovieID(1),
 						TmdbID:      screenjournal.TmdbID(38),
 						ImdbID:      screenjournal.ImdbID("tt0338013"),
-						Title:       "Eternal Sunshine of the Spotless Mind",
+						Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 					},
 				},
@@ -793,10 +694,10 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					},
 				},
 			},
-			route:        "/reviews/1",
-			payload:      "rating=4&blurb=It's%20a%20pretty%20good%20movie!",
-			sessionToken: "abc123",
-			status:       http.StatusBadRequest,
+			route:          "/reviews/1",
+			payload:        "rating=4&blurb=It's%20a%20pretty%20good%20movie!",
+			sessionToken:   "abc123",
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			description: "rejects request with script tag in blurb field",
@@ -819,7 +720,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 						ID:          screenjournal.MovieID(1),
 						TmdbID:      screenjournal.TmdbID(38),
 						ImdbID:      screenjournal.ImdbID("tt0338013"),
-						Title:       "Eternal Sunshine of the Spotless Mind",
+						Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 					},
 				},
@@ -832,10 +733,10 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					},
 				},
 			},
-			route:        "/reviews/1",
-			payload:      "rating=4&watch-date=2022-10-30&blurb=Nothing%20evil%20going%20on%20here...%3Cscript%3Ealert(1)%3C%2Fscript%3E",
-			sessionToken: "abc123",
-			status:       http.StatusBadRequest,
+			route:          "/reviews/1",
+			payload:        "rating=4&watch-date=2022-10-30&blurb=Nothing%20evil%20going%20on%20here...%3Cscript%3Ealert(1)%3C%2Fscript%3E",
+			sessionToken:   "abc123",
+			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			description: "prevents a user from overwriting another user's review",
@@ -858,7 +759,7 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 						ID:          screenjournal.MovieID(1),
 						TmdbID:      screenjournal.TmdbID(38),
 						ImdbID:      screenjournal.ImdbID("tt0338013"),
-						Title:       "Eternal Sunshine of the Spotless Mind",
+						Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
 						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
 					},
 				},
@@ -877,29 +778,39 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 					},
 				},
 			},
-			route:        "/reviews/1",
-			payload:      "rating=4&watch-date=2022-10-30&blurb=I'm%20overwriting%20userA's%20review!",
-			sessionToken: "def456",
-			status:       http.StatusForbidden,
+			route:          "/reviews/1",
+			payload:        "rating=4&watch-date=2022-10-30&blurb=I'm%20overwriting%20userA's%20review!",
+			sessionToken:   "def456",
+			expectedStatus: http.StatusForbidden,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
+			for _, s := range tt.sessions {
+				mockUser := screenjournal.User{
+					Username:     s.session.Username,
+					Email:        screenjournal.Email(s.session.Username.String() + "@example.com"),
+					PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+				}
+				if err := dataStore.InsertUser(mockUser); err != nil {
+					t.Fatalf("failed to insert mock user: %+v: %v", mockUser, err)
+				}
+			}
+
 			for _, movie := range tt.localMovies {
 				if _, err := dataStore.InsertMovie(movie); err != nil {
-					panic(err)
+					t.Fatalf("failed to insert mock movie %+v: %v", movie, err)
 				}
 			}
 
 			for _, r := range tt.priorReviews {
 				if _, err := dataStore.InsertReview(r); err != nil {
-					panic(err)
+					t.Fatalf("failed to insert mock review %+v: %v", r, err)
 				}
 			}
 
 			sessionManager := newMockSessionManager(tt.sessions)
-
 			s := handlers.New(nilAuthenticator, nilAnnouncer, &sessionManager, dataStore, mockMetadataFinder{})
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
@@ -916,8 +827,26 @@ func TestReviewsPutRejectsInvalidRequest(t *testing.T) {
 			s.Router().ServeHTTP(rec, req)
 			res := rec.Result()
 
-			if got, want := res.StatusCode, tt.status; got != want {
-				t.Fatalf("%s PUT returned wrong status: got=%v, want=%v", tt.route, got, want)
+			if got, want := res.StatusCode, tt.expectedStatus; got != want {
+				t.Fatalf("handler returned wrong status code: got %v want %v", got, want)
+			}
+
+			if tt.expectedStatus != http.StatusSeeOther {
+				return
+			}
+
+			rr, err := dataStore.ReadReviews()
+			if err != nil {
+				t.Fatalf("failed to retrieve review from datastore: %v", err)
+			}
+
+			if got, want := len(rr), 1; got != want {
+				t.Fatalf("unexpected review count: got %v, want %v", got, want)
+			}
+
+			clearUnpredictableReviewProperties(&rr[0])
+			if got, want := rr[0], tt.expected; !reflect.DeepEqual(got, want) {
+				t.Errorf("unexpected reviews, got=%+v, want=%+v, diff=%s", got, want, deep.Equal(got, want))
 			}
 		})
 	}

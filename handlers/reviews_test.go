@@ -790,7 +790,7 @@ func TestReviewsPut(t *testing.T) {
 			for _, s := range tt.sessions {
 				mockUser := screenjournal.User{
 					Username:     s.session.Username,
-					Email:        screenjournal.Email(s.session.Username.String() + "@example.com"),
+					Email:        screenjournal.Email(s.session.Username + "@example.com"),
 					PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
 				}
 				if err := dataStore.InsertUser(mockUser); err != nil {

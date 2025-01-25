@@ -94,12 +94,14 @@ func TestInvitesPost(t *testing.T) {
 			dataStore := test_sqlite.New()
 
 			for _, s := range tt.sessions {
-				if err := dataStore.InsertUser(screenjournal.User{
-					Username: s.session.Username,
-					IsAdmin:  s.session.IsAdmin,
-					Email:    screenjournal.Email(fmt.Sprintf("%s@example.com", s.session.Username.String())),
-				}); err != nil {
-					panic(err)
+				mockUser := screenjournal.User{
+					Username:     s.session.Username,
+					IsAdmin:      s.session.IsAdmin,
+					Email:        screenjournal.Email(fmt.Sprintf("%s@example.com", s.session.Username.String())),
+					PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+				}
+				if err := dataStore.InsertUser(mockUser); err != nil {
+					t.Fatalf("failed to insert mock user: %+v: %v", mockUser, err)
 				}
 			}
 

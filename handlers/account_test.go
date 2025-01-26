@@ -82,8 +82,8 @@ func TestAccountChangePasswordPut(t *testing.T) {
 			for _, entry := range userEntries {
 				mockUser := screenjournal.User{
 					Username:     entry.username,
-					Email:        screenjournal.Email(entry.username + "@example.com"),
 					PasswordHash: mustCreatePasswordHash(entry.password.String()),
+					Email:        screenjournal.Email(entry.username + "@example.com"),
 				}
 				if err := dataStore.InsertUser(mockUser); err != nil {
 					t.Fatalf("failed to insert mock user %+v: %v", mockUser, err)
@@ -207,9 +207,9 @@ func TestAccountNotificationsPut(t *testing.T) {
 			for _, s := range tt.sessions {
 				mockUser := screenjournal.User{
 					Username:     s.session.Username,
+					IsAdmin:      s.session.IsAdmin,
 					Email:        screenjournal.Email(s.session.Username + "@example.com"),
 					PasswordHash: screenjournal.PasswordHash("dummy-pw-hash"),
-					IsAdmin:      s.session.IsAdmin,
 				}
 				if err := dataStore.InsertUser(mockUser); err != nil {
 					t.Fatalf("failed to insert mock user %+v: %v", mockUser, err)

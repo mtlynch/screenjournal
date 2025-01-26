@@ -80,11 +80,14 @@ func TestAccountChangePasswordPut(t *testing.T) {
 
 			// Populate datastore and session manager with dummy users.
 			for _, entry := range userEntries {
-				dataStore.InsertUser(
-					screenjournal.User{
-						Username:     entry.username,
-						PasswordHash: mustCreatePasswordHash(entry.password.String()),
-					})
+				mockUser := screenjournal.User{
+					Username:     entry.username,
+					PasswordHash: mustCreatePasswordHash(entry.password.String()),
+					Email:        screenjournal.Email(entry.username + "@example.com"),
+				}
+				if err := dataStore.InsertUser(mockUser); err != nil {
+					t.Fatalf("failed to insert mock user %+v: %v", mockUser, err)
+				}
 				mockSessionEntries = append(mockSessionEntries, mockSessionEntry{
 					token: entry.sessionToken,
 					session: sessions.Session{
@@ -202,11 +205,15 @@ func TestAccountNotificationsPut(t *testing.T) {
 
 			// Populate datastore with dummy users.
 			for _, s := range tt.sessions {
-				dataStore.InsertUser(
-					screenjournal.User{
-						Username: s.session.Username,
-						IsAdmin:  s.session.IsAdmin,
-					})
+				mockUser := screenjournal.User{
+					Username:     s.session.Username,
+					IsAdmin:      s.session.IsAdmin,
+					Email:        screenjournal.Email(s.session.Username + "@example.com"),
+					PasswordHash: screenjournal.PasswordHash("dummy-pw-hash"),
+				}
+				if err := dataStore.InsertUser(mockUser); err != nil {
+					t.Fatalf("failed to insert mock user %+v: %v", mockUser, err)
+				}
 			}
 
 			authenticator := auth.New(dataStore)

@@ -359,6 +359,17 @@ func TestReviewsPost(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
+			for _, s := range tt.sessions {
+				mockUser := screenjournal.User{
+					Username:     s.session.Username,
+					Email:        screenjournal.Email(s.session.Username + "@example.com"),
+					PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+				}
+				if err := dataStore.InsertUser(mockUser); err != nil {
+					t.Fatalf("failed to insert mock user: %+v: %v", mockUser, err)
+				}
+			}
+
 			for _, movie := range tt.localMovies {
 				if _, err := dataStore.InsertMovie(movie); err != nil {
 					t.Fatalf("failed to insert mock movie %+v: %v", movie, err)

@@ -150,12 +150,12 @@ func TestUsersPut(t *testing.T) {
 
 			for _, user := range tt.users {
 				if err := dataStore.InsertUser(user); err != nil {
-					panic(err)
+					t.Fatalf("failed to insert mock user: %+v: %v", user, err)
 				}
 			}
 			for _, invite := range tt.invites {
 				if err := dataStore.InsertSignupInvitation(invite); err != nil {
-					panic(err)
+					t.Fatalf("failed to insert mock invite: %+v: %v", invite, err)
 				}
 			}
 

@@ -112,7 +112,12 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 		if err != nil {
 			return []screenjournal.Review{}, err
 		}
+		reviews = append(reviews, review)
+	}
 
+	// Populate the fields once the first SQL query is complete.
+	for i := range reviews {
+		review := reviews[i]
 		if !review.Movie.ID.IsZero() {
 			if review.Movie, err = s.ReadMovie(review.Movie.ID); err != nil {
 				return []screenjournal.Review{}, err
@@ -126,8 +131,7 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 		if review.Comments, err = s.ReadComments(review.ID); err != nil {
 			return []screenjournal.Review{}, err
 		}
-
-		reviews = append(reviews, review)
+		reviews[i] = review
 	}
 
 	return reviews, nil

@@ -5,7 +5,8 @@ import (
 	"log"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/ncruces/go-sqlite3/driver"
+	_ "github.com/ncruces/go-sqlite3/embed"
 
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
@@ -26,7 +27,7 @@ type (
 
 func New(path string, optimizeForLitestream bool) Store {
 	log.Printf("reading DB from %s", path)
-	ctx, err := sql.Open("sqlite3", path)
+	ctx, err := driver.Open(path)
 	if err != nil {
 		log.Fatalln(err)
 	}

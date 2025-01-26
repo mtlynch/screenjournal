@@ -52,46 +52,41 @@
       flyctl = flyctl-nixpkgs.legacyPackages.${system}.flyctl;
       litestream = litestream-nixpkgs.legacyPackages.${system}.litestream;
     in {
-      devShells.default =
-        go-nixpkgs.legacyPackages.${system}.mkShell.override
-        {
-          stdenv = go-nixpkgs.legacyPackages.${system}.pkgsStatic.stdenv;
-        }
-        {
-          packages = [
-            gopkg.gotools
-            gopkg.gopls
-            gopkg.go-outline
-            gopkg.gopkgs
-            gopkg.gocode-gomod
-            gopkg.godef
-            gopkg.golint
-            go
-            sqlite
-            nodejs
-            shellcheck
-            sqlfluff
-            playwright
-            flyctl
-            litestream
-          ];
+      devShells.default = gopkg.mkShell {
+        packages = [
+          gopkg.gotools
+          gopkg.gopls
+          gopkg.go-outline
+          gopkg.gopkgs
+          gopkg.gocode-gomod
+          gopkg.godef
+          gopkg.golint
+          go
+          sqlite
+          nodejs
+          shellcheck
+          sqlfluff
+          playwright
+          flyctl
+          litestream
+        ];
 
-          shellHook = ''
-            export GOROOT="${go}/share/go"
+        shellHook = ''
+          export GOROOT="${go}/share/go"
 
-            export PLAYWRIGHT_BROWSERS_PATH=${playwright}
-            export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+          export PLAYWRIGHT_BROWSERS_PATH=${playwright}
+          export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
 
-            echo "shellcheck" "$(shellcheck --version | grep '^version:')"
-            sqlfluff --version
-            fly version | cut -d ' ' -f 1-3
-            echo "litestream" "$(litestream version)"
-            echo "node" "$(node --version)"
-            echo "npm" "$(npm --version)"
-            echo "sqlite" "$(sqlite3 --version | cut -d ' ' -f 1-2)"
-            go version
-          '';
-        };
+          echo "shellcheck" "$(shellcheck --version | grep '^version:')"
+          sqlfluff --version
+          fly version | cut -d ' ' -f 1-3
+          echo "litestream" "$(litestream version)"
+          echo "node" "$(node --version)"
+          echo "npm" "$(npm --version)"
+          echo "sqlite" "$(sqlite3 --version | cut -d ' ' -f 1-2)"
+          go version
+        '';
+      };
 
       formatter = gopkg.alejandra;
     });

@@ -8,7 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/ncruces/go-sqlite3"
+
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store"
 )
@@ -140,15 +141,12 @@ func (s Store) InsertUser(user screenjournal.User) error {
 		sql.Named("password_hash", encodePasswordHash(user.PasswordHash)),
 		sql.Named("created_time", formatTime(now)),
 		sql.Named("last_modified_time", formatTime(now))); err != nil {
-		var sqliteErr sqlite3.Error
-		if errors.As(err, &sqliteErr) {
-			if errors.Is(sqliteErr.Code, sqlite3.ErrConstraint) {
-				if strings.HasSuffix(err.Error(), "users.email") {
-					return store.ErrEmailAssociatedWithAnotherAccount
-				}
-				if strings.HasSuffix(err.Error(), "users.username") {
-					return store.ErrUsernameNotAvailable
-				}
+		if errors.Is(err, sqlite3.CONSTRAINT_UNIQUE) {
+			if strings.HasSuffix(err.Error(), "users.email") {
+				return store.ErrEmailAssociatedWithAnotherAccount
+			}
+			if strings.HasSuffix(err.Error(), "users.username") {
+				return store.ErrUsernameNotAvailable
 			}
 		}
 		return err

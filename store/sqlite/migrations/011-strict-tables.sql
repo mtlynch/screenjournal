@@ -3,7 +3,7 @@
 -- First create all new tables
 CREATE TABLE movies_new (
     id INTEGER PRIMARY KEY,
-    tmdb_id INTEGER UNIQUE,
+    tmdb_id INTEGER UNIQUE NOT NULL,
     imdb_id TEXT CHECK (imdb_id IS NULL OR imdb_id LIKE 'tt%'),
     title TEXT NOT NULL,
     release_date TEXT CHECK (
@@ -16,7 +16,7 @@ CREATE TABLE movies_new (
 
 CREATE TABLE tv_shows_new (
     id INTEGER PRIMARY KEY,
-    tmdb_id INTEGER UNIQUE,
+    tmdb_id INTEGER UNIQUE NOT NULL,
     imdb_id TEXT CHECK (imdb_id IS NULL OR imdb_id LIKE 'tt%'),
     title TEXT NOT NULL,
     first_air_date TEXT CHECK (
@@ -29,7 +29,7 @@ CREATE TABLE tv_shows_new (
 
 CREATE TABLE users_new (
     id INTEGER PRIMARY KEY,
-    username TEXT NOT NULL UNIQUE CHECK (length(username) >= 3),
+    username TEXT NOT NULL UNIQUE CHECK (length(username) >= 2),
     is_admin INTEGER NOT NULL CHECK (is_admin IN (0, 1)) DEFAULT 0,
     email TEXT NOT NULL UNIQUE CHECK (email LIKE '%@%.%'),
     password_hash TEXT NOT NULL CHECK (length(password_hash) > 0),

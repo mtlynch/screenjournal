@@ -79,7 +79,6 @@ func MediaTitle(raw string) (screenjournal.MediaTitle, error) {
 }
 
 func RatingFromString(raw string) (screenjournal.Rating, error) {
-	// If the rating is empty, return a nil rating
 	if raw == "" {
 		return screenjournal.Rating{}, nil
 	}

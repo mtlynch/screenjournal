@@ -189,9 +189,7 @@ func parseReviewPostRequest(r *http.Request) (reviewPostRequest, error) {
 		}
 	}
 
-	// Rating is now optional
-	parsed.Rating, err = parse.RatingFromString(r.PostFormValue("rating"))
-	if err != nil {
+	if parsed.Rating, err = parse.RatingFromString(r.PostFormValue("rating")); err != nil {
 		return reviewPostRequest{}, err
 	}
 
@@ -220,9 +218,7 @@ func parseReviewPutRequest(r *http.Request) (reviewPutRequest, error) {
 		return reviewPutRequest{}, errors.New("rating field is required")
 	}
 
-	// Rating can be empty (optional) but the field must be present
-	parsed.Rating, err = parse.RatingFromString(r.PostFormValue("rating"))
-	if err != nil {
+	if parsed.Rating, err = parse.RatingFromString(r.PostFormValue("rating")); err != nil {
 		return reviewPutRequest{}, err
 	}
 

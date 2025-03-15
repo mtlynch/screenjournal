@@ -74,12 +74,9 @@ func (mt MediaTitle) String() string {
 	return string(mt)
 }
 
-// UInt8 returns the uint8 value of a Rating, or 0 if the rating is nil
-func (r Rating) UInt8() uint8 {
-	if r.Value == nil {
-		return 0
-	}
-	return *r.Value
+// UInt8 returns the uint8 pointer value of a Rating, or nil if the rating is nil
+func (r Rating) UInt8() *uint8 {
+	return r.Value
 }
 
 // NewRating creates a new Rating from a uint8 value

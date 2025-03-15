@@ -303,7 +303,6 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 		season = screenjournal.TvShowSeason(*tvShowSeason)
 	}
 
-	// Create a Rating struct with a nil or non-nil Value
 	var rating screenjournal.Rating
 	if ratingRaw != nil {
 		rating = screenjournal.NewRating(*ratingRaw)

@@ -113,6 +113,20 @@
 
 
       <div class="mb-3">
+        <label for="watch-date" class="form-label">When did you watch?</label>
+        <input
+          id="watch-date"
+          name="watch-date"
+          class="form-control"
+          type="date"
+          value="{{ .Review.Watched.Time | formatDate }}"
+          min="2000-01-01"
+          max="{{ .Today | formatDate }}"
+          required
+        />
+      </div>
+
+      <div class="mb-3">
         <label for="rating" class="form-label">Rating (optional)</label>
         <select
           id="rating"
@@ -134,20 +148,6 @@
             </option>
           {{ end }}
         </select>
-      </div>
-
-      <div class="mb-3">
-        <label for="watch-date" class="form-label">When did you watch?</label>
-        <input
-          id="watch-date"
-          name="watch-date"
-          class="form-control"
-          type="date"
-          value="{{ .Review.Watched.Time | formatDate }}"
-          min="2000-01-01"
-          max="{{ .Today | formatDate }}"
-          required
-        />
       </div>
 
       <div class="mb-1">

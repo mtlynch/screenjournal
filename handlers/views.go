@@ -907,6 +907,11 @@ func (s Server) usersGet() http.HandlerFunc {
 }
 
 func ratingToStars(rating screenjournal.Rating) []string {
+	// If rating is nil, return no stars
+	if rating.IsNil() {
+		return []string{"fa-regular fa-circle-question"}
+	}
+
 	stars := make([]string, parse.MaxRating/2)
 	// Add whole stars.
 	for i := uint8(0); i < rating.UInt8()/2; i++ {

@@ -3,6 +3,7 @@ package parse_test
 import (
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -200,55 +201,64 @@ func TestRating(t *testing.T) {
 	for _, tt := range []struct {
 		description string
 		in          int
-		rating      screenjournal.Rating
+		rating      uint8
+		isNil       bool
 		err         error
 	}{
 		{
 			"rating of 1 is valid",
 			1,
-			screenjournal.Rating(1),
+			1,
+			false,
 			nil,
 		},
 		{
 			"rating of 5 is valid",
 			5,
-			screenjournal.Rating(5),
+			5,
+			false,
 			nil,
 		},
 		{
 			"rating of 10 is valid",
 			10,
-			screenjournal.Rating(10),
+			10,
+			false,
 			nil,
 		},
 		{
 			"rating of -1 is invalid",
 			-1,
-			screenjournal.Rating(0),
+			0,
+			true,
 			parse.ErrInvalidRating,
 		},
 		{
 			"rating of 11 is invalid",
 			11,
-			screenjournal.Rating(0),
+			0,
+			true,
 			parse.ErrInvalidRating,
 		},
 		{
 			"rating of MaxInt is invalid",
 			math.MaxInt,
-			screenjournal.Rating(0),
+			0,
+			true,
 			parse.ErrInvalidRating,
 		},
 		{
 			"rating of MinInt is invalid",
 			math.MinInt,
-			screenjournal.Rating(0),
+			0,
+			true,
 			parse.ErrInvalidRating,
 		},
 		{
 			"rating of 0 is invalid",
 			0,
-			screenjournal.Rating(0),
+			0,
+			true,
 			parse.ErrInvalidRating,
 		},
 	} {
@@ -257,8 +267,76 @@ func TestRating(t *testing.T) {
 			if got, want := err, tt.err; got != want {
 				t.Fatalf("err=%v, want=%v", got, want)
 			}
-			if got, want := rating.UInt8(), tt.rating.UInt8(); got != want {
-				t.Errorf("rating=%d, want=%d", got, want)
+
+			if tt.isNil {
+				if rating.Value != nil {
+					t.Errorf("expected nil rating, got %v", *rating.Value)
+				}
+			} else {
+				if rating.Value == nil {
+					t.Errorf("expected non-nil rating")
+				} else if got, want := *rating.Value, tt.rating; got != want {
+					t.Errorf("rating=%d, want=%d", got, want)
+				}
+			}
+		})
+	}
+}
+
+func TestRatingFromString(t *testing.T) {
+	for _, tt := range []struct {
+		description string
+		in          string
+		rating      uint8
+		isNil       bool
+		err         error
+	}{
+		{
+			"valid rating string",
+			"5",
+			5,
+			false,
+			nil,
+		},
+		{
+			"empty string returns nil rating",
+			"",
+			0,
+			true,
+			nil,
+		},
+		{
+			"non-numeric string is invalid",
+			"banana",
+			0,
+			true,
+			&strconv.NumError{},
+		},
+	} {
+		t.Run(fmt.Sprintf("%s [%s]", tt.description, tt.in), func(t *testing.T) {
+			rating, err := parse.RatingFromString(tt.in)
+
+			if tt.err == nil && err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			} else if tt.err != nil && err == nil {
+				t.Fatalf("expected error of type %T, got nil", tt.err)
+			} else if tt.err != nil && err != nil {
+				// Just check error type, not exact message
+				if got, want := fmt.Sprintf("%T", err), fmt.Sprintf("%T", tt.err); got != want {
+					t.Fatalf("err=%v (%T), want error of type %T", err, err, tt.err)
+				}
+			}
+
+			if tt.isNil {
+				if rating.Value != nil {
+					t.Errorf("expected nil rating, got %v", *rating.Value)
+				}
+			} else {
+				if rating.Value == nil {
+					t.Errorf("expected non-nil rating")
+				} else if got, want := *rating.Value, tt.rating; got != want {
+					t.Errorf("rating=%d, want=%d", got, want)
+				}
 			}
 		})
 	}

@@ -113,13 +113,12 @@
 
 
       <div class="mb-3">
-        <label for="rating" class="form-label">Rating</label>
+        <label for="rating" class="form-label">Rating (optional)</label>
         <select
           id="rating"
           name="rating"
           class="form-select"
           aria-label="Rating"
-          required
           autofocus
         >
           {{ $selectedRating := .Review.Rating.UInt8 }}

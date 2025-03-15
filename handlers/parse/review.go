@@ -19,7 +19,7 @@ var (
 	ErrInvalidReviewID             = errors.New("invalid review ID")
 	ErrInvalidMediaType            = fmt.Errorf("invalid media type - must be %s or %s", screenjournal.MediaTypeMovie.String(), screenjournal.MediaTypeTvShow.String())
 	ErrInvalidMediaTitle           = errors.New("invalid media title")
-	ErrInvalidRating               = fmt.Errorf("rating must be between %d and %d", MinRating, MaxRating)
+	ErrInvalidRating               = fmt.Errorf("rating must be between %d and %d or empty", MinRating, MaxRating)
 	ErrWatchDateUnrecognizedFormat = fmt.Errorf("unrecognized format for watch date, must be in %s format", watchDateFormat)
 	ErrWatchDateTooLate            = fmt.Errorf("watch time must be no later than %s", time.Now().Format(time.DateOnly))
 	ErrInvalidBlurb                = errors.New("invalid blurb")
@@ -79,23 +79,28 @@ func MediaTitle(raw string) (screenjournal.MediaTitle, error) {
 }
 
 func RatingFromString(raw string) (screenjournal.Rating, error) {
+	// If the rating is empty, return a nil rating
+	if raw == "" {
+		return screenjournal.Rating{}, nil
+	}
+
 	i, err := strconv.ParseInt(raw, 10, 32)
 	if err != nil {
-		return screenjournal.Rating(0), err
+		return screenjournal.Rating{}, err
 	}
 	return Rating(int(i))
 }
 
 func Rating(raw int) (screenjournal.Rating, error) {
 	if raw > math.MaxUint8 {
-		return screenjournal.Rating(0), ErrInvalidRating
+		return screenjournal.Rating{}, ErrInvalidRating
 	}
 	ratingUint8 := uint8(raw)
 	if ratingUint8 < MinRating || ratingUint8 > MaxRating {
-		return screenjournal.Rating(0), ErrInvalidRating
+		return screenjournal.Rating{}, ErrInvalidRating
 	}
 
-	return screenjournal.Rating(raw), nil
+	return screenjournal.NewRating(ratingUint8), nil
 }
 
 func WatchDate(raw string) (screenjournal.WatchDate, error) {

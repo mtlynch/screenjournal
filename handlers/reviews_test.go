@@ -211,7 +211,7 @@ func TestReviewsPost(t *testing.T) {
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("dummyadmin"),
-				Rating:  screenjournal.Rating(5),
+				Rating:  screenjournal.NewRating(5),
 				Watched: mustParseWatchDate("2022-10-28"),
 				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 				Movie: screenjournal.Movie{
@@ -249,7 +249,7 @@ func TestReviewsPost(t *testing.T) {
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("dummyadmin"),
-				Rating:  screenjournal.Rating(4),
+				Rating:  screenjournal.NewRating(4),
 				Watched: mustParseWatchDate("2022-10-21"),
 				Blurb:   screenjournal.Blurb(""),
 				Movie: screenjournal.Movie{
@@ -286,7 +286,7 @@ func TestReviewsPost(t *testing.T) {
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("dummyadmin"),
-				Rating:  screenjournal.Rating(5),
+				Rating:  screenjournal.NewRating(5),
 				Watched: mustParseWatchDate("2022-10-28"),
 				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 				Movie: screenjournal.Movie{
@@ -458,7 +458,7 @@ func TestReviewsPut(t *testing.T) {
 			priorReviews: []screenjournal.Review{
 				{
 					Owner:   screenjournal.Username("userA"),
-					Rating:  screenjournal.Rating(5),
+					Rating:  screenjournal.NewRating(5),
 					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
@@ -484,7 +484,7 @@ func TestReviewsPut(t *testing.T) {
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("userA"),
-				Rating:  screenjournal.Rating(4),
+				Rating:  screenjournal.NewRating(4),
 				Watched: mustParseWatchDate("2022-10-30"),
 				Blurb:   screenjournal.Blurb("It's a pretty good movie!"),
 				Movie: screenjournal.Movie{
@@ -516,7 +516,7 @@ func TestReviewsPut(t *testing.T) {
 			priorReviews: []screenjournal.Review{
 				{
 					Owner:   screenjournal.Username("userA"),
-					Rating:  screenjournal.Rating(4),
+					Rating:  screenjournal.NewRating(4),
 					Watched: mustParseWatchDate("2022-10-21"),
 					Blurb:   screenjournal.Blurb("Love Norm McDonald!"),
 					Movie: screenjournal.Movie{
@@ -542,7 +542,7 @@ func TestReviewsPut(t *testing.T) {
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("userA"),
-				Rating:  screenjournal.Rating(3),
+				Rating:  screenjournal.NewRating(3),
 				Watched: mustParseWatchDate("2022-10-28"),
 				Blurb:   screenjournal.Blurb(""),
 				Movie: screenjournal.Movie{
@@ -569,7 +569,7 @@ func TestReviewsPut(t *testing.T) {
 				{
 					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
-					Rating:  screenjournal.Rating(5),
+					Rating:  screenjournal.NewRating(5),
 					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
@@ -607,7 +607,7 @@ func TestReviewsPut(t *testing.T) {
 			priorReviews: []screenjournal.Review{
 				{
 					Owner:   screenjournal.Username("userA"),
-					Rating:  screenjournal.Rating(5),
+					Rating:  screenjournal.NewRating(5),
 					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
@@ -646,7 +646,7 @@ func TestReviewsPut(t *testing.T) {
 				{
 					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
-					Rating:  screenjournal.Rating(5),
+					Rating:  screenjournal.NewRating(5),
 					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
@@ -685,7 +685,7 @@ func TestReviewsPut(t *testing.T) {
 				{
 					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
-					Rating:  screenjournal.Rating(5),
+					Rating:  screenjournal.NewRating(5),
 					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
@@ -724,7 +724,7 @@ func TestReviewsPut(t *testing.T) {
 				{
 					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
-					Rating:  screenjournal.Rating(5),
+					Rating:  screenjournal.NewRating(5),
 					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
@@ -763,7 +763,7 @@ func TestReviewsPut(t *testing.T) {
 				{
 					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
-					Rating:  screenjournal.Rating(5),
+					Rating:  screenjournal.NewRating(5),
 					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{

@@ -9,9 +9,13 @@ type (
 	ReviewID   uint64
 	MediaType  string
 	MediaTitle string
-	Rating     uint8
 	Blurb      string
 	WatchDate  time.Time
+
+	// Rating represents a review rating that can be nil (no rating)
+	Rating struct {
+		Value *uint8
+	}
 
 	Review struct {
 		ID           ReviewID
@@ -70,8 +74,22 @@ func (mt MediaTitle) String() string {
 	return string(mt)
 }
 
+// UInt8 returns the uint8 value of a Rating, or 0 if the rating is nil
 func (r Rating) UInt8() uint8 {
-	return uint8(r)
+	if r.Value == nil {
+		return 0
+	}
+	return *r.Value
+}
+
+// NewRating creates a new Rating from a uint8 value
+func NewRating(val uint8) Rating {
+	return Rating{Value: &val}
+}
+
+// IsNil returns true if the rating is nil (not set)
+func (r Rating) IsNil() bool {
+	return r.Value == nil
 }
 
 func (wd WatchDate) Time() time.Time {

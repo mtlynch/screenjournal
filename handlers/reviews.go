@@ -188,7 +188,9 @@ func parseReviewPostRequest(r *http.Request) (reviewPostRequest, error) {
 		}
 	}
 
-	if parsed.Rating, err = parse.RatingFromString(r.PostFormValue("rating")); err != nil {
+	// Rating is now optional
+	parsed.Rating, err = parse.RatingFromString(r.PostFormValue("rating"))
+	if err != nil {
 		return reviewPostRequest{}, err
 	}
 
@@ -211,7 +213,10 @@ func parseReviewPutRequest(r *http.Request) (reviewPutRequest, error) {
 
 	parsed := reviewPutRequest{}
 	var err error
-	if parsed.Rating, err = parse.RatingFromString(r.PostFormValue("rating")); err != nil {
+
+	// Rating is now optional
+	parsed.Rating, err = parse.RatingFromString(r.PostFormValue("rating"))
+	if err != nil {
 		return reviewPutRequest{}, err
 	}
 

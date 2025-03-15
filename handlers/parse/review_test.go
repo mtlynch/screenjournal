@@ -201,64 +201,55 @@ func TestRating(t *testing.T) {
 	for _, tt := range []struct {
 		description string
 		in          int
-		rating      uint8
-		isNil       bool
+		rating      screenjournal.Rating
 		err         error
 	}{
 		{
 			"rating of 1 is valid",
 			1,
-			1,
-			false,
+			screenjournal.NewRating(1),
 			nil,
 		},
 		{
 			"rating of 5 is valid",
 			5,
-			5,
-			false,
+			screenjournal.NewRating(5),
 			nil,
 		},
 		{
 			"rating of 10 is valid",
 			10,
-			10,
-			false,
+			screenjournal.NewRating(10),
 			nil,
 		},
 		{
 			"rating of -1 is invalid",
 			-1,
-			0,
-			true,
+			screenjournal.Rating{},
 			parse.ErrInvalidRating,
 		},
 		{
 			"rating of 11 is invalid",
 			11,
-			0,
-			true,
+			screenjournal.Rating{},
 			parse.ErrInvalidRating,
 		},
 		{
 			"rating of MaxInt is invalid",
 			math.MaxInt,
-			0,
-			true,
+			screenjournal.Rating{},
 			parse.ErrInvalidRating,
 		},
 		{
 			"rating of MinInt is invalid",
 			math.MinInt,
-			0,
-			true,
+			screenjournal.Rating{},
 			parse.ErrInvalidRating,
 		},
 		{
 			"rating of 0 is invalid",
 			0,
-			0,
-			true,
+			screenjournal.Rating{},
 			parse.ErrInvalidRating,
 		},
 	} {
@@ -268,14 +259,14 @@ func TestRating(t *testing.T) {
 				t.Fatalf("err=%v, want=%v", got, want)
 			}
 
-			if tt.isNil {
-				if rating.Value != nil {
-					t.Errorf("expected nil rating, got %v", *rating.Value)
+			if tt.rating.IsNil() {
+				if !rating.IsNil() {
+					t.Errorf("expected nil rating, got %v", rating.UInt8())
 				}
 			} else {
-				if rating.Value == nil {
+				if rating.IsNil() {
 					t.Errorf("expected non-nil rating")
-				} else if got, want := *rating.Value, tt.rating; got != want {
+				} else if got, want := rating.UInt8(), tt.rating.UInt8(); got != want {
 					t.Errorf("rating=%d, want=%d", got, want)
 				}
 			}
@@ -287,29 +278,25 @@ func TestRatingFromString(t *testing.T) {
 	for _, tt := range []struct {
 		description string
 		in          string
-		rating      uint8
-		isNil       bool
+		rating      screenjournal.Rating
 		err         error
 	}{
 		{
 			"valid rating string",
 			"5",
-			5,
-			false,
+			screenjournal.NewRating(5),
 			nil,
 		},
 		{
 			"empty string returns nil rating",
 			"",
-			0,
-			true,
+			screenjournal.Rating{},
 			nil,
 		},
 		{
 			"non-numeric string is invalid",
 			"banana",
-			0,
-			true,
+			screenjournal.Rating{},
 			&strconv.NumError{},
 		},
 	} {
@@ -327,14 +314,14 @@ func TestRatingFromString(t *testing.T) {
 				}
 			}
 
-			if tt.isNil {
-				if rating.Value != nil {
-					t.Errorf("expected nil rating, got %v", *rating.Value)
+			if tt.rating.IsNil() {
+				if !rating.IsNil() {
+					t.Errorf("expected nil rating, got %v", rating.UInt8())
 				}
 			} else {
-				if rating.Value == nil {
+				if rating.IsNil() {
 					t.Errorf("expected non-nil rating")
-				} else if got, want := *rating.Value, tt.rating; got != want {
+				} else if got, want := rating.UInt8(), tt.rating.UInt8(); got != want {
 					t.Errorf("rating=%d, want=%d", got, want)
 				}
 			}

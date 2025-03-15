@@ -906,3 +906,56 @@ test("views reviews filtered by user", async ({ page }) => {
 
   await expect(page.getByText("userB has written 3 reviews")).toBeVisible();
 });
+
+test("adds a new movie rating without a numeric rating", async ({ page }) => {
+  await page.getByRole("button", { name: "Add Rating" }).click();
+
+  await page.getByPlaceholder("Search").pressSequentially("the godfather");
+  await page.getByText("The Godfather (1972)").click();
+
+  await expect(page).toHaveURL("/reviews/new/write?tmdbId=238&mediaType=movie");
+  await expect(
+    page.getByRole("heading", { name: "The Godfather (1972)" })
+  ).toBeVisible();
+
+  // Intentionally skip selecting a rating
+
+  await page.getByLabel("When did you watch?").fill("2023-05-15");
+  await page
+    .getByLabel("Other thoughts?")
+    .fill("A classic, but I don't want to give it a numeric rating.");
+
+  await page.locator("form input[type='submit']").click();
+
+  await expect(page).toHaveURL("/movies/3");
+
+  await page.getByRole("menuitem", { name: "Home" }).click();
+  await expect(page).toHaveURL("/reviews");
+
+  const reviewCard = await page.locator(".card", {
+    has: page.getByRole("heading", { name: "The Godfather" }),
+  });
+  await expect(reviewCard.locator(".card-subtitle")).toHaveText(
+    /userA watched this .+ ago/,
+    { useInnerText: true }
+  );
+  await expect(
+    reviewCard.locator(".card-subtitle [data-testid='watch-date']")
+  ).toHaveAttribute("title", "2023-05-15");
+
+  // Verify that no rating stars are displayed
+  // The rating container still exists, but it shouldn't have any star elements
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
+  ).toHaveCount(0);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(0);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
+  ).toHaveCount(0);
+
+  await expect(reviewCard.locator(".card-text")).toHaveText(
+    "A classic, but I don't want to give it a numeric rating."
+  );
+});

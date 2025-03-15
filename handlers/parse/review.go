@@ -85,7 +85,7 @@ func RatingFromString(raw string) (screenjournal.Rating, error) {
 
 	i, err := strconv.ParseInt(raw, 10, 32)
 	if err != nil {
-		return screenjournal.Rating{}, err
+		return screenjournal.Rating{}, ErrInvalidRating
 	}
 	return Rating(int(i))
 }

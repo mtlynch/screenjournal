@@ -3,7 +3,6 @@ package parse_test
 import (
 	"fmt"
 	"math"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -289,21 +288,14 @@ func TestRatingFromString(t *testing.T) {
 			"non-numeric string is invalid",
 			"banana",
 			screenjournal.Rating{},
-			&strconv.NumError{},
+			parse.ErrInvalidRating,
 		},
 	} {
 		t.Run(fmt.Sprintf("%s [%s]", tt.description, tt.in), func(t *testing.T) {
 			rating, err := parse.RatingFromString(tt.in)
 
-			if tt.err == nil && err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			} else if tt.err != nil && err == nil {
-				t.Fatalf("expected error of type %T, got nil", tt.err)
-			} else if tt.err != nil && err != nil {
-				// Just check error type, not exact message
-				if got, want := fmt.Sprintf("%T", err), fmt.Sprintf("%T", tt.err); got != want {
-					t.Fatalf("err=%v (%T), want error of type %T", err, err, tt.err)
-				}
+			if got, want := err, tt.err; got != want {
+				t.Fatalf("err=%v, want=%v", got, want)
 			}
 
 			if got, want := rating, tt.rating; !got.Equal(want) {

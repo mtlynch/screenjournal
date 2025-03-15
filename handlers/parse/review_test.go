@@ -259,7 +259,9 @@ func TestRating(t *testing.T) {
 				t.Fatalf("err=%v, want=%v", got, want)
 			}
 
-			assertRatingsEqual(t, rating, tt.rating)
+			if got, want := rating, tt.rating; !got.Equal(want) {
+				t.Errorf("rating=%v, want=%v", got, want)
+			}
 		})
 	}
 }
@@ -304,7 +306,9 @@ func TestRatingFromString(t *testing.T) {
 				}
 			}
 
-			assertRatingsEqual(t, rating, tt.rating)
+			if got, want := rating, tt.rating; !got.Equal(want) {
+				t.Errorf("rating=%v, want=%v", got, want)
+			}
 		})
 	}
 }
@@ -445,21 +449,4 @@ func mustParseWatchDate(s string) screenjournal.WatchDate {
 		panic(err)
 	}
 	return wd
-}
-
-func assertRatingsEqual(t *testing.T, got, want screenjournal.Rating) {
-	if got.IsNil() && want.IsNil() {
-		return
-	}
-	if got.IsNil() {
-		t.Errorf("expected rating %d, got nil", *want.UInt8())
-		return
-	}
-	if want.IsNil() {
-		t.Errorf("expected nil rating, got %d", *got.UInt8())
-		return
-	}
-	if *got.UInt8() != *want.UInt8() {
-		t.Errorf("rating=%d, want=%d", *got.UInt8(), *want.UInt8())
-	}
 }

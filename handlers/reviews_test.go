@@ -355,6 +355,28 @@ func TestReviewsPost(t *testing.T) {
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
+		{
+			description:  "rejects request with missing rating field",
+			payload:      "media-type=movie&tmdb-id=38&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
+			sessionToken: "abc123",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+			},
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("userA"),
+					},
+				},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()

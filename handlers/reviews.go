@@ -192,6 +192,10 @@ func parseReviewPostRequest(r *http.Request) (reviewPostRequest, error) {
 		return reviewPostRequest{}, err
 	}
 
+	if parsed.Rating.IsNil() {
+		return reviewPostRequest{}, fmt.Errorf("rating is required")
+	}
+
 	if parsed.WatchDate, err = parse.WatchDate(r.PostFormValue("watch-date")); err != nil {
 		return reviewPostRequest{}, err
 	}
@@ -214,6 +218,10 @@ func parseReviewPutRequest(r *http.Request) (reviewPutRequest, error) {
 
 	if parsed.Rating, err = parse.RatingFromString(r.PostFormValue("rating")); err != nil {
 		return reviewPutRequest{}, err
+	}
+
+	if parsed.Rating.IsNil() {
+		return reviewPutRequest{}, fmt.Errorf("rating is required")
 	}
 
 	if parsed.Watched, err = parse.WatchDate(r.PostFormValue("watch-date")); err != nil {

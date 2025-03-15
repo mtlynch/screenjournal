@@ -85,6 +85,16 @@ func (r Rating) IsNil() bool {
 	return r.Value == nil
 }
 
+func (r Rating) Equal(other Rating) bool {
+	if r.IsNil() && other.IsNil() {
+		return true
+	}
+	if r.IsNil() || other.IsNil() {
+		return false
+	}
+	return *r.Value == *other.Value
+}
+
 func (wd WatchDate) Time() time.Time {
 	return time.Time(wd)
 }

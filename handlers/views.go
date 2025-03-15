@@ -909,7 +909,7 @@ func (s Server) usersGet() http.HandlerFunc {
 func ratingToStars(rating screenjournal.Rating) []string {
 	// If rating is nil, return no stars
 	if rating.IsNil() {
-		return []string{"fa-regular fa-circle-question"}
+		return []string{}
 	}
 
 	stars := make([]string, parse.MaxRating/2)

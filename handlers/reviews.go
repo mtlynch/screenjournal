@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -214,7 +215,12 @@ func parseReviewPutRequest(r *http.Request) (reviewPutRequest, error) {
 	parsed := reviewPutRequest{}
 	var err error
 
-	// Rating is now optional
+	// Check if the rating field is present in the form
+	if _, ok := r.PostForm["rating"]; !ok {
+		return reviewPutRequest{}, errors.New("rating field is required")
+	}
+
+	// Rating can be empty (optional) but the field must be present
 	parsed.Rating, err = parse.RatingFromString(r.PostFormValue("rating"))
 	if err != nil {
 		return reviewPutRequest{}, err

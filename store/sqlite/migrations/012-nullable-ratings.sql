@@ -1,8 +1,6 @@
 -- Make the rating column nullable to support reviews without ratings
 PRAGMA foreign_keys=off;
 
-BEGIN TRANSACTION;
-
 -- Create a new reviews table with the rating column as nullable
 CREATE TABLE reviews_new (
     id INTEGER PRIMARY KEY,
@@ -36,7 +34,5 @@ ALTER TABLE reviews_new RENAME TO reviews;
 CREATE INDEX idx_reviews_owner ON reviews(review_owner);
 CREATE INDEX idx_reviews_movie_id ON reviews(movie_id);
 CREATE INDEX idx_reviews_tv_show_id ON reviews(tv_show_id);
-
-COMMIT;
 
 PRAGMA foreign_keys=on;

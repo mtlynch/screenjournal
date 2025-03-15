@@ -12,7 +12,6 @@ type (
 	Blurb      string
 	WatchDate  time.Time
 
-	// Rating represents a review rating that can be nil (no rating)
 	Rating struct {
 		Value *uint8
 	}
@@ -74,17 +73,14 @@ func (mt MediaTitle) String() string {
 	return string(mt)
 }
 
-// UInt8 returns the uint8 pointer value of a Rating, or nil if the rating is nil
 func (r Rating) UInt8() *uint8 {
 	return r.Value
 }
 
-// NewRating creates a new Rating from a uint8 value
 func NewRating(val uint8) Rating {
 	return Rating{Value: &val}
 }
 
-// IsNil returns true if the rating is nil (not set)
 func (r Rating) IsNil() bool {
 	return r.Value == nil
 }

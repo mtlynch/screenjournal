@@ -907,7 +907,6 @@ func (s Server) usersGet() http.HandlerFunc {
 }
 
 func ratingToStars(rating screenjournal.Rating) []string {
-	// If rating is nil, return no stars
 	if rating.IsNil() {
 		return []string{}
 	}

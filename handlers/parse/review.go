@@ -19,7 +19,7 @@ var (
 	ErrInvalidReviewID             = errors.New("invalid review ID")
 	ErrInvalidMediaType            = fmt.Errorf("invalid media type - must be %s or %s", screenjournal.MediaTypeMovie.String(), screenjournal.MediaTypeTvShow.String())
 	ErrInvalidMediaTitle           = errors.New("invalid media title")
-	ErrInvalidRating               = fmt.Errorf("rating must be between %d and %d or empty", MinRating, MaxRating)
+	ErrInvalidRating               = fmt.Errorf("rating must be between %d and %d", MinRating, MaxRating)
 	ErrWatchDateUnrecognizedFormat = fmt.Errorf("unrecognized format for watch date, must be in %s format", watchDateFormat)
 	ErrWatchDateTooLate            = fmt.Errorf("watch time must be no later than %s", time.Now().Format(time.DateOnly))
 	ErrInvalidBlurb                = errors.New("invalid blurb")

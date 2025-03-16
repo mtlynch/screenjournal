@@ -1,6 +1,7 @@
 package screenjournal
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -9,9 +10,12 @@ type (
 	ReviewID   uint64
 	MediaType  string
 	MediaTitle string
-	Rating     uint8
 	Blurb      string
 	WatchDate  time.Time
+
+	Rating struct {
+		Value *uint8
+	}
 
 	Review struct {
 		ID           ReviewID
@@ -71,7 +75,35 @@ func (mt MediaTitle) String() string {
 }
 
 func (r Rating) UInt8() uint8 {
-	return uint8(r)
+	if r.IsNil() {
+		return 0
+	}
+	return *r.Value
+}
+
+func (r Rating) String() string {
+	if r.IsNil() {
+		return "nil"
+	}
+	return fmt.Sprintf("%d", r.UInt8())
+}
+
+func NewRating(val uint8) Rating {
+	return Rating{Value: &val}
+}
+
+func (r Rating) IsNil() bool {
+	return r.Value == nil
+}
+
+func (r Rating) Equal(other Rating) bool {
+	if r.IsNil() && other.IsNil() {
+		return true
+	}
+	if r.IsNil() || other.IsNil() {
+		return false
+	}
+	return *r.Value == *other.Value
 }
 
 func (wd WatchDate) Time() time.Time {

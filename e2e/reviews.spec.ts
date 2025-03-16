@@ -149,9 +149,9 @@ test("adds a new movie rating and fills in only required fields", async ({
     page.getByRole("heading", { name: "Slow Learners" })
   ).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "1.0" });
-
   await page.getByLabel("When did you watch?").fill("2022-10-21");
+
+  await page.getByLabel("Rating").selectOption({ label: "1.0" });
 
   await page.locator("form input[type='submit']").click();
 
@@ -193,9 +193,9 @@ test("adds a new movie rating but hides spoilers", async ({ page }) => {
     page.getByRole("heading", { name: "The Sixth Sense (1999)" })
   ).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "4.0" });
-
   await page.getByLabel("When did you watch?").fill("2024-11-01");
+
+  await page.getByLabel("Rating").selectOption({ label: "4.0" });
   await page.getByLabel("Other thoughts?").fill(`What a twist!
 
 Haley Joel Osment is going places!
@@ -244,9 +244,9 @@ test("adds a new TV show rating and fills in only required fields", async ({
   );
   await expect(page.getByRole("heading", { name: "30 Rock" })).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "4.5" });
-
   await page.getByLabel("When did you watch?").fill("2024-10-05");
+
+  await page.getByLabel("Rating").selectOption({ label: "4.5" });
 
   await page.locator("form input[type='submit']").click();
 
@@ -304,8 +304,8 @@ test("views a TV show with an existing review and adds a new review", async ({
 
   await expect(page.getByPlaceholder("Search")).not.toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "5.0" });
   await page.getByLabel("When did you watch?").fill("2023-01-05");
+  await page.getByLabel("Rating").selectOption({ label: "5.0" });
   await page.getByLabel("Other thoughts?").fill("I liked it, too!");
 
   await page.locator("form input[type='submit']").click();
@@ -420,9 +420,9 @@ test("adds a new rating and fills all fields", async ({ page }) => {
     page.getByRole("heading", { name: "Eternal Sunshine of the Spotless Mind" })
   ).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "5.0" });
-
   await page.getByLabel("When did you watch?").fill("2022-10-29");
+
+  await page.getByLabel("Rating").selectOption({ label: "5.0" });
 
   await page.getByLabel("Other thoughts?").fill("My favorite movie!");
 
@@ -509,9 +509,9 @@ test("adds a new movie rating and edits the details", async ({ page }) => {
     page.getByRole("heading", { name: "There's Something About Mary" })
   ).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "4.5" });
-
   await page.getByLabel("When did you watch?").fill("2022-10-29");
+
+  await page.getByLabel("Rating").selectOption({ label: "4.5" });
 
   await page.getByLabel("Other thoughts?").fill("My favorite movie!");
 
@@ -587,8 +587,8 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
     page.getByRole("heading", { name: "The English Patient" })
   ).toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "4.0" });
   await page.getByLabel("When did you watch?").fill("2022-10-29");
+  await page.getByLabel("Rating").selectOption({ label: "4.0" });
   await page
     .getByLabel("Other thoughts?")
     .fill("What an English patient he was!");
@@ -695,8 +695,8 @@ test("views a movie with an existing review and adds a new review", async ({
 
   await expect(page.getByPlaceholder("Search")).not.toBeVisible();
 
-  await page.getByLabel("Rating").selectOption({ label: "5.0" });
   await page.getByLabel("When did you watch?").fill("2023-01-05");
+  await page.getByLabel("Rating").selectOption({ label: "5.0" });
   await page.getByLabel("Other thoughts?").fill("Relevant as ever");
 
   await page.locator("form input[type='submit']").click();
@@ -905,4 +905,58 @@ test("views reviews filtered by user", async ({ page }) => {
   ).toBeVisible();
 
   await expect(page.getByText("userB has written 3 reviews")).toBeVisible();
+});
+
+test("adds a new movie rating without a numeric rating", async ({ page }) => {
+  await page.getByRole("button", { name: "Add Rating" }).click();
+
+  await page.getByPlaceholder("Search").pressSequentially("the godfather");
+  await page.getByText("The Godfather (1972)").click();
+
+  await expect(page).toHaveURL("/reviews/new/write?tmdbId=238&mediaType=movie");
+  await expect(
+    page.getByRole("heading", { name: "The Godfather (1972)" })
+  ).toBeVisible();
+
+  await page.getByLabel("When did you watch?").fill("2023-05-15");
+
+  // Intentionally skip selecting a rating
+
+  await page
+    .getByLabel("Other thoughts?")
+    .fill("A classic, but I don't want to give it a numeric rating.");
+
+  await page.locator("form input[type='submit']").click();
+
+  await expect(page).toHaveURL("/movies/3");
+
+  await page.getByRole("menuitem", { name: "Home" }).click();
+  await expect(page).toHaveURL("/reviews");
+
+  const reviewCard = await page.locator(".card", {
+    has: page.getByRole("heading", { name: "The Godfather" }),
+  });
+  await expect(reviewCard.locator(".card-subtitle")).toHaveText(
+    /userA watched this .+ ago/,
+    { useInnerText: true }
+  );
+  await expect(
+    reviewCard.locator(".card-subtitle [data-testid='watch-date']")
+  ).toHaveAttribute("title", "2023-05-15");
+
+  // Verify that no rating stars are displayed
+  // The rating container still exists, but it shouldn't have any star elements
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-solid")
+  ).toHaveCount(0);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star-half-stroke.fa-solid")
+  ).toHaveCount(0);
+  await expect(
+    reviewCard.locator("[data-testid='rating'] .fa-star.fa-regular")
+  ).toHaveCount(0);
+
+  await expect(reviewCard.locator(".card-text")).toHaveText(
+    "A classic, but I don't want to give it a numeric rating."
+  );
 });

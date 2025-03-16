@@ -547,6 +547,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			MediaType:     mediaType,
 			Today:         time.Now(),
 		}); err != nil {
+			log.Printf("failed to execute template: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -742,6 +743,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			MediaType: mediaType,
 			Today:     time.Now(),
 		}); err != nil {
+			log.Printf("failed to execute template: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -907,16 +909,21 @@ func (s Server) usersGet() http.HandlerFunc {
 }
 
 func ratingToStars(rating screenjournal.Rating) []string {
+	if rating.IsNil() {
+		return []string{}
+	}
+
+	ratingVal := rating.UInt8()
 	stars := make([]string, parse.MaxRating/2)
 	// Add whole stars.
-	for i := uint8(0); i < rating.UInt8()/2; i++ {
+	for i := uint8(0); i < ratingVal/2; i++ {
 		stars = append(stars, "fa-solid fa-star")
 	}
-	if rating.UInt8()%2 != 0 {
+	if ratingVal%2 != 0 {
 		stars = append(stars, "fa-solid fa-star-half-stroke")
 	}
 	// Add empty stars.
-	emptyStars := (parse.MaxRating / 2) - (rating.UInt8() / 2) - rating.UInt8()%2
+	emptyStars := (parse.MaxRating / 2) - (ratingVal / 2) - ratingVal%2
 	for i := uint8(0); i < emptyStars; i++ {
 		stars = append(stars, "fa-regular fa-star")
 	}

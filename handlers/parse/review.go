@@ -79,23 +79,27 @@ func MediaTitle(raw string) (screenjournal.MediaTitle, error) {
 }
 
 func RatingFromString(raw string) (screenjournal.Rating, error) {
+	if raw == "" {
+		return screenjournal.Rating{}, nil
+	}
+
 	i, err := strconv.ParseInt(raw, 10, 32)
 	if err != nil {
-		return screenjournal.Rating(0), err
+		return screenjournal.Rating{}, ErrInvalidRating
 	}
 	return Rating(int(i))
 }
 
 func Rating(raw int) (screenjournal.Rating, error) {
 	if raw > math.MaxUint8 {
-		return screenjournal.Rating(0), ErrInvalidRating
+		return screenjournal.Rating{}, ErrInvalidRating
 	}
 	ratingUint8 := uint8(raw)
 	if ratingUint8 < MinRating || ratingUint8 > MaxRating {
-		return screenjournal.Rating(0), ErrInvalidRating
+		return screenjournal.Rating{}, ErrInvalidRating
 	}
 
-	return screenjournal.Rating(raw), nil
+	return screenjournal.NewRating(ratingUint8), nil
 }
 
 func WatchDate(raw string) (screenjournal.WatchDate, error) {

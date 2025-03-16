@@ -206,49 +206,49 @@ func TestRating(t *testing.T) {
 		{
 			"rating of 1 is valid",
 			1,
-			screenjournal.Rating(1),
+			screenjournal.NewRating(1),
 			nil,
 		},
 		{
 			"rating of 5 is valid",
 			5,
-			screenjournal.Rating(5),
+			screenjournal.NewRating(5),
 			nil,
 		},
 		{
 			"rating of 10 is valid",
 			10,
-			screenjournal.Rating(10),
+			screenjournal.NewRating(10),
 			nil,
 		},
 		{
 			"rating of -1 is invalid",
 			-1,
-			screenjournal.Rating(0),
+			screenjournal.Rating{},
 			parse.ErrInvalidRating,
 		},
 		{
 			"rating of 11 is invalid",
 			11,
-			screenjournal.Rating(0),
+			screenjournal.Rating{},
 			parse.ErrInvalidRating,
 		},
 		{
 			"rating of MaxInt is invalid",
 			math.MaxInt,
-			screenjournal.Rating(0),
+			screenjournal.Rating{},
 			parse.ErrInvalidRating,
 		},
 		{
 			"rating of MinInt is invalid",
 			math.MinInt,
-			screenjournal.Rating(0),
+			screenjournal.Rating{},
 			parse.ErrInvalidRating,
 		},
 		{
 			"rating of 0 is invalid",
 			0,
-			screenjournal.Rating(0),
+			screenjournal.Rating{},
 			parse.ErrInvalidRating,
 		},
 	} {
@@ -257,8 +257,49 @@ func TestRating(t *testing.T) {
 			if got, want := err, tt.err; got != want {
 				t.Fatalf("err=%v, want=%v", got, want)
 			}
-			if got, want := rating.UInt8(), tt.rating.UInt8(); got != want {
-				t.Errorf("rating=%d, want=%d", got, want)
+
+			if got, want := rating, tt.rating; !got.Equal(want) {
+				t.Errorf("rating=%v, want=%v", got, want)
+			}
+		})
+	}
+}
+
+func TestRatingFromString(t *testing.T) {
+	for _, tt := range []struct {
+		description string
+		in          string
+		rating      screenjournal.Rating
+		err         error
+	}{
+		{
+			"valid rating string",
+			"5",
+			screenjournal.NewRating(5),
+			nil,
+		},
+		{
+			"empty string returns nil rating",
+			"",
+			screenjournal.Rating{},
+			nil,
+		},
+		{
+			"non-numeric string is invalid",
+			"banana",
+			screenjournal.Rating{},
+			parse.ErrInvalidRating,
+		},
+	} {
+		t.Run(fmt.Sprintf("%s [%s]", tt.description, tt.in), func(t *testing.T) {
+			rating, err := parse.RatingFromString(tt.in)
+
+			if got, want := err, tt.err; got != want {
+				t.Fatalf("err=%v, want=%v", got, want)
+			}
+
+			if got, want := rating, tt.rating; !got.Equal(want) {
+				t.Errorf("rating=%v, want=%v", got, want)
 			}
 		})
 	}

@@ -83,7 +83,7 @@ func (s Server) populateDummyData() http.HandlerFunc {
 		{
 			ID:     screenjournal.ReviewID(1),
 			Owner:  screenjournal.Username("userB"),
-			Rating: screenjournal.Rating(10),
+			Rating: screenjournal.NewRating(10),
 			Movie: screenjournal.Movie{
 				ID:    screenjournal.MovieID(1),
 				Title: screenjournal.MediaTitle("The Waterboy"),
@@ -101,7 +101,7 @@ func (s Server) populateDummyData() http.HandlerFunc {
 		{
 			ID:     screenjournal.ReviewID(2),
 			Owner:  screenjournal.Username("userB"),
-			Rating: screenjournal.Rating(3),
+			Rating: screenjournal.NewRating(3),
 			Movie: screenjournal.Movie{
 				ID:    screenjournal.MovieID(2),
 				Title: screenjournal.MediaTitle("Billy Madison"),
@@ -112,7 +112,7 @@ func (s Server) populateDummyData() http.HandlerFunc {
 		{
 			ID:     screenjournal.ReviewID(3),
 			Owner:  screenjournal.Username("userA"),
-			Rating: screenjournal.Rating(10),
+			Rating: screenjournal.NewRating(10),
 			TvShow: screenjournal.TvShow{
 				ID:    screenjournal.TvShowID(1),
 				Title: screenjournal.MediaTitle("Seinfeld"),
@@ -124,7 +124,7 @@ func (s Server) populateDummyData() http.HandlerFunc {
 		{
 			ID:     screenjournal.ReviewID(3),
 			Owner:  screenjournal.Username("userB"),
-			Rating: screenjournal.Rating(9),
+			Rating: screenjournal.NewRating(9),
 			TvShow: screenjournal.TvShow{
 				ID:    screenjournal.TvShowID(1),
 				Title: screenjournal.MediaTitle("Seinfeld"),

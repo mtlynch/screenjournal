@@ -139,9 +139,9 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 
 func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, error) {
 	if r.MediaType() == screenjournal.MediaTypeMovie {
-		log.Printf("inserting new review of movie ID %v: %v", r.Movie.ID, r.Rating.UInt8())
+		log.Printf("inserting new review of movie ID %v: %s", r.Movie.ID, r.Rating)
 	} else {
-		log.Printf("inserting new review of TV show ID %v: %v", r.TvShow.ID, r.Rating.UInt8())
+		log.Printf("inserting new review of TV show ID %v: %s", r.TvShow.ID, r.Rating)
 	}
 
 	now := time.Now()
@@ -178,7 +178,7 @@ func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, err
 		sql.Named("movie_id", movieID),
 		sql.Named("tv_show_id", tvShowID),
 		sql.Named("tv_show_season", tvShowSeason),
-		sql.Named("rating", r.Rating),
+		sql.Named("rating", r.Rating.Value),
 		sql.Named("blurb", r.Blurb),
 		sql.Named("watched_date", formatWatchDate(r.Watched)),
 		sql.Named("created_time", formatTime(now)),
@@ -197,9 +197,9 @@ func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, err
 
 func (s Store) UpdateReview(r screenjournal.Review) error {
 	if r.MediaType() == screenjournal.MediaTypeMovie {
-		log.Printf("updating review of movie ID %v: %v", r.Movie.ID, r.Rating.UInt8())
+		log.Printf("updating review of movie ID %v: %s", r.Movie.ID, r.Rating)
 	} else {
-		log.Printf("updating review of TV show ID %v: %v", r.TvShow.ID, r.Rating.UInt8())
+		log.Printf("updating review of TV show ID %v: %s", r.TvShow.ID, r.Rating)
 	}
 
 	if r.ID.IsZero() {
@@ -217,7 +217,7 @@ func (s Store) UpdateReview(r screenjournal.Review) error {
 		last_modified_time = :last_modified_time
 	WHERE
 		id = :id`,
-		sql.Named("rating", r.Rating),
+		sql.Named("rating", r.Rating.Value),
 		sql.Named("blurb", r.Blurb),
 		sql.Named("watched_date", formatWatchDate(r.Watched)),
 		sql.Named("last_modified_time", formatTime(now)),
@@ -259,13 +259,13 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 	var movieIDRaw *int
 	var tvShowIDRaw *int
 	var tvShowSeason *int
-	var rating screenjournal.Rating
+	var ratingRaw *uint8
 	var blurb string
 	var watchedDateRaw string
 	var createdTimeRaw string
 	var lastModifiedTimeRaw string
 
-	err := row.Scan(&id, &owner, &movieIDRaw, &tvShowIDRaw, &tvShowSeason, &rating, &blurb, &watchedDateRaw, &createdTimeRaw, &lastModifiedTimeRaw)
+	err := row.Scan(&id, &owner, &movieIDRaw, &tvShowIDRaw, &tvShowSeason, &ratingRaw, &blurb, &watchedDateRaw, &createdTimeRaw, &lastModifiedTimeRaw)
 	if err == sql.ErrNoRows {
 		return screenjournal.Review{}, store.ErrReviewNotFound
 	} else if err != nil {
@@ -301,6 +301,11 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 	var season screenjournal.TvShowSeason
 	if tvShowSeason != nil {
 		season = screenjournal.TvShowSeason(*tvShowSeason)
+	}
+
+	var rating screenjournal.Rating
+	if ratingRaw != nil {
+		rating = screenjournal.NewRating(*ratingRaw)
 	}
 
 	return screenjournal.Review{

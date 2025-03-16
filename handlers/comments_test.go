@@ -55,7 +55,7 @@ func makeCommentsTestData() commentsTestData {
 	td.reviews.userBTheWaterBoy = screenjournal.Review{
 		ID:      screenjournal.ReviewID(1),
 		Owner:   td.sessions.userB.session.Username,
-		Rating:  screenjournal.Rating(5),
+		Rating:  screenjournal.NewRating(5),
 		Movie:   td.movies.theWaterBoy,
 		Watched: mustParseWatchDate("2020-10-05"),
 		Blurb:   screenjournal.Blurb("I love water!"),

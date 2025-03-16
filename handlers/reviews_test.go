@@ -211,7 +211,7 @@ func TestReviewsPost(t *testing.T) {
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("dummyadmin"),
-				Rating:  screenjournal.Rating(5),
+				Rating:  screenjournal.NewRating(5),
 				Watched: mustParseWatchDate("2022-10-28"),
 				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 				Movie: screenjournal.Movie{
@@ -249,7 +249,7 @@ func TestReviewsPost(t *testing.T) {
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("dummyadmin"),
-				Rating:  screenjournal.Rating(4),
+				Rating:  screenjournal.NewRating(4),
 				Watched: mustParseWatchDate("2022-10-21"),
 				Blurb:   screenjournal.Blurb(""),
 				Movie: screenjournal.Movie{
@@ -286,7 +286,7 @@ func TestReviewsPost(t *testing.T) {
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("dummyadmin"),
-				Rating:  screenjournal.Rating(5),
+				Rating:  screenjournal.NewRating(5),
 				Watched: mustParseWatchDate("2022-10-28"),
 				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 				Movie: screenjournal.Movie{
@@ -354,6 +354,42 @@ func TestReviewsPost(t *testing.T) {
 				},
 			},
 			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			description:  "accepts request with missing rating field",
+			payload:      "media-type=movie&tmdb-id=38&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
+			sessionToken: "abc123",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+			},
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("userA"),
+					},
+				},
+			},
+			expectedStatus: http.StatusSeeOther,
+			expected: screenjournal.Review{
+				Owner:   screenjournal.Username("userA"),
+				Rating:  screenjournal.Rating{},
+				Watched: mustParseWatchDate("2022-10-28"),
+				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				Movie: screenjournal.Movie{
+					ID:          screenjournal.MovieID(1),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+				Comments: []screenjournal.ReviewComment{},
+			},
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
@@ -458,7 +494,7 @@ func TestReviewsPut(t *testing.T) {
 			priorReviews: []screenjournal.Review{
 				{
 					Owner:   screenjournal.Username("userA"),
-					Rating:  screenjournal.Rating(5),
+					Rating:  screenjournal.NewRating(5),
 					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
@@ -484,7 +520,7 @@ func TestReviewsPut(t *testing.T) {
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("userA"),
-				Rating:  screenjournal.Rating(4),
+				Rating:  screenjournal.NewRating(4),
 				Watched: mustParseWatchDate("2022-10-30"),
 				Blurb:   screenjournal.Blurb("It's a pretty good movie!"),
 				Movie: screenjournal.Movie{
@@ -516,7 +552,7 @@ func TestReviewsPut(t *testing.T) {
 			priorReviews: []screenjournal.Review{
 				{
 					Owner:   screenjournal.Username("userA"),
-					Rating:  screenjournal.Rating(4),
+					Rating:  screenjournal.NewRating(4),
 					Watched: mustParseWatchDate("2022-10-21"),
 					Blurb:   screenjournal.Blurb("Love Norm McDonald!"),
 					Movie: screenjournal.Movie{
@@ -542,7 +578,7 @@ func TestReviewsPut(t *testing.T) {
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
 				Owner:   screenjournal.Username("userA"),
-				Rating:  screenjournal.Rating(3),
+				Rating:  screenjournal.NewRating(3),
 				Watched: mustParseWatchDate("2022-10-28"),
 				Blurb:   screenjournal.Blurb(""),
 				Movie: screenjournal.Movie{
@@ -569,7 +605,7 @@ func TestReviewsPut(t *testing.T) {
 				{
 					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
-					Rating:  screenjournal.Rating(5),
+					Rating:  screenjournal.NewRating(5),
 					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
@@ -607,7 +643,7 @@ func TestReviewsPut(t *testing.T) {
 			priorReviews: []screenjournal.Review{
 				{
 					Owner:   screenjournal.Username("userA"),
-					Rating:  screenjournal.Rating(5),
+					Rating:  screenjournal.NewRating(5),
 					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
@@ -633,7 +669,7 @@ func TestReviewsPut(t *testing.T) {
 			expectedStatus: http.StatusNotFound,
 		},
 		{
-			description: "rejects request with missing rating field",
+			description: "accepts request with missing rating field",
 			localMovies: []screenjournal.Movie{
 				{
 					TmdbID:      screenjournal.TmdbID(38),
@@ -646,7 +682,7 @@ func TestReviewsPut(t *testing.T) {
 				{
 					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
-					Rating:  screenjournal.Rating(5),
+					Rating:  screenjournal.NewRating(5),
 					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
@@ -669,7 +705,21 @@ func TestReviewsPut(t *testing.T) {
 			route:          "/reviews/1",
 			payload:        "watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
 			sessionToken:   "abc123",
-			expectedStatus: http.StatusBadRequest,
+			expectedStatus: http.StatusSeeOther,
+			expected: screenjournal.Review{
+				Owner:   screenjournal.Username("userA"),
+				Rating:  screenjournal.Rating{},
+				Watched: mustParseWatchDate("2022-10-30"),
+				Blurb:   screenjournal.Blurb("It's a pretty good movie!"),
+				Movie: screenjournal.Movie{
+					ID:          screenjournal.MovieID(1),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+				Comments: []screenjournal.ReviewComment{},
+			},
 		},
 		{
 			description: "rejects request with missing watched field",
@@ -685,7 +735,7 @@ func TestReviewsPut(t *testing.T) {
 				{
 					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
-					Rating:  screenjournal.Rating(5),
+					Rating:  screenjournal.NewRating(5),
 					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
@@ -724,7 +774,7 @@ func TestReviewsPut(t *testing.T) {
 				{
 					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
-					Rating:  screenjournal.Rating(5),
+					Rating:  screenjournal.NewRating(5),
 					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{
@@ -763,7 +813,7 @@ func TestReviewsPut(t *testing.T) {
 				{
 					ID:      screenjournal.ReviewID(1),
 					Owner:   screenjournal.Username("userA"),
-					Rating:  screenjournal.Rating(5),
+					Rating:  screenjournal.NewRating(5),
 					Watched: mustParseWatchDate("2022-10-28"),
 					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
 					Movie: screenjournal.Movie{

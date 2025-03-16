@@ -547,6 +547,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			MediaType:     mediaType,
 			Today:         time.Now(),
 		}); err != nil {
+			log.Printf("failed to execute template: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -912,7 +913,7 @@ func ratingToStars(rating screenjournal.Rating) []string {
 		return []string{}
 	}
 
-	ratingVal := *rating.UInt8()
+	ratingVal := rating.UInt8()
 	stars := make([]string, parse.MaxRating/2)
 	// Add whole stars.
 	for i := uint8(0); i < ratingVal/2; i++ {

@@ -74,15 +74,18 @@ func (mt MediaTitle) String() string {
 	return string(mt)
 }
 
-func (r Rating) UInt8() *uint8 {
-	return r.Value
+func (r Rating) UInt8() uint8 {
+	if r.IsNil() {
+		return 0
+	}
+	return *r.Value
 }
 
 func (r Rating) String() string {
 	if r.IsNil() {
 		return "nil"
 	}
-	return fmt.Sprintf("%d", *r.UInt8())
+	return fmt.Sprintf("%d", r.UInt8())
 }
 
 func NewRating(val uint8) Rating {

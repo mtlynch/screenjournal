@@ -1,6 +1,7 @@
 package screenjournal
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -75,6 +76,13 @@ func (mt MediaTitle) String() string {
 
 func (r Rating) UInt8() *uint8 {
 	return r.Value
+}
+
+func (r Rating) String() string {
+	if r.IsNil() {
+		return "nil"
+	}
+	return fmt.Sprintf("%d", *r.UInt8())
 }
 
 func NewRating(val uint8) Rating {

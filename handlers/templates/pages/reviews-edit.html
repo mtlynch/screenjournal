@@ -135,10 +135,13 @@
           aria-label="Rating"
           autofocus
         >
-          {{ $selectedRating := .Review.Rating.UInt8 }}
-          {{ if eq $selectedRating 0 }}
+          {{ $selectedRating := 0 }}
+          {{ if .Review.Rating.IsNil }}
             <option selected></option>
+          {{ else }}
+            {{ $selectedRating = .Review.Rating.UInt8 }}
           {{ end }}
+
           {{ range .RatingOptions }}
             <option
               value="{{ .Value }}"

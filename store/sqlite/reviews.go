@@ -139,9 +139,9 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 
 func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, error) {
 	if r.MediaType() == screenjournal.MediaTypeMovie {
-		log.Printf("inserting new review of movie ID %v: %v", r.Movie.ID, r.Rating.UInt8())
+		log.Printf("inserting new review of movie ID %v: %s", r.Movie.ID, r.Rating)
 	} else {
-		log.Printf("inserting new review of TV show ID %v: %v", r.TvShow.ID, r.Rating.UInt8())
+		log.Printf("inserting new review of TV show ID %v: %s", r.TvShow.ID, r.Rating)
 	}
 
 	now := time.Now()
@@ -197,9 +197,9 @@ func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, err
 
 func (s Store) UpdateReview(r screenjournal.Review) error {
 	if r.MediaType() == screenjournal.MediaTypeMovie {
-		log.Printf("updating review of movie ID %v: %v", r.Movie.ID, r.Rating.UInt8())
+		log.Printf("updating review of movie ID %v: %s", r.Movie.ID, r.Rating)
 	} else {
-		log.Printf("updating review of TV show ID %v: %v", r.TvShow.ID, r.Rating.UInt8())
+		log.Printf("updating review of TV show ID %v: %s", r.TvShow.ID, r.Rating)
 	}
 
 	if r.ID.IsZero() {

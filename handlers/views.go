@@ -742,6 +742,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			MediaType: mediaType,
 			Today:     time.Now(),
 		}); err != nil {
+			log.Printf("failed to execute template: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

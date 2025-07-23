@@ -16,11 +16,19 @@ set +x
 . .env.prod
 set -x
 
+export LITESTREAM_REGION
+export DB_REPLICA_URL
+export LITESTREAM_ENDPOINT
+export LITESTREAM_BUCKET
+export LITESTREAM_ACCESS_KEY_ID
+export LITESTREAM_SECRET_ACCESS_KEY
+
+
 if [[ -z "${DB_PATH}" ]]; then
-      echo "usage: upload-prod-db db_path" && exit 1
+      echo "usage: upload-prod-db [db_path]" && exit 1
 fi
 
-read -r -p "Really overwrite prod database? (y/N): " choice
+read -r -p 'Really overwrite prod database? (y/N): ' choice
 
 echo "Choice is ${choice}"
 
@@ -29,10 +37,10 @@ if [[ $choice != "y" ]]; then
   exit 1
 fi
 
-flyctl scale count 0
+flyctl scale count 0 --yes
 
 echo "Replacing prod database"
 
 litestream replicate -config litestream.yml -exec "sleep 30"
 
-flyctl scale count 1
+flyctl scale count 1 --yes

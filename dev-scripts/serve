@@ -28,6 +28,7 @@ fi
 set +x
 # shellcheck disable=SC1091
 . .env.dev
+export SJ_TMDB_API
 set -x
 
 # Run modd for hot reloading.

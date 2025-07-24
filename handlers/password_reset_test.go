@@ -1,6 +1,7 @@
 package handlers_test
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -14,50 +15,50 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
-type passwordResetTestData struct {
-	users struct {
-		userA screenjournal.User
-		userB screenjournal.User
-	}
-	passwordResetEntries struct {
-		validToken   screenjournal.PasswordResetEntry
-		expiredToken screenjournal.PasswordResetEntry
-	}
+// Simple mock session manager implementation for this test.
+type passwordResetMockSessionManager struct {
+	sessions map[string]sessions.Session
 }
 
-func makePasswordResetTestData() passwordResetTestData {
-	td := passwordResetTestData{}
-
-	td.users.userA = screenjournal.User{
-		Username:     screenjournal.Username("userA"),
-		PasswordHash: mustCreatePasswordHash("oldpass123"),
-		Email:        screenjournal.Email("userA@example.com"),
-		IsAdmin:      false,
+func (sm *passwordResetMockSessionManager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username, isAdmin bool) error {
+	token := "mock-session-token-12345"
+	sm.sessions[token] = sessions.Session{
+		Username: username,
+		IsAdmin:  isAdmin,
 	}
+	http.SetCookie(w, &http.Cookie{
+		Name:  "mock-session-token",
+		Value: token,
+	})
+	return nil
+}
 
-	td.users.userB = screenjournal.User{
-		Username:     screenjournal.Username("userB"),
-		PasswordHash: mustCreatePasswordHash("userBpass456"),
-		Email:        screenjournal.Email("userB@example.com"),
-		IsAdmin:      true,
-	}
+func (sm *passwordResetMockSessionManager) SessionFromContext(ctx context.Context) (sessions.Session, error) {
+	// Not used in this test.
+	return sessions.Session{}, nil
+}
 
-	td.passwordResetEntries.validToken = screenjournal.PasswordResetEntry{
-		Username:  td.users.userA.Username,
-		Token:     screenjournal.PasswordResetToken("valid-token-123"),
-		ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // 7 days from now
-	}
+func (sm *passwordResetMockSessionManager) SessionFromToken(token string) (sessions.Session, error) {
+	// Not used in this test.
+	return sessions.Session{}, nil
+}
 
-	td.passwordResetEntries.expiredToken = screenjournal.PasswordResetEntry{
-		Username:  td.users.userB.Username,
-		Token:     screenjournal.PasswordResetToken("expired-token-456"),
-		ExpiresAt: time.Now().Add(-1 * time.Hour), // 1 hour ago
-	}
+func (sm *passwordResetMockSessionManager) EndSession(context.Context, http.ResponseWriter) {}
 
-	return td
+func (sm *passwordResetMockSessionManager) WrapRequest(next http.Handler) http.Handler {
+	return next // Simple passthrough for this test.
 }
 
 func TestAccountPasswordResetPut(t *testing.T) {
+	// Helper to create password hash inline.
+	createPasswordHash := func(plaintext string) screenjournal.PasswordHash {
+		h, err := auth.HashPassword(screenjournal.Password(plaintext))
+		if err != nil {
+			t.Fatalf("failed to create password hash: %v", err)
+		}
+		return screenjournal.PasswordHash(h.Bytes())
+	}
+
 	for _, tt := range []struct {
 		description          string
 		payload              string
@@ -67,48 +68,74 @@ func TestAccountPasswordResetPut(t *testing.T) {
 		expectedStatus       int
 		expectSessionFor     screenjournal.Username
 		expectSessionIsAdmin bool
+		newPasswordInPayload screenjournal.Password
 	}{
 		{
 			description: "valid password reset creates session and logs user in",
 			payload:     "password=newpass123",
-			token:       makePasswordResetTestData().passwordResetEntries.validToken.Token,
+			token:       screenjournal.PasswordResetToken("valid-token-123"),
 			existingUsers: []screenjournal.User{
-				makePasswordResetTestData().users.userA,
+				{
+					Username:     screenjournal.Username("userA"),
+					PasswordHash: createPasswordHash("oldpass123"),
+					Email:        screenjournal.Email("userA@example.com"),
+					IsAdmin:      false,
+				},
 			},
 			existingTokens: []screenjournal.PasswordResetEntry{
-				makePasswordResetTestData().passwordResetEntries.validToken,
+				{
+					Username:  screenjournal.Username("userA"),
+					Token:     screenjournal.PasswordResetToken("valid-token-123"),
+					ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // 7 days from now.
+				},
 			},
 			expectedStatus:       http.StatusOK,
-			expectSessionFor:     makePasswordResetTestData().users.userA.Username,
-			expectSessionIsAdmin: makePasswordResetTestData().users.userA.IsAdmin,
+			expectSessionFor:     screenjournal.Username("userA"),
+			expectSessionIsAdmin: false,
+			newPasswordInPayload: screenjournal.Password("newpass123"),
 		},
 		{
 			description: "admin user password reset creates admin session",
 			payload:     "password=newadminpass789",
 			token:       screenjournal.PasswordResetToken("admin-token-999"),
 			existingUsers: []screenjournal.User{
-				makePasswordResetTestData().users.userB,
+				{
+					Username:     screenjournal.Username("userB"),
+					PasswordHash: createPasswordHash("userBpass456"),
+					Email:        screenjournal.Email("userB@example.com"),
+					IsAdmin:      true,
+				},
 			},
 			existingTokens: []screenjournal.PasswordResetEntry{
 				{
-					Username:  makePasswordResetTestData().users.userB.Username,
+					Username:  screenjournal.Username("userB"),
 					Token:     screenjournal.PasswordResetToken("admin-token-999"),
-					ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
+					ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // 7 days from now.
 				},
 			},
 			expectedStatus:       http.StatusOK,
-			expectSessionFor:     makePasswordResetTestData().users.userB.Username,
-			expectSessionIsAdmin: makePasswordResetTestData().users.userB.IsAdmin,
+			expectSessionFor:     screenjournal.Username("userB"),
+			expectSessionIsAdmin: true,
+			newPasswordInPayload: screenjournal.Password("newadminpass789"),
 		},
 		{
 			description: "expired token is rejected and no session created",
 			payload:     "password=newpass123",
-			token:       makePasswordResetTestData().passwordResetEntries.expiredToken.Token,
+			token:       screenjournal.PasswordResetToken("expired-token-456"),
 			existingUsers: []screenjournal.User{
-				makePasswordResetTestData().users.userB,
+				{
+					Username:     screenjournal.Username("userB"),
+					PasswordHash: createPasswordHash("userBpass456"),
+					Email:        screenjournal.Email("userB@example.com"),
+					IsAdmin:      true,
+				},
 			},
 			existingTokens: []screenjournal.PasswordResetEntry{
-				makePasswordResetTestData().passwordResetEntries.expiredToken,
+				{
+					Username:  screenjournal.Username("userB"),
+					Token:     screenjournal.PasswordResetToken("expired-token-456"),
+					ExpiresAt: time.Now().Add(-1 * time.Hour), // 1 hour ago.
+				},
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -117,7 +144,12 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			payload:     "password=newpass123",
 			token:       screenjournal.PasswordResetToken("nonexistent-token"),
 			existingUsers: []screenjournal.User{
-				makePasswordResetTestData().users.userA,
+				{
+					Username:     screenjournal.Username("userA"),
+					PasswordHash: createPasswordHash("oldpass123"),
+					Email:        screenjournal.Email("userA@example.com"),
+					IsAdmin:      false,
+				},
 			},
 			existingTokens: []screenjournal.PasswordResetEntry{},
 			expectedStatus: http.StatusBadRequest,
@@ -125,12 +157,21 @@ func TestAccountPasswordResetPut(t *testing.T) {
 		{
 			description: "invalid password is rejected and no session created",
 			payload:     "password=short",
-			token:       makePasswordResetTestData().passwordResetEntries.validToken.Token,
+			token:       screenjournal.PasswordResetToken("valid-token-123"),
 			existingUsers: []screenjournal.User{
-				makePasswordResetTestData().users.userA,
+				{
+					Username:     screenjournal.Username("userA"),
+					PasswordHash: createPasswordHash("oldpass123"),
+					Email:        screenjournal.Email("userA@example.com"),
+					IsAdmin:      false,
+				},
 			},
 			existingTokens: []screenjournal.PasswordResetEntry{
-				makePasswordResetTestData().passwordResetEntries.validToken,
+				{
+					Username:  screenjournal.Username("userA"),
+					Token:     screenjournal.PasswordResetToken("valid-token-123"),
+					ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // 7 days from now.
+				},
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -153,9 +194,17 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			}
 
 			authenticator := auth.New(dataStore)
-			sessionManager := newMockSessionManager([]mockSessionEntry{})
 
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
+			// Create mock session manager for this test.
+			sessionMgr := &passwordResetMockSessionManager{
+				sessions: make(map[string]sessions.Session),
+			}
+
+			// Create handler with nil announcer and metadata finder.
+			var nilAnnouncer handlers.Announcer
+			var nilMetadataFinder handlers.MetadataFinder
+
+			s := handlers.New(authenticator, nilAnnouncer, sessionMgr, dataStore, nilMetadataFinder)
 
 			url := "/account/password-reset?token=" + tt.token.String()
 			req, err := http.NewRequest("PUT", url, strings.NewReader(tt.payload))
@@ -174,20 +223,20 @@ func TestAccountPasswordResetPut(t *testing.T) {
 
 			if tt.expectedStatus != http.StatusOK {
 				// Verify no session was created on failure.
-				if got, want := len(sessionManager.sessions), 0; got != want {
+				if got, want := len(sessionMgr.sessions), 0; got != want {
 					t.Errorf("sessionCount=%d, want=%d", got, want)
 				}
 				return
 			}
 
 			// Verify that a session was created.
-			if got, want := len(sessionManager.sessions), 1; got != want {
+			if got, want := len(sessionMgr.sessions), 1; got != want {
 				t.Fatalf("sessionCount=%d, want=%d", got, want)
 			}
 
 			// Find the created session.
 			var createdSession sessions.Session
-			for _, session := range sessionManager.sessions {
+			for _, session := range sessionMgr.sessions {
 				createdSession = session
 				break
 			}
@@ -202,17 +251,10 @@ func TestAccountPasswordResetPut(t *testing.T) {
 				t.Errorf("sessionIsAdmin=%t, want=%t", got, want)
 			}
 
-			// Verify that the password was actually changed.
-			// Extract new password from payload.
-			var newPassword screenjournal.Password
-			if strings.Contains(tt.payload, "password=newpass123") {
-				newPassword = screenjournal.Password("newpass123")
-			} else if strings.Contains(tt.payload, "password=newadminpass789") {
-				newPassword = screenjournal.Password("newadminpass789")
-			}
-
-			if err := authenticator.Authenticate(tt.expectSessionFor, newPassword); err != nil {
-				t.Errorf("new password (%s) is not valid after reset", newPassword.String())
+			// Verify that the password was actually changed by attempting to
+			// authenticate with the new password.
+			if err := authenticator.Authenticate(tt.expectSessionFor, tt.newPasswordInPayload); err != nil {
+				t.Errorf("new password (%s) is not valid after reset", tt.newPasswordInPayload.String())
 			}
 
 			// Verify that the password reset token was deleted.

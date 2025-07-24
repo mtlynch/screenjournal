@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { populateDummyData } from "./helpers/db.js";
-import { loginAsUserA } from "./helpers/login.js";
+import { populateDummyData } from "./helpers/db";
+import { loginAsUserA } from "./helpers/login";
 
 test("signs up and logs out and signs in again", async ({ page }) => {
   await page.goto("/");

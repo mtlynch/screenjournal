@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { loginAsAdmin } from "./helpers/login.js";
-import { populateDummyData, readDbTokenCookie } from "./helpers/db.js";
+import { loginAsAdmin } from "./helpers/login";
+import { populateDummyData, readDbTokenCookie } from "./helpers/db";
 
 test.beforeEach(async ({ page }) => {
   await populateDummyData(page);

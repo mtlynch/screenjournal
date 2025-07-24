@@ -65,7 +65,7 @@ test("admin can create password reset link and user can reset password", async (
 });
 
 test("password reset link expires properly", async ({ page, browser }) => {
-  // Admin creates reset link for userA
+  // Admin creates reset link for userA.
   await page.getByRole("menuitem", { name: "Admin" }).click();
   await page.getByRole("menuitem", { name: "Password Resets" }).click();
 
@@ -73,7 +73,7 @@ test("password reset link expires properly", async ({ page, browser }) => {
   await page.selectOption("#username", "userA");
   await page.getByRole("button", { name: "Generate Reset Link" }).click();
 
-  // Wait for the reset link to be generated and extract the token
+  // Wait for the reset link to be generated and extract the token.
   await expect(page.locator("[data-token]")).toBeVisible();
   const token = await page
     .locator("[data-token]")
@@ -81,13 +81,16 @@ test("password reset link expires properly", async ({ page, browser }) => {
     .getAttribute("data-token");
   expect(token).toBeTruthy();
 
-  // Admin deletes the reset token
+  // Admin deletes the reset token.
   await page
     .locator("[data-token]")
     .first()
     .locator("..")
     .getByRole("button", { name: /Delete/i })
     .click();
+
+  // Wait for the row to disappear from the table.
+  await expect(page.locator("[data-token]")).not.toBeVisible();
 
   // Switch to user context
   const userContext = await browser.newContext();
@@ -98,7 +101,7 @@ test("password reset link expires properly", async ({ page, browser }) => {
   const userPage = await userContext.newPage();
   const resetLink = `/account/change-password?token=${token}`;
 
-  // Trying to access expired/deleted token should fail
+  // Trying to access expired/deleted token should fail.
   const response = await userPage.goto(resetLink);
   await expect(response?.status()).toBe(401);
 

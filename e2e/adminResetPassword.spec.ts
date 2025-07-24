@@ -81,6 +81,9 @@ test("password reset link expires properly", async ({ page, browser }) => {
     .getAttribute("data-token");
   expect(token).toBeTruthy();
 
+  // Confirm the dialog to confirm delete.
+  page.on("dialog", (dialog) => dialog.accept());
+
   // Admin deletes the reset token.
   await page
     .locator("[data-token]")

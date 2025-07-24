@@ -881,22 +881,25 @@ func (s Server) accountChangePasswordGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// If a token is provided, validate it before rendering the page.
 		token := screenjournal.PasswordResetToken(r.URL.Query().Get("token"))
-		if !token.Empty() {
-			// Verify token exists and hasn't expired.
-			passwordResetEntry, err := s.getDB(r).ReadPasswordResetEntry(token)
-			if err != nil {
-				http.Error(w, "Invalid or expired password reset token", http.StatusUnauthorized)
-				return
-			}
+		if token.Empty() {
+			http.Error(w, "Missing password reset token", http.StatusUnauthorized)
+			return
+		}
 
-			if passwordResetEntry.IsExpired() {
-				// Clean up expired token.
-				if err := s.getDB(r).DeletePasswordResetEntry(token); err != nil {
-					log.Printf("failed to delete expired password reset token %s: %v", token, err)
-				}
-				http.Error(w, "Password reset token has expired", http.StatusUnauthorized)
-				return
+		// Verify token exists and hasn't expired.
+		passwordResetEntry, err := s.getDB(r).ReadPasswordResetEntry(token)
+		if err != nil {
+			http.Error(w, "Invalid or expired password reset token", http.StatusUnauthorized)
+			return
+		}
+
+		if passwordResetEntry.IsExpired() {
+			// Clean up expired token.
+			if err := s.getDB(r).DeletePasswordResetEntry(token); err != nil {
+				log.Printf("failed to delete expired password reset token %s: %v", token, err)
 			}
+			http.Error(w, "Password reset token has expired", http.StatusUnauthorized)
+			return
 		}
 
 		if err := t.Execute(w, struct {

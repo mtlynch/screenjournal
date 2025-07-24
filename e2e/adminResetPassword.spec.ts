@@ -52,7 +52,7 @@ test("admin can create password reset link and user can reset password", async (
   await expect(userPage.getByText("Password updated")).toBeVisible();
 
   // User should be redirected to home after password reset
-  await expect(userPage).toHaveURL("/");
+  await expect(userPage).toHaveURL("/reviews");
 
   // Navigate to "My ratings" to verify we're logged in as the correct user
   await userPage.getByRole("menuitem", { name: "Account" }).click();

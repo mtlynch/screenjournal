@@ -815,6 +815,63 @@ func (s Server) invitesGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) passwordResetAdminGet() http.HandlerFunc {
+	t := template.Must(
+		template.New("base.html").
+			Funcs(template.FuncMap{
+				"formatTime": func(t time.Time) string {
+					return t.Format("Jan 2, 2006 3:04 PM")
+				},
+			}).
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/admin-reset-password.html", "templates/fragments/password-reset-row.html")...))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		allUsers, err := s.getDB(r).ReadUsersPublicMeta()
+		if err != nil {
+			log.Printf("failed to read users: %v", err)
+			http.Error(w, "Failed to load users", http.StatusInternalServerError)
+			return
+		}
+
+		// Filter out the current user from the list
+		currentUsername := mustGetUsernameFromContext(r.Context())
+		var users []screenjournal.UserPublicMeta
+		for _, user := range allUsers {
+			if !user.Username.Equal(currentUsername) {
+				users = append(users, user)
+			}
+		}
+
+		// Clean up expired tokens before displaying
+		if err := s.getDB(r).DeleteExpiredPasswordResetEntries(); err != nil {
+			log.Printf("failed to clean up expired password reset tokens: %v", err)
+		}
+
+		passwordResetRequests, err := s.getDB(r).ReadPasswordResetEntries()
+		if err != nil {
+			log.Printf("failed to read password reset requests: %v", err)
+			http.Error(w, "Failed to load password reset requests", http.StatusInternalServerError)
+			return
+		}
+
+		if err := t.Execute(w, struct {
+			commonProps
+			passwordResetAdminGetRequest
+		}{
+			commonProps: makeCommonProps(r.Context()),
+			passwordResetAdminGetRequest: passwordResetAdminGetRequest{
+				Users:                users,
+				PasswordResetEntries: passwordResetRequests,
+			},
+		}); err != nil {
+			log.Printf("failed to render admin reset password template: %v", err)
+			http.Error(w, "Failed to render page", http.StatusInternalServerError)
+		}
+	}
+}
+
 func (s Server) accountChangePasswordGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").ParseFS(

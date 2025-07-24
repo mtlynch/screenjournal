@@ -103,8 +103,7 @@ func (s Store) ReadPasswordResetEntries() ([]screenjournal.PasswordResetEntry, e
 
 func (s Store) DeletePasswordResetEntry(token screenjournal.PasswordResetToken) error {
 	log.Printf("deleting password reset token: %s", token)
-	_, err := s.ctx.Exec(`DELETE FROM password_reset_tokens WHERE token = :token`, sql.Named("token", token.String()))
-	if err != nil {
+	if _, err := s.ctx.Exec(`DELETE FROM password_reset_tokens WHERE token = :token`, sql.Named("token", token.String())); err != nil {
 		return err
 	}
 	return nil
@@ -113,8 +112,7 @@ func (s Store) DeletePasswordResetEntry(token screenjournal.PasswordResetToken) 
 func (s Store) DeleteExpiredPasswordResetEntries() error {
 	log.Printf("deleting expired password reset tokens")
 	now := time.Now()
-	_, err := s.ctx.Exec(`DELETE FROM password_reset_tokens WHERE expires_at < :now`, sql.Named("now", formatTime(now)))
-	if err != nil {
+	if _, err := s.ctx.Exec(`DELETE FROM password_reset_tokens WHERE expires_at < :now`, sql.Named("now", formatTime(now))); err != nil {
 		return err
 	}
 	return nil

@@ -59,8 +59,8 @@ func (s Server) passwordResetAdminPost() http.HandlerFunc {
 		}
 
 		if err := s.getDB(r).InsertPasswordResetEntry(passwordResetEntry); err != nil {
-			log.Printf("failed to insert password reset request %+v: %v", passwordResetEntry, err)
-			http.Error(w, "Failed to create password reset request", http.StatusInternalServerError)
+			log.Printf("failed to insert password reset entry %+v: %v", passwordResetEntry, err)
+			http.Error(w, "Failed to create password reset entry", http.StatusInternalServerError)
 			return
 		}
 
@@ -110,7 +110,7 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 				http.Error(w, "Invalid or expired password reset token", http.StatusBadRequest)
 				return
 			}
-			log.Printf("failed to read password reset request for token %s: %v", token, err)
+			log.Printf("failed to read password reset entry for token %s: %v", token, err)
 			http.Error(w, "Failed to verify password reset token", http.StatusInternalServerError)
 			return
 		}

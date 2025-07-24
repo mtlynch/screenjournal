@@ -52,14 +52,14 @@ func (s Server) passwordResetAdminPost() http.HandlerFunc {
 			return
 		}
 
-		passwordResetRequest := screenjournal.PasswordResetEntry{
+		passwordResetEntry := screenjournal.PasswordResetEntry{
 			Username:  req.Username,
 			Token:     screenjournal.NewPasswordResetToken(),
 			ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // 7 days
 		}
 
-		if err := s.getDB(r).InsertPasswordResetEntry(passwordResetRequest); err != nil {
-			log.Printf("failed to insert password reset request %+v: %v", passwordResetRequest, err)
+		if err := s.getDB(r).InsertPasswordResetEntry(passwordResetEntry); err != nil {
+			log.Printf("failed to insert password reset request %+v: %v", passwordResetEntry, err)
 			http.Error(w, "Failed to create password reset request", http.StatusInternalServerError)
 			return
 		}
@@ -69,9 +69,9 @@ func (s Server) passwordResetAdminPost() http.HandlerFunc {
 			Token     screenjournal.PasswordResetToken
 			ExpiresAt time.Time
 		}{
-			Username:  passwordResetRequest.Username,
-			Token:     passwordResetRequest.Token,
-			ExpiresAt: passwordResetRequest.ExpiresAt,
+			Username:  passwordResetEntry.Username,
+			Token:     passwordResetEntry.Token,
+			ExpiresAt: passwordResetEntry.ExpiresAt,
 		}); err != nil {
 			http.Error(w, "Failed to render template", http.StatusInternalServerError)
 			log.Printf("failed to render password reset row template: %v", err)
@@ -104,7 +104,7 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 		}
 
 		// Verify token exists and hasn't expired
-		passwordResetRequest, err := s.getDB(r).ReadPasswordResetEntry(token)
+		passwordResetEntry, err := s.getDB(r).ReadPasswordResetEntry(token)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				http.Error(w, "Invalid or expired password reset token", http.StatusBadRequest)
@@ -115,7 +115,7 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 			return
 		}
 
-		if passwordResetRequest.IsExpired() {
+		if passwordResetEntry.IsExpired() {
 			// Clean up expired token
 			if err := s.getDB(r).DeletePasswordResetEntry(token); err != nil {
 				log.Printf("failed to delete expired password reset token %s: %v", token, err)
@@ -139,8 +139,8 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 		}
 
 		// Update user password
-		if err := s.getDB(r).UpdateUserPassword(passwordResetRequest.Username, newPasswordHash); err != nil {
-			log.Printf("failed to update password for %v: %v", passwordResetRequest.Username, err)
+		if err := s.getDB(r).UpdateUserPassword(passwordResetEntry.Username, newPasswordHash); err != nil {
+			log.Printf("failed to update password for %v: %v", passwordResetEntry.Username, err)
 			http.Error(w, "Failed to update password", http.StatusInternalServerError)
 			return
 		}

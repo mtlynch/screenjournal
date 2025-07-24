@@ -849,7 +849,7 @@ func (s Server) passwordResetAdminGet() http.HandlerFunc {
 			log.Printf("failed to clean up expired password reset tokens: %v", err)
 		}
 
-		passwordResetRequests, err := s.getDB(r).ReadPasswordResetEntries()
+		passwordResetEntries, err := s.getDB(r).ReadPasswordResetEntries()
 		if err != nil {
 			log.Printf("failed to read password reset requests: %v", err)
 			http.Error(w, "Failed to load password reset requests", http.StatusInternalServerError)
@@ -863,7 +863,7 @@ func (s Server) passwordResetAdminGet() http.HandlerFunc {
 			commonProps: makeCommonProps(r.Context()),
 			passwordResetAdminGetRequest: passwordResetAdminGetRequest{
 				Users:                users,
-				PasswordResetEntries: passwordResetRequests,
+				PasswordResetEntries: passwordResetEntries,
 			},
 		}); err != nil {
 			log.Printf("failed to render admin reset password template: %v", err)

@@ -15,8 +15,8 @@ import (
 )
 
 type passwordResetAdminGetRequest struct {
-	Users                 []screenjournal.UserPublicMeta
-	PasswordResetRequests []screenjournal.PasswordResetRequest
+	Users                []screenjournal.UserPublicMeta
+	PasswordResetEntries []screenjournal.PasswordResetEntry
 }
 
 type passwordResetAdminPostRequest struct {
@@ -53,11 +53,11 @@ func (s Server) passwordResetAdminGet() http.HandlerFunc {
 		}
 
 		// Clean up expired tokens before displaying
-		if err := s.getDB(r).DeleteExpiredPasswordResetRequests(); err != nil {
+		if err := s.getDB(r).DeleteExpiredPasswordResetEntries(); err != nil {
 			log.Printf("failed to clean up expired password reset tokens: %v", err)
 		}
 
-		passwordResetRequests, err := s.getDB(r).ReadPasswordResetRequests()
+		passwordResetRequests, err := s.getDB(r).ReadPasswordResetEntries()
 		if err != nil {
 			log.Printf("failed to read password reset requests: %v", err)
 			http.Error(w, "Failed to load password reset requests", http.StatusInternalServerError)
@@ -70,8 +70,8 @@ func (s Server) passwordResetAdminGet() http.HandlerFunc {
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			passwordResetAdminGetRequest: passwordResetAdminGetRequest{
-				Users:                 users,
-				PasswordResetRequests: passwordResetRequests,
+				Users:                users,
+				PasswordResetEntries: passwordResetRequests,
 			},
 		}); err != nil {
 			log.Printf("failed to render admin reset password template: %v", err)
@@ -109,13 +109,13 @@ func (s Server) passwordResetAdminPost() http.HandlerFunc {
 			return
 		}
 
-		passwordResetRequest := screenjournal.PasswordResetRequest{
+		passwordResetRequest := screenjournal.PasswordResetEntry{
 			Username:  req.Username,
 			Token:     screenjournal.NewPasswordResetToken(),
 			ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // 7 days
 		}
 
-		if err := s.getDB(r).InsertPasswordResetRequest(passwordResetRequest); err != nil {
+		if err := s.getDB(r).InsertPasswordResetEntry(passwordResetRequest); err != nil {
 			log.Printf("failed to insert password reset request %+v: %v", passwordResetRequest, err)
 			http.Error(w, "Failed to create password reset request", http.StatusInternalServerError)
 			return
@@ -142,7 +142,7 @@ func (s Server) passwordResetAdminDelete() http.HandlerFunc {
 		vars := mux.Vars(r)
 		token := screenjournal.PasswordResetToken(vars["token"])
 
-		if err := s.getDB(r).DeletePasswordResetRequest(token); err != nil {
+		if err := s.getDB(r).DeletePasswordResetEntry(token); err != nil {
 			log.Printf("failed to delete password reset token %s: %v", token, err)
 			http.Error(w, "Failed to delete password reset token", http.StatusInternalServerError)
 			return
@@ -161,7 +161,7 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 		}
 
 		// Verify token exists and hasn't expired
-		passwordResetRequest, err := s.getDB(r).ReadPasswordResetRequest(token)
+		passwordResetRequest, err := s.getDB(r).ReadPasswordResetEntry(token)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				http.Error(w, "Invalid or expired password reset token", http.StatusBadRequest)
@@ -174,7 +174,7 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 
 		if passwordResetRequest.IsExpired() {
 			// Clean up expired token
-			if err := s.getDB(r).DeletePasswordResetRequest(token); err != nil {
+			if err := s.getDB(r).DeletePasswordResetEntry(token); err != nil {
 				log.Printf("failed to delete expired password reset token %s: %v", token, err)
 			}
 			http.Error(w, "Password reset token has expired", http.StatusBadRequest)
@@ -203,7 +203,7 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 		}
 
 		// Delete the used token
-		if err := s.getDB(r).DeletePasswordResetRequest(token); err != nil {
+		if err := s.getDB(r).DeletePasswordResetEntry(token); err != nil {
 			log.Printf("failed to delete used password reset token %s: %v", token, err)
 			// Don't fail the request since password was updated successfully
 		}

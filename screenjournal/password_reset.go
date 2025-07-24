@@ -9,7 +9,7 @@ import (
 type (
 	PasswordResetToken string
 
-	PasswordResetRequest struct {
+	PasswordResetEntry struct {
 		Username  Username
 		Token     PasswordResetToken
 		ExpiresAt time.Time
@@ -42,10 +42,10 @@ func NewPasswordResetToken() PasswordResetToken {
 	return PasswordResetToken(random.String(PasswordResetTokenLength, PasswordResetTokenCharset))
 }
 
-func (prr PasswordResetRequest) Empty() bool {
+func (prr PasswordResetEntry) Empty() bool {
 	return prr.Username == "" || prr.Token.Empty()
 }
 
-func (prr PasswordResetRequest) IsExpired() bool {
+func (prr PasswordResetEntry) IsExpired() bool {
 	return time.Now().After(prr.ExpiresAt)
 }

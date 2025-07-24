@@ -40,7 +40,7 @@ func (s Server) passwordResetAdminPost() http.HandlerFunc {
 			return
 		}
 
-		// Check if user exists
+		// Check if user exists.
 		_, err = s.getDB(r).ReadUser(req.Username)
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -103,7 +103,7 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 			return
 		}
 
-		// Verify token exists and hasn't expired
+		// Verify token exists and hasn't expired.
 		passwordResetEntry, err := s.getDB(r).ReadPasswordResetEntry(token)
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -116,7 +116,7 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 		}
 
 		if passwordResetEntry.IsExpired() {
-			// Clean up expired token
+			// Clean up expired token.
 			if err := s.getDB(r).DeletePasswordResetEntry(token); err != nil {
 				log.Printf("failed to delete expired password reset token %s: %v", token, err)
 			}
@@ -124,7 +124,7 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 			return
 		}
 
-		// Parse new password
+		// Parse new password.
 		newPassword, err := parse.Password(r.PostFormValue("password"))
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid password: %v", err), http.StatusBadRequest)
@@ -138,20 +138,20 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 			return
 		}
 
-		// Update user password
+		// Update user password.
 		if err := s.getDB(r).UpdateUserPassword(passwordResetEntry.Username, newPasswordHash); err != nil {
 			log.Printf("failed to update password for %v: %v", passwordResetEntry.Username, err)
 			http.Error(w, "Failed to update password", http.StatusInternalServerError)
 			return
 		}
 
-		// Delete the used token
+		// Delete the used token.
 		if err := s.getDB(r).DeletePasswordResetEntry(token); err != nil {
 			log.Printf("failed to delete used password reset token %s: %v", token, err)
 			// Don't fail the request since password was updated successfully
 		}
 
-		// Read user data to get admin status for session creation
+		// Read user data to get admin status for session creation.
 		user, err := s.getDB(r).ReadUser(passwordResetEntry.Username)
 		if err != nil {
 			log.Printf("failed to read user data for session creation %s: %v", passwordResetEntry.Username, err)
@@ -159,7 +159,7 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 			return
 		}
 
-		// Create session to automatically log in the user
+		// Create session to automatically log in the user.
 		if err := s.sessionManager.CreateSession(w, r.Context(), user.Username, user.IsAdmin); err != nil {
 			log.Printf("failed to create session for user %s after password reset: %v", user.Username.String(), err)
 			http.Error(w, "Password updated but failed to log in", http.StatusInternalServerError)

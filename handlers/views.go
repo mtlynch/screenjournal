@@ -835,7 +835,7 @@ func (s Server) passwordResetAdminGet() http.HandlerFunc {
 			return
 		}
 
-		// Filter out the current user from the list
+		// Filter the current user from the list.
 		currentUsername := mustGetUsernameFromContext(r.Context())
 		var users []screenjournal.UserPublicMeta
 		for _, user := range allUsers {
@@ -844,7 +844,7 @@ func (s Server) passwordResetAdminGet() http.HandlerFunc {
 			}
 		}
 
-		// Clean up expired tokens before displaying
+		// Clean up expired tokens before displaying.
 		if err := s.getDB(r).DeleteExpiredPasswordResetEntries(); err != nil {
 			log.Printf("failed to clean up expired password reset tokens: %v", err)
 		}

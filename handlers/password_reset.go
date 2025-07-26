@@ -83,7 +83,11 @@ func (s Server) passwordResetAdminPost() http.HandlerFunc {
 func (s Server) passwordResetAdminDelete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		token := screenjournal.PasswordResetToken(vars["token"])
+		token, err := parse.PasswordResetToken(vars["token"])
+		if err != nil {
+			http.Error(w, "Invalid password reset token", http.StatusBadRequest)
+			return
+		}
 
 		if err := s.getDB(r).DeletePasswordResetEntry(token); err != nil {
 			log.Printf("failed to delete password reset token %s: %v", token, err)
@@ -97,9 +101,9 @@ func (s Server) passwordResetAdminDelete() http.HandlerFunc {
 
 func (s Server) accountPasswordResetPut() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		token := screenjournal.PasswordResetToken(r.URL.Query().Get("token"))
-		if token.Empty() {
-			http.Error(w, "Missing password reset token", http.StatusBadRequest)
+		token, err := parse.PasswordResetToken(r.URL.Query().Get("token"))
+		if err != nil {
+			http.Error(w, "Invalid password reset token", http.StatusBadRequest)
 			return
 		}
 

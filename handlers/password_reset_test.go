@@ -73,7 +73,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 		{
 			description: "valid password reset creates session and logs user in",
 			payload:     "password=newpass123",
-			token:       screenjournal.PasswordResetToken("valid-token-123"),
+			token:       screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef23"),
 			existingUsers: []screenjournal.User{
 				{
 					Username:     screenjournal.Username("userA"),
@@ -85,7 +85,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			existingTokens: []screenjournal.PasswordResetEntry{
 				{
 					Username:  screenjournal.Username("userA"),
-					Token:     screenjournal.PasswordResetToken("valid-token-123"),
+					Token:     screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef23"),
 					ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // 7 days from now.
 				},
 			},
@@ -97,7 +97,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 		{
 			description: "admin user password reset creates admin session",
 			payload:     "password=newadminpass789",
-			token:       screenjournal.PasswordResetToken("admin-token-999"),
+			token:       screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef99"),
 			existingUsers: []screenjournal.User{
 				{
 					Username:     screenjournal.Username("userB"),
@@ -109,7 +109,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			existingTokens: []screenjournal.PasswordResetEntry{
 				{
 					Username:  screenjournal.Username("userB"),
-					Token:     screenjournal.PasswordResetToken("admin-token-999"),
+					Token:     screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef99"),
 					ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // 7 days from now.
 				},
 			},
@@ -121,7 +121,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 		{
 			description: "expired token is rejected and no session created",
 			payload:     "password=newpass123",
-			token:       screenjournal.PasswordResetToken("expired-token-456"),
+			token:       screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef56"),
 			existingUsers: []screenjournal.User{
 				{
 					Username:     screenjournal.Username("userB"),
@@ -133,7 +133,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			existingTokens: []screenjournal.PasswordResetEntry{
 				{
 					Username:  screenjournal.Username("userB"),
-					Token:     screenjournal.PasswordResetToken("expired-token-456"),
+					Token:     screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef56"),
 					ExpiresAt: time.Now().Add(-1 * time.Hour), // 1 hour ago.
 				},
 			},
@@ -142,7 +142,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 		{
 			description: "nonexistent token is rejected and no session created",
 			payload:     "password=newpass123",
-			token:       screenjournal.PasswordResetToken("nonexistent-token"),
+			token:       screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdefNE"),
 			existingUsers: []screenjournal.User{
 				{
 					Username:     screenjournal.Username("userA"),
@@ -157,7 +157,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 		{
 			description: "invalid password is rejected and no session created",
 			payload:     "password=short",
-			token:       screenjournal.PasswordResetToken("valid-token-123"),
+			token:       screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef12"),
 			existingUsers: []screenjournal.User{
 				{
 					Username:     screenjournal.Username("userA"),
@@ -169,7 +169,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			existingTokens: []screenjournal.PasswordResetEntry{
 				{
 					Username:  screenjournal.Username("userA"),
-					Token:     screenjournal.PasswordResetToken("valid-token-123"),
+					Token:     screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef12"),
 					ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // 7 days from now.
 				},
 			},

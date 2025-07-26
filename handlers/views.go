@@ -880,9 +880,9 @@ func (s Server) accountPasswordResetGet() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		// If a token is provided, validate it before rendering the page.
-		token := screenjournal.PasswordResetToken(r.URL.Query().Get("token"))
-		if token.Empty() {
-			http.Error(w, "Missing password reset token", http.StatusUnauthorized)
+		token, err := parse.PasswordResetToken(r.URL.Query().Get("token"))
+		if err != nil {
+			http.Error(w, "Invalid password reset token", http.StatusUnauthorized)
 			return
 		}
 
@@ -909,7 +909,7 @@ func (s Server) accountPasswordResetGet() http.HandlerFunc {
 			CancelURL     string
 		}{
 			commonProps:   makeCommonProps(r.Context()),
-			Token:         string(token),
+			Token:         token.String(),
 			FormTargetURL: fmt.Sprintf("/account/password-reset?token=%s", token),
 			CancelURL:     "/login",
 		}); err != nil {

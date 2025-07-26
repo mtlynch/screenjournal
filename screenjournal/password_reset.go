@@ -7,7 +7,9 @@ import (
 )
 
 type (
-	PasswordResetToken string
+	PasswordResetToken struct {
+		value string
+	}
 
 	PasswordResetEntry struct {
 		Username  Username
@@ -27,7 +29,7 @@ var (
 )
 
 func (prt PasswordResetToken) String() string {
-	return string(prt)
+	return prt.value
 }
 
 func (prt PasswordResetToken) Empty() bool {
@@ -39,7 +41,11 @@ func (prt PasswordResetToken) Equal(other PasswordResetToken) bool {
 }
 
 func NewPasswordResetToken() PasswordResetToken {
-	return PasswordResetToken(random.String(PasswordResetTokenLength, PasswordResetTokenCharset))
+	return PasswordResetToken{value: random.String(PasswordResetTokenLength, PasswordResetTokenCharset)}
+}
+
+func NewPasswordResetTokenFromString(token string) PasswordResetToken {
+	return PasswordResetToken{value: token}
 }
 
 func (prr PasswordResetEntry) Empty() bool {

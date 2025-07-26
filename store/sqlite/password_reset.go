@@ -24,7 +24,7 @@ func (s Store) InsertPasswordResetEntry(request screenjournal.PasswordResetEntry
 	)
 	`,
 		sql.Named("username", request.Username),
-		sql.Named("token", request.Token),
+		sql.Named("token", request.Token.String()),
 		sql.Named("expires_at", formatTime(request.ExpiresAt))); err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func (s Store) ReadPasswordResetEntry(token screenjournal.PasswordResetToken) (s
 		FROM
 			password_reset_tokens
 		WHERE
-			token = :token`, sql.Named("token", token)).Scan(&username, &expiresAtRaw); err != nil {
+			token = :token`, sql.Named("token", token.String())).Scan(&username, &expiresAtRaw); err != nil {
 		return screenjournal.PasswordResetEntry{}, err
 	}
 
@@ -93,7 +93,7 @@ func (s Store) ReadPasswordResetEntries() ([]screenjournal.PasswordResetEntry, e
 
 		requests = append(requests, screenjournal.PasswordResetEntry{
 			Username:  screenjournal.Username(usernameRaw),
-			Token:     screenjournal.PasswordResetToken(tokenRaw),
+			Token:     screenjournal.NewPasswordResetTokenFromString(tokenRaw),
 			ExpiresAt: expiresAt,
 		})
 	}

@@ -46,7 +46,7 @@ test("admin can create password reset link and user can reset password", async (
   await expect(userPage.getByLabel("Current Password")).not.toBeVisible();
   await userPage.getByLabel(/^New Password$/).fill("newpassword123");
   await userPage.getByLabel("Confirm New Password").fill("newpassword123");
-  await userPage.getByRole("button", { name: /Change password/i }).click();
+  await userPage.getByRole("button", { name: /Reset password/i }).click();
 
   // Verify successful reset
   await expect(userPage.getByText("Password updated")).toBeVisible();

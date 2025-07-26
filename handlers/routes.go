@@ -43,7 +43,7 @@ func (s *Server) routes() {
 	views.HandleFunc("/about", s.aboutGet()).Methods(http.MethodGet)
 	views.HandleFunc("/login", s.logInGet()).Methods(http.MethodGet)
 	views.HandleFunc("/sign-up", s.signUpGet()).Methods(http.MethodGet)
-	views.HandleFunc("/account/change-password", s.accountChangePasswordGet()).Methods(http.MethodGet)
+	views.HandleFunc("/account/password-reset", s.accountPasswordResetGet()).Methods(http.MethodGet)
 	views.HandleFunc("/account/password-reset", s.accountPasswordResetPut()).Methods(http.MethodPut)
 	views.HandleFunc("/", s.indexGet()).Methods(http.MethodGet)
 

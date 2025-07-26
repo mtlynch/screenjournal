@@ -872,7 +872,7 @@ func (s Server) passwordResetAdminGet() http.HandlerFunc {
 	}
 }
 
-func (s Server) accountChangePasswordGet() http.HandlerFunc {
+func (s Server) accountPasswordResetGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").ParseFS(
 			templatesFS,
@@ -904,8 +904,38 @@ func (s Server) accountChangePasswordGet() http.HandlerFunc {
 
 		if err := t.Execute(w, struct {
 			commonProps
+			Token         string
+			FormTargetURL string
+			CancelURL     string
 		}{
-			commonProps: makeCommonProps(r.Context()),
+			commonProps:   makeCommonProps(r.Context()),
+			Token:         string(token),
+			FormTargetURL: fmt.Sprintf("/account/password-reset?token=%s", token),
+			CancelURL:     "/login",
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func (s Server) accountChangePasswordGet() http.HandlerFunc {
+	t := template.Must(
+		template.New("base.html").ParseFS(
+			templatesFS,
+			append(baseTemplates, "templates/pages/account-change-password.html")...))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := t.Execute(w, struct {
+			commonProps
+			Token         string
+			FormTargetURL string
+			CancelURL     string
+		}{
+			commonProps:   makeCommonProps(r.Context()),
+			Token:         "",
+			FormTargetURL: "/account/password",
+			CancelURL:     "/account/security",
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

@@ -27,7 +27,7 @@ test("admin can create password reset link and user can reset password", async (
     .getAttribute("data-token");
   expect(token).toBeTruthy();
 
-  const resetLink = `/account/change-password?token=${token}`;
+  const resetLink = `/account/password-reset?token=${token}`;
 
   // Switch to user context
   const userContext = await browser.newContext();
@@ -102,7 +102,7 @@ test("password reset link expires properly", async ({ page, browser }) => {
   ]);
 
   const userPage = await userContext.newPage();
-  const resetLink = `/account/change-password?token=${token}`;
+  const resetLink = `/account/password-reset?token=${token}`;
 
   // Trying to access expired/deleted token should fail.
   const response = await userPage.goto(resetLink);

@@ -815,6 +815,110 @@ func (s Server) invitesGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) passwordResetAdminGet() http.HandlerFunc {
+	t := template.Must(
+		template.New("base.html").
+			Funcs(template.FuncMap{
+				"formatTime": func(t time.Time) string {
+					return t.Format("Jan 2, 2006 3:04 PM")
+				},
+			}).
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/admin-reset-password.html", "templates/fragments/password-reset-row.html")...))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		allUsers, err := s.getDB(r).ReadUsersPublicMeta()
+		if err != nil {
+			log.Printf("failed to read users: %v", err)
+			http.Error(w, "Failed to load users", http.StatusInternalServerError)
+			return
+		}
+
+		// Filter the current user from the list.
+		currentUsername := mustGetUsernameFromContext(r.Context())
+		var users []screenjournal.UserPublicMeta
+		for _, user := range allUsers {
+			if !user.Username.Equal(currentUsername) {
+				users = append(users, user)
+			}
+		}
+
+		// Clean up expired tokens before displaying.
+		if err := s.getDB(r).DeleteExpiredPasswordResetEntries(); err != nil {
+			log.Printf("failed to clean up expired password reset tokens: %v", err)
+		}
+
+		passwordResetEntries, err := s.getDB(r).ReadPasswordResetEntries()
+		if err != nil {
+			log.Printf("failed to read password reset requests: %v", err)
+			http.Error(w, "Failed to load password reset requests", http.StatusInternalServerError)
+			return
+		}
+
+		if err := t.Execute(w, struct {
+			commonProps
+			passwordResetAdminGetRequest
+		}{
+			commonProps: makeCommonProps(r.Context()),
+			passwordResetAdminGetRequest: passwordResetAdminGetRequest{
+				Users:                users,
+				PasswordResetEntries: passwordResetEntries,
+			},
+		}); err != nil {
+			log.Printf("failed to render admin reset password template: %v", err)
+			http.Error(w, "Failed to render page", http.StatusInternalServerError)
+		}
+	}
+}
+
+func (s Server) accountPasswordResetGet() http.HandlerFunc {
+	t := template.Must(
+		template.New("base.html").ParseFS(
+			templatesFS,
+			append(baseTemplates, "templates/pages/account-change-password.html")...))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		// If a token is provided, validate it before rendering the page.
+		token, err := parse.PasswordResetToken(r.URL.Query().Get("token"))
+		if err != nil {
+			http.Error(w, "Invalid password reset token", http.StatusUnauthorized)
+			return
+		}
+
+		// Verify token exists and hasn't expired.
+		passwordResetEntry, err := s.getDB(r).ReadPasswordResetEntry(token)
+		if err != nil {
+			http.Error(w, "Invalid or expired password reset token", http.StatusUnauthorized)
+			return
+		}
+
+		if passwordResetEntry.IsExpired() {
+			// Clean up expired token.
+			if err := s.getDB(r).DeletePasswordResetEntry(token); err != nil {
+				log.Printf("failed to delete expired password reset token %s: %v", token, err)
+			}
+			http.Error(w, "Password reset token has expired", http.StatusUnauthorized)
+			return
+		}
+
+		if err := t.Execute(w, struct {
+			commonProps
+			Token         string
+			FormTargetURL string
+			CancelURL     string
+		}{
+			commonProps:   makeCommonProps(r.Context()),
+			Token:         token.String(),
+			FormTargetURL: fmt.Sprintf("/account/password-reset?token=%s", token),
+			CancelURL:     "/login",
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func (s Server) accountChangePasswordGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").ParseFS(
@@ -824,8 +928,14 @@ func (s Server) accountChangePasswordGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := t.Execute(w, struct {
 			commonProps
+			Token         string
+			FormTargetURL string
+			CancelURL     string
 		}{
-			commonProps: makeCommonProps(r.Context()),
+			commonProps:   makeCommonProps(r.Context()),
+			Token:         "",
+			FormTargetURL: "/account/password",
+			CancelURL:     "/account/security",
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

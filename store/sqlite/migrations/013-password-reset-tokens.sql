@@ -1,6 +1,6 @@
 CREATE TABLE password_reset_tokens (
     id INTEGER PRIMARY KEY,
-    username TEXT NOT NULL,
+    username TEXT NOT NULL UNIQUE,
     token TEXT NOT NULL UNIQUE,
     expires_at TEXT NOT NULL,
     FOREIGN KEY (username) REFERENCES users (username)

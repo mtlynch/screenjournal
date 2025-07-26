@@ -12,7 +12,7 @@ func (s Store) InsertPasswordResetEntry(request screenjournal.PasswordResetEntry
 	log.Printf("inserting new password reset token for user %s", request.Username)
 
 	if _, err := s.ctx.Exec(`
-	INSERT INTO
+	INSERT OR REPLACE INTO
 		password_reset_tokens
 	(
 		username,

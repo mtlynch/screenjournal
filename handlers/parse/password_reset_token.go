@@ -2,23 +2,38 @@ package parse
 
 import (
 	"errors"
-	"regexp"
 
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
 var (
 	ErrInvalidPasswordResetToken = errors.New("invalid password reset token")
-
-	passwordResetTokenPattern = regexp.MustCompile(`^[ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789]{32}$`)
 )
+
+func isValidPasswordResetToken(token string) bool {
+	if len(token) != screenjournal.PasswordResetTokenLength {
+		return false
+	}
+
+	charsetMap := make(map[rune]bool)
+	for _, r := range screenjournal.PasswordResetTokenCharset {
+		charsetMap[r] = true
+	}
+
+	for _, r := range token {
+		if !charsetMap[r] {
+			return false
+		}
+	}
+	return true
+}
 
 func PasswordResetToken(token string) (screenjournal.PasswordResetToken, error) {
 	if token == "" {
 		return screenjournal.PasswordResetToken{}, ErrInvalidPasswordResetToken
 	}
 
-	if !passwordResetTokenPattern.MatchString(token) {
+	if !isValidPasswordResetToken(token) {
 		return screenjournal.PasswordResetToken{}, ErrInvalidPasswordResetToken
 	}
 

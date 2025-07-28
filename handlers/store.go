@@ -37,4 +37,9 @@ type Store interface {
 	ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error)
 	ReadNotificationPreferences(screenjournal.Username) (screenjournal.NotificationPreferences, error)
 	UpdateNotificationPreferences(screenjournal.Username, screenjournal.NotificationPreferences) error
+	InsertPasswordResetEntry(screenjournal.PasswordResetEntry) error
+	ReadPasswordResetEntry(screenjournal.PasswordResetToken) (screenjournal.PasswordResetEntry, error)
+	ReadPasswordResetEntries() ([]screenjournal.PasswordResetEntry, error)
+	DeletePasswordResetEntry(screenjournal.PasswordResetToken) error
+	DeleteExpiredPasswordResetEntries() error
 }

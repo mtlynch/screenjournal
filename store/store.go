@@ -25,6 +25,7 @@ type (
 var (
 	ErrMovieNotFound                     = errors.New("could not find movie")
 	ErrTvShowNotFound                    = errors.New("could not find TV show")
+	ErrTvShowSeasonNotFound              = errors.New("could not find TV show season")
 	ErrCommentNotFound                   = errors.New("could not find comment")
 	ErrReviewNotFound                    = errors.New("could not find review")
 	ErrUserNotFound                      = errors.New("could not find user")

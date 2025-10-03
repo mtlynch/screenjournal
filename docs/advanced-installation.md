@@ -1,4 +1,4 @@
-# Advanced Installation
+# Advanced installation
 
 ## Running ScreenJournal from a precompiled binary
 

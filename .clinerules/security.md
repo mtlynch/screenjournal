@@ -1,6 +1,6 @@
 # Security
 
-## Sensitive Files
+## Sensitive files
 
 DO NOT read or modify:
 

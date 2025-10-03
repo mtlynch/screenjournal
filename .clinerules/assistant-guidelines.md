@@ -1,16 +1,16 @@
-# Assistant Guidelines
+# Assistant guidelines
 
-## Documenting Lessons Learned
+## Documenting lessons learned
 
 After successfully completing a task where the user had to provide corrections or guidance, consider adding the lessons to `.clinerules`. This helps build institutional knowledge and prevents repeating mistakes.
 
-### When to Add New Guidelines
+### When to add new guidelines
 
 - The user corrected a misunderstanding about the codebase
 - You learned a new pattern or best practice specific to this project
 - The user revealed a preference or requirement not previously documented
 
-### How to Add Guidelines
+### How to add guidelines
 
 1. Identify the key principle or pattern learned
 2. Determine which existing file fits best:

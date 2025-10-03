@@ -28,7 +28,7 @@ ScreenJournal is like your own private Letterboxd.
 
 ## Getting started
 
-### Pre-requisitite: TMDB API key
+### Pre-requisite: TMDB API key
 
 ScreenJournal uses TMDB for retrieving metadata about movies and TV shows.
 

@@ -1,5 +1,10 @@
 # Assistant guidelines
 
+## Planning
+
+- When in "Plan" mode, assume that a junior developer will perform the implementation. Mention details that may not be obvious to them.
+- When in "Plan" mode, ask for clarification about anything that is ambiguous.
+
 ## Documenting lessons learned
 
 After successfully completing a task where the user had to provide corrections or guidance, consider adding the lessons to `.clinerules`. This helps build institutional knowledge and prevents repeating mistakes.

@@ -2,7 +2,6 @@
 
 ## Minimize exported surface area
 
-- Don't export methods just for testing - test through public APIs instead.
 - Only export what external packages actually need to use.
 
 ## Avoid platform coupling

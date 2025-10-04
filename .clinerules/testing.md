@@ -3,6 +3,7 @@
 - To run unit tests, run ./dev-scripts/run-go-tests
 - When writing tests to verify a bugfix, follow TDD conventions: write the test with the failing test first, verify the test fails, fix the bug, and verify that the test passes.
 - When writing new test cases, avoid having t.Run have special-case behavior for particular inputs. Instead, use general purpose logic that doesn't assume particular inputs.
+- Don't export methods just for testing - test through public APIs instead.
 - Do not attempt to run e2e tests
 
 ## if got, want

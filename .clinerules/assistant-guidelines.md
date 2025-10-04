@@ -13,17 +13,12 @@ After successfully completing a task where the user had to provide corrections o
 ### How to add guidelines
 
 1. Identify the key principle or pattern learned
-2. Determine which existing file fits best:
-   - `api-design.md` - API structure and design patterns
-   - `planning.md` - Task planning and scoping
-   - `security.md` - Security considerations
-   - `style.md` - Code formatting and conventions
-   - `testing.md` - Testing approaches and requirements
+2. Determine which existing file under `./.clinerules/` fits best
 3. Add a concise, actionable guideline
 4. Keep entries brief but clear for future LLM conversations
 
 ### Example
 
-If you learned that methods shouldn't be exported just for testing, add to `api-design.md`:
+If you learned that methods shouldn't be exported just for testing, add to `testing.md`:
 
 "Don't export methods just for testing - test through public APIs instead."

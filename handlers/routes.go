@@ -26,9 +26,9 @@ func (s *Server) routes() {
 	authenticatedApis.HandleFunc("/search", s.searchGet()).Methods(http.MethodGet)
 
 	static := s.router.PathPrefix("/").Subrouter()
-	static.PathPrefix("/css/").HandlerFunc(serveStaticResource()).Methods(http.MethodGet)
-	static.PathPrefix("/js/").HandlerFunc(serveStaticResource()).Methods(http.MethodGet)
-	static.PathPrefix("/third-party/").HandlerFunc(serveStaticResource()).Methods(http.MethodGet)
+	static.PathPrefix("/css/").Handler(getStaticFilesHandler()).Methods(http.MethodGet)
+	static.PathPrefix("/js/").Handler(getStaticFilesHandler()).Methods(http.MethodGet)
+	static.PathPrefix("/third-party/").Handler(getStaticFilesHandler()).Methods(http.MethodGet)
 
 	adminViews := s.router.PathPrefix("/admin").Subrouter()
 	adminViews.Use(s.requireAuthenticationForView)

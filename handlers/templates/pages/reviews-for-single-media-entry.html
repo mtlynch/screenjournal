@@ -3,9 +3,7 @@
 {{ end }}
 
 {{ define "style-tags" }}
-  <style nonce="{{ .CspNonce }}">
-    @import url("/css/reviews.css");
-  </style>
+  <link rel="stylesheet" type="text/css" href="/css/reviews.css" />
 {{ end }}
 
 {{ define "script-tags" }}

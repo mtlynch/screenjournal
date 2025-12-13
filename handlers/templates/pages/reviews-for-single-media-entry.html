@@ -115,7 +115,7 @@
 {{ define "add-comment-button" }}
   <button
     type="button"
-    class="btn btn-secondary mt-2"
+    class="btn btn-secondary align-self-start mt-2"
     hx-get="/api/comments/edit?reviewId={{ .ID }}"
     hx-swap="outerHTML"
   >

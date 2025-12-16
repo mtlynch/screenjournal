@@ -6,5 +6,5 @@ CREATE TABLE review_reactions (
     created_time TEXT NOT NULL,
     FOREIGN KEY (review_id) REFERENCES reviews (id),
     FOREIGN KEY (reaction_owner) REFERENCES users (username),
-    UNIQUE(review_id, reaction_owner, emoji)
+    UNIQUE (review_id, reaction_owner, emoji)
 );

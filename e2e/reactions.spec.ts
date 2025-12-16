@@ -10,7 +10,10 @@ test("adds an emoji reaction to a review", async ({ page }) => {
   await loginAsUserA(page);
 
   // Navigate to a movie page with an existing review.
-  await page.goto("/movies/1");
+  await page
+    .getByRole("heading", { name: "The Waterboy" })
+    .getByRole("link")
+    .click();
 
   // Find the review section.
   const reviewDiv = page.locator(".review").first();
@@ -29,7 +32,10 @@ test("adds an emoji reaction to a review", async ({ page }) => {
 test("emoji picker is hidden after user reacts", async ({ page }) => {
   await loginAsUserA(page);
 
-  await page.goto("/movies/1");
+  await page
+    .getByRole("heading", { name: "The Waterboy" })
+    .getByRole("link")
+    .click();
 
   const reviewDiv = page.locator(".review").first();
 
@@ -47,7 +53,10 @@ test("user can delete their own reaction", async ({ page }) => {
   await loginAsUserA(page);
 
   // First add a reaction.
-  await page.goto("/movies/1");
+  await page
+    .getByRole("heading", { name: "The Waterboy" })
+    .getByRole("link")
+    .click();
 
   const reviewDiv = page.locator(".review").first();
 
@@ -76,7 +85,10 @@ test("user cannot delete another user's reaction", async ({
 }) => {
   // UserA adds a reaction.
   await loginAsUserA(page);
-  await page.goto("/movies/1");
+  await page
+    .getByRole("heading", { name: "The Waterboy" })
+    .getByRole("link")
+    .click();
 
   const reviewDiv = page.locator(".review").first();
   await reviewDiv.locator(".emoji-picker button", { hasText: "🤔" }).click();
@@ -92,7 +104,10 @@ test("user cannot delete another user's reaction", async ({
   const userBPage = await userBContext.newPage();
   await loginAsUserB(userBPage);
 
-  await userBPage.goto("/movies/1");
+  await userBPage
+    .getByRole("heading", { name: "The Waterboy" })
+    .getByRole("link")
+    .click();
 
   // UserB should see userA's reaction but NOT see delete button.
   const userBReviewDiv = userBPage.locator(".review").first();
@@ -110,7 +125,10 @@ test("user cannot delete another user's reaction", async ({
 test("admin can delete another user's reaction", async ({ page, browser }) => {
   // UserA adds a reaction.
   await loginAsUserA(page);
-  await page.goto("/movies/1");
+  await page
+    .getByRole("heading", { name: "The Waterboy" })
+    .getByRole("link")
+    .click();
 
   const reviewDiv = page.locator(".review").first();
   await reviewDiv.locator(".emoji-picker button", { hasText: "😯" }).click();
@@ -126,7 +144,10 @@ test("admin can delete another user's reaction", async ({ page, browser }) => {
   const adminPage = await adminContext.newPage();
   await loginAsAdmin(adminPage);
 
-  await adminPage.goto("/movies/1");
+  await adminPage
+    .getByRole("heading", { name: "The Waterboy" })
+    .getByRole("link")
+    .click();
 
   // Admin should see delete button on userA's reaction.
   const adminReviewDiv = adminPage.locator(".review").first();
@@ -152,7 +173,10 @@ test("reactions are displayed in chronological order", async ({
 }) => {
   // UserA adds first reaction.
   await loginAsUserA(page);
-  await page.goto("/movies/1");
+  await page
+    .getByRole("heading", { name: "The Waterboy" })
+    .getByRole("link")
+    .click();
 
   const reviewDiv = page.locator(".review").first();
   await reviewDiv.locator(".emoji-picker button", { hasText: "👍" }).click();
@@ -166,7 +190,10 @@ test("reactions are displayed in chronological order", async ({
   const userBContext = await browser.newContext();
   const userBPage = await userBContext.newPage();
   await loginAsUserB(userBPage);
-  await userBPage.goto("/movies/1");
+  await userBPage
+    .getByRole("heading", { name: "The Waterboy" })
+    .getByRole("link")
+    .click();
 
   const userBReviewDiv = userBPage.locator(".review").first();
   await userBReviewDiv

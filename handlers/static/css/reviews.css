@@ -36,3 +36,34 @@
 .review + .review {
   margin-top: 2rem;
 }
+
+.emoji-picker {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.emoji-picker .emoji-btn {
+  font-size: 1.25rem;
+  padding: 0.15rem 0.4rem;
+  line-height: 1;
+}
+
+.reactions-section {
+  margin-bottom: 0.5rem;
+}
+
+.reaction {
+  display: flex;
+  align-items: center;
+}
+
+.reaction button {
+  opacity: 0.6;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.reaction button:hover {
+  opacity: 1;
+}

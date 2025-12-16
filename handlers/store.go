@@ -16,6 +16,10 @@ type Store interface {
 	InsertComment(screenjournal.ReviewComment) (screenjournal.CommentID, error)
 	UpdateComment(screenjournal.ReviewComment) error
 	DeleteComment(screenjournal.CommentID) error
+	ReadReactions(screenjournal.ReviewID) ([]screenjournal.ReviewReaction, error)
+	ReadReaction(screenjournal.ReactionID) (screenjournal.ReviewReaction, error)
+	InsertReaction(screenjournal.ReviewReaction) (screenjournal.ReactionID, error)
+	DeleteReaction(screenjournal.ReactionID) error
 	ReadMovie(screenjournal.MovieID) (screenjournal.Movie, error)
 	ReadMovieByTmdbID(screenjournal.TmdbID) (screenjournal.Movie, error)
 	InsertMovie(screenjournal.Movie) (screenjournal.MovieID, error)

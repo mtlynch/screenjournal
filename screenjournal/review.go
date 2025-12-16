@@ -29,6 +29,7 @@ type (
 		TvShow       TvShow
 		TvShowSeason TvShowSeason
 		Comments     []ReviewComment
+		Reactions    []ReviewReaction
 	}
 
 	ReviewComment struct {

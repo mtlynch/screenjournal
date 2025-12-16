@@ -38,6 +38,8 @@
 
 {{ define "content" }}
   {{ $loggedInUsername := .LoggedInUsername }}
+  {{ $isAdmin := .IsAdmin }}
+  {{ $availableEmojis := .AvailableEmojis }}
 
   {{ if ne .Media.SeasonNumber 0 }}
     <h2>Season {{ .Media.SeasonNumber }}</h2>
@@ -74,6 +76,15 @@
   {{ end }}
 
   {{ range .Reviews }}
+    {{ $review := . }}
+    {{ $userHasReacted := false }}
+    {{ range .Reactions }}
+      {{ if eq .Owner.String $loggedInUsername.String }}
+        {{ $userHasReacted = true }}
+      {{ end }}
+    {{ end }}
+
+
     <div class="review mb-5" data-review-id="{{ .ID }}">
       <div class="border bg-light p-2" id="review{{ .ID }}">
         <h6 class="card-subtitle mb-2 text-muted">
@@ -103,11 +114,77 @@
       </div>
 
       <div class="d-flex flex-column justify-content-start ms-3 w-75">
+        {{ template "reactions-section" dict "ReviewID" .ID "Reactions" .Reactions "UserHasReacted" $userHasReacted "AvailableEmojis" $availableEmojis "LoggedInUsername" $loggedInUsername "IsAdmin" $isAdmin }}
+
         {{ range .Comments }}
           {{ template "comment" dict "Comment" . "LoggedInUsername" $loggedInUsername }}
         {{ end }}
         {{ template "add-comment-button" . }}
       </div>
+    </div>
+  {{ end }}
+{{ end }}
+
+{{ define "reactions-section" }}
+  <div id="reactions-section-{{ .ReviewID }}" class="reactions-section">
+    {{ if not .UserHasReacted }}
+      <div class="emoji-picker mt-2">
+        {{ $reviewID := .ReviewID }}
+        {{ range .AvailableEmojis }}
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm emoji-btn"
+            hx-post="/reactions"
+            hx-vals='{"review-id": "{{ $reviewID }}", "emoji": "{{ . }}"}'
+            hx-target="#reactions-section-{{ $reviewID }}"
+            hx-swap="outerHTML"
+          >
+            {{ . }}
+          </button>
+        {{ end }}
+      </div>
+    {{ end }}
+
+    {{ $loggedInUsername := .LoggedInUsername }}
+    {{ $isAdmin := .IsAdmin }}
+    {{ range .Reactions }}
+      {{ template "reaction" dict "Reaction" . "LoggedInUsername" $loggedInUsername "IsAdmin" $isAdmin }}
+    {{ end }}
+  </div>
+{{ end }}
+
+{{ define "reaction" }}
+  {{ $loggedInUsername := .LoggedInUsername }}
+  {{ $isAdmin := .IsAdmin }}
+  {{ with .Reaction }}
+    <div
+      id="reaction{{ .ID }}"
+      data-reaction-id="{{ .ID }}"
+      class="reaction small text-muted my-1"
+    >
+      <span>
+        {{ .Emoji }} reacted
+        <a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a>,
+        <span
+          data-testid="relative-time"
+          title="{{ formatCommentTime .Created }}"
+          >{{ relativeCommentDate .Created }}</span
+        >
+      </span>
+      {{ if or (eq .Owner.String $loggedInUsername.String) $isAdmin }}
+        <button
+          type="button"
+          class="btn btn-link btn-sm p-0 ms-2 text-muted"
+          hx-delete="/reactions/{{ .ID }}"
+          hx-confirm="Delete this reaction?"
+          hx-target="#reaction{{ .ID }}"
+          hx-swap="outerHTML"
+          data-sj-purpose="delete"
+          title="Delete reaction"
+        >
+          &times;
+        </button>
+      {{ end }}
     </div>
   {{ end }}
 {{ end }}

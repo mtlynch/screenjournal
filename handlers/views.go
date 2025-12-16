@@ -373,6 +373,14 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 				return
 			}
 			reviews[i].Comments = cc
+
+			rr, err := s.getDB(r).ReadReactions(review.ID)
+			if err != nil {
+				log.Printf("failed to read reviews reactions: %v", err)
+				http.Error(w, "Failed to retrieve reactions", http.StatusInternalServerError)
+				return
+			}
+			reviews[i].Reactions = rr
 		}
 
 		type mediaStub struct {
@@ -388,8 +396,9 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 		}
 		if err := t.Execute(w, struct {
 			commonProps
-			Media   mediaStub
-			Reviews []screenjournal.Review
+			Media           mediaStub
+			Reviews         []screenjournal.Review
+			AvailableEmojis []string
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			Media: mediaStub{
@@ -402,7 +411,8 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 				TmdbID:      movie.TmdbID,
 				ReleaseDate: movie.ReleaseDate,
 			},
-			Reviews: reviews,
+			Reviews:         reviews,
+			AvailableEmojis: parse.AllowedReactionEmojis(),
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -456,6 +466,14 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 				return
 			}
 			reviews[i].Comments = cc
+
+			rr, err := s.getDB(r).ReadReactions(review.ID)
+			if err != nil {
+				log.Printf("failed to read reviews reactions: %v", err)
+				http.Error(w, "Failed to retrieve reactions", http.StatusInternalServerError)
+				return
+			}
+			reviews[i].Reactions = rr
 		}
 
 		type mediaStub struct {
@@ -472,8 +490,9 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 
 		if err := t.Execute(w, struct {
 			commonProps
-			Media   mediaStub
-			Reviews []screenjournal.Review
+			Media           mediaStub
+			Reviews         []screenjournal.Review
+			AvailableEmojis []string
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			Media: mediaStub{
@@ -487,7 +506,8 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 				TmdbID:       tvShow.TmdbID,
 				ReleaseDate:  tvShow.AirDate,
 			},
-			Reviews: reviews,
+			Reviews:         reviews,
+			AvailableEmojis: parse.AllowedReactionEmojis(),
 		}); err != nil {
 			log.Printf("failed to render template: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)

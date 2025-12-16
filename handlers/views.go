@@ -398,7 +398,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			commonProps
 			Media           mediaStub
 			Reviews         []screenjournal.Review
-			AvailableEmojis []string
+			AvailableEmojis []screenjournal.ReactionEmoji
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			Media: mediaStub{
@@ -412,7 +412,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 				ReleaseDate: movie.ReleaseDate,
 			},
 			Reviews:         reviews,
-			AvailableEmojis: parse.AllowedReactionEmojis(),
+			AvailableEmojis: screenjournal.AllowedReactionEmojis(),
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -492,7 +492,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			commonProps
 			Media           mediaStub
 			Reviews         []screenjournal.Review
-			AvailableEmojis []string
+			AvailableEmojis []screenjournal.ReactionEmoji
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			Media: mediaStub{
@@ -507,7 +507,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 				ReleaseDate:  tvShow.AirDate,
 			},
 			Reviews:         reviews,
-			AvailableEmojis: parse.AllowedReactionEmojis(),
+			AvailableEmojis: screenjournal.AllowedReactionEmojis(),
 		}); err != nil {
 			log.Printf("failed to render template: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)

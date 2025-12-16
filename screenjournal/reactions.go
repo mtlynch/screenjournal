@@ -38,3 +38,14 @@ func (e ReactionEmoji) String() string {
 func NewReactionEmoji(s string) ReactionEmoji {
 	return ReactionEmoji{value: s}
 }
+
+// AllowedReactionEmojis returns the list of allowed emoji reactions.
+func AllowedReactionEmojis() []ReactionEmoji {
+	return []ReactionEmoji{
+		{value: "👍"},
+		{value: "👀"},
+		{value: "😯"},
+		{value: "🤔"},
+		{value: "🥞"},
+	}
+}

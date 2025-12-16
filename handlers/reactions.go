@@ -79,14 +79,14 @@ func (s Server) reactionsPost() http.HandlerFunc {
 			ReviewID         screenjournal.ReviewID
 			Reactions        []screenjournal.ReviewReaction
 			UserHasReacted   bool
-			AvailableEmojis  []string
+			AvailableEmojis  []screenjournal.ReactionEmoji
 			LoggedInUsername screenjournal.Username
 			IsAdmin          bool
 		}{
 			ReviewID:         req.ReviewID,
 			Reactions:        reactions,
 			UserHasReacted:   userHasReacted,
-			AvailableEmojis:  parse.AllowedReactionEmojis(),
+			AvailableEmojis:  screenjournal.AllowedReactionEmojis(),
 			LoggedInUsername: loggedInUsername,
 			IsAdmin:          isAdmin(r.Context()),
 		}); err != nil {

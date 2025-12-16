@@ -13,20 +13,6 @@ var (
 	ErrInvalidReactionEmoji = errors.New("invalid reaction emoji")
 )
 
-var allowedEmojis = map[string]bool{
-	"👍": true,
-	"👀": true,
-	"😯": true,
-	"🤔": true,
-	"🥞": true,
-}
-
-// AllowedReactionEmojis returns the list of allowed emoji strings for
-// reactions.
-func AllowedReactionEmojis() []string {
-	return []string{"👍", "👀", "😯", "🤔", "🥞"}
-}
-
 func ReactionID(raw string) (screenjournal.ReactionID, error) {
 	id, err := strconv.ParseUint(raw, 10, 64)
 	if err != nil {
@@ -46,9 +32,11 @@ func ReactionEmoji(raw string) (screenjournal.ReactionEmoji, error) {
 		return screenjournal.ReactionEmoji{}, ErrInvalidReactionEmoji
 	}
 
-	if !allowedEmojis[raw] {
-		return screenjournal.ReactionEmoji{}, ErrInvalidReactionEmoji
+	for _, allowed := range screenjournal.AllowedReactionEmojis() {
+		if allowed.String() == raw {
+			return allowed, nil
+		}
 	}
 
-	return screenjournal.NewReactionEmoji(raw), nil
+	return screenjournal.ReactionEmoji{}, ErrInvalidReactionEmoji
 }

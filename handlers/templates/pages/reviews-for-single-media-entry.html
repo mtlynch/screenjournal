@@ -140,9 +140,9 @@
           >{{ relativeCommentDate .Created }}</span
         >
       </p>
-      <div class="mb-0" data-sj-purpose="body">
+      <article class="mb-0">
         {{ .CommentText | renderCommentText }}
-      </div>
+      </article>
 
       {{ if eq .Owner $loggedInUsername }}
         <div class="mt-3 small">
@@ -151,7 +151,6 @@
             hx-get="/api/comments/edit?reviewId={{ .Review.ID }}&commentId={{ .ID }}"
             hx-target="#comment{{ .ID }}"
             hx-swap="outerHTML swap:0.5s"
-            data-sj-purpose="edit"
             >Edit</a
           >
           &bull;
@@ -161,7 +160,6 @@
             hx-confirm="Delete this comment?"
             hx-target="#comment{{ .ID }}"
             hx-swap="outerHTML swap:0.5s"
-            data-sj-purpose="delete"
             >Delete</a
           >
         </div>

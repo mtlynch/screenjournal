@@ -15,18 +15,20 @@ test("adds an emoji reaction to a review", async ({ page }) => {
     .getByRole("link")
     .click();
 
-  // Find the review section.
-  const reviewDiv = page.locator(".review").first();
+  // Find the review section by the reviewer's visible text.
+  const reviewDiv = page.locator("div", {
+    has: page.getByText("userB watched this", { exact: false }),
+  });
 
   // Click the thumbs up emoji button.
-  await reviewDiv.locator(".emoji-picker button", { hasText: "👍" }).click();
+  await reviewDiv.getByRole("button", { name: "👍" }).click();
 
   // Verify reaction appears.
-  const reactionDiv = reviewDiv.locator(".reaction", {
-    hasText: /👍\s+userA/,
-  });
+  const reactionDiv = reviewDiv.getByText(/👍\s+userA/);
   await expect(reactionDiv).toBeVisible();
-  await expect(reactionDiv.getByTestId("relative-time")).toHaveText("just now");
+  await expect(
+    reactionDiv.locator("..").getByTestId("relative-time")
+  ).toHaveText("just now");
 });
 
 test("emoji picker is hidden after user reacts", async ({ page }) => {
@@ -37,16 +39,18 @@ test("emoji picker is hidden after user reacts", async ({ page }) => {
     .getByRole("link")
     .click();
 
-  const reviewDiv = page.locator(".review").first();
+  const reviewDiv = page.locator("div", {
+    has: page.getByText("userB watched this", { exact: false }),
+  });
 
-  // Initially emoji picker is visible.
-  await expect(reviewDiv.locator(".emoji-picker")).toBeVisible();
+  // Initially emoji picker is visible (check for presence of an emoji button).
+  await expect(reviewDiv.getByRole("button", { name: "👍" })).toBeVisible();
 
   // Add a reaction.
-  await reviewDiv.locator(".emoji-picker button", { hasText: "🥞" }).click();
+  await reviewDiv.getByRole("button", { name: "🥞" }).click();
 
-  // Emoji picker should be hidden.
-  await expect(reviewDiv.locator(".emoji-picker")).not.toBeVisible();
+  // Emoji picker should be hidden (emoji buttons no longer visible).
+  await expect(reviewDiv.getByRole("button", { name: "👍" })).not.toBeVisible();
 });
 
 test("user can delete their own reaction", async ({ page }) => {
@@ -58,19 +62,19 @@ test("user can delete their own reaction", async ({ page }) => {
     .getByRole("link")
     .click();
 
-  const reviewDiv = page.locator(".review").first();
+  const reviewDiv = page.locator("div", {
+    has: page.getByText("userB watched this", { exact: false }),
+  });
 
-  await reviewDiv.locator(".emoji-picker button", { hasText: "👀" }).click();
+  await reviewDiv.getByRole("button", { name: "👀" }).click();
 
   // Verify reaction exists.
-  const reactionDiv = reviewDiv.locator(".reaction", {
-    hasText: /👀\s+userA/,
-  });
+  const reactionDiv = reviewDiv.getByText(/👀\s+userA/);
   await expect(reactionDiv).toBeVisible();
 
   // Delete the reaction (accept confirmation dialog).
   page.on("dialog", (dialog) => dialog.accept());
-  await reactionDiv.locator("button[data-sj-purpose='delete']").click();
+  await reactionDiv.locator("..").getByTitle("Delete reaction").click();
 
   // Verify reaction is removed.
   await expect(reactionDiv).not.toBeVisible();
@@ -78,8 +82,8 @@ test("user can delete their own reaction", async ({ page }) => {
   // Reload to get the emoji menu back.
   await page.reload();
 
-  // Verify emoji picker reappears.
-  await expect(reviewDiv.locator(".emoji-picker")).toBeVisible();
+  // Verify emoji picker reappears (emoji buttons visible again).
+  await expect(reviewDiv.getByRole("button", { name: "👍" })).toBeVisible();
 });
 
 test("user cannot delete another user's reaction", async ({
@@ -93,13 +97,13 @@ test("user cannot delete another user's reaction", async ({
     .getByRole("link")
     .click();
 
-  const reviewDiv = page.locator(".review").first();
-  await reviewDiv.locator(".emoji-picker button", { hasText: "🤔" }).click();
+  const reviewDiv = page.locator("div", {
+    has: page.getByText("userB watched this", { exact: false }),
+  });
+  await reviewDiv.getByRole("button", { name: "🤔" }).click();
 
   // Verify reaction was added.
-  const reactionDiv = reviewDiv.locator(".reaction", {
-    hasText: /🤔\s+userA/,
-  });
+  const reactionDiv = reviewDiv.getByText(/🤔\s+userA/);
   await expect(reactionDiv).toBeVisible();
 
   // Switch to userB.
@@ -117,13 +121,13 @@ test("user cannot delete another user's reaction", async ({
     .click();
 
   // UserB should see userA's reaction but NOT see delete button.
-  const userBReviewDiv = userBPage.locator(".review").first();
-  const userBReactionDiv = userBReviewDiv.locator(".reaction", {
-    hasText: /🤔\s+userA/,
+  const userBReviewDiv = userBPage.locator("div", {
+    has: userBPage.getByText("userB watched this", { exact: false }),
   });
+  const userBReactionDiv = userBReviewDiv.getByText(/🤔\s+userA/);
   await expect(userBReactionDiv).toBeVisible();
   await expect(
-    userBReactionDiv.locator("button[data-sj-purpose='delete']")
+    userBReactionDiv.locator("..").getByTitle("Delete reaction")
   ).not.toBeVisible();
 
   await userBContext.close();
@@ -137,13 +141,13 @@ test("admin can delete another user's reaction", async ({ page, browser }) => {
     .getByRole("link")
     .click();
 
-  const reviewDiv = page.locator(".review").first();
-  await reviewDiv.locator(".emoji-picker button", { hasText: "😯" }).click();
+  const reviewDiv = page.locator("div", {
+    has: page.getByText("userB watched this", { exact: false }),
+  });
+  await reviewDiv.getByRole("button", { name: "😯" }).click();
 
   // Verify reaction was added.
-  const reactionDiv = reviewDiv.locator(".reaction", {
-    hasText: /😯\s+userA/,
-  });
+  const reactionDiv = reviewDiv.getByText(/😯\s+userA/);
   await expect(reactionDiv).toBeVisible();
 
   // Switch to admin user.
@@ -161,17 +165,17 @@ test("admin can delete another user's reaction", async ({ page, browser }) => {
     .click();
 
   // Admin should see delete button on userA's reaction.
-  const adminReviewDiv = adminPage.locator(".review").first();
-  const adminReactionDiv = adminReviewDiv.locator(".reaction", {
-    hasText: /😯\s+userA/,
+  const adminReviewDiv = adminPage.locator("div", {
+    has: adminPage.getByText("userB watched this", { exact: false }),
   });
+  const adminReactionDiv = adminReviewDiv.getByText(/😯\s+userA/);
   await expect(
-    adminReactionDiv.locator("button[data-sj-purpose='delete']")
+    adminReactionDiv.locator("..").getByTitle("Delete reaction")
   ).toBeVisible();
 
   // Admin deletes userA's reaction.
   adminPage.on("dialog", (dialog) => dialog.accept());
-  await adminReactionDiv.locator("button[data-sj-purpose='delete']").click();
+  await adminReactionDiv.locator("..").getByTitle("Delete reaction").click();
 
   await expect(adminReactionDiv).not.toBeVisible();
 
@@ -189,13 +193,13 @@ test("reactions are displayed in chronological order", async ({
     .getByRole("link")
     .click();
 
-  const reviewDiv = page.locator(".review").first();
-  await reviewDiv.locator(".emoji-picker button", { hasText: "👍" }).click();
+  const reviewDiv = page.locator("div", {
+    has: page.getByText("userB watched this", { exact: false }),
+  });
+  await reviewDiv.getByRole("button", { name: "👍" }).click();
 
   // Verify first reaction was added.
-  await expect(
-    reviewDiv.locator(".reaction", { hasText: /👍\s+userA/ })
-  ).toBeVisible();
+  await expect(reviewDiv.getByText(/👍\s+userA/)).toBeVisible();
 
   // UserB adds second reaction.
   const userBContext = await browser.newContext();
@@ -210,16 +214,19 @@ test("reactions are displayed in chronological order", async ({
     .getByRole("link")
     .click();
 
-  const userBReviewDiv = userBPage.locator(".review").first();
-  await userBReviewDiv
-    .locator(".emoji-picker button", { hasText: "🥞" })
-    .click();
+  const userBReviewDiv = userBPage.locator("div", {
+    has: userBPage.getByText("userB watched this", { exact: false }),
+  });
+  await userBReviewDiv.getByRole("button", { name: "🥞" }).click();
 
   // Verify reactions appear in chronological order (userA's first, then userB's).
-  const reactions = userBReviewDiv.locator(".reaction");
+  // Scope to reactions-section to exclude comments which also have relative-time.
+  const reactions = userBReviewDiv
+    .getByTestId("reactions-section")
+    .getByTestId("relative-time");
   await expect(reactions).toHaveCount(2);
-  await expect(reactions.first()).toContainText("userA");
-  await expect(reactions.last()).toContainText("userB");
+  await expect(reactions.nth(0).locator("..")).toContainText("userA");
+  await expect(reactions.nth(1).locator("..")).toContainText("userB");
 
   await userBContext.close();
 });

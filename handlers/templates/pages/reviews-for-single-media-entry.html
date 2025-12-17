@@ -126,7 +126,11 @@
 {{ end }}
 
 {{ define "reactions-section" }}
-  <div id="reactions-section-{{ .ReviewID }}" class="reactions-section">
+  <div
+    id="reactions-section-{{ .ReviewID }}"
+    class="reactions-section"
+    data-testid="reactions-section"
+  >
     {{ if not .UserHasReacted }}
       <div class="emoji-picker mt-2">
         {{ $reviewID := .ReviewID }}

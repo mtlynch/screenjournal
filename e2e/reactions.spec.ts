@@ -23,7 +23,7 @@ test("adds an emoji reaction to a review", async ({ page }) => {
 
   // Verify reaction appears.
   const reactionDiv = reviewDiv.locator(".reaction", {
-    hasText: /👍 reacted/,
+    hasText: /👍\s+userA/,
   });
   await expect(reactionDiv).toBeVisible();
   await expect(reactionDiv.getByTestId("relative-time")).toHaveText("just now");
@@ -64,7 +64,7 @@ test("user can delete their own reaction", async ({ page }) => {
 
   // Verify reaction exists.
   const reactionDiv = reviewDiv.locator(".reaction", {
-    hasText: /👀 reacted/,
+    hasText: /👀\s+userA/,
   });
   await expect(reactionDiv).toBeVisible();
 
@@ -98,7 +98,7 @@ test("user cannot delete another user's reaction", async ({
 
   // Verify reaction was added.
   const reactionDiv = reviewDiv.locator(".reaction", {
-    hasText: /🤔 reacted/,
+    hasText: /🤔\s+userA/,
   });
   await expect(reactionDiv).toBeVisible();
 
@@ -119,7 +119,7 @@ test("user cannot delete another user's reaction", async ({
   // UserB should see userA's reaction but NOT see delete button.
   const userBReviewDiv = userBPage.locator(".review").first();
   const userBReactionDiv = userBReviewDiv.locator(".reaction", {
-    hasText: /🤔 reacted/,
+    hasText: /🤔\s+userA/,
   });
   await expect(userBReactionDiv).toBeVisible();
   await expect(
@@ -142,7 +142,7 @@ test("admin can delete another user's reaction", async ({ page, browser }) => {
 
   // Verify reaction was added.
   const reactionDiv = reviewDiv.locator(".reaction", {
-    hasText: /😯 reacted/,
+    hasText: /😯\s+userA/,
   });
   await expect(reactionDiv).toBeVisible();
 
@@ -163,7 +163,7 @@ test("admin can delete another user's reaction", async ({ page, browser }) => {
   // Admin should see delete button on userA's reaction.
   const adminReviewDiv = adminPage.locator(".review").first();
   const adminReactionDiv = adminReviewDiv.locator(".reaction", {
-    hasText: /😯 reacted/,
+    hasText: /😯\s+userA/,
   });
   await expect(
     adminReactionDiv.locator("button[data-sj-purpose='delete']")
@@ -194,7 +194,7 @@ test("reactions are displayed in chronological order", async ({
 
   // Verify first reaction was added.
   await expect(
-    reviewDiv.locator(".reaction", { hasText: /👍 reacted/ })
+    reviewDiv.locator(".reaction", { hasText: /👍\s+userA/ })
   ).toBeVisible();
 
   // UserB adds second reaction.

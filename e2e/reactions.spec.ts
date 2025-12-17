@@ -108,6 +108,7 @@ test("user cannot delete another user's reaction", async ({
     readDbTokenCookie(await page.context().cookies()),
   ]);
   const userBPage = await userBContext.newPage();
+  await userBPage.goto("/");
   await loginAsUserB(userBPage);
 
   await userBPage
@@ -151,6 +152,7 @@ test("admin can delete another user's reaction", async ({ page, browser }) => {
     readDbTokenCookie(await page.context().cookies()),
   ]);
   const adminPage = await adminContext.newPage();
+  adminPage.goto("/");
   await loginAsAdmin(adminPage);
 
   await adminPage
@@ -201,6 +203,7 @@ test("reactions are displayed in chronological order", async ({
     readDbTokenCookie(await page.context().cookies()),
   ]);
   const userBPage = await userBContext.newPage();
+  await userBPage.goto("/");
   await loginAsUserB(userBPage);
   await userBPage
     .getByRole("heading", { name: "The Waterboy" })

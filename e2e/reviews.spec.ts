@@ -782,9 +782,7 @@ test("adds, edits, and deletes a comment on an existing review", async ({
     );
     await expect(
       // Strip leading whitespace from each line in inner HTML.
-      (
-        await commentDiv.locator("[data-sj-purpose='body']").innerHTML()
-      ).replace(/^\s+/gm, "")
+      (await commentDiv.locator("article").innerHTML()).replace(/^\s+/gm, "")
     ).toEqual(
       `<p>We must ask ourselves...</p>
 <p>What is "movie?"</p>
@@ -805,7 +803,7 @@ test("adds, edits, and deletes a comment on an existing review", async ({
   // Use a separate scope for variables on the current page.
   {
     const commentDiv = await page.locator("#comment2");
-    await expect(commentDiv.locator("[data-sj-purpose='body']")).toHaveText(
+    await expect(commentDiv.locator("article")).toHaveText(
       "Actually, I thought this was meh."
     );
 
@@ -883,9 +881,7 @@ test("removes leading and trailing whitespace from comments", async ({
   await expect(commentDiv.getByTestId("relative-time")).toHaveText("just now");
   await expect(
     // Strip leading whitespace from each line in inner HTML.
-    (
-      await commentDiv.locator("[data-sj-purpose='body']").innerHTML()
-    ).replace(/^\s+/gm, "")
+    (await commentDiv.locator("article").innerHTML()).replace(/^\s+/gm, "")
   ).toEqual(`<p>Yes, but can you strip my whitespace?</p>
 `);
 });

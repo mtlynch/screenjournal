@@ -5,21 +5,21 @@ import (
 	"time"
 )
 
-type ReactionID uint64
+type (
+	ReactionID uint64
 
-// ReactionEmoji represents a validated emoji reaction. It should only be
-// created via the parse.ReactionEmoji function.
-type ReactionEmoji struct {
-	value string
-}
+	ReactionEmoji struct {
+		value string
+	}
 
-type ReviewReaction struct {
-	ID      ReactionID
-	Owner   Username
-	Emoji   ReactionEmoji
-	Created time.Time
-	Review  Review
-}
+	ReviewReaction struct {
+		ID      ReactionID
+		Owner   Username
+		Emoji   ReactionEmoji
+		Created time.Time
+		Review  Review
+	}
+)
 
 func (id ReactionID) UInt64() uint64 {
 	return uint64(id)

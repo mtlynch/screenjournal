@@ -80,7 +80,7 @@ func TestReactionsPost(t *testing.T) {
 	}{
 		{
 			description:  "allows user to add a reaction to an existing review",
-			payload:      "review-id=1&emoji=%F0%9F%91%8D",
+			payload:      "review-id=1&emoji=👍",
 			sessionToken: makeReactionsTestData().sessions.userA.token,
 			sessions: []mockSessionEntry{
 				makeReactionsTestData().sessions.userA,
@@ -106,7 +106,7 @@ func TestReactionsPost(t *testing.T) {
 		},
 		{
 			description:  "allows user to add pancakes emoji reaction",
-			payload:      "review-id=1&emoji=%F0%9F%A5%9E",
+			payload:      "review-id=1&emoji=🥞",
 			sessionToken: makeReactionsTestData().sessions.userA.token,
 			sessions: []mockSessionEntry{
 				makeReactionsTestData().sessions.userA,
@@ -132,7 +132,7 @@ func TestReactionsPost(t *testing.T) {
 		},
 		{
 			description:  "rejects request with invalid emoji",
-			payload:      "review-id=1&emoji=%E2%9D%A4%EF%B8%8F",
+			payload:      "review-id=1&emoji=❤️",
 			sessionToken: makeReactionsTestData().sessions.userA.token,
 			sessions: []mockSessionEntry{
 				makeReactionsTestData().sessions.userA,
@@ -148,7 +148,7 @@ func TestReactionsPost(t *testing.T) {
 		},
 		{
 			description:  "rejects request with invalid review ID",
-			payload:      "review-id=0&emoji=%F0%9F%91%8D",
+			payload:      "review-id=0&emoji=👍",
 			sessionToken: makeReactionsTestData().sessions.userA.token,
 			sessions: []mockSessionEntry{
 				makeReactionsTestData().sessions.userA,
@@ -164,7 +164,7 @@ func TestReactionsPost(t *testing.T) {
 		},
 		{
 			description:  "returns 404 if user attempts to react to non-existent review",
-			payload:      "review-id=999&emoji=%F0%9F%91%8D",
+			payload:      "review-id=999&emoji=👍",
 			sessionToken: makeReactionsTestData().sessions.userA.token,
 			sessions: []mockSessionEntry{
 				makeReactionsTestData().sessions.userA,
@@ -181,7 +181,7 @@ func TestReactionsPost(t *testing.T) {
 		},
 		{
 			description:  "rejects request if user is not authenticated",
-			payload:      "review-id=1&emoji=%F0%9F%91%8D",
+			payload:      "review-id=1&emoji=👍",
 			sessionToken: "dummy-invalid-token",
 			sessions: []mockSessionEntry{
 				makeReactionsTestData().sessions.userA,

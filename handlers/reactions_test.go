@@ -99,7 +99,7 @@ func TestReactionsPost(t *testing.T) {
 					Owner: makeReactionsTestData().sessions.userA.session.Username,
 					Emoji: screenjournal.NewReactionEmoji("👍"),
 					Review: screenjournal.Review{
-						ID: screenjournal.ReviewID(1),
+						ID: screenjournal.ReviewID(makeReactionsTestData().reviews.userBTheWaterBoy.ID),
 					},
 				},
 			},
@@ -125,7 +125,7 @@ func TestReactionsPost(t *testing.T) {
 					Owner: makeReactionsTestData().sessions.userA.session.Username,
 					Emoji: screenjournal.NewReactionEmoji("🥞"),
 					Review: screenjournal.Review{
-						ID: screenjournal.ReviewID(1),
+						ID: screenjournal.ReviewID(makeReactionsTestData().reviews.userBTheWaterBoy.ID),
 					},
 				},
 			},
@@ -240,7 +240,7 @@ func TestReactionsPost(t *testing.T) {
 				return
 			}
 
-			reactions, err := dataStore.ReadReactions(screenjournal.ReviewID(1))
+			reactions, err := dataStore.ReadReactions(screenjournal.ReviewID(makeReactionsTestData().reviews.userBTheWaterBoy.ID))
 			if err != nil {
 				t.Fatalf("failed to read reactions from datastore: %v", err)
 			}
@@ -283,7 +283,7 @@ func TestReactionsDelete(t *testing.T) {
 					Owner: makeReactionsTestData().sessions.userA.session.Username,
 					Emoji: screenjournal.NewReactionEmoji("👍"),
 					Review: screenjournal.Review{
-						ID: screenjournal.ReviewID(1),
+						ID: screenjournal.ReviewID(makeReactionsTestData().reviews.userBTheWaterBoy.ID),
 					},
 				},
 			},
@@ -311,7 +311,7 @@ func TestReactionsDelete(t *testing.T) {
 					Owner: makeReactionsTestData().sessions.userA.session.Username,
 					Emoji: screenjournal.NewReactionEmoji("👍"),
 					Review: screenjournal.Review{
-						ID: screenjournal.ReviewID(1),
+						ID: screenjournal.ReviewID(makeReactionsTestData().reviews.userBTheWaterBoy.ID),
 					},
 				},
 			},
@@ -338,7 +338,7 @@ func TestReactionsDelete(t *testing.T) {
 					Owner: makeReactionsTestData().sessions.userA.session.Username,
 					Emoji: screenjournal.NewReactionEmoji("👍"),
 					Review: screenjournal.Review{
-						ID: screenjournal.ReviewID(1),
+						ID: screenjournal.ReviewID(makeReactionsTestData().reviews.userBTheWaterBoy.ID),
 					},
 				},
 			},
@@ -364,7 +364,7 @@ func TestReactionsDelete(t *testing.T) {
 					Owner: makeReactionsTestData().sessions.userA.session.Username,
 					Emoji: screenjournal.NewReactionEmoji("👍"),
 					Review: screenjournal.Review{
-						ID: screenjournal.ReviewID(1),
+						ID: screenjournal.ReviewID(makeReactionsTestData().reviews.userBTheWaterBoy.ID),
 					},
 				},
 			},
@@ -407,7 +407,7 @@ func TestReactionsDelete(t *testing.T) {
 					Owner: makeReactionsTestData().sessions.userA.session.Username,
 					Emoji: screenjournal.NewReactionEmoji("👍"),
 					Review: screenjournal.Review{
-						ID: screenjournal.ReviewID(1),
+						ID: screenjournal.ReviewID(makeReactionsTestData().reviews.userBTheWaterBoy.ID),
 					},
 				},
 			},
@@ -469,7 +469,7 @@ func TestReactionsDelete(t *testing.T) {
 				return
 			}
 
-			reactions, err := dataStore.ReadReactions(screenjournal.ReviewID(1))
+			reactions, err := dataStore.ReadReactions(screenjournal.ReviewID(makeReactionsTestData().reviews.userBTheWaterBoy.ID))
 			if err != nil {
 				t.Fatalf("failed to read reactions from datastore: %v", err)
 			}

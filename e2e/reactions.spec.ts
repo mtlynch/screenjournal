@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { populateDummyData } from "./helpers/db.js";
+import { populateDummyData, readDbTokenCookie } from "./helpers/db.js";
 import { loginAsUserA, loginAsUserB, loginAsAdmin } from "./helpers/login.js";
 
 test.beforeEach(async ({ page }) => {
@@ -75,6 +75,9 @@ test("user can delete their own reaction", async ({ page }) => {
   // Verify reaction is removed.
   await expect(reactionDiv).not.toBeVisible();
 
+  // Reload to get the emoji menu back.
+  await page.reload();
+
   // Verify emoji picker reappears.
   await expect(reviewDiv.locator(".emoji-picker")).toBeVisible();
 });
@@ -101,6 +104,9 @@ test("user cannot delete another user's reaction", async ({
 
   // Switch to userB.
   const userBContext = await browser.newContext();
+  await userBContext.addCookies([
+    readDbTokenCookie(await page.context().cookies()),
+  ]);
   const userBPage = await userBContext.newPage();
   await loginAsUserB(userBPage);
 
@@ -141,6 +147,9 @@ test("admin can delete another user's reaction", async ({ page, browser }) => {
 
   // Switch to admin user.
   const adminContext = await browser.newContext();
+  await adminContext.addCookies([
+    readDbTokenCookie(await page.context().cookies()),
+  ]);
   const adminPage = await adminContext.newPage();
   await loginAsAdmin(adminPage);
 
@@ -188,6 +197,9 @@ test("reactions are displayed in chronological order", async ({
 
   // UserB adds second reaction.
   const userBContext = await browser.newContext();
+  await userBContext.addCookies([
+    readDbTokenCookie(await page.context().cookies()),
+  ]);
   const userBPage = await userBContext.newPage();
   await loginAsUserB(userBPage);
   await userBPage

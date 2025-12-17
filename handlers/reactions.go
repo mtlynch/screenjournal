@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/mux"
 
@@ -52,9 +51,6 @@ func (s Server) reactionsPost() http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("Failed to save reaction: %v", err), http.StatusInternalServerError)
 			return
 		}
-		// Hack so that when we render the reaction in the response, it has roughly
-		// the correct creation time.
-		rr.Created = time.Now()
 
 		// Reload all reactions for this review to render the updated section.
 		reactions, err := s.getDB(r).ReadReactions(req.ReviewID)
@@ -66,15 +62,6 @@ func (s Server) reactionsPost() http.HandlerFunc {
 
 		loggedInUsername := mustGetUsernameFromContext(r.Context())
 
-		// Check if the user has reacted (they just did, so this should be true).
-		userHasReacted := false
-		for _, reaction := range reactions {
-			if reaction.Owner.Equal(loggedInUsername) {
-				userHasReacted = true
-				break
-			}
-		}
-
 		if err := t.ExecuteTemplate(w, "reactions-section", struct {
 			ReviewID         screenjournal.ReviewID
 			Reactions        []screenjournal.ReviewReaction
@@ -85,7 +72,7 @@ func (s Server) reactionsPost() http.HandlerFunc {
 		}{
 			ReviewID:         req.ReviewID,
 			Reactions:        reactions,
-			UserHasReacted:   userHasReacted,
+			UserHasReacted:   true,
 			AvailableEmojis:  screenjournal.AllowedReactionEmojis(),
 			LoggedInUsername: loggedInUsername,
 			IsAdmin:          isAdmin(r.Context()),

@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => {
   await populateDummyData(page);
 });
 
-test("adds an emoji reaction to a review", async ({ page }) => {
+test("adds an emoji reaction to a review and deletes it", async ({ page }) => {
   await loginAsUserA(page);
 
   // Navigate to a movie page with an existing review.
@@ -29,48 +29,9 @@ test("adds an emoji reaction to a review", async ({ page }) => {
   await expect(
     reactionDiv.locator("..").getByTestId("relative-time")
   ).toHaveText("just now");
-});
-
-test("emoji picker is hidden after user reacts", async ({ page }) => {
-  await loginAsUserA(page);
-
-  await page
-    .getByRole("heading", { name: "The Waterboy" })
-    .getByRole("link")
-    .click();
-
-  const reviewDiv = page.locator("div", {
-    has: page.getByText("userB watched this", { exact: false }),
-  });
-
-  // Initially emoji picker is visible (check for presence of an emoji button).
-  await expect(reviewDiv.getByRole("button", { name: "👍" })).toBeVisible();
-
-  // Add a reaction.
-  await reviewDiv.getByRole("button", { name: "🥞" }).click();
 
   // Emoji picker should be hidden (emoji buttons no longer visible).
   await expect(reviewDiv.getByRole("button", { name: "👍" })).not.toBeVisible();
-});
-
-test("user can delete their own reaction", async ({ page }) => {
-  await loginAsUserA(page);
-
-  // First add a reaction.
-  await page
-    .getByRole("heading", { name: "The Waterboy" })
-    .getByRole("link")
-    .click();
-
-  const reviewDiv = page.locator("div", {
-    has: page.getByText("userB watched this", { exact: false }),
-  });
-
-  await reviewDiv.getByRole("button", { name: "👀" }).click();
-
-  // Verify reaction exists.
-  const reactionDiv = reviewDiv.getByText(/👀\s+userA/);
-  await expect(reactionDiv).toBeVisible();
 
   // Delete the reaction (accept confirmation dialog).
   page.on("dialog", (dialog) => dialog.accept());

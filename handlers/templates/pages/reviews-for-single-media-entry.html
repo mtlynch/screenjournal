@@ -105,7 +105,7 @@
           </div>
         {{ end }}
 
-        {{ if eq .Owner $loggedInUsername }}
+        {{ if .CanEdit }}
           <div class="mt-3 small">
             <a href="/reviews/{{ .ID }}/edit">Edit</a>
           </div>

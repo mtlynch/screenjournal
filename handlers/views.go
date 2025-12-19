@@ -27,6 +27,38 @@ type commonProps struct {
 	CspNonce         string
 }
 
+// reviewViewModel is a template model for displaying a review in
+// reviews-for-single-media-entry.html.
+// It intentionally exposes only what the template needs.
+type reviewViewModel struct {
+	ID        screenjournal.ReviewID
+	Owner     screenjournal.Username
+	Rating    screenjournal.Rating
+	Blurb     screenjournal.Blurb
+	Watched   screenjournal.WatchDate
+	Comments  []screenjournal.ReviewComment
+	Reactions []reactionForTemplate
+	// CanEdit is true when the logged-in user is allowed to edit the review.
+	CanEdit bool
+}
+
+func makeReviewViewModel(
+	r screenjournal.Review,
+	loggedInUsername screenjournal.Username,
+	isAdminUser bool,
+) reviewViewModel {
+	return reviewViewModel{
+		ID:        r.ID,
+		Owner:     r.Owner,
+		Rating:    r.Rating,
+		Blurb:     r.Blurb,
+		Watched:   r.Watched,
+		Comments:  r.Comments,
+		Reactions: convertReactionsForTemplate(r.Reactions, loggedInUsername, isAdminUser),
+		CanEdit:   r.Owner.Equal(loggedInUsername),
+	}
+}
+
 //go:embed templates
 var templatesFS embed.FS
 
@@ -386,19 +418,10 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			reviews[i].Reactions = rr
 		}
 
-		// Create a wrapper type that includes converted reactions for templates.
-		type reviewForTemplate struct {
-			screenjournal.Review
-			ReactionsForTemplate []reactionForTemplate
-		}
-
-		// Convert reviews to template format with proper UserCanEdit flags.
-		reviewsForTemplate := make([]reviewForTemplate, len(reviews))
+		// Convert reviews to view models for templates.
+		reviewsForTemplate := make([]reviewViewModel, len(reviews))
 		for i, review := range reviews {
-			reviewsForTemplate[i] = reviewForTemplate{
-				Review:               review,
-				ReactionsForTemplate: convertReactionsForTemplate(review.Reactions, loggedInUsername, isAdminUser),
-			}
+			reviewsForTemplate[i] = makeReviewViewModel(review, loggedInUsername, isAdminUser)
 		}
 
 		type mediaStub struct {
@@ -415,7 +438,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 		if err := t.Execute(w, struct {
 			commonProps
 			Media           mediaStub
-			Reviews         []reviewForTemplate
+			Reviews         []reviewViewModel
 			AvailableEmojis []screenjournal.ReactionEmoji
 		}{
 			commonProps: makeCommonProps(r.Context()),
@@ -497,19 +520,10 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			reviews[i].Reactions = rr
 		}
 
-		// Create a wrapper type that includes converted reactions for templates.
-		type reviewForTemplate struct {
-			screenjournal.Review
-			ReactionsForTemplate []reactionForTemplate
-		}
-
-		// Convert reviews to template format with proper UserCanEdit flags.
-		reviewsForTemplate := make([]reviewForTemplate, len(reviews))
+		// Convert reviews to view models for templates.
+		reviewsForTemplate := make([]reviewViewModel, len(reviews))
 		for i, review := range reviews {
-			reviewsForTemplate[i] = reviewForTemplate{
-				Review:               review,
-				ReactionsForTemplate: convertReactionsForTemplate(review.Reactions, loggedInUsername, isAdminUser),
-			}
+			reviewsForTemplate[i] = makeReviewViewModel(review, loggedInUsername, isAdminUser)
 		}
 
 		type mediaStub struct {
@@ -527,7 +541,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 		if err := t.Execute(w, struct {
 			commonProps
 			Media           mediaStub
-			Reviews         []reviewForTemplate
+			Reviews         []reviewViewModel
 			AvailableEmojis []screenjournal.ReactionEmoji
 		}{
 			commonProps: makeCommonProps(r.Context()),

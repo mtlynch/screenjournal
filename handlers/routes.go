@@ -57,6 +57,8 @@ func (s *Server) routes() {
 	authenticatedRoutes.HandleFunc("/reviews", s.reviewsPost()).Methods(http.MethodPost)
 	authenticatedRoutes.HandleFunc("/reviews/{reviewID}", s.reviewsPut()).Methods(http.MethodPut)
 	authenticatedRoutes.HandleFunc("/reviews/{reviewID}", s.reviewsDelete()).Methods(http.MethodDelete)
+	authenticatedRoutes.HandleFunc("/reactions", s.reactionsPost()).Methods(http.MethodPost)
+	authenticatedRoutes.HandleFunc("/reactions/{reactionID}", s.reactionsDelete()).Methods(http.MethodDelete)
 
 	// Transitional subrouter as we get rid of the idea of separate API routes vs.
 	// view routes.

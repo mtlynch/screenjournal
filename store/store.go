@@ -26,6 +26,7 @@ var (
 	ErrMovieNotFound                     = errors.New("could not find movie")
 	ErrTvShowNotFound                    = errors.New("could not find TV show")
 	ErrCommentNotFound                   = errors.New("could not find comment")
+	ErrReactionNotFound                  = errors.New("could not find reaction")
 	ErrReviewNotFound                    = errors.New("could not find review")
 	ErrUserNotFound                      = errors.New("could not find user")
 	ErrUsernameNotAvailable              = errors.New("username is not available")

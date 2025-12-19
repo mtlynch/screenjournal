@@ -1,0 +1,51 @@
+package screenjournal
+
+import (
+	"strconv"
+	"time"
+)
+
+type (
+	ReactionID uint64
+
+	ReactionEmoji struct {
+		value string
+	}
+
+	ReviewReaction struct {
+		ID      ReactionID
+		Owner   Username
+		Emoji   ReactionEmoji
+		Created time.Time
+		Review  Review
+	}
+)
+
+func (id ReactionID) UInt64() uint64 {
+	return uint64(id)
+}
+
+func (id ReactionID) String() string {
+	return strconv.FormatUint(id.UInt64(), 10)
+}
+
+func (e ReactionEmoji) String() string {
+	return e.value
+}
+
+// NewReactionEmoji creates a ReactionEmoji from a validated string. This
+// function should only be called from the parse package after validation.
+func NewReactionEmoji(s string) ReactionEmoji {
+	return ReactionEmoji{value: s}
+}
+
+// AllowedReactionEmojis returns the list of allowed emoji reactions.
+func AllowedReactionEmojis() []ReactionEmoji {
+	return []ReactionEmoji{
+		{value: "👍"},
+		{value: "👀"},
+		{value: "😯"},
+		{value: "🤔"},
+		{value: "🥞"},
+	}
+}

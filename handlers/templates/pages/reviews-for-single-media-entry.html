@@ -38,7 +38,6 @@
 
 {{ define "content" }}
   {{ $loggedInUsername := .LoggedInUsername }}
-  {{ $isAdmin := .IsAdmin }}
   {{ $availableEmojis := .AvailableEmojis }}
 
   {{ if ne .Media.SeasonNumber 0 }}

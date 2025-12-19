@@ -19,6 +19,30 @@ type reactionPostRequest struct {
 	Emoji    screenjournal.ReactionEmoji
 }
 
+type reactionForTemplate struct {
+	ID          screenjournal.ReactionID
+	Emoji       screenjournal.ReactionEmoji
+	Owner       screenjournal.Username
+	UserCanEdit bool
+	Created     time.Time
+}
+
+// convertReactionsForTemplate converts reactions from the database format to
+// the template format, setting UserCanEdit based on ownership and admin status.
+func convertReactionsForTemplate(reactions []screenjournal.ReviewReaction, loggedInUsername screenjournal.Username, isAdminUser bool) []reactionForTemplate {
+	reactionsForTemplate := make([]reactionForTemplate, len(reactions))
+	for i, reaction := range reactions {
+		reactionsForTemplate[i] = reactionForTemplate{
+			ID:          reaction.ID,
+			Emoji:       reaction.Emoji,
+			Owner:       reaction.Owner,
+			UserCanEdit: loggedInUsername.Equal(reaction.Owner) || isAdminUser,
+			Created:     reaction.Created,
+		}
+	}
+	return reactionsForTemplate
+}
+
 func (s Server) reactionsPost() http.HandlerFunc {
 	t := template.Must(template.New("reviews-for-single-media-entry.html").
 		Funcs(moviePageFns).
@@ -64,25 +88,8 @@ func (s Server) reactionsPost() http.HandlerFunc {
 		loggedInUsername := mustGetUsernameFromContext(r.Context())
 		isAdminUser := isAdmin(r.Context())
 
-		type reactionForTemplate struct {
-			ID          screenjournal.ReactionID
-			Emoji       screenjournal.ReactionEmoji
-			Owner       screenjournal.Username
-			UserCanEdit bool
-			Created     time.Time
-		}
-
 		// Convert reactions to template format.
-		reactionsForTemplate := make([]reactionForTemplate, len(reactions))
-		for i, reaction := range reactions {
-			reactionsForTemplate[i] = reactionForTemplate{
-				ID:          reaction.ID,
-				Emoji:       reaction.Emoji,
-				Owner:       reaction.Owner,
-				UserCanEdit: loggedInUsername.Equal(reaction.Owner) || isAdminUser,
-				Created:     reaction.Created,
-			}
-		}
+		reactionsForTemplate := convertReactionsForTemplate(reactions, loggedInUsername, isAdminUser)
 
 		if err := t.ExecuteTemplate(w, "reactions-section", struct {
 			ReviewID         screenjournal.ReviewID

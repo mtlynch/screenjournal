@@ -365,6 +365,9 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			return
 		}
 
+		loggedInUsername := mustGetUsernameFromContext(r.Context())
+		isAdminUser := isAdmin(r.Context())
+
 		for i, review := range reviews {
 			cc, err := s.getDB(r).ReadComments(review.ID)
 			if err != nil {
@@ -383,6 +386,21 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			reviews[i].Reactions = rr
 		}
 
+		// Create a wrapper type that includes converted reactions for templates.
+		type reviewForTemplate struct {
+			screenjournal.Review
+			ReactionsForTemplate []reactionForTemplate
+		}
+
+		// Convert reviews to template format with proper UserCanEdit flags.
+		reviewsForTemplate := make([]reviewForTemplate, len(reviews))
+		for i, review := range reviews {
+			reviewsForTemplate[i] = reviewForTemplate{
+				Review:               review,
+				ReactionsForTemplate: convertReactionsForTemplate(review.Reactions, loggedInUsername, isAdminUser),
+			}
+		}
+
 		type mediaStub struct {
 			IsTvShow     bool
 			Type         screenjournal.MediaType
@@ -397,7 +415,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 		if err := t.Execute(w, struct {
 			commonProps
 			Media           mediaStub
-			Reviews         []screenjournal.Review
+			Reviews         []reviewForTemplate
 			AvailableEmojis []screenjournal.ReactionEmoji
 		}{
 			commonProps: makeCommonProps(r.Context()),
@@ -411,7 +429,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 				TmdbID:      movie.TmdbID,
 				ReleaseDate: movie.ReleaseDate,
 			},
-			Reviews:         reviews,
+			Reviews:         reviewsForTemplate,
 			AvailableEmojis: screenjournal.AllowedReactionEmojis(),
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -458,6 +476,9 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			return
 		}
 
+		loggedInUsername := mustGetUsernameFromContext(r.Context())
+		isAdminUser := isAdmin(r.Context())
+
 		for i, review := range reviews {
 			cc, err := s.getDB(r).ReadComments(review.ID)
 			if err != nil {
@@ -476,6 +497,21 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			reviews[i].Reactions = rr
 		}
 
+		// Create a wrapper type that includes converted reactions for templates.
+		type reviewForTemplate struct {
+			screenjournal.Review
+			ReactionsForTemplate []reactionForTemplate
+		}
+
+		// Convert reviews to template format with proper UserCanEdit flags.
+		reviewsForTemplate := make([]reviewForTemplate, len(reviews))
+		for i, review := range reviews {
+			reviewsForTemplate[i] = reviewForTemplate{
+				Review:               review,
+				ReactionsForTemplate: convertReactionsForTemplate(review.Reactions, loggedInUsername, isAdminUser),
+			}
+		}
+
 		type mediaStub struct {
 			Type         screenjournal.MediaType
 			IsTvShow     bool
@@ -491,7 +527,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 		if err := t.Execute(w, struct {
 			commonProps
 			Media           mediaStub
-			Reviews         []screenjournal.Review
+			Reviews         []reviewForTemplate
 			AvailableEmojis []screenjournal.ReactionEmoji
 		}{
 			commonProps: makeCommonProps(r.Context()),
@@ -506,7 +542,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 				TmdbID:       tvShow.TmdbID,
 				ReleaseDate:  tvShow.AirDate,
 			},
-			Reviews:         reviews,
+			Reviews:         reviewsForTemplate,
 			AvailableEmojis: screenjournal.AllowedReactionEmojis(),
 		}); err != nil {
 			log.Printf("failed to render template: %v", err)

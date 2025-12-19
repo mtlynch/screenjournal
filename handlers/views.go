@@ -59,6 +59,18 @@ func makeReviewViewModel(
 	}
 }
 
+func makeReviewViewModels(
+	reviews []screenjournal.Review,
+	loggedInUsername screenjournal.Username,
+	isAdminUser bool,
+) []reviewViewModel {
+	vms := make([]reviewViewModel, len(reviews))
+	for i, r := range reviews {
+		vms[i] = makeReviewViewModel(r, loggedInUsername, isAdminUser)
+	}
+	return vms
+}
+
 //go:embed templates
 var templatesFS embed.FS
 
@@ -419,10 +431,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 		}
 
 		// Convert reviews to view models for templates.
-		reviewsForTemplate := make([]reviewViewModel, len(reviews))
-		for i, review := range reviews {
-			reviewsForTemplate[i] = makeReviewViewModel(review, loggedInUsername, isAdminUser)
-		}
+		reviewsForTemplate := makeReviewViewModels(reviews, loggedInUsername, isAdminUser)
 
 		type mediaStub struct {
 			IsTvShow     bool
@@ -521,10 +530,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 		}
 
 		// Convert reviews to view models for templates.
-		reviewsForTemplate := make([]reviewViewModel, len(reviews))
-		for i, review := range reviews {
-			reviewsForTemplate[i] = makeReviewViewModel(review, loggedInUsername, isAdminUser)
-		}
+		reviewsForTemplate := makeReviewViewModels(reviews, loggedInUsername, isAdminUser)
 
 		type mediaStub struct {
 			Type         screenjournal.MediaType

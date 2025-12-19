@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -61,21 +62,40 @@ func (s Server) reactionsPost() http.HandlerFunc {
 		}
 
 		loggedInUsername := mustGetUsernameFromContext(r.Context())
+		isAdminUser := isAdmin(r.Context())
+
+		type reactionForTemplate struct {
+			ID          screenjournal.ReactionID
+			Emoji       screenjournal.ReactionEmoji
+			Author      screenjournal.Username
+			UserCanEdit bool
+			Created     time.Time
+		}
+
+		// Convert reactions to template format.
+		reactionsForTemplate := make([]reactionForTemplate, len(reactions))
+		for i, reaction := range reactions {
+			reactionsForTemplate[i] = reactionForTemplate{
+				ID:          reaction.ID,
+				Emoji:       reaction.Emoji,
+				Author:      reaction.Owner,
+				UserCanEdit: loggedInUsername.Equal(reaction.Owner) || isAdminUser,
+				Created:     reaction.Created,
+			}
+		}
 
 		if err := t.ExecuteTemplate(w, "reactions-section", struct {
 			ReviewID         screenjournal.ReviewID
-			Reactions        []screenjournal.ReviewReaction
+			Reactions        []reactionForTemplate
 			UserHasReacted   bool
 			AvailableEmojis  []screenjournal.ReactionEmoji
 			LoggedInUsername screenjournal.Username
-			IsAdmin          bool
 		}{
 			ReviewID:         req.ReviewID,
-			Reactions:        reactions,
+			Reactions:        reactionsForTemplate,
 			UserHasReacted:   true,
 			AvailableEmojis:  screenjournal.AllowedReactionEmojis(),
 			LoggedInUsername: loggedInUsername,
-			IsAdmin:          isAdmin(r.Context()),
 		}); err != nil {
 			http.Error(w, "Failed to render template", http.StatusInternalServerError)
 			log.Printf("failed to render reactions section: %v", err)

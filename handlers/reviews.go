@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -62,6 +63,12 @@ func (s Server) reviewsPost() http.HandlerFunc {
 				log.Printf("failed to get local media ID for TV show with TMDB ID %v: %v", req.TmdbID, err)
 				http.Error(w, fmt.Sprintf("Failed to look up TV show with TMDB ID: %v: %v", req.TmdbID, err), http.StatusInternalServerError)
 				return
+			}
+
+			// Fetch and store season poster if not already cached
+			if err := s.ensureSeasonPosterCached(s.getDB(r), review.TvShow.ID, req.TvShowSeason, req.TmdbID); err != nil {
+				log.Printf("failed to cache season poster for TV show %v season %v: %v", review.TvShow.ID, req.TvShowSeason, err)
+				// Don't fail the request if season poster caching fails
 			}
 		}
 
@@ -281,5 +288,32 @@ func (s Server) updateTvShowDetailsInStore(db Store, tvShow screenjournal.TvShow
 		return err
 	}
 
+	return nil
+}
+
+func (s Server) ensureSeasonPosterCached(db Store, tvShowID screenjournal.TvShowID, season screenjournal.TvShowSeason, tmdbID screenjournal.TmdbID) error {
+	// Check if season poster is already cached
+	if _, err := db.ReadTvShowSeason(tvShowID, season); err == nil {
+		// Season poster already exists
+		return nil
+	} else if err != store.ErrTvShowSeasonNotFound {
+		// Some other error occurred
+		return err
+	}
+
+	// For now, we'll create a placeholder entry without a poster
+	// In the future, this could be enhanced to fetch season-specific posters from TMDB
+	// when the TMDB API interface supports it
+	seasonInfo := screenjournal.TvShowSeasonInfo{
+		TvShowID:     tvShowID,
+		SeasonNumber: season,
+		PosterPath:   url.URL{}, // Empty URL - will fall back to main show poster
+	}
+
+	if err := db.InsertTvShowSeason(seasonInfo); err != nil {
+		return fmt.Errorf("failed to store season info: %v", err)
+	}
+
+	log.Printf("created placeholder season entry for TV show %v season %v", tvShowID, season.UInt8())
 	return nil
 }

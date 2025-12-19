@@ -163,7 +163,7 @@
   >
     <span>
       {{ .Emoji }}
-      <a href="/reviews/by/{{ .Author }}">{{ .Author }}</a>,
+      <a href="/reviews/by/{{ .Owner }}">{{ .Owner }}</a>,
       <span data-testid="relative-time" title="{{ formatCommentTime .Created }}"
         >{{ relativeCommentDate .Created }}</span
       >

@@ -67,7 +67,7 @@ func (s Server) reactionsPost() http.HandlerFunc {
 		type reactionForTemplate struct {
 			ID          screenjournal.ReactionID
 			Emoji       screenjournal.ReactionEmoji
-			Author      screenjournal.Username
+			Owner       screenjournal.Username
 			UserCanEdit bool
 			Created     time.Time
 		}
@@ -78,7 +78,7 @@ func (s Server) reactionsPost() http.HandlerFunc {
 			reactionsForTemplate[i] = reactionForTemplate{
 				ID:          reaction.ID,
 				Emoji:       reaction.Emoji,
-				Author:      reaction.Owner,
+				Owner:       reaction.Owner,
 				UserCanEdit: loggedInUsername.Equal(reaction.Owner) || isAdminUser,
 				Created:     reaction.Created,
 			}

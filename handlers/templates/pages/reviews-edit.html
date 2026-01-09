@@ -65,7 +65,7 @@
     const form = document.querySelector("form");
     const draftIdInput = document.getElementById("draft-id");
     const draftStatusEl = document.getElementById("draft-status");
-    const autosaveEnabled = form?.dataset.autosave === "true";
+    const autosaveEnabled = form?.dataset.autosave?.trim() === "true";
     let hasSavedDraft = false;
     let autosaveTimeout;
     let isSavingDraft = false;

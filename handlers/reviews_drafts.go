@@ -21,6 +21,8 @@ func (s Server) reviewsDraftsPost() http.HandlerFunc {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			return
 		}
+		saveDraftIntent := r.PostFormValue("save-draft") == "true" ||
+			r.PostFormValue("save-draft") == "1"
 
 		review := screenjournal.Review{
 			Owner:        mustGetUsernameFromContext(r.Context()),
@@ -58,6 +60,11 @@ func (s Server) reviewsDraftsPost() http.HandlerFunc {
 		if err != nil {
 			log.Printf("failed to save draft: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to save draft: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		if saveDraftIntent {
+			http.Redirect(w, r, "/reviews/drafts", http.StatusSeeOther)
 			return
 		}
 

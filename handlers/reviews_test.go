@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"reflect"
 	"strings"
 	"testing"
@@ -1132,7 +1133,11 @@ func TestReviewsPostPublishesDraft(t *testing.T) {
 	sessionManager := newMockSessionManager(sessions)
 	s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(nil, nil))
 
-	payload := fmt.Sprintf("draft-id=%d&media-type=movie&tmdb-id=38&rating=5&watch-date=2022-10-30&blurb=Final%20thoughts", draftID)
+	payload := fmt.Sprintf(
+		"draft-id=%d&media-type=movie&tmdb-id=38&rating=5&watch-date=2022-10-30&blurb=%s",
+		draftID,
+		url.QueryEscape("Final thoughts"),
+	)
 	req, err := http.NewRequest("POST", "/reviews", strings.NewReader(payload))
 	if err != nil {
 		t.Fatal(err)

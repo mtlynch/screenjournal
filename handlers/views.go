@@ -164,7 +164,7 @@ var reviewPageFns = template.FuncMap{
 	"formatDate": func(t time.Time) string {
 		return t.Format(time.DateOnly)
 	},
-	"formatDraftTime": formatIso8601Datetime,
+	"relativeDraftDate": relativeDraftDate,
 }
 
 func (s Server) indexGet() http.HandlerFunc {
@@ -389,8 +389,8 @@ func (s Server) reviewsDraftsGet() http.HandlerFunc {
 			}
 			return plaintext
 		},
-		"posterPathToURL": posterPathToURL,
-		"formatDraftTime": formatIso8601Datetime,
+		"posterPathToURL":   posterPathToURL,
+		"relativeDraftDate": relativeDraftDate,
 	}
 
 	t := template.Must(
@@ -1235,6 +1235,38 @@ func relativeCommentDate(t time.Time) string {
 
 	yearsAgo := int(math.Round(float64(daysAgo) / 365.0))
 	return fmt.Sprintf("%d years ago", yearsAgo)
+}
+
+func relativeDraftDate(t time.Time) string {
+	secondsAgo := int(time.Since(t).Seconds())
+	if secondsAgo < 60 {
+		if secondsAgo <= 1 {
+			return "1 second ago"
+		}
+		return fmt.Sprintf("%d seconds ago", secondsAgo)
+	}
+
+	minutesAgo := int(time.Since(t).Minutes())
+	if minutesAgo == 1 {
+		return "1 minute ago"
+	}
+	if minutesAgo < 60 {
+		return fmt.Sprintf("%d minutes ago", minutesAgo)
+	}
+
+	hoursAgo := int(time.Since(t).Hours())
+	if hoursAgo == 1 {
+		return "1 hour ago"
+	}
+	if hoursAgo < 24 {
+		return fmt.Sprintf("%d hours ago", hoursAgo)
+	}
+
+	daysAgo := int(time.Since(t).Hours() / 24)
+	if daysAgo == 1 {
+		return "1 day ago"
+	}
+	return fmt.Sprintf("%d days ago", daysAgo)
 }
 
 func formatIso8601Datetime(t time.Time) string {

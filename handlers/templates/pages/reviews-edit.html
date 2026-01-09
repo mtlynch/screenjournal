@@ -67,12 +67,48 @@
     const draftIdInput = document.getElementById("draft-id");
     const draftStatusEl = document.getElementById("draft-status");
     const autosaveEnabled = form?.dataset.autosave === "true";
+    let lastSavedAt = null;
+    let statusInterval;
     let autosaveTimeout;
     let isSavingDraft = false;
     let pendingSave = false;
 
-    function formatDraftTimestamp(ts) {
-      return ts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    function formatDraftAge() {
+      if (!lastSavedAt) {
+        return "";
+      }
+
+      const secondsAgo = Math.max(
+        1,
+        Math.floor((Date.now() - lastSavedAt.getTime()) / 1000)
+      );
+
+      if (secondsAgo < 60) {
+        return `Draft saved ${secondsAgo} second${secondsAgo === 1 ? "" : "s"} ago`;
+      }
+
+      const minutesAgo = Math.floor(secondsAgo / 60);
+      if (minutesAgo < 60) {
+        return `Draft saved ${minutesAgo} minute${minutesAgo === 1 ? "" : "s"} ago`;
+      }
+
+      const hoursAgo = Math.floor(minutesAgo / 60);
+      if (hoursAgo < 24) {
+        return `Draft saved ${hoursAgo} hour${hoursAgo === 1 ? "" : "s"} ago`;
+      }
+
+      const daysAgo = Math.floor(hoursAgo / 24);
+      return `Draft saved ${daysAgo} day${daysAgo === 1 ? "" : "s"} ago`;
+    }
+
+    function renderDraftStatus() {
+      if (!draftStatusEl) {
+        return;
+      }
+      const message = formatDraftAge();
+      if (message) {
+        draftStatusEl.textContent = message;
+      }
     }
 
     async function saveDraft() {
@@ -89,9 +125,6 @@
       const url = draftId ? `/reviews/drafts/${draftId}` : "/reviews/drafts";
 
       isSavingDraft = true;
-      if (draftStatusEl) {
-        draftStatusEl.textContent = "Saving...";
-      }
       try {
         const payload = new URLSearchParams(new FormData(form));
         const response = await fetch(url, {
@@ -114,9 +147,8 @@
         }
 
         if (draftStatusEl) {
-          draftStatusEl.textContent = `Draft saved at ${formatDraftTimestamp(
-            new Date()
-          )}`;
+          lastSavedAt = new Date();
+          renderDraftStatus();
         }
       } finally {
         isSavingDraft = false;
@@ -134,6 +166,17 @@
 
     if (autosaveEnabled && blurbEl) {
       blurbEl.addEventListener("input", scheduleAutosave);
+    }
+    if (autosaveEnabled && draftStatusEl?.dataset.lastSavedAt) {
+      const epochSeconds = Number.parseInt(
+        draftStatusEl.dataset.lastSavedAt,
+        10
+      );
+      if (epochSeconds > 0) {
+        lastSavedAt = new Date(epochSeconds * 1000);
+        renderDraftStatus();
+        statusInterval = window.setInterval(renderDraftStatus, 10000);
+      }
     }
   </script>
 {{ end }}
@@ -157,7 +200,12 @@
   {{ end }}
 
 
-  <h2>{{ $title }} ({{ $releaseYear }})</h2>
+  <h2>
+    {{ $title }} ({{ $releaseYear }})
+    {{ if $isDraft }}
+      <span class="badge bg-warning text-dark ms-2">Draft</span>
+    {{ end }}
+  </h2>
 
   {{ if ne .Review.TvShowSeason.UInt8 0 }}
     <h3>Season {{ .Review.TvShowSeason.UInt8 }}</h3>
@@ -242,12 +290,13 @@
       {{ if $enableAutosave }}
         <div
           id="draft-status"
-          class="text-muted"
+          class="text-muted text-end"
           aria-live="polite"
           data-testid="draft-status"
+          data-last-saved-at="{{ if $isDraft }}{{ .Review.Modified.Unix }}{{ end }}"
         >
           {{ if and $isDraft (not (.Review.Modified.IsZero)) }}
-            Last saved {{ .Review.Modified | formatDraftTime }}
+            Draft saved {{ .Review.Modified | relativeDraftDate }}
           {{ end }}
         </div>
       {{ end }}
@@ -336,28 +385,32 @@
         {{ end }}
       {{ else }}
         <div class="mb-3">
-          <div class="btn-group" role="group">
-            <button type="submit" class="btn btn-primary">Publish</button>
-            <button
-              type="button"
-              class="btn btn-primary dropdown-toggle dropdown-toggle-split"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
-              <span class="visually-hidden">Toggle dropdown</span>
-            </button>
-            <ul class="dropdown-menu">
-              <li>
+          <div class="d-flex justify-content-end">
+            <div class="btn-group" role="group">
+              <button type="submit" class="btn btn-primary">Publish</button>
+              <button
+                type="button"
+                class="btn btn-primary dropdown-toggle dropdown-toggle-split"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <span class="visually-hidden">Toggle dropdown</span>
+              </button>
+              <ul class="dropdown-menu">
+                <li>
                 <button
                   type="submit"
                   class="dropdown-item"
                   formaction="/reviews/drafts"
                   formmethod="post"
+                  name="save-draft"
+                  value="true"
                 >
                   Save as draft
                 </button>
-              </li>
-            </ul>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       {{ end }}

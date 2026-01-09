@@ -3,8 +3,6 @@
 {{ end }}
 
 {{ define "content" }}
-  <h2>Drafts</h2>
-
   {{ if not .Drafts }}
     <p>You don't have any drafts yet.</p>
   {{ else }}
@@ -35,7 +33,7 @@
                 </a>
               </h5>
               <p class="card-text text-muted">
-                Last saved {{ formatDraftTime .Modified }}
+                Last saved {{ relativeDraftDate .Modified }}
               </p>
               {{ with .Blurb | elideBlurb }}
                 <p class="card-text">

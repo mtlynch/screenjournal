@@ -21,6 +21,7 @@ func (s Store) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, erro
 		movie_id,
 		tv_show_id,
 		tv_show_season,
+		is_draft,
 		rating,
 		blurb,
 		watched_date,
@@ -75,6 +76,10 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 		whereClauses = append(whereClauses, "tv_show_season = :tv_show_season")
 		queryArgs = append(queryArgs, sql.Named("tv_show_season", params.Filters.TvShowSeason.UInt8()))
 	}
+	if params.Filters.IsDraft != nil {
+		whereClauses = append(whereClauses, "is_draft = :is_draft")
+		queryArgs = append(queryArgs, sql.Named("is_draft", *params.Filters.IsDraft))
+	}
 
 	query := `
 	SELECT
@@ -83,6 +88,7 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 		movie_id,
 		tv_show_id,
 		tv_show_season,
+		is_draft,
 		rating,
 		blurb,
 		watched_date,
@@ -164,6 +170,7 @@ func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, err
 		movie_id,
 		tv_show_id,
 		tv_show_season,
+		is_draft,
 		rating,
 		blurb,
 		watched_date,
@@ -171,13 +178,14 @@ func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, err
 		last_modified_time
 	)
 	VALUES (
-		:owner, :movie_id, :tv_show_id, :tv_show_season, :rating, :blurb, :watched_date, :created_time, :last_modified_time
+		:owner, :movie_id, :tv_show_id, :tv_show_season, :is_draft, :rating, :blurb, :watched_date, :created_time, :last_modified_time
 	)
 	`,
 		sql.Named("owner", r.Owner),
 		sql.Named("movie_id", movieID),
 		sql.Named("tv_show_id", tvShowID),
 		sql.Named("tv_show_season", tvShowSeason),
+		sql.Named("is_draft", r.IsDraft),
 		sql.Named("rating", r.Rating.Value),
 		sql.Named("blurb", r.Blurb),
 		sql.Named("watched_date", formatWatchDate(r.Watched)),
@@ -211,12 +219,14 @@ func (s Store) UpdateReview(r screenjournal.Review) error {
 	if _, err := s.ctx.Exec(`
 	UPDATE reviews
 	SET
+		is_draft = :is_draft,
 		rating = :rating,
 		blurb = :blurb,
 		watched_date = :watched_date,
 		last_modified_time = :last_modified_time
 	WHERE
 		id = :id`,
+		sql.Named("is_draft", r.IsDraft),
 		sql.Named("rating", r.Rating.Value),
 		sql.Named("blurb", r.Blurb),
 		sql.Named("watched_date", formatWatchDate(r.Watched)),
@@ -259,13 +269,14 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 	var movieIDRaw *int
 	var tvShowIDRaw *int
 	var tvShowSeason *int
+	var isDraftRaw int
 	var ratingRaw *uint8
 	var blurb string
 	var watchedDateRaw string
 	var createdTimeRaw string
 	var lastModifiedTimeRaw string
 
-	err := row.Scan(&id, &owner, &movieIDRaw, &tvShowIDRaw, &tvShowSeason, &ratingRaw, &blurb, &watchedDateRaw, &createdTimeRaw, &lastModifiedTimeRaw)
+	err := row.Scan(&id, &owner, &movieIDRaw, &tvShowIDRaw, &tvShowSeason, &isDraftRaw, &ratingRaw, &blurb, &watchedDateRaw, &createdTimeRaw, &lastModifiedTimeRaw)
 	if err == sql.ErrNoRows {
 		return screenjournal.Review{}, store.ErrReviewNotFound
 	} else if err != nil {
@@ -311,6 +322,7 @@ func reviewFromRow(row rowScanner) (screenjournal.Review, error) {
 	return screenjournal.Review{
 		ID:       screenjournal.ReviewID(id),
 		Owner:    screenjournal.Username(owner),
+		IsDraft:  isDraftRaw != 0,
 		Rating:   rating,
 		Blurb:    screenjournal.Blurb(blurb),
 		Watched:  screenjournal.WatchDate(wd),

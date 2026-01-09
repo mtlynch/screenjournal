@@ -17,12 +17,14 @@ type reviewPostRequest struct {
 	Rating       screenjournal.Rating
 	WatchDate    screenjournal.WatchDate
 	Blurb        screenjournal.Blurb
+	DraftID      *screenjournal.ReviewID
 }
 
 type reviewPutRequest struct {
 	Rating  screenjournal.Rating
 	Blurb   screenjournal.Blurb
 	Watched screenjournal.WatchDate
+	Publish bool
 }
 
 func (s Server) reviewsPost() http.HandlerFunc {
@@ -34,12 +36,55 @@ func (s Server) reviewsPost() http.HandlerFunc {
 			return
 		}
 
+		if req.DraftID != nil {
+			review, err := s.getDB(r).ReadReview(*req.DraftID)
+			if err == store.ErrReviewNotFound {
+				http.Error(w, "Draft not found", http.StatusNotFound)
+				return
+			} else if err != nil {
+				http.Error(w, fmt.Sprintf("Failed to read draft: %v", err), http.StatusInternalServerError)
+				return
+			}
+
+			loggedInUsername := mustGetUsernameFromContext(r.Context())
+			if !review.Owner.Equal(loggedInUsername) {
+				http.Error(w, "You can't edit another user's draft", http.StatusForbidden)
+				return
+			}
+
+			if !review.IsDraft {
+				http.Error(w, "Draft already published", http.StatusBadRequest)
+				return
+			}
+
+			review.Rating = req.Rating
+			review.Blurb = req.Blurb
+			review.Watched = req.WatchDate
+			review.IsDraft = false
+
+			if err := s.getDB(r).UpdateReview(review); err != nil {
+				log.Printf("failed to publish draft: %v", err)
+				http.Error(w, fmt.Sprintf("Failed to save review: %v", err), http.StatusInternalServerError)
+				return
+			}
+
+			s.announcer.AnnounceNewReview(review)
+
+			if review.MediaType() == screenjournal.MediaTypeMovie {
+				http.Redirect(w, r, fmt.Sprintf("/movies/%d#review%d", review.Movie.ID.Int64(), review.ID.UInt64()), http.StatusSeeOther)
+			} else {
+				http.Redirect(w, r, fmt.Sprintf("/tv-shows/%d?season=%d#review%d", review.TvShow.ID.Int64(), review.TvShowSeason.UInt8(), review.ID.UInt64()), http.StatusSeeOther)
+			}
+			return
+		}
+
 		review := screenjournal.Review{
 			Owner:        mustGetUsernameFromContext(r.Context()),
 			TvShowSeason: req.TvShowSeason,
 			Rating:       req.Rating,
 			Watched:      req.WatchDate,
 			Blurb:        req.Blurb,
+			IsDraft:      false,
 			Comments:     []screenjournal.ReviewComment{},
 		}
 
@@ -115,11 +160,23 @@ func (s Server) reviewsPut() http.HandlerFunc {
 		review.Rating = parsedRequest.Rating
 		review.Blurb = parsedRequest.Blurb
 		review.Watched = parsedRequest.Watched
+		wasDraft := review.IsDraft
+		if parsedRequest.Publish {
+			if !review.IsDraft {
+				http.Error(w, "Review already published", http.StatusBadRequest)
+				return
+			}
+			review.IsDraft = false
+		}
 
 		if err := s.getDB(r).UpdateReview(review); err != nil {
 			log.Printf("failed to update review: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to update review: %v", err), http.StatusInternalServerError)
 			return
+		}
+
+		if wasDraft && !review.IsDraft {
+			s.announcer.AnnounceNewReview(review)
 		}
 
 		var newRoute string
@@ -174,6 +231,14 @@ func parseReviewPostRequest(r *http.Request) (reviewPostRequest, error) {
 	parsed := reviewPostRequest{}
 	var err error
 
+	if draftRaw := r.PostFormValue("draft-id"); draftRaw != "" {
+		draftID, err := parse.ReviewIDFromString(draftRaw)
+		if err != nil {
+			return reviewPostRequest{}, err
+		}
+		parsed.DraftID = &draftID
+	}
+
 	if parsed.MediaType, err = parse.MediaType(r.PostFormValue("media-type")); err != nil {
 		return reviewPostRequest{}, err
 	}
@@ -222,6 +287,9 @@ func parseReviewPutRequest(r *http.Request) (reviewPutRequest, error) {
 	if parsed.Blurb, err = parse.Blurb(r.PostFormValue("blurb")); err != nil {
 		return reviewPutRequest{}, err
 	}
+
+	publishRaw := r.PostFormValue("publish")
+	parsed.Publish = publishRaw == "true" || publishRaw == "1"
 
 	return parsed, nil
 }

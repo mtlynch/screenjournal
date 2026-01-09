@@ -338,6 +338,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			collectionOwner = &username
 			queryOptions = append(queryOptions, store.FilterReviewsByUsername(username))
 		}
+		queryOptions = append(queryOptions, store.FilterReviewsByDraftStatus(false))
 
 		var sortOrder = screenjournal.ByWatchDate
 		if sort, err := sortOrderFromQueryParams(r); err == nil {
@@ -378,6 +379,51 @@ func (s Server) reviewsGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) reviewsDraftsGet() http.HandlerFunc {
+	fns := template.FuncMap{
+		"elideBlurb": func(b screenjournal.Blurb) string {
+			plaintext := markdown.RenderBlurbAsPlaintext(b)
+			if len(plaintext) > 200 {
+				return plaintext[:200] + "..."
+			}
+			return plaintext
+		},
+		"posterPathToURL": posterPathToURL,
+		"formatDraftTime": formatIso8601Datetime,
+	}
+
+	t := template.Must(
+		template.New("base.html").
+			Funcs(fns).
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/reviews-drafts.html")...))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		loggedInUsername := mustGetUsernameFromContext(r.Context())
+		drafts, err := s.getDB(r).ReadReviews(
+			store.FilterReviewsByUsername(loggedInUsername),
+			store.FilterReviewsByDraftStatus(true),
+		)
+		if err != nil {
+			log.Printf("failed to read drafts: %v", err)
+			http.Error(w, "Failed to read drafts", http.StatusInternalServerError)
+			return
+		}
+
+		if err := t.Execute(w, struct {
+			commonProps
+			Drafts []screenjournal.Review
+		}{
+			commonProps: makeCommonProps(r.Context()),
+			Drafts:      drafts,
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func (s Server) moviesReadGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").
@@ -402,7 +448,10 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			return
 		}
 
-		reviews, err := s.getDB(r).ReadReviews(store.FilterReviewsByMovieID(mid))
+		reviews, err := s.getDB(r).ReadReviews(
+			store.FilterReviewsByMovieID(mid),
+			store.FilterReviewsByDraftStatus(false),
+		)
 		if err != nil {
 			log.Printf("failed to read movie reviews: %v", err)
 			http.Error(w, "Failed to retrieve reviews", http.StatusInternalServerError)
@@ -501,7 +550,11 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			return
 		}
 
-		reviews, err := s.getDB(r).ReadReviews(store.FilterReviewsByTvShowID(tvID), store.FilterReviewsByTvShowSeason(seasonNumber))
+		reviews, err := s.getDB(r).ReadReviews(
+			store.FilterReviewsByTvShowID(tvID),
+			store.FilterReviewsByTvShowSeason(seasonNumber),
+			store.FilterReviewsByDraftStatus(false),
+		)
 		if err != nil {
 			log.Printf("failed to read TV show reviews: %v", err)
 			http.Error(w, "Failed to retrieve TV show reviews", http.StatusInternalServerError)

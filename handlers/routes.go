@@ -57,6 +57,8 @@ func (s *Server) routes() {
 	authenticatedRoutes.HandleFunc("/reviews", s.reviewsPost()).Methods(http.MethodPost)
 	authenticatedRoutes.HandleFunc("/reviews/{reviewID}", s.reviewsPut()).Methods(http.MethodPut)
 	authenticatedRoutes.HandleFunc("/reviews/{reviewID}", s.reviewsDelete()).Methods(http.MethodDelete)
+	authenticatedRoutes.HandleFunc("/reviews/drafts", s.reviewsDraftsPost()).Methods(http.MethodPost)
+	authenticatedRoutes.HandleFunc("/reviews/drafts/{reviewID}", s.reviewsDraftsPut()).Methods(http.MethodPut)
 	authenticatedRoutes.HandleFunc("/reactions", s.reactionsPost()).Methods(http.MethodPost)
 	authenticatedRoutes.HandleFunc("/reactions/{reactionID}", s.reactionsDelete()).Methods(http.MethodDelete)
 
@@ -79,6 +81,7 @@ func (s *Server) routes() {
 	authenticatedViews.HandleFunc("/movies/{movieID}", s.moviesReadGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/tv-shows/{tvShowID}", s.tvShowsReadGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews", s.reviewsGet()).Methods(http.MethodGet)
+	authenticatedViews.HandleFunc("/reviews/drafts", s.reviewsDraftsGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews/by/{username}", s.reviewsGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews/new", s.reviewsNewTitleSearchGet()).Methods(http.MethodGet)
 	authenticatedViews.HandleFunc("/reviews/new/tv/pick-season", s.reviewsNewPickSeasonGet()).Methods(http.MethodGet)

@@ -1,0 +1,54 @@
+{{ define "title" }}
+  Drafts
+{{ end }}
+
+{{ define "content" }}
+  <h2>Drafts</h2>
+
+  {{ if not .Drafts }}
+    <p>You don't have any drafts yet.</p>
+  {{ else }}
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+      {{ range .Drafts }}
+        {{ $media := .Movie }}
+        {{ $reviewRoute := printf "/reviews/%s/edit" .ID.String }}
+        {{ if eq .Movie.ID.Int64 0 }}
+          {{ $media = .TvShow }}
+        {{ end }}
+
+        <div class="col" data-testid="draft-card">
+          <div class="card h-100">
+            <a href="{{ $reviewRoute }}">
+              <img
+                class="card-img-top poster"
+                src="{{ posterPathToURL $media.PosterPath }}"
+                alt="Poster for {{ $media.Title }}"
+              />
+            </a>
+            <div class="card-body">
+              <h5 class="card-title">
+                <a href="{{ $reviewRoute }}">
+                  {{ $media.Title }}
+                  {{- if ne .TvShowSeason 0 }}
+                    (Season {{ .TvShowSeason }})
+                  {{ end -}}
+                </a>
+              </h5>
+              <p class="card-text text-muted">
+                Last saved {{ formatDraftTime .Modified }}
+              </p>
+              {{ with .Blurb | elideBlurb }}
+                <p class="card-text">
+                  {{ . }}
+                </p>
+              {{ end }}
+              <a class="btn btn-primary" href="{{ $reviewRoute }}"
+                >Continue</a
+              >
+            </div>
+          </div>
+        </div>
+      {{ end }}
+    </div>
+  {{ end }}
+{{ end }}

@@ -61,11 +61,72 @@
     document.body.addEventListener("htmx:afterSwap", function () {
       addSpoilersRevealButtons();
     });
+
+    const form = document.querySelector("form");
+    const blurbEl = document.getElementById("blurb");
+    const draftIdInput = document.getElementById("draft-id");
+    const autosaveEnabled = form?.dataset.autosave === "true";
+    let autosaveTimeout;
+    let isSavingDraft = false;
+    let pendingSave = false;
+
+    async function saveDraft() {
+      if (!autosaveEnabled || !form) {
+        return;
+      }
+
+      if (isSavingDraft) {
+        pendingSave = true;
+        return;
+      }
+
+      const draftId = draftIdInput?.value?.trim();
+      const url = draftId ? `/reviews/drafts/${draftId}` : "/reviews/drafts";
+
+      isSavingDraft = true;
+      try {
+        const payload = new URLSearchParams(new FormData(form));
+        const response = await fetch(url, {
+          method: draftId ? "PUT" : "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: payload.toString(),
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        if (!draftId) {
+          const data = await response.json();
+          if (data.reviewId && draftIdInput) {
+            draftIdInput.value = data.reviewId;
+          }
+        }
+      } finally {
+        isSavingDraft = false;
+        if (pendingSave) {
+          pendingSave = false;
+          scheduleAutosave();
+        }
+      }
+    }
+
+    function scheduleAutosave() {
+      window.clearTimeout(autosaveTimeout);
+      autosaveTimeout = window.setTimeout(saveDraft, 750);
+    }
+
+    if (autosaveEnabled && blurbEl) {
+      blurbEl.addEventListener("input", scheduleAutosave);
+    }
   </script>
 {{ end }}
 
 {{ define "content" }}
   {{ $isEditing := ne .Review.ID 0 }}
+  {{ $isDraft := .Review.IsDraft }}
 
   {{ $title := "" }}
   {{ $releaseYear := 0 }}
@@ -91,6 +152,7 @@
 
   <div class="my-5">
     {{ $isEditing := ne .Review.ID 0 }}
+    {{ $enableAutosave := or (not $isEditing) $isDraft }}
 
 
     <form
@@ -103,7 +165,14 @@
       hx-target="body"
       hx-push-url="true"
       hx-disabled-elt="input, select, textarea, .btn"
+      data-autosave="{{ if $enableAutosave }}true{{ else }}false{{ end }}"
     >
+      <input
+        type="hidden"
+        name="draft-id"
+        id="draft-id"
+        value="{{ if $isDraft }}{{ .Review.ID }}{{ end }}"
+      />
       {{ if not $isEditing }}
         <input type="hidden" name="tmdb-id" value="{{ $tmdbID }}" />
         <input type="hidden" name="season" value="{{ .Review.TvShowSeason }}" />
@@ -187,6 +256,36 @@
       </div>
 
       {{ if $isEditing }}
+        {{ if $isDraft }}
+          <div class="d-flex justify-content-between flex-row-reverse">
+            <div class="d-flex">
+              <button
+                class="btn btn-primary me-2"
+                name="publish"
+                value="true"
+              >
+                <i class="fa-solid fa-floppy-disk"></i>
+                Publish
+              </button>
+              <a
+                class="btn btn-outline-secondary"
+                role="button"
+                href="/reviews/drafts"
+                >Cancel</a
+              >
+            </div>
+            <div class="d-flex">
+              <a
+                class="btn btn-danger"
+                role="button"
+                hx-delete="/reviews/{{ .Review.ID }}"
+                hx-confirm="Delete this review?"
+              >
+                <i class="fa fa-trash me-2"></i>Delete
+              </a>
+            </div>
+          </div>
+        {{ else }}
         <div class="d-flex justify-content-between flex-row-reverse">
           <div class="d-flex">
             <button class="btn btn-primary me-2" value="Save">
@@ -208,6 +307,7 @@
             </a>
           </div>
         </div>
+        {{ end }}
       {{ else }}
         <div class="mb-3">
           <input type="submit" class="btn btn-primary" value="Submit" />

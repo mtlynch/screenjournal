@@ -164,6 +164,7 @@ var reviewPageFns = template.FuncMap{
 	"formatDate": func(t time.Time) string {
 		return t.Format(time.DateOnly)
 	},
+	"formatDraftTime": formatIso8601Datetime,
 }
 
 func (s Server) indexGet() http.HandlerFunc {

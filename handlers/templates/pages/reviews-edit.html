@@ -65,10 +65,15 @@
     const form = document.querySelector("form");
     const blurbEl = document.getElementById("blurb");
     const draftIdInput = document.getElementById("draft-id");
+    const draftStatusEl = document.getElementById("draft-status");
     const autosaveEnabled = form?.dataset.autosave === "true";
     let autosaveTimeout;
     let isSavingDraft = false;
     let pendingSave = false;
+
+    function formatDraftTimestamp(ts) {
+      return ts.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
 
     async function saveDraft() {
       if (!autosaveEnabled || !form) {
@@ -84,6 +89,9 @@
       const url = draftId ? `/reviews/drafts/${draftId}` : "/reviews/drafts";
 
       isSavingDraft = true;
+      if (draftStatusEl) {
+        draftStatusEl.textContent = "Saving...";
+      }
       try {
         const payload = new URLSearchParams(new FormData(form));
         const response = await fetch(url, {
@@ -103,6 +111,12 @@
           if (data.reviewId && draftIdInput) {
             draftIdInput.value = data.reviewId;
           }
+        }
+
+        if (draftStatusEl) {
+          draftStatusEl.textContent = `Draft saved at ${formatDraftTimestamp(
+            new Date()
+          )}`;
         }
       } finally {
         isSavingDraft = false;
@@ -225,6 +239,18 @@
 {{ .Review.Blurb }}</textarea
         >
       </div>
+      {{ if $enableAutosave }}
+        <div
+          id="draft-status"
+          class="text-muted"
+          aria-live="polite"
+          data-testid="draft-status"
+        >
+          {{ if and $isDraft (not (.Review.Modified.IsZero)) }}
+            Last saved {{ .Review.Modified | formatDraftTime }}
+          {{ end }}
+        </div>
+      {{ end }}
       <div class="d-flex justify-content-end">
         <p>
           <small>formatting options</small>&nbsp;<a
@@ -310,7 +336,29 @@
         {{ end }}
       {{ else }}
         <div class="mb-3">
-          <input type="submit" class="btn btn-primary" value="Submit" />
+          <div class="btn-group" role="group">
+            <button type="submit" class="btn btn-primary">Publish</button>
+            <button
+              type="button"
+              class="btn btn-primary dropdown-toggle dropdown-toggle-split"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <span class="visually-hidden">Toggle dropdown</span>
+            </button>
+            <ul class="dropdown-menu">
+              <li>
+                <button
+                  type="submit"
+                  class="dropdown-item"
+                  formaction="/reviews/drafts"
+                  formmethod="post"
+                >
+                  Save as draft
+                </button>
+              </li>
+            </ul>
+          </div>
         </div>
       {{ end }}
 

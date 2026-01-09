@@ -14,6 +14,7 @@
           {{ $media = .TvShow }}
         {{ end }}
 
+
         <div class="col" data-testid="draft-card">
           <div class="card h-100">
             <a href="{{ $reviewRoute }}">
@@ -33,16 +34,15 @@
                 </a>
               </h5>
               <p class="card-text text-muted">
-                Last saved {{ relativeDraftDate .Modified }}
+                Last saved
+                {{ relativeDraftDate .Modified }}
               </p>
               {{ with .Blurb | elideBlurb }}
                 <p class="card-text">
                   {{ . }}
                 </p>
               {{ end }}
-              <a class="btn btn-primary" href="{{ $reviewRoute }}"
-                >Continue</a
-              >
+              <a class="btn btn-primary" href="{{ $reviewRoute }}">Continue</a>
             </div>
           </div>
         </div>

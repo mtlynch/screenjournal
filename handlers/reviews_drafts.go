@@ -24,8 +24,9 @@ func (s Server) reviewsDraftsPost() http.HandlerFunc {
 		saveDraftIntent := r.PostFormValue("save-draft") == "true" ||
 			r.PostFormValue("save-draft") == "1"
 
+		loggedInUsername := mustGetUsernameFromContext(r.Context())
 		review := screenjournal.Review{
-			Owner:        mustGetUsernameFromContext(r.Context()),
+			Owner:        loggedInUsername,
 			TvShowSeason: req.TvShowSeason,
 			Rating:       req.Rating,
 			Watched:      req.WatchDate,
@@ -56,11 +57,28 @@ func (s Server) reviewsDraftsPost() http.HandlerFunc {
 			}
 		}
 
-		review.ID, err = s.getDB(r).InsertReview(review)
+		existingDraft, err := s.findExistingDraft(r, loggedInUsername, review)
 		if err != nil {
-			log.Printf("failed to save draft: %v", err)
+			log.Printf("failed to find existing draft: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to save draft: %v", err), http.StatusInternalServerError)
 			return
+		}
+		statusCode := http.StatusCreated
+		if existingDraft != nil {
+			review.ID = existingDraft.ID
+			if err := s.getDB(r).UpdateReview(review); err != nil {
+				log.Printf("failed to update draft: %v", err)
+				http.Error(w, fmt.Sprintf("Failed to save draft: %v", err), http.StatusInternalServerError)
+				return
+			}
+			statusCode = http.StatusOK
+		} else {
+			review.ID, err = s.getDB(r).InsertReview(review)
+			if err != nil {
+				log.Printf("failed to save draft: %v", err)
+				http.Error(w, fmt.Sprintf("Failed to save draft: %v", err), http.StatusInternalServerError)
+				return
+			}
 		}
 
 		if saveDraftIntent {
@@ -69,11 +87,40 @@ func (s Server) reviewsDraftsPost() http.HandlerFunc {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(statusCode)
 		if err := json.NewEncoder(w).Encode(reviewDraftResponse{ReviewID: review.ID}); err != nil {
 			log.Printf("failed to encode draft response: %v", err)
 		}
 	}
+}
+
+func (s Server) findExistingDraft(r *http.Request, owner screenjournal.Username, draft screenjournal.Review) (*screenjournal.Review, error) {
+	queryOptions := []store.ReadReviewsOption{
+		store.FilterReviewsByUsername(owner),
+		store.FilterReviewsByDraftStatus(true),
+	}
+	if draft.MediaType() == screenjournal.MediaTypeMovie {
+		queryOptions = append(queryOptions, store.FilterReviewsByMovieID(draft.Movie.ID))
+	} else {
+		queryOptions = append(queryOptions, store.FilterReviewsByTvShowID(draft.TvShow.ID))
+		queryOptions = append(queryOptions, store.FilterReviewsByTvShowSeason(draft.TvShowSeason))
+	}
+
+	drafts, err := s.getDB(r).ReadReviews(queryOptions...)
+	if err != nil {
+		return nil, err
+	}
+	if len(drafts) == 0 {
+		return nil, nil
+	}
+
+	latest := drafts[0]
+	for _, candidate := range drafts[1:] {
+		if candidate.Modified.After(latest.Modified) {
+			latest = candidate
+		}
+	}
+	return &latest, nil
 }
 
 func (s Server) reviewsDraftsPut() http.HandlerFunc {

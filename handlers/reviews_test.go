@@ -23,6 +23,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
+	"github.com/mtlynch/screenjournal/v2/store"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
@@ -995,6 +996,116 @@ func TestReviewsDraftsPost(t *testing.T) {
 
 	if got, want := len(announcer.announcedReviews), 0; got != want {
 		t.Fatalf("announcedReviews=%d, want=%d", got, want)
+	}
+}
+
+func TestReviewsDraftsPostReusesExistingDraft(t *testing.T) {
+	dataStore := test_sqlite.New()
+
+	mockUser := screenjournal.User{
+		Username:     screenjournal.Username("userA"),
+		Email:        screenjournal.Email("userA@example.com"),
+		PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+	}
+	if err := dataStore.InsertUser(mockUser); err != nil {
+		t.Fatalf("failed to insert mock user: %+v: %v", mockUser, err)
+	}
+
+	movie := screenjournal.Movie{
+		TmdbID:      screenjournal.TmdbID(38),
+		ImdbID:      screenjournal.ImdbID("tt0338013"),
+		Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+		ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+	}
+	if _, err := dataStore.InsertMovie(movie); err != nil {
+		t.Fatalf("failed to insert mock movie: %+v: %v", movie, err)
+	}
+
+	announcer := mockAnnouncer{}
+	sessions := []mockSessionEntry{
+		{
+			token: "abc123",
+			session: sessions.Session{
+				Username: screenjournal.Username("userA"),
+			},
+		},
+	}
+	sessionManager := newMockSessionManager(sessions)
+	s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(nil, nil))
+
+	firstPayload := "media-type=movie&tmdb-id=38&rating=5&watch-date=2022-10-28&blurb=Draft%20thoughts"
+	firstReq, err := http.NewRequest("POST", "/reviews/drafts", strings.NewReader(firstPayload))
+	if err != nil {
+		t.Fatal(err)
+	}
+	firstReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	firstReq.AddCookie(&http.Cookie{
+		Name:  mockSessionTokenName,
+		Value: "abc123",
+	})
+
+	firstRec := httptest.NewRecorder()
+	s.Router().ServeHTTP(firstRec, firstReq)
+	firstRes := firstRec.Result()
+
+	if got, want := firstRes.StatusCode, http.StatusCreated; got != want {
+		t.Fatalf("httpStatus=%v, want=%v", got, want)
+	}
+
+	var firstResponse struct {
+		ReviewID screenjournal.ReviewID `json:"reviewId"`
+	}
+	if err := json.NewDecoder(firstRes.Body).Decode(&firstResponse); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	secondPayload := "media-type=movie&tmdb-id=38&rating=4&watch-date=2022-10-29&blurb=Updated%20draft"
+	secondReq, err := http.NewRequest("POST", "/reviews/drafts", strings.NewReader(secondPayload))
+	if err != nil {
+		t.Fatal(err)
+	}
+	secondReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	secondReq.AddCookie(&http.Cookie{
+		Name:  mockSessionTokenName,
+		Value: "abc123",
+	})
+
+	secondRec := httptest.NewRecorder()
+	s.Router().ServeHTTP(secondRec, secondReq)
+	secondRes := secondRec.Result()
+
+	if got, want := secondRes.StatusCode, http.StatusOK; got != want {
+		t.Fatalf("httpStatus=%v, want=%v", got, want)
+	}
+
+	var secondResponse struct {
+		ReviewID screenjournal.ReviewID `json:"reviewId"`
+	}
+	if err := json.NewDecoder(secondRes.Body).Decode(&secondResponse); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	if got, want := secondResponse.ReviewID, firstResponse.ReviewID; got != want {
+		t.Fatalf("reviewID=%v, want=%v", got, want)
+	}
+
+	drafts, err := dataStore.ReadReviews(
+		store.FilterReviewsByUsername(screenjournal.Username("userA")),
+		store.FilterReviewsByMovieID(screenjournal.MovieID(1)),
+		store.FilterReviewsByDraftStatus(true),
+	)
+	if err != nil {
+		t.Fatalf("failed to read drafts: %v", err)
+	}
+	if got, want := len(drafts), 1; got != want {
+		t.Fatalf("draftCount=%d, want=%d", got, want)
+	}
+
+	if got, want := drafts[0].Blurb, screenjournal.Blurb("Updated draft"); got != want {
+		t.Fatalf("blurb=%v, want=%v", got, want)
+	}
+	if got, want := drafts[0].Rating, screenjournal.NewRating(4); !got.Equal(want) {
+		t.Fatalf("rating=%v, want=%v", got, want)
 	}
 }
 

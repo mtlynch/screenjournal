@@ -15,10 +15,11 @@ test("auto-saves a draft and lets the user resume", async ({ page }) => {
 
   await page.getByLabel("When did you watch?").fill("2024-10-10");
 
-  const draftResponse = page.waitForResponse((response) =>
-    response.url().includes("/reviews/drafts") &&
-    response.request().method() === "POST" &&
-    response.status() === 201
+  const draftResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes("/reviews/drafts") &&
+      response.request().method() === "POST" &&
+      response.status() === 201
   );
   await page.getByLabel("Other thoughts?").fill("Draft thoughts");
   await draftResponse;

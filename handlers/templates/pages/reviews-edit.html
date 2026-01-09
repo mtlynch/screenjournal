@@ -109,7 +109,7 @@
       const url = draftId ? `/reviews/drafts/${draftId}` : "/reviews/drafts";
 
       isSavingDraft = true;
-      if (!lastSavedAt && draftStatusEl) {
+      if (!hasSavedDraft && draftStatusEl) {
         draftStatusEl.textContent = "Saving draft...";
         draftStatusEl.classList.remove("text-danger");
         draftStatusEl.classList.add("text-muted");

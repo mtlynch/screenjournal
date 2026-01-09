@@ -837,6 +837,11 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 				return
 			}
 			movie = m
+			if movie.ID.IsZero() && tmdbID != nil {
+				if existingMovie, err := s.getDB(r).ReadMovieByTmdbID(*tmdbID); err == nil {
+					movie = existingMovie
+				}
+			}
 		} else if mediaType == screenjournal.MediaTypeTvShow {
 			t, err := s.getTvShow(r, tvShowID, tmdbID)
 			if err != nil {
@@ -845,6 +850,11 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 				return
 			}
 			tvShow = t
+			if tvShow.ID.IsZero() && tmdbID != nil {
+				if existingShow, err := s.getDB(r).ReadTvShowByTmdbID(*tmdbID); err == nil {
+					tvShow = existingShow
+				}
+			}
 
 			season, err := tvShowSeasonFromQueryParams(r)
 			if err != nil {
@@ -853,6 +863,25 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 				return
 			}
 			tvShowSeason = season
+		}
+
+		loggedInUsername := mustGetUsernameFromContext(r.Context())
+		draftCandidate := screenjournal.Review{
+			Owner:        loggedInUsername,
+			Movie:        movie,
+			TvShow:       tvShow,
+			TvShowSeason: tvShowSeason,
+		}
+		if (mediaType == screenjournal.MediaTypeMovie && !movie.ID.IsZero()) ||
+			(mediaType == screenjournal.MediaTypeTvShow && !tvShow.ID.IsZero()) {
+			if existingDraft, err := s.findExistingDraft(r, loggedInUsername, draftCandidate); err != nil {
+				log.Printf("failed to check draft: %v", err)
+				http.Error(w, "Failed to load review", http.StatusInternalServerError)
+				return
+			} else if existingDraft != nil {
+				http.Redirect(w, r, fmt.Sprintf("/reviews/%d/edit", existingDraft.ID.UInt64()), http.StatusSeeOther)
+				return
+			}
 		}
 
 		if err := t.Execute(w, struct {

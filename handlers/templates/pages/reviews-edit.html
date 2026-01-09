@@ -63,7 +63,6 @@
     });
 
     const form = document.querySelector("form");
-    const blurbEl = document.getElementById("blurb");
     const draftIdInput = document.getElementById("draft-id");
     const draftStatusEl = document.getElementById("draft-status");
     const autosaveEnabled = form?.dataset.autosave === "true";
@@ -112,7 +111,18 @@
       const message = formatDraftAge();
       if (message) {
         draftStatusEl.textContent = message;
+        draftStatusEl.classList.remove("text-danger");
+        draftStatusEl.classList.add("text-muted");
       }
+    }
+
+    function showDraftError(message) {
+      if (!draftStatusEl) {
+        return;
+      }
+      draftStatusEl.textContent = message;
+      draftStatusEl.classList.add("text-danger");
+      draftStatusEl.classList.remove("text-muted");
     }
 
     async function saveDraft() {
@@ -140,6 +150,7 @@
         });
 
         if (!response.ok) {
+          showDraftError("Failed to save draft.");
           return;
         }
 
@@ -153,7 +164,12 @@
         if (draftStatusEl) {
           lastSavedAt = new Date();
           renderDraftStatus();
+          if (!statusInterval) {
+            statusInterval = window.setInterval(renderDraftStatus, 10000);
+          }
         }
+      } catch (err) {
+        showDraftError("Failed to save draft.");
       } finally {
         isSavingDraft = false;
         if (pendingSave) {
@@ -168,9 +184,6 @@
       autosaveTimeout = window.setTimeout(saveDraft, 750);
     }
 
-    if (autosaveEnabled && blurbEl) {
-      blurbEl.addEventListener("input", scheduleAutosave);
-    }
     if (autosaveEnabled && draftStatusEl?.dataset.lastSavedAt) {
       const epochSeconds = Number.parseInt(
         draftStatusEl.dataset.lastSavedAt,
@@ -181,6 +194,19 @@
         renderDraftStatus();
         statusInterval = window.setInterval(renderDraftStatus, 10000);
       }
+    }
+    if (autosaveEnabled && form) {
+      const handleAutoSaveEvent = (evt) => {
+        const target = evt.target;
+        if (!target || target.closest("button")) {
+          return;
+        }
+        if (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) {
+          scheduleAutosave();
+        }
+      };
+      form.addEventListener("input", handleAutoSaveEvent);
+      form.addEventListener("change", handleAutoSaveEvent);
     }
   </script>
 {{ end }}
@@ -295,24 +321,17 @@
 {{ .Review.Blurb }}</textarea
         >
       </div>
-      {{ if $enableAutosave }}
-        <div
-          id="draft-status"
-          class="text-muted text-end"
-          aria-live="polite"
-          data-testid="draft-status"
-          data-last-saved-at="{{ if $isDraft }}
-            {{ .Review.Modified.Unix }}
-          {{ end }}"
-        >
-          {{ if and $isDraft (not (.Review.Modified.IsZero)) }}
-            Draft saved
-            {{ .Review.Modified | relativeDraftDate }}
-          {{ end }}
-        </div>
-      {{ end }}
-      <div class="d-flex justify-content-end">
-        <p>
+      <div class="d-flex justify-content-between align-items-center">
+        {{ if $enableAutosave }}
+          <div
+            id="draft-status"
+            class="text-muted"
+            aria-live="polite"
+            data-testid="draft-status"
+            data-last-saved-at="{{ if $isDraft }}{{ .Review.Modified.Unix }}{{ end }}"
+          ></div>
+        {{ end }}
+        <p class="mb-0">
           <small>formatting options</small>&nbsp;<a
             href="#"
             id="formatting-help-icon"

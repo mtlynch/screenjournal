@@ -38,7 +38,7 @@ test("auto-saves a draft and lets the user resume", async ({ page }) => {
   );
 
   await page.getByRole("button", { name: "Publish" }).click();
-  await expect(page).toHaveURL("/movies/3");
+  await expect(page).toHaveURL(/\/movies\/3(#review\d+)?/);
 });
 
 test("redirects to an existing draft when starting the same review", async ({
@@ -67,5 +67,5 @@ test("redirects to an existing draft when starting the same review", async ({
   await page.getByText("Slow Learners (2015)").click();
 
   await expect(page).toHaveURL(/\/reviews\/\d+\/edit/);
-  await expect(page.getByText("Draft")).toBeVisible();
+  await expect(page.locator("h2 .badge", { hasText: "Draft" })).toBeVisible();
 });

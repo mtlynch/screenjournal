@@ -65,8 +65,10 @@
     const form = document.querySelector("form");
     const draftIdInput = document.getElementById("draft-id");
     const draftStatusEl = document.getElementById("draft-status");
+    const draftSpinnerEl = document.getElementById("draft-spinner");
     const autosaveEnabled = form?.dataset.autosave?.trim() === "true";
     let hasSavedDraft = false;
+    let fadeTimeout;
     let autosaveTimeout;
     let isSavingDraft = false;
     let pendingSave = false;
@@ -79,11 +81,13 @@
         draftStatusEl.textContent = "Saved draft";
         draftStatusEl.classList.remove("text-danger");
         draftStatusEl.classList.add("text-muted");
+        scheduleFade();
         return;
       }
       draftStatusEl.textContent = "Draft will auto-save.";
       draftStatusEl.classList.remove("text-danger");
       draftStatusEl.classList.add("text-muted");
+      scheduleFade();
     }
 
     function showDraftError(message) {
@@ -93,6 +97,34 @@
       draftStatusEl.textContent = message;
       draftStatusEl.classList.add("text-danger");
       draftStatusEl.classList.remove("text-muted");
+      if (fadeTimeout) {
+        window.clearTimeout(fadeTimeout);
+      }
+      draftStatusEl.classList.remove("opacity-0");
+    }
+
+    function scheduleFade() {
+      if (!draftStatusEl) {
+        return;
+      }
+      if (fadeTimeout) {
+        window.clearTimeout(fadeTimeout);
+      }
+      draftStatusEl.classList.remove("opacity-0");
+      fadeTimeout = window.setTimeout(() => {
+        draftStatusEl.classList.add("opacity-0");
+      }, 3000);
+    }
+
+    function setSpinnerVisible(isVisible) {
+      if (!draftSpinnerEl) {
+        return;
+      }
+      if (isVisible) {
+        draftSpinnerEl.classList.remove("invisible");
+      } else {
+        draftSpinnerEl.classList.add("invisible");
+      }
     }
 
     async function saveDraft() {
@@ -113,7 +145,9 @@
         draftStatusEl.textContent = "Saving draft...";
         draftStatusEl.classList.remove("text-danger");
         draftStatusEl.classList.add("text-muted");
+        scheduleFade();
       }
+      setSpinnerVisible(true);
       try {
         const payload = new URLSearchParams(new FormData(form));
         const response = await fetch(url, {
@@ -143,6 +177,7 @@
       } catch (err) {
         showDraftError("Failed to save draft.");
       } finally {
+        setSpinnerVisible(false);
         isSavingDraft = false;
         if (pendingSave) {
           pendingSave = false;
@@ -164,6 +199,7 @@
         }
         if (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) {
           scheduleAutosave();
+          scheduleFade();
         }
       };
       form.addEventListener("input", handleAutoSaveEvent);
@@ -290,13 +326,23 @@
       </div>
       <div class="d-flex justify-content-between align-items-center">
         {{ if $enableAutosave }}
-          <div
-            id="draft-status"
-            class="text-muted"
-            aria-live="polite"
-            data-testid="draft-status"
-            data-had-saved-draft="{{ if $isDraft }}true{{ end }}"
-          ></div>
+          <div class="d-flex align-items-center">
+            <span
+              id="draft-spinner"
+              class="spinner-border spinner-border-sm text-muted me-2 invisible"
+              role="status"
+              aria-hidden="true"
+              style="width: 1rem; height: 1rem;"
+            ></span>
+            <div
+              id="draft-status"
+              class="text-muted"
+              aria-live="polite"
+              data-testid="draft-status"
+              data-had-saved-draft="{{ if $isDraft }}true{{ end }}"
+              style="transition: opacity 0.3s ease;"
+            ></div>
+          </div>
         {{ end }}
         <p class="mb-0">
           <small>formatting options</small>&nbsp;<a

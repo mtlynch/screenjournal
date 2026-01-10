@@ -22,14 +22,15 @@ test("activity page shows reviews, comments, and reactions with links", async ({
     page.getByText("userA replied to userB's review of The Waterboy")
   ).toBeVisible();
 
-  await expect(page.getByRole("link", { name: "userA" })).toHaveAttribute(
-    "href",
-    "/reviews/by/userA"
-  );
-  await expect(page.getByRole("link", { name: "userB" })).toHaveAttribute(
-    "href",
-    "/reviews/by/userB"
-  );
+  const commentItem = page
+    .locator("li")
+    .filter({ hasText: "userA replied to userB's review of The Waterboy" });
+  await expect(
+    commentItem.getByRole("link", { name: "userA" })
+  ).toHaveAttribute("href", "/reviews/by/userA");
+  await expect(
+    commentItem.getByRole("link", { name: "userB" })
+  ).toHaveAttribute("href", "/reviews/by/userB");
 
   const waterboyReviewLink = page.getByRole("link", { name: "The Waterboy" });
   await expect(waterboyReviewLink).toHaveAttribute("href", "/movies/1#review1");

@@ -3,9 +3,11 @@ package smtp
 import (
 	"crypto/tls"
 	"errors"
-	"fmt"
 	"log"
+	"net"
 	"net/smtp"
+	"strconv"
+	"time"
 
 	"github.com/mtlynch/screenjournal/v2/email"
 	"github.com/mtlynch/screenjournal/v2/email/smtp/convert"
@@ -47,24 +49,28 @@ func New(host string, port int, username, password string) (email.Sender, error)
 func (s sender) Send(msg email.Message) error {
 	log.Printf("sending email from %s to %s (%s)", msg.From.String(), msg.To[0].String(), msg.Subject)
 
-	serverName := fmt.Sprintf("%s:%d", s.config.Host, s.config.Port)
-	c, err := smtp.Dial(serverName)
+	serverName := net.JoinHostPort(s.config.Host, strconv.Itoa(s.config.Port))
+	dialer := net.Dialer{Timeout: 10 * time.Second}
+	conn, err := dialer.Dial("tcp", serverName)
 	if err != nil {
 		return err
 	}
-
-	err = c.StartTLS(&tls.Config{
-		ServerName: s.config.Host,
-	})
+	c, err := smtp.NewClient(conn, s.config.Host)
 	if err != nil {
+		_ = conn.Close()
 		return err
 	}
-
 	defer func() {
 		if err := c.Quit(); err != nil {
-			log.Printf("failed to close TLS connection: %v", err)
+			log.Printf("failed to close SMTP connection: %v", err)
 		}
 	}()
+
+	if err := c.StartTLS(&tls.Config{
+		ServerName: s.config.Host,
+	}); err != nil {
+		return err
+	}
 
 	// Plain auth is okay since we're wrapping it in TLS.
 	if err := c.Auth(smtp.PlainAuth("", s.config.Username, s.config.Password, s.config.Host)); err != nil {
@@ -95,6 +101,9 @@ func (s sender) Send(msg email.Message) error {
 
 	_, err = w.Write([]byte(rawMsg))
 	if err != nil {
+		return err
+	}
+	if err := w.Close(); err != nil {
 		return err
 	}
 

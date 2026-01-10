@@ -19,7 +19,7 @@ test("navbar updates links based on auth state", async ({ page }) => {
   await expect(page).toHaveURL("/about");
 
   await expect(page.locator(".navbar").getByText("Account")).toHaveCount(0);
-  await expect(page.locator(".navbar").getByText("Acivity")).toHaveCount(0);
+  await expect(page.locator(".navbar").getByText("Activity")).toHaveCount(0);
 
   await loginAsAdmin(page);
 
@@ -33,5 +33,5 @@ test("navbar updates links based on auth state", async ({ page }) => {
   await expect(page).toHaveURL("/about");
 
   await expect(page.locator(".navbar").getByText("Account")).toHaveCount(1);
-  await expect(page.locator(".navbar").getByText("Acivity")).toHaveCount(1);
+  await expect(page.locator(".navbar").getByText("Activity")).toHaveCount(1);
 });

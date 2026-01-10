@@ -12,7 +12,7 @@ test("activity page shows reviews, comments, and reactions with links", async ({
 }) => {
   await page.goto("/activity");
 
-  await expect(page.getByRole("heading", { name: "Acivity" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Activity" })).toBeVisible();
 
   await expect(
     page.getByText("userB gave a 5.0 star review to The Waterboy.")

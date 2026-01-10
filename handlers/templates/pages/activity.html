@@ -13,25 +13,24 @@
               {{ if eq .Kind "review" }}
                 <a href="{{ .ActorURL }}">{{ .ActorName }}</a>
                 {{ if not .Rating.IsNil }}
-                  gave a
+                  reviewed <a href="{{ .TargetURL }}">{{ .TargetText }}</a> as
                   {{ range (ratingToStars .Rating) }}
                     <i class="{{ . }}"></i>
                   {{ end }}
-                  review to <a href="{{ .TargetURL }}">{{ .TargetText }}</a>.
                 {{ else }}
-                  posted a review of <a href="{{ .TargetURL }}">{{ .TargetText }}</a>.
+                  posted a review of <a href="{{ .TargetURL }}">{{ .TargetText }}</a>
                 {{ end }}
               {{ else if eq .Kind "reaction" }}
                 <a href="{{ .ActorURL }}">{{ .ActorName }}</a>
                 reacted to
                 <a href="{{ .TargetUserURL }}">{{ .TargetUserName }}</a>'s
                 <a href="{{ .TargetURL }}">{{ .TargetText }}</a>
-                with {{ .Emoji }}.
+                with {{ .Emoji }}
               {{ else if eq .Kind "comment" }}
                 <a href="{{ .ActorURL }}">{{ .ActorName }}</a>
                 replied to
                 <a href="{{ .TargetUserURL }}">{{ .TargetUserName }}</a>'s
-                <a href="{{ .TargetURL }}">{{ .TargetText }}</a>.
+                review of <a href="{{ .TargetURL }}">{{ .TargetText }}</a>
               {{ end }}
               <a href="{{ .TargetURL }}" class="ms-2 text-decoration-none" aria-label="Go to activity">
                 <i class="fa-solid fa-link"></i>

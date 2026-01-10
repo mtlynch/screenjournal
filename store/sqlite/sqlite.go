@@ -25,13 +25,16 @@ type (
 	}
 )
 
-func New(path string, optimizeForLitestream bool) Store {
+func MustOpen(path string) *sql.DB {
 	log.Printf("reading DB from %s", path)
 	ctx, err := driver.Open(path)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("failed to open database: %v", err)
 	}
+	return ctx
+}
 
+func New(ctx *sql.DB, optimizeForLitestream bool) Store {
 	if _, err := ctx.Exec(`
 		PRAGMA temp_store = FILE;
 		PRAGMA journal_mode = WAL;

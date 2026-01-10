@@ -13,7 +13,7 @@ func New() sqlite.Store {
 	// Suppress log output, as the migration logs are too noisy during tests.
 	defer quietLogs()()
 	const optimizeForLitestream = false
-	return sqlite.New(ephemeralDbURI(), optimizeForLitestream)
+	return sqlite.New(sqlite.MustOpen(ephemeralDbURI()), optimizeForLitestream)
 }
 
 func ephemeralDbURI() string {

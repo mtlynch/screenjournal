@@ -27,7 +27,7 @@ type activityItem struct {
 	TargetText     string
 	TargetURL      string
 	Rating         screenjournal.Rating
-	Emoji          string
+	ReactionEmoji  screenjournal.ReactionEmoji
 }
 
 type activityGroup struct {
@@ -114,7 +114,7 @@ func buildActivityGroups(reviews []screenjournal.Review) []activityGroup {
 				TargetUserURL:  userReviewsURL(review.Owner),
 				TargetText:     reviewTargetText,
 				TargetURL:      reviewTargetURL(review, review.ID),
-				Emoji:          reaction.Emoji.String(),
+				ReactionEmoji:  reaction.Emoji,
 			})
 		}
 	}

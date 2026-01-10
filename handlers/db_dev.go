@@ -168,7 +168,7 @@ func (s Server) populateDummyData() http.HandlerFunc {
 			if review.Owner.Equal(screenjournal.Username("userB")) && review.Movie.Title == "The Waterboy" {
 				reaction := screenjournal.ReviewReaction{
 					Review: review,
-					Owner:  screenjournal.Username("userA"),
+					Owner:  screenjournal.Username("dummyadmin"),
 					Emoji:  screenjournal.NewReactionEmoji("🥞"),
 				}
 				if _, err := s.getDB(r).InsertReaction(reaction); err != nil {

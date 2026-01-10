@@ -97,6 +97,9 @@ func (s Store) ReadPasswordResetEntries() ([]screenjournal.PasswordResetEntry, e
 			ExpiresAt: expiresAt,
 		})
 	}
+	if err := rows.Err(); err != nil {
+		return []screenjournal.PasswordResetEntry{}, err
+	}
 
 	return requests, nil
 }

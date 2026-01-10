@@ -32,6 +32,11 @@ func (s Store) ReadReactions(rid screenjournal.ReviewID) ([]screenjournal.Review
 	if err != nil {
 		return []screenjournal.ReviewReaction{}, err
 	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("failed to close reaction rows: %v", err)
+		}
+	}()
 
 	reactions := []screenjournal.ReviewReaction{}
 	for rows.Next() {
@@ -43,6 +48,9 @@ func (s Store) ReadReactions(rid screenjournal.ReviewID) ([]screenjournal.Review
 		rr.Review = review
 
 		reactions = append(reactions, rr)
+	}
+	if err := rows.Err(); err != nil {
+		return []screenjournal.ReviewReaction{}, err
 	}
 
 	return reactions, nil

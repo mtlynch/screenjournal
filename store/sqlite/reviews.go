@@ -105,6 +105,11 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 	if err != nil {
 		return []screenjournal.Review{}, err
 	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("failed to close review rows: %v", err)
+		}
+	}()
 
 	reviews := []screenjournal.Review{}
 	for rows.Next() {
@@ -113,6 +118,9 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 			return []screenjournal.Review{}, err
 		}
 		reviews = append(reviews, review)
+	}
+	if err := rows.Err(); err != nil {
+		return []screenjournal.Review{}, err
 	}
 
 	// Populate the fields once the first SQL query is complete.

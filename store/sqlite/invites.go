@@ -64,6 +64,11 @@ func (s Store) ReadSignupInvitations() ([]screenjournal.SignupInvitation, error)
 	if err != nil {
 		return []screenjournal.SignupInvitation{}, err
 	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("failed to close invite rows: %v", err)
+		}
+	}()
 
 	invites := []screenjournal.SignupInvitation{}
 	for rows.Next() {
@@ -77,6 +82,9 @@ func (s Store) ReadSignupInvitations() ([]screenjournal.SignupInvitation, error)
 			Invitee:    screenjournal.Invitee(inviteeRaw),
 			InviteCode: screenjournal.InviteCode(inviteCodeRaw),
 		})
+	}
+	if err := rows.Err(); err != nil {
+		return []screenjournal.SignupInvitation{}, err
 	}
 
 	return invites, nil

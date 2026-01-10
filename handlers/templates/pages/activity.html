@@ -14,9 +14,11 @@
                 <a href="{{ .ActorURL }}">{{ .ActorName }}</a>
                 {{ if not .Rating.IsNil }}
                   reviewed <a href="{{ .TargetURL }}">{{ .TargetText }}</a> as
-                  {{ range (ratingToStars .Rating) }}
-                    <i class="{{ . }}"></i>
-                  {{ end }}
+                  <a href="{{ .TargetURL }}" class="text-decoration-none" aria-label="Review rating">
+                    {{ range (ratingToStars .Rating) }}
+                      <i class="{{ . }}"></i>
+                    {{ end }}
+                  </a>
                 {{ else }}
                   posted a review of <a href="{{ .TargetURL }}">{{ .TargetText }}</a>
                 {{ end }}

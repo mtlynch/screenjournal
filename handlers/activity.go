@@ -161,7 +161,11 @@ func reviewMediaTitle(review screenjournal.Review) string {
 	if !review.Movie.ID.IsZero() {
 		return review.Movie.Title.String()
 	}
-	return review.TvShow.Title.String()
+	title := review.TvShow.Title.String()
+	if review.TvShowSeason.UInt8() == 0 {
+		return title
+	}
+	return fmt.Sprintf("%s season %d", title, review.TvShowSeason.UInt8())
 }
 
 func reviewPageURL(review screenjournal.Review) string {

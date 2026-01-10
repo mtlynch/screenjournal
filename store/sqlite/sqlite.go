@@ -26,12 +26,23 @@ type (
 )
 
 func New(path string, optimizeForLitestream bool) Store {
-	log.Printf("reading DB from %s", path)
-	ctx, err := driver.Open(path)
+	ctx, err := OpenDB(path)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	return NewFromDB(ctx, optimizeForLitestream)
+}
 
+func OpenDB(path string) (*sql.DB, error) {
+	log.Printf("reading DB from %s", path)
+	ctx, err := driver.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	return ctx, nil
+}
+
+func NewFromDB(ctx *sql.DB, optimizeForLitestream bool) Store {
 	if _, err := ctx.Exec(`
 		PRAGMA temp_store = FILE;
 		PRAGMA journal_mode = WAL;

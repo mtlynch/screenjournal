@@ -29,7 +29,11 @@ func main() {
 	flag.Parse()
 
 	ensureDirExists(filepath.Dir(*dbPath))
-	store := sqlite.New(*dbPath, isLitestreamEnabled())
+	db, err := sqlite.OpenDB(*dbPath)
+	if err != nil {
+		log.Fatalf("failed to open database: %v", err)
+	}
+	store := sqlite.NewFromDB(db, isLitestreamEnabled())
 
 	authenticator := auth.New(store)
 
@@ -37,7 +41,7 @@ func main() {
 	if !useTls {
 		log.Printf("TLS has not been marked as required, so session cookies will not have Secure flag")
 	}
-	sessionManager, err := sessions.NewManager(*dbPath, useTls)
+	sessionManager, err := sessions.NewManager(db, useTls)
 	if err != nil {
 		log.Fatalf("failed to create session manager: %v", err)
 	}

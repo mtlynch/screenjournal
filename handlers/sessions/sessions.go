@@ -25,14 +25,7 @@ type (
 
 var ErrNoSessionFound = errors.New("no session in request context")
 
-func NewManager(dbPath string, requireTls bool) (Manager, error) {
-	// We could theoretically share the DB pointer with the main DB store, if we
-	// do the sql.Open call in main.go and share it.
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		return Manager{}, err
-	}
-
+func NewManager(db *sql.DB, requireTls bool) (Manager, error) {
 	options := []simple_sessions.Option{}
 	if !requireTls {
 		options = append(options, simple_sessions.AllowNonTlsConnections())

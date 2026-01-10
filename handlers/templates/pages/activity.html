@@ -13,7 +13,7 @@
               {{ if eq .Kind "review" }}
                 <a href="{{ .ActorURL }}">{{ .ActorName }}</a>
                 {{ if not .Rating.IsNil }}
-                  reviewed <a href="{{ .TargetURL }}">{{ .TargetText }}</a> as
+                  reviewed <a href="{{ .TargetURL }}">{{ .TargetText }}</a>
                   <a href="{{ .TargetURL }}" class="text-decoration-none" aria-label="Review rating">
                     {{ range (ratingToStars .Rating) }}
                       <i class="{{ . }}"></i>

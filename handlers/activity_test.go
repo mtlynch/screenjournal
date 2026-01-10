@@ -58,8 +58,8 @@ func TestBuildActivityGroupsOrdersItemsAndGroupsByDate(t *testing.T) {
 		t.Errorf("expected third item to be review, got %s", groups[0].Items[2].Kind)
 	}
 
-	if got, want := groups[0].Items[2].RatingLabel, "3.5"; got != want {
-		t.Errorf("unexpected rating label: got %q want %q", got, want)
+	if got, want := groups[0].Items[2].Rating, screenjournal.NewRating(7); !got.Equal(want) {
+		t.Errorf("unexpected rating: got %v want %v", got, want)
 	}
 }
 

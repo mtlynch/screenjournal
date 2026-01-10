@@ -15,7 +15,7 @@ test("activity page shows reviews, comments, and reactions with links", async ({
   await expect(page.getByRole("heading", { name: "Activity" })).toBeVisible();
 
   await expect(
-    page.getByText("userB gave a 5.0 star review to The Waterboy.")
+    page.getByText("userB gave a review to The Waterboy.")
   ).toBeVisible();
   await expect(
     page.getByText("userA reacted to userB's The Waterboy review with 🥞.")
@@ -38,4 +38,11 @@ test("activity page shows reviews, comments, and reactions with links", async ({
     "href",
     "/movies/1#review1"
   );
+
+  const waterboyReviewItem = page
+    .locator("li")
+    .filter({ hasText: "userB gave a review to The Waterboy." });
+  await expect(
+    waterboyReviewItem.locator(".fa-solid.fa-star")
+  ).toHaveCount(5);
 });

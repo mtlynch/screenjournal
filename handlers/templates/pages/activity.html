@@ -12,9 +12,12 @@
             <li class="mb-2">
               {{ if eq .Kind "review" }}
                 <a href="{{ .ActorURL }}">{{ .ActorName }}</a>
-                {{ if .RatingLabel }}
-                  gave a {{ .RatingLabel }} star review to
-                  <a href="{{ .TargetURL }}">{{ .TargetText }}</a>.
+                {{ if not .Rating.IsNil }}
+                  gave a
+                  {{ range (ratingToStars .Rating) }}
+                    <i class="{{ . }}"></i>
+                  {{ end }}
+                  review to <a href="{{ .TargetURL }}">{{ .TargetText }}</a>.
                 {{ else }}
                   posted a review of <a href="{{ .TargetURL }}">{{ .TargetText }}</a>.
                 {{ end }}

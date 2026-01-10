@@ -26,7 +26,7 @@ type activityItem struct {
 	TargetUserURL  string
 	TargetText     string
 	TargetURL      string
-	RatingLabel    string
+	Rating         screenjournal.Rating
 	Emoji          string
 }
 
@@ -38,6 +38,9 @@ type activityGroup struct {
 func (s Server) activityGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").
+			Funcs(template.FuncMap{
+				"ratingToStars": ratingToStars,
+			}).
 			ParseFS(
 				templatesFS,
 				append(baseTemplates, "templates/pages/activity.html")...))
@@ -79,13 +82,13 @@ func buildActivityGroups(reviews []screenjournal.Review) []activityGroup {
 		reviewTargetText := reviewMediaTitle(review)
 		reviewURL := reviewTargetURL(review, review.ID)
 		items = append(items, activityItem{
-			Kind:        activityKindReview,
-			Created:     review.Created,
-			ActorName:   review.Owner,
-			ActorURL:    userReviewsURL(review.Owner),
-			TargetText:  reviewTargetText,
-			TargetURL:   reviewURL,
-			RatingLabel: ratingLabel(review.Rating),
+			Kind:       activityKindReview,
+			Created:    review.Created,
+			ActorName:  review.Owner,
+			ActorURL:   userReviewsURL(review.Owner),
+			TargetText: reviewTargetText,
+			TargetURL:  reviewURL,
+			Rating:     review.Rating,
 		})
 
 		for _, comment := range review.Comments {
@@ -178,11 +181,4 @@ func reviewTargetURL(review screenjournal.Review, id screenjournal.ReviewID) str
 
 func reviewCommentURL(review screenjournal.Review, id screenjournal.CommentID) string {
 	return fmt.Sprintf("%s#comment%d", reviewPageURL(review), id.UInt64())
-}
-
-func ratingLabel(rating screenjournal.Rating) string {
-	if rating.IsNil() {
-		return ""
-	}
-	return fmt.Sprintf("%.1f", float64(rating.UInt8())/2.0)
 }

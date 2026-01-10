@@ -9,7 +9,7 @@
         <h2 class="h5">{{ .DateLabel }}</h2>
         <ul class="list-unstyled">
           {{ range .Items }}
-            <li class="mb-3 border bg-light rounded p-2">
+            <li class="activity-item mb-3">
               {{ if eq .Kind "review" }}
                 <a href="{{ .ActorURL }}">{{ .ActorName }}</a>
                 {{ if not .Rating.IsNil }}

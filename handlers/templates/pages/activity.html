@@ -31,7 +31,7 @@
                 <a href="{{ .ActorURL }}">{{ .ActorName }}</a>
                 reacted to
                 <a href="{{ .TargetUserURL }}">{{ .TargetUserName }}</a>'s
-                <a href="{{ .TargetURL }}">{{ .TargetText }}</a>
+                review of <a href="{{ .TargetURL }}">{{ .TargetText }}</a>
                 with
                 {{ .Emoji }}
               {{ else if eq .Kind "comment" }}

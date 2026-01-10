@@ -112,7 +112,7 @@ func buildActivityGroups(reviews []screenjournal.Review) []activityGroup {
 				ActorURL:       userReviewsURL(reaction.Owner),
 				TargetUserName: review.Owner,
 				TargetUserURL:  userReviewsURL(review.Owner),
-				TargetText:     fmt.Sprintf("%s review", reviewTargetText),
+				TargetText:     reviewTargetText,
 				TargetURL:      reviewTargetURL(review, review.ID),
 				Emoji:          reaction.Emoji.String(),
 			})

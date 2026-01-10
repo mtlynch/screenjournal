@@ -16,10 +16,10 @@ test("activity page shows reviews, comments, and reactions with links", async ({
 
   await expect(page.getByText("userB reviewed The Waterboy")).toBeVisible();
   await expect(
-    page.getByText("userA reacted to userB's The Waterboy review with 🥞.")
+    page.getByText("userA reacted to userB's review of The Waterboy with 🥞")
   ).toBeVisible();
   await expect(
-    page.getByText("userA replied to userB's review of The Waterboy.")
+    page.getByText("userA replied to userB's review of The Waterboy")
   ).toBeVisible();
 
   await expect(page.getByRole("link", { name: "userA" })).toHaveAttribute(

@@ -8,7 +8,7 @@ import (
 )
 
 func TestBuildActivityGroupsOrdersItemsAndGroupsByDate(t *testing.T) {
-	loc := time.Local
+	loc := time.UTC
 	reviewTime := time.Date(2025, 1, 1, 10, 0, 0, 0, loc)
 	commentTime := time.Date(2025, 1, 1, 11, 0, 0, 0, loc)
 	reactionTime := time.Date(2025, 1, 1, 12, 0, 0, 0, loc)
@@ -64,7 +64,7 @@ func TestBuildActivityGroupsOrdersItemsAndGroupsByDate(t *testing.T) {
 }
 
 func TestBuildActivityGroupsUsesTvShowSeasonLinks(t *testing.T) {
-	loc := time.Local
+	loc := time.UTC
 	commentTime := time.Date(2025, 1, 2, 9, 0, 0, 0, loc)
 	reviewTime := time.Date(2025, 1, 1, 9, 0, 0, 0, loc)
 

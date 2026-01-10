@@ -1,0 +1,41 @@
+{{ define "title" }}
+  Acitity
+{{ end }}
+
+{{ define "content" }}
+  {{ if .Groups }}
+    {{ range .Groups }}
+      <section class="mb-4">
+        <h2 class="h5">{{ .DateLabel }}</h2>
+        <ul class="list-unstyled">
+          {{ range .Items }}
+            <li class="mb-2">
+              {{ if eq .Kind "review" }}
+                <a href="{{ .ActorURL }}">{{ .ActorName }}</a>
+                {{ if .RatingLabel }}
+                  gave a {{ .RatingLabel }} star review to
+                  <a href="{{ .TargetURL }}">{{ .TargetText }}</a>.
+                {{ else }}
+                  posted a review of <a href="{{ .TargetURL }}">{{ .TargetText }}</a>.
+                {{ end }}
+              {{ else if eq .Kind "reaction" }}
+                <a href="{{ .ActorURL }}">{{ .ActorName }}</a>
+                reacted to
+                <a href="{{ .TargetUserURL }}">{{ .TargetUserName }}</a>'s
+                <a href="{{ .TargetURL }}">{{ .TargetText }}</a>
+                with {{ .Emoji }}.
+              {{ else if eq .Kind "comment" }}
+                <a href="{{ .ActorURL }}">{{ .ActorName }}</a>
+                replied to
+                <a href="{{ .TargetUserURL }}">{{ .TargetUserName }}</a>'s
+                <a href="{{ .TargetURL }}">{{ .TargetText }}</a>.
+              {{ end }}
+            </li>
+          {{ end }}
+        </ul>
+      </section>
+    {{ end }}
+  {{ else }}
+    <p>No activity yet.</p>
+  {{ end }}
+{{ end }}

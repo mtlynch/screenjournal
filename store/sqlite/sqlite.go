@@ -25,14 +25,6 @@ type (
 	}
 )
 
-func New(path string, optimizeForLitestream bool) Store {
-	ctx, err := OpenDB(path)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	return NewFromDB(ctx, optimizeForLitestream)
-}
-
 func OpenDB(path string) (*sql.DB, error) {
 	log.Printf("reading DB from %s", path)
 	ctx, err := driver.Open(path)

@@ -25,16 +25,16 @@ type (
 	}
 )
 
-func OpenDB(path string) (*sql.DB, error) {
+func MustOpen(path string) *sql.DB {
 	log.Printf("reading DB from %s", path)
 	ctx, err := driver.Open(path)
 	if err != nil {
-		return nil, err
+		log.Fatalf("failed to open database: %v", err)
 	}
-	return ctx, nil
+	return ctx
 }
 
-func NewFromDB(ctx *sql.DB, optimizeForLitestream bool) Store {
+func New(ctx *sql.DB, optimizeForLitestream bool) Store {
 	if _, err := ctx.Exec(`
 		PRAGMA temp_store = FILE;
 		PRAGMA journal_mode = WAL;

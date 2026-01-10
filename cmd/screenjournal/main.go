@@ -29,11 +29,8 @@ func main() {
 	flag.Parse()
 
 	ensureDirExists(filepath.Dir(*dbPath))
-	db, err := sqlite.OpenDB(*dbPath)
-	if err != nil {
-		log.Fatalf("failed to open database: %v", err)
-	}
-	store := sqlite.NewFromDB(db, isLitestreamEnabled())
+	db := sqlite.MustOpen(*dbPath)
+	store := sqlite.New(db, isLitestreamEnabled())
 
 	authenticator := auth.New(store)
 

@@ -185,9 +185,10 @@ test("reactions are displayed in chronological order", async ({
   const reactions = userBReviewDiv
     .getByTestId("reactions-section")
     .getByTestId("relative-time");
-  await expect(reactions).toHaveCount(2);
-  await expect(reactions.nth(0).locator("..")).toContainText("userA");
-  await expect(reactions.nth(1).locator("..")).toContainText("userB");
+  await expect(reactions).toHaveCount(3);
+  await expect(reactions.nth(0).locator("..")).toContainText("dummyadmin");
+  await expect(reactions.nth(1).locator("..")).toContainText("userA");
+  await expect(reactions.nth(2).locator("..")).toContainText("userB");
 
   await userBContext.close();
 });

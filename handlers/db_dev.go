@@ -152,13 +152,26 @@ func (s Server) populateDummyData() http.HandlerFunc {
 			}
 		}
 		for _, review := range reviews {
-			if _, err := s.getDB(r).InsertReview(review); err != nil {
+			reviewID, err := s.getDB(r).InsertReview(review)
+			if err != nil {
 				panic(err)
 			}
+			review.ID = reviewID
 
 			for _, c := range review.Comments {
 				c.Review = review
 				if _, err := s.getDB(r).InsertComment(c); err != nil {
+					panic(err)
+				}
+			}
+
+			if review.Owner.Equal(screenjournal.Username("userB")) && review.Movie.Title == "The Waterboy" {
+				reaction := screenjournal.ReviewReaction{
+					Review: review,
+					Owner:  screenjournal.Username("dummyadmin"),
+					Emoji:  screenjournal.NewReactionEmoji("🥞"),
+				}
+				if _, err := s.getDB(r).InsertReaction(reaction); err != nil {
 					panic(err)
 				}
 			}

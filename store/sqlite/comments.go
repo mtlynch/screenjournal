@@ -33,6 +33,11 @@ func (s Store) ReadComments(rid screenjournal.ReviewID) ([]screenjournal.ReviewC
 	if err != nil {
 		return []screenjournal.ReviewComment{}, err
 	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("failed to close comment rows: %v", err)
+		}
+	}()
 
 	comments := []screenjournal.ReviewComment{}
 	for rows.Next() {
@@ -44,6 +49,9 @@ func (s Store) ReadComments(rid screenjournal.ReviewID) ([]screenjournal.ReviewC
 		rc.Review = review
 
 		comments = append(comments, rc)
+	}
+	if err := rows.Err(); err != nil {
+		return []screenjournal.ReviewComment{}, err
 	}
 
 	return comments, nil

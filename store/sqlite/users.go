@@ -44,6 +44,11 @@ func (s Store) ReadUsersPublicMeta() ([]screenjournal.UserPublicMeta, error) {
 		}
 		return []screenjournal.UserPublicMeta{}, err
 	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("failed to close user metadata rows: %v", err)
+		}
+	}()
 
 	users := []screenjournal.UserPublicMeta{}
 	for rows.Next() {
@@ -62,6 +67,9 @@ func (s Store) ReadUsersPublicMeta() ([]screenjournal.UserPublicMeta, error) {
 			JoinDate:    joinTime,
 			ReviewCount: reviewCount,
 		})
+	}
+	if err := rows.Err(); err != nil {
+		return []screenjournal.UserPublicMeta{}, err
 	}
 	return users, nil
 }

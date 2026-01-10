@@ -23,6 +23,11 @@ func (s Store) ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error) 
 		}
 		return []screenjournal.EmailSubscriber{}, err
 	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("failed to close review subscriber rows: %v", err)
+		}
+	}()
 
 	subscribers := []screenjournal.EmailSubscriber{}
 	for rows.Next() {
@@ -31,6 +36,9 @@ func (s Store) ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error) 
 			return []screenjournal.EmailSubscriber{}, err
 		}
 		subscribers = append(subscribers, subscriber)
+	}
+	if err := rows.Err(); err != nil {
+		return []screenjournal.EmailSubscriber{}, err
 	}
 	return subscribers, nil
 }
@@ -51,6 +59,11 @@ func (s Store) ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error)
 		}
 		return []screenjournal.EmailSubscriber{}, err
 	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("failed to close comment subscriber rows: %v", err)
+		}
+	}()
 
 	subscribers := []screenjournal.EmailSubscriber{}
 	for rows.Next() {
@@ -59,6 +72,9 @@ func (s Store) ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error)
 			return []screenjournal.EmailSubscriber{}, err
 		}
 		subscribers = append(subscribers, subscriber)
+	}
+	if err := rows.Err(); err != nil {
+		return []screenjournal.EmailSubscriber{}, err
 	}
 	return subscribers, nil
 }

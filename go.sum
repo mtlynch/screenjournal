@@ -1,3 +1,5 @@
+codeberg.org/mtlynch/go-evolutionary-migrate v0.0.1 h1:7DmKtylee2przvZYbTN3Aj7XR80qSktGAnObE5HIZOA=
+codeberg.org/mtlynch/go-evolutionary-migrate v0.0.1/go.mod h1:BFt+t6bxMTbgcVMV0r8yKnXoIBXgatx+nF3Mnt8IzcQ=
 github.com/aymerick/douceur v0.2.0 h1:Mv+mAeH1Q+n9Fr+oyamOlAkUNPWPlA8PPGR0QAaYuPk=
 github.com/aymerick/douceur v0.2.0/go.mod h1:wlT5vV2O3h55X9m7iVYN0TBM0NH/MmbLnd30/FjWUq4=
 github.com/bradfitz/gomemcache v0.0.0-20180710155616-bc664df96737 h1:rRISKWyXfVxvoa702s91Zl5oREZTrR3yv+tXrrX7G/g=

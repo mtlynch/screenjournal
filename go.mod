@@ -15,6 +15,7 @@ require (
 )
 
 require (
+	codeberg.org/mtlynch/go-evolutionary-migrate v0.0.1
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/felixge/httpsnoop v1.0.1 // indirect
 	github.com/gorilla/css v1.0.1 // indirect

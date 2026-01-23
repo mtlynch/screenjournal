@@ -3,6 +3,7 @@ package parse
 import (
 	"errors"
 	"regexp"
+	"slices"
 
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
@@ -16,7 +17,7 @@ var (
 )
 
 func Username(username string) (screenjournal.Username, error) {
-	if isWordInSlice(username, reservedUsernames) {
+	if slices.Contains(reservedUsernames, username) {
 		return screenjournal.Username(""), ErrInvalidUsername
 	}
 

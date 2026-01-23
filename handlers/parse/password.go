@@ -13,11 +13,11 @@ var (
 	ErrPasswordTooLong              = fmt.Errorf("invalid password: must be %d characters or fewer", maxPasswordLength)
 	ErrPasswordHasInvalidCharacters = errors.New("invalid password: must only contain letters A-Z, a-z, 0-9, or special characters")
 
-	allowedPasswordCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`~!@#$%^&*()-_=+[]{}\\|;:'\",<.>/? "
-	minPasswordLength         = 8
-	maxPasswordLength         = 40
+	minPasswordLength = 8
+	maxPasswordLength = 40
 
 	allowedCharacters = sync.OnceValue(func() map[rune]bool {
+		const allowedPasswordCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`~!@#$%^&*()-_=+[]{}\\|;:'\",<.>/? "
 		chars := make(map[rune]bool, len(allowedPasswordCharacters))
 		for _, c := range allowedPasswordCharacters {
 			chars[c] = true

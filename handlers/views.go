@@ -129,11 +129,11 @@ var ratingOptions = []ratingOption{
 }
 
 var moviePageFns = template.FuncMap{
-	"dict": func(values ...interface{}) map[string]interface{} {
+	"dict": func(values ...any) map[string]any {
 		if len(values)%2 != 0 {
 			panic("dict must have an even number of arguments")
 		}
-		dict := make(map[string]interface{}, len(values)/2)
+		dict := make(map[string]any, len(values)/2)
 		for i := 0; i < len(values); i += 2 {
 			k, ok := values[i].(string)
 			if !ok {

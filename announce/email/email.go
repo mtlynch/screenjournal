@@ -166,7 +166,7 @@ func (a Announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 //go:embed templates
 var templatesFS embed.FS
 
-func mustRenderTemplate(templateFilename string, templateVars interface{}) screenjournal.EmailBodyMarkdown {
+func mustRenderTemplate(templateFilename string, templateVars any) screenjournal.EmailBodyMarkdown {
 	t := template.New(templateFilename)
 	t = template.Must(
 		t.ParseFS(

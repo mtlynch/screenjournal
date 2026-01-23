@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"sort"
+	"slices"
 	"time"
 
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -119,8 +119,8 @@ func buildActivityGroups(reviews []screenjournal.Review) []activityGroup {
 		}
 	}
 
-	sort.Slice(items, func(i, j int) bool {
-		return items[i].Created.After(items[j].Created)
+	slices.SortFunc(items, func(a, b activityItem) int {
+		return b.Created.Compare(a.Created)
 	})
 
 	groups := []activityGroup{}

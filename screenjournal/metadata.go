@@ -39,6 +39,12 @@ type (
 		SeasonCount uint8
 		PosterPath  url.URL
 	}
+
+	TvShowSeasonInfo struct {
+		TvShowID     TvShowID
+		SeasonNumber TvShowSeason
+		PosterPath   url.URL
+	}
 )
 
 func (mid MovieID) IsZero() bool {

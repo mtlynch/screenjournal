@@ -28,6 +28,8 @@ type Store interface {
 	ReadTvShowByTmdbID(screenjournal.TmdbID) (screenjournal.TvShow, error)
 	InsertTvShow(screenjournal.TvShow) (screenjournal.TvShowID, error)
 	UpdateTvShow(screenjournal.TvShow) error
+	ReadTvShowSeason(screenjournal.TvShowID, screenjournal.TvShowSeason) (screenjournal.TvShowSeasonInfo, error)
+	InsertTvShowSeason(screenjournal.TvShowSeasonInfo) error
 	CountUsers() (uint, error)
 	ReadUser(screenjournal.Username) (screenjournal.User, error)
 	ReadUsersPublicMeta() ([]screenjournal.UserPublicMeta, error)

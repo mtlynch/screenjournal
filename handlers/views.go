@@ -544,6 +544,14 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			ReleaseDate  screenjournal.ReleaseDate
 		}
 
+		// Try to get season-specific poster, fall back to main show poster
+		posterPath := tvShow.PosterPath
+		if seasonInfo, err := s.getDB(r).ReadTvShowSeason(tvShow.ID, seasonNumber); err == nil {
+			if seasonInfo.PosterPath.String() != "" {
+				posterPath = seasonInfo.PosterPath
+			}
+		}
+
 		if err := t.Execute(w, struct {
 			commonProps
 			Media           mediaStub
@@ -557,7 +565,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 				ID:           tvShow.ID.Int64(),
 				Title:        tvShow.Title,
 				SeasonNumber: seasonNumber,
-				PosterPath:   tvShow.PosterPath,
+				PosterPath:   posterPath,
 				ImdbID:       tvShow.ImdbID,
 				TmdbID:       tvShow.TmdbID,
 				ReleaseDate:  tvShow.AirDate,

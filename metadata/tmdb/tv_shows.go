@@ -81,6 +81,50 @@ func (f Finder) GetTvShow(id screenjournal.TmdbID) (screenjournal.TvShow, error)
 	return tvShow, nil
 }
 
+func (f Finder) GetTvShowSeasons(id screenjournal.TmdbID) ([]screenjournal.TvShowSeasonInfo, error) {
+	m, err := f.tmdbAPI.GetTvInfo(int(id.Int32()), map[string]string{})
+	if err != nil {
+		return nil, err
+	}
+
+	var seasons []screenjournal.TvShowSeasonInfo
+	for _, s := range m.Seasons {
+		// Skip specials and empty seasons like in GetTvShow
+		if s.SeasonNumber == 0 || s.Name == "Specials" || s.EpisodeCount == 0 {
+			continue
+		}
+
+		// Skip seasons that haven't aired yet
+		hasAiredFn := func(airDateRaw string) bool {
+			airDate, err := ParseReleaseDate(airDateRaw)
+			if err != nil {
+				return false
+			}
+			return time.Now().After(airDate.Time())
+		}
+		if !hasAiredFn(s.AirDate) {
+			continue
+		}
+
+		seasonInfo := screenjournal.TvShowSeasonInfo{
+			SeasonNumber: screenjournal.TvShowSeason(s.SeasonNumber),
+		}
+
+		if len(s.PosterPath) > 0 {
+			pp, err := url.Parse(s.PosterPath)
+			if err != nil {
+				log.Printf("failed to parse season poster path (%s) for TMDB ID %v season %d: %v", s.PosterPath, id, s.SeasonNumber, err)
+			} else {
+				seasonInfo.PosterPath = *pp
+			}
+		}
+
+		seasons = append(seasons, seasonInfo)
+	}
+
+	return seasons, nil
+}
+
 func (f Finder) readImdbID(id screenjournal.TmdbID) (screenjournal.ImdbID, error) {
 	externalIDs, err := f.tmdbAPI.GetTvExternalIds(int(id.Int32()), map[string]string{})
 	if err != nil {

@@ -61,11 +61,162 @@
     document.body.addEventListener("htmx:afterSwap", function () {
       addSpoilersRevealButtons();
     });
+
+    const form = document.querySelector("form");
+    const draftIdInput = document.getElementById("draft-id");
+    const draftStatusEl = document.getElementById("draft-status");
+    const draftSpinnerEl = document.getElementById("draft-spinner");
+    const autosaveEnabled = form?.dataset.autosave?.trim() === "true";
+    let hasSavedDraft = false;
+    let fadeTimeout;
+    let autosaveTimeout;
+    let isSavingDraft = false;
+    let pendingSave = false;
+
+    function renderDraftStatus() {
+      if (!draftStatusEl) {
+        return;
+      }
+      if (hasSavedDraft) {
+        draftStatusEl.textContent = "Saved draft";
+        draftStatusEl.classList.remove("text-danger");
+        draftStatusEl.classList.add("text-muted");
+        scheduleFade();
+        return;
+      }
+      draftStatusEl.textContent = "Draft will auto-save.";
+      draftStatusEl.classList.remove("text-danger");
+      draftStatusEl.classList.add("text-muted");
+      scheduleFade();
+    }
+
+    function showDraftError(message) {
+      if (!draftStatusEl) {
+        return;
+      }
+      draftStatusEl.textContent = message;
+      draftStatusEl.classList.add("text-danger");
+      draftStatusEl.classList.remove("text-muted");
+      if (fadeTimeout) {
+        window.clearTimeout(fadeTimeout);
+      }
+      draftStatusEl.classList.remove("opacity-0");
+    }
+
+    function scheduleFade() {
+      if (!draftStatusEl) {
+        return;
+      }
+      if (fadeTimeout) {
+        window.clearTimeout(fadeTimeout);
+      }
+      draftStatusEl.classList.remove("opacity-0");
+      fadeTimeout = window.setTimeout(() => {
+        draftStatusEl.classList.add("opacity-0");
+      }, 3000);
+    }
+
+    function setSpinnerVisible(isVisible) {
+      if (!draftSpinnerEl) {
+        return;
+      }
+      if (isVisible) {
+        draftSpinnerEl.classList.remove("invisible");
+      } else {
+        draftSpinnerEl.classList.add("invisible");
+      }
+    }
+
+    async function saveDraft() {
+      if (!autosaveEnabled || !form) {
+        return;
+      }
+
+      if (isSavingDraft) {
+        pendingSave = true;
+        return;
+      }
+
+      const draftId = draftIdInput?.value?.trim();
+      const url = draftId ? `/reviews/drafts/${draftId}` : "/reviews/drafts";
+
+      isSavingDraft = true;
+      if (!hasSavedDraft && draftStatusEl) {
+        draftStatusEl.textContent = "Saving draft...";
+        draftStatusEl.classList.remove("text-danger");
+        draftStatusEl.classList.add("text-muted");
+        scheduleFade();
+      }
+      setSpinnerVisible(true);
+      try {
+        const payload = new URLSearchParams(new FormData(form));
+        const response = await fetch(url, {
+          method: draftId ? "PUT" : "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: payload.toString(),
+        });
+
+        if (!response.ok) {
+          showDraftError("Failed to save draft.");
+          return;
+        }
+
+        if (!draftId) {
+          const data = await response.json();
+          if (data.reviewId && draftIdInput) {
+            draftIdInput.value = data.reviewId;
+          }
+        }
+
+        if (draftStatusEl) {
+          hasSavedDraft = true;
+          renderDraftStatus();
+        }
+      } catch (err) {
+        showDraftError("Failed to save draft.");
+      } finally {
+        setSpinnerVisible(false);
+        isSavingDraft = false;
+        if (pendingSave) {
+          pendingSave = false;
+          scheduleAutosave();
+        }
+      }
+    }
+
+    function scheduleAutosave() {
+      window.clearTimeout(autosaveTimeout);
+      autosaveTimeout = window.setTimeout(saveDraft, 750);
+    }
+
+    if (autosaveEnabled && form) {
+      const handleAutoSaveEvent = (evt) => {
+        const target = evt.target;
+        if (!target || target.closest("button")) {
+          return;
+        }
+        if (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) {
+          scheduleAutosave();
+          scheduleFade();
+        }
+      };
+      form.addEventListener("input", handleAutoSaveEvent);
+      form.addEventListener("change", handleAutoSaveEvent);
+    }
+    if (autosaveEnabled) {
+      if (draftStatusEl?.dataset.hadSavedDraft === "true") {
+        hasSavedDraft = true;
+      }
+      renderDraftStatus();
+    }
   </script>
 {{ end }}
 
 {{ define "content" }}
   {{ $isEditing := ne .Review.ID 0 }}
+  {{ $isDraft := .Review.IsDraft }}
 
   {{ $title := "" }}
   {{ $releaseYear := 0 }}
@@ -82,7 +233,12 @@
   {{ end }}
 
 
-  <h2>{{ $title }} ({{ $releaseYear }})</h2>
+  <h2>
+    {{ $title }} ({{ $releaseYear }})
+    {{ if $isDraft }}
+      <span class="badge bg-warning text-dark ms-2">Draft</span>
+    {{ end }}
+  </h2>
 
   {{ if ne .Review.TvShowSeason.UInt8 0 }}
     <h3>Season {{ .Review.TvShowSeason.UInt8 }}</h3>
@@ -91,6 +247,7 @@
 
   <div class="my-5">
     {{ $isEditing := ne .Review.ID 0 }}
+    {{ $enableAutosave := or (not $isEditing) $isDraft }}
 
 
     <form
@@ -103,7 +260,18 @@
       hx-target="body"
       hx-push-url="true"
       hx-disabled-elt="input, select, textarea, .btn"
+      data-autosave="{{ if $enableAutosave }}
+        true
+      {{ else }}
+        false
+      {{ end }}"
     >
+      <input
+        type="hidden"
+        name="draft-id"
+        id="draft-id"
+        value="{{ if $isDraft }}{{ .Review.ID }}{{ end }}"
+      />
       {{ if not $isEditing }}
         <input type="hidden" name="tmdb-id" value="{{ $tmdbID }}" />
         <input type="hidden" name="season" value="{{ .Review.TvShowSeason }}" />
@@ -156,8 +324,27 @@
 {{ .Review.Blurb }}</textarea
         >
       </div>
-      <div class="d-flex justify-content-end">
-        <p>
+      <div class="d-flex justify-content-between align-items-center">
+        {{ if $enableAutosave }}
+          <div class="d-flex align-items-center">
+            <span
+              id="draft-spinner"
+              class="spinner-border spinner-border-sm text-muted me-2 invisible"
+              role="status"
+              aria-hidden="true"
+              style="width: 1rem; height: 1rem;"
+            ></span>
+            <div
+              id="draft-status"
+              class="text-muted"
+              aria-live="polite"
+              data-testid="draft-status"
+              data-had-saved-draft="{{ if $isDraft }}true{{ end }}"
+              style="transition: opacity 0.3s ease;"
+            ></div>
+          </div>
+        {{ end }}
+        <p class="mb-0">
           <small>formatting options</small>&nbsp;<a
             href="#"
             id="formatting-help-icon"
@@ -187,30 +374,100 @@
       </div>
 
       {{ if $isEditing }}
-        <div class="d-flex justify-content-between flex-row-reverse">
-          <div class="d-flex">
-            <button class="btn btn-primary me-2" value="Save">
-              <i class="fa-solid fa-floppy-disk"></i>
-              Save
-            </button>
-            <a class="btn btn-outline-secondary" role="button" href="/reviews"
-              >Cancel</a
-            >
+        {{ if $isDraft }}
+          <div class="d-flex justify-content-between flex-row-reverse">
+            <div class="d-flex">
+              <div class="btn-group me-2" role="group">
+                <button class="btn btn-primary" name="publish" value="true">
+                  <i class="fa-solid fa-floppy-disk"></i>
+                  Publish
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-primary dropdown-toggle dropdown-toggle-split"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <span class="visually-hidden">Toggle dropdown</span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <button type="button" class="dropdown-item" disabled>
+                      Draft saves automatically
+                    </button>
+                  </li>
+                </ul>
+              </div>
+              <a
+                class="btn btn-outline-secondary"
+                role="button"
+                href="/reviews/drafts"
+                >Cancel</a
+              >
+            </div>
+            <div class="d-flex">
+              <a
+                class="btn btn-danger"
+                role="button"
+                hx-delete="/reviews/{{ .Review.ID }}"
+                hx-confirm="Delete this review?"
+              >
+                <i class="fa fa-trash me-2"></i>Delete
+              </a>
+            </div>
           </div>
-          <div class="d-flex">
-            <a
-              class="btn btn-danger"
-              role="button"
-              hx-delete="/reviews/{{ .Review.ID }}"
-              hx-confirm="Delete this review?"
-            >
-              <i class="fa fa-trash me-2"></i>Delete
-            </a>
+        {{ else }}
+          <div class="d-flex justify-content-between flex-row-reverse">
+            <div class="d-flex">
+              <button class="btn btn-primary me-2" value="Save">
+                <i class="fa-solid fa-floppy-disk"></i>
+                Save
+              </button>
+              <a class="btn btn-outline-secondary" role="button" href="/reviews"
+                >Cancel</a
+              >
+            </div>
+            <div class="d-flex">
+              <a
+                class="btn btn-danger"
+                role="button"
+                hx-delete="/reviews/{{ .Review.ID }}"
+                hx-confirm="Delete this review?"
+              >
+                <i class="fa fa-trash me-2"></i>Delete
+              </a>
+            </div>
           </div>
-        </div>
+        {{ end }}
       {{ else }}
         <div class="mb-3">
-          <input type="submit" class="btn btn-primary" value="Submit" />
+          <div class="d-flex justify-content-end">
+            <div class="btn-group" role="group">
+              <button type="submit" class="btn btn-primary">Publish</button>
+              <button
+                type="button"
+                class="btn btn-primary dropdown-toggle dropdown-toggle-split"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <span class="visually-hidden">Toggle dropdown</span>
+              </button>
+              <ul class="dropdown-menu">
+                <li>
+                  <button
+                    type="submit"
+                    class="dropdown-item"
+                    formaction="/reviews/drafts"
+                    formmethod="post"
+                    name="save-draft"
+                    value="true"
+                  >
+                    Save as draft
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       {{ end }}
 

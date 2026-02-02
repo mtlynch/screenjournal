@@ -10,8 +10,8 @@ processes = []
 [env]
   PORT = "8080"
   SJ_BEHIND_PROXY = "yes"
-  SJ_SMTP_HOST = "smtp.postmarkapp.com"
-  SJ_SMTP_PORT = "2525"
+  SJ_SMTP_HOST = "in.smtp.sendamatic.net"
+  SJ_SMTP_PORT = "587"
   SJ_BASE_URL = "https://thescreenjournal.com"
   LITESTREAM_BUCKET="screenjournal-litestream"
   LITESTREAM_ENDPOINT="s3.us-west-002.backblazeb2.com"

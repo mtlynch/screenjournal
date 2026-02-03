@@ -17,7 +17,7 @@ import (
 type (
 	NotificationsStore interface {
 		ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error)
-		ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error)
+		ReadCommentSubscribers(reviewID screenjournal.ReviewID, commentAuthor screenjournal.Username) ([]screenjournal.EmailSubscriber, error)
 	}
 
 	Announcer struct {
@@ -101,17 +101,13 @@ func (a Announcer) AnnounceNewReview(r screenjournal.Review) {
 
 func (a Announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 	log.Printf("announcing new comment from %s about %s's review of %s", rc.Owner, rc.Review.Owner, rc.Review.Movie.Title)
-	users, err := a.store.ReadCommentSubscribers()
+	users, err := a.store.ReadCommentSubscribers(rc.Review.ID, rc.Owner)
 	if err != nil {
 		log.Printf("failed to read announcement recipients from store: %v", err)
 		return
 	}
-	log.Printf("%d user(s) subscribed to new review notifications", len(users))
+	log.Printf("%d user(s) are on this thread and accept new comment notifications", len(users))
 	for _, u := range users {
-		// Don't send a notification to the review author.
-		if u.Username == rc.Owner {
-			continue
-		}
 		var title screenjournal.MediaTitle
 		var commentRoute string
 		var seasonSuffix string

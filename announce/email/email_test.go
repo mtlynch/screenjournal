@@ -30,7 +30,7 @@ func (ns mockNotificationsStore) ReadCommentSubscribers(
 	recipients := map[screenjournal.Username]struct{}{}
 	if ns.reviewsByID != nil {
 		if review, ok := ns.reviewsByID[reviewID]; ok {
-			if review.Owner.String() != "" {
+			if !review.Owner.Empty() {
 				recipients[review.Owner] = struct{}{}
 			}
 		}
@@ -38,7 +38,7 @@ func (ns mockNotificationsStore) ReadCommentSubscribers(
 	if ns.commentsByReview != nil {
 		if comments, ok := ns.commentsByReview[reviewID]; ok {
 			for _, comment := range comments {
-				if comment.Owner.String() == "" {
+				if comment.Owner.Empty() {
 					continue
 				}
 				recipients[comment.Owner] = struct{}{}

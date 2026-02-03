@@ -102,7 +102,6 @@ If you learned that methods shouldn't be exported just for testing, add to `AGEN
 
 ## Testing
 
-- After every code change, run `nix flake check` before presenting the solution to the user.
 - After every code change, run `dev-scripts/git-hooks/pre-commit` before presenting the solution to the user.
 - To run unit tests, run `./dev-scripts/run-go-tests`.
 - When writing tests to verify a bugfix, follow TDD conventions: write the test with the failing test first, verify the test fails, fix the bug, and verify that the test passes.

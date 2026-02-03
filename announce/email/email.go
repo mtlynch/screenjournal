@@ -106,7 +106,7 @@ func (a Announcer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 		log.Printf("failed to read announcement recipients from store: %v", err)
 		return
 	}
-	log.Printf("%d user(s) subscribed to new review notifications", len(users))
+	log.Printf("%d user(s) are on this thread and accept new comment notifications", len(users))
 	for _, u := range users {
 		var title screenjournal.MediaTitle
 		var commentRoute string

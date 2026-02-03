@@ -14,15 +14,48 @@ import (
 )
 
 type mockNotificationsStore struct {
-	subscribers []screenjournal.EmailSubscriber
+	subscribers      []screenjournal.EmailSubscriber
+	commentsByReview map[screenjournal.ReviewID][]screenjournal.ReviewComment
+	reviewsByID      map[screenjournal.ReviewID]screenjournal.Review
 }
 
 func (ns mockNotificationsStore) ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error) {
 	return ns.subscribers, nil
 }
 
-func (ns mockNotificationsStore) ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error) {
-	return ns.subscribers, nil
+func (ns mockNotificationsStore) ReadCommentSubscribers(
+	reviewID screenjournal.ReviewID,
+	commentAuthor screenjournal.Username,
+) ([]screenjournal.EmailSubscriber, error) {
+	recipients := map[screenjournal.Username]struct{}{}
+	if ns.reviewsByID != nil {
+		if review, ok := ns.reviewsByID[reviewID]; ok {
+			if review.Owner.String() != "" {
+				recipients[review.Owner] = struct{}{}
+			}
+		}
+	}
+	if ns.commentsByReview != nil {
+		if comments, ok := ns.commentsByReview[reviewID]; ok {
+			for _, comment := range comments {
+				if comment.Owner.String() == "" {
+					continue
+				}
+				recipients[comment.Owner] = struct{}{}
+			}
+		}
+	}
+
+	filtered := []screenjournal.EmailSubscriber{}
+	for _, subscriber := range ns.subscribers {
+		if subscriber.Username.Equal(commentAuthor) {
+			continue
+		}
+		if _, ok := recipients[subscriber.Username]; ok {
+			filtered = append(filtered, subscriber)
+		}
+	}
+	return filtered, nil
 }
 
 type mockEmailSender struct {
@@ -250,7 +283,7 @@ func TestAnnounceNewComment(t *testing.T) {
 		expectedEmails []email.Message
 	}{
 		{
-			description: "announces new movie review comment to everyone except the author",
+			description: "announces new movie review comment to review owner and commenters",
 			store: mockNotificationsStore{
 				subscribers: []screenjournal.EmailSubscriber{
 					{
@@ -264,6 +297,25 @@ func TestAnnounceNewComment(t *testing.T) {
 					{
 						Username: screenjournal.Username("charlie"),
 						Email:    screenjournal.Email("charlie.barley@example.com"),
+					},
+					{
+						Username: screenjournal.Username("dave"),
+						Email:    screenjournal.Email("dave.daveerson@example.com"),
+					},
+				},
+				reviewsByID: map[screenjournal.ReviewID]screenjournal.Review{
+					screenjournal.ReviewID(456): {
+						Owner: screenjournal.Username("bob"),
+					},
+				},
+				commentsByReview: map[screenjournal.ReviewID][]screenjournal.ReviewComment{
+					screenjournal.ReviewID(456): {
+						{
+							Owner: screenjournal.Username("charlie"),
+						},
+						{
+							Owner: screenjournal.Username("alice"),
+						},
 					},
 				},
 			},
@@ -347,7 +399,7 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 			},
 		},
 		{
-			description: "announces new TV show review comment to other user",
+			description: "announces new TV show review comment to review owner and commenters",
 			store: mockNotificationsStore{
 				subscribers: []screenjournal.EmailSubscriber{
 					{
@@ -357,6 +409,26 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 					{
 						Username: screenjournal.Username("bob"),
 						Email:    screenjournal.Email("bob.bobberton@example.com"),
+					},
+					{
+						Username: screenjournal.Username("charlie"),
+						Email:    screenjournal.Email("charlie.barley@example.com"),
+					},
+					{
+						Username: screenjournal.Username("dave"),
+						Email:    screenjournal.Email("dave.daveerson@example.com"),
+					},
+				},
+				reviewsByID: map[screenjournal.ReviewID]screenjournal.Review{
+					screenjournal.ReviewID(456): {
+						Owner: screenjournal.Username("bob"),
+					},
+				},
+				commentsByReview: map[screenjournal.ReviewID][]screenjournal.ReviewComment{
+					screenjournal.ReviewID(456): {
+						{
+							Owner: screenjournal.Username("dave"),
+						},
 					},
 				},
 			},
@@ -406,6 +478,38 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 
 <p>To manage your notifications, visit <a href="https://dev.thescreenjournal.com/account/notifications">https://dev.thescreenjournal.com/account/notifications</a></p>`,
 				},
+				{
+					From: mail.Address{
+						Name:    "ScreenJournal",
+						Address: "activity@thescreenjournal.com",
+					},
+					To: []mail.Address{
+						{
+							Name:    "dave",
+							Address: "dave.daveerson@example.com",
+						},
+					},
+					Subject: "alice commented on bob's review of 30 Rock (Season 3)",
+					TextBody: `Hey dave,
+
+alice just commented on bob's review of *30 Rock* (Season 3)! Check it out:
+
+https://dev.thescreenjournal.com/tv-shows/789?season=3#comment707
+
+-ScreenJournal Bot
+
+To manage your notifications, visit https://dev.thescreenjournal.com/account/notifications
+`,
+					HtmlBody: `<p>Hey dave,</p>
+
+<p>alice just commented on bob's review of <em>30 Rock</em> (Season 3)! Check it out:</p>
+
+<p><a href="https://dev.thescreenjournal.com/tv-shows/789?season=3#comment707">https://dev.thescreenjournal.com/tv-shows/789?season=3#comment707</a></p>
+
+<p>-ScreenJournal Bot</p>
+
+<p>To manage your notifications, visit <a href="https://dev.thescreenjournal.com/account/notifications">https://dev.thescreenjournal.com/account/notifications</a></p>`,
+				},
 			},
 		},
 		{
@@ -415,6 +519,11 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 					{
 						Username: screenjournal.Username("bob"),
 						Email:    screenjournal.Email("bob.bobberton@example.com"),
+					},
+				},
+				reviewsByID: map[screenjournal.ReviewID]screenjournal.Review{
+					screenjournal.ReviewID(146): {
+						Owner: screenjournal.Username("alice"),
 					},
 				},
 			},

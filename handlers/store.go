@@ -38,7 +38,10 @@ type Store interface {
 	ReadSignupInvitations() ([]screenjournal.SignupInvitation, error)
 	DeleteSignupInvitation(screenjournal.InviteCode) error
 	ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error)
-	ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error)
+	ReadCommentSubscribers(
+		screenjournal.ReviewID,
+		screenjournal.Username,
+	) ([]screenjournal.EmailSubscriber, error)
 	ReadNotificationPreferences(screenjournal.Username) (screenjournal.NotificationPreferences, error)
 	UpdateNotificationPreferences(screenjournal.Username, screenjournal.NotificationPreferences) error
 	InsertPasswordResetEntry(screenjournal.PasswordResetEntry) error

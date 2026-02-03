@@ -23,6 +23,7 @@
     #blurb {
       overflow: hidden;
       resize: none;
+      height: auto;
     }
   </style>
 {{ end }}
@@ -43,8 +44,7 @@
     document.addEventListener("DOMContentLoaded", function () {
       const blurbTextarea = document.getElementById("blurb");
       function resizeTextarea(textarea) {
-        textarea.style.height = "auto";
-        textarea.style.height = `${textarea.scrollHeight}px`;
+        textarea.style.height = textarea.scrollHeight + "px";
       }
       resizeTextarea(blurbTextarea);
       blurbTextarea.addEventListener("input", function (evt) {

@@ -1,5 +1,3 @@
-# agent instructions
-
 ## API design
 
 ### Minimize exported surface area

@@ -43,8 +43,11 @@
 
     document.addEventListener("DOMContentLoaded", function () {
       const blurbTextarea = document.getElementById("blurb");
+      const initialBlurbHeight = blurbTextarea.getBoundingClientRect().height;
       function resizeTextarea(textarea) {
-        textarea.style.height = textarea.scrollHeight + "px";
+        textarea.style.height = "auto";
+        const nextHeight = Math.max(textarea.scrollHeight, initialBlurbHeight);
+        textarea.style.height = nextHeight + "px";
       }
       resizeTextarea(blurbTextarea);
       blurbTextarea.addEventListener("input", function (evt) {

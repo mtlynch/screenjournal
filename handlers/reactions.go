@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -119,23 +120,13 @@ func (s Server) reactionsDelete() http.HandlerFunc {
 			return
 		}
 
-		rr, err := s.getDB(r).ReadReaction(rid)
-		if err == store.ErrReactionNotFound {
+		if err := s.deleteReaction(r, rid); err == store.ErrReactionNotFound {
 			http.Error(w, "Reaction not found", http.StatusNotFound)
 			return
-		} else if err != nil {
-			log.Printf("failed to read reaction: %v", err)
-			http.Error(w, fmt.Sprintf("Failed to read reaction: %v", err), http.StatusInternalServerError)
-			return
-		}
-
-		loggedInUsername := mustGetUsernameFromContext(r.Context())
-		if !loggedInUsername.Equal(rr.Owner) && !isAdmin(r.Context()) {
+		} else if errors.Is(err, errForbidden) {
 			http.Error(w, "Can't delete another user's reaction", http.StatusForbidden)
 			return
-		}
-
-		if err := s.getDB(r).DeleteReaction(rid); err != nil {
+		} else if err != nil {
 			log.Printf("failed to delete reaction id=%v: %v", rid, err)
 			http.Error(w, "Failed to delete reaction", http.StatusInternalServerError)
 			return

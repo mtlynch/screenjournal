@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -197,23 +198,14 @@ func (s Server) commentsPut() http.HandlerFunc {
 			return
 		}
 
-		rc, err := s.getDB(r).ReadComment(req.CommentID)
+		rc, err := s.updateComment(r, req.CommentID, req.CommentText)
 		if err == store.ErrCommentNotFound {
 			http.Error(w, "Comment not found", http.StatusNotFound)
 			return
-		} else if err != nil {
-			log.Printf("failed to read comment: %v", err)
-			http.Error(w, fmt.Sprintf("Failed to read comment: %v", err), http.StatusInternalServerError)
-			return
-		}
-
-		if !mustGetUsernameFromContext(r.Context()).Equal(rc.Owner) {
+		} else if errors.Is(err, errForbidden) {
 			http.Error(w, "Can't edit another user's comment", http.StatusForbidden)
 			return
-		}
-
-		rc.CommentText = req.CommentText
-		if err := s.getDB(r).UpdateComment(rc); err != nil {
+		} else if err != nil {
 			log.Printf("failed to update comment: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to update comment: %v", err), http.StatusInternalServerError)
 			return
@@ -241,22 +233,13 @@ func (s Server) commentsDelete() http.HandlerFunc {
 			return
 		}
 
-		rc, err := s.getDB(r).ReadComment(cid)
-		if err == store.ErrCommentNotFound {
+		if err := s.deleteComment(r, cid); err == store.ErrCommentNotFound {
 			http.Error(w, "Comment not found", http.StatusNotFound)
 			return
-		} else if err != nil {
-			log.Printf("failed to read comment: %v", err)
-			http.Error(w, fmt.Sprintf("Failed to read comment: %v", err), http.StatusInternalServerError)
-			return
-		}
-
-		if !mustGetUsernameFromContext(r.Context()).Equal(rc.Owner) {
+		} else if errors.Is(err, errForbidden) {
 			http.Error(w, "Can't delete another user's comment", http.StatusForbidden)
 			return
-		}
-
-		if err := s.getDB(r).DeleteComment(cid); err != nil {
+		} else if err != nil {
 			log.Printf("failed to delete comment id=%v: %v", cid, err)
 			http.Error(w, "Failed to delete comment: %v", http.StatusInternalServerError)
 			return

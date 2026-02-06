@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kylelemons/godebug/diff"
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
@@ -225,8 +225,8 @@ func TestSearchGet(t *testing.T) {
 
 			got := removeBlankLines(string(response))
 			want := formatExpectedResponse(tt.response)
-			if delta := diff.Diff(got, want); delta != "" {
-				t.Errorf("diff in search response\nGot:\n%s\nWant:\n%s\nDiff:%s", got, want, delta)
+			if diff := cmp.Diff(want, got); diff != "" {
+				t.Errorf("search response mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

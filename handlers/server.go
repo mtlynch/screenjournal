@@ -4,8 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -39,7 +37,7 @@ type (
 	}
 
 	Server struct {
-		router         *mux.Router
+		router         *http.ServeMux
 		authenticator  Authenticator
 		announcer      Announcer
 		sessionManager SessionManager
@@ -49,15 +47,15 @@ type (
 )
 
 // Router returns the underlying router interface for the server.
-func (s Server) Router() *mux.Router {
-	return s.router
+func (s Server) Router() http.Handler {
+	return s.devMiddleware(s.populateAuthenticationContext(s.router))
 }
 
 // New creates a new server with all the state it needs to satisfy HTTP
 // requests.
 func New(authenticator Authenticator, announcer Announcer, sessionManager SessionManager, store Store, metadataFinder MetadataFinder) Server {
 	s := Server{
-		router:         mux.NewRouter(),
+		router:         http.NewServeMux(),
 		authenticator:  authenticator,
 		announcer:      announcer,
 		sessionManager: sessionManager,

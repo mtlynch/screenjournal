@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
-
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store"
@@ -168,5 +166,5 @@ func parseReactionPostRequest(r *http.Request) (reactionPostRequest, error) {
 }
 
 func reactionIDFromRequestPath(r *http.Request) (screenjournal.ReactionID, error) {
-	return parse.ReactionID(mux.Vars(r)["reactionID"])
+	return parse.ReactionID(r.PathValue("reactionID"))
 }

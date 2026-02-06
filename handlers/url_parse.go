@@ -4,8 +4,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
@@ -32,7 +30,7 @@ func mediaTypeFromQueryParams(r *http.Request) (screenjournal.MediaType, error) 
 }
 
 func movieIDFromRequestPath(r *http.Request) (screenjournal.MovieID, error) {
-	return parse.MovieIDFromString(mux.Vars(r)["movieID"])
+	return parse.MovieIDFromString(r.PathValue("movieID"))
 }
 
 func movieIDFromQueryParams(r *http.Request) (screenjournal.MovieID, error) {
@@ -45,7 +43,7 @@ func movieIDFromQueryParams(r *http.Request) (screenjournal.MovieID, error) {
 }
 
 func tvShowIDFromRequestPath(r *http.Request) (screenjournal.TvShowID, error) {
-	return parse.TvShowIDFromString(mux.Vars(r)["tvShowID"])
+	return parse.TvShowIDFromString(r.PathValue("tvShowID"))
 }
 
 func tvShowIDFromQueryParams(r *http.Request) (screenjournal.TvShowID, error) {
@@ -76,7 +74,7 @@ func tmdbIDFromQueryParams(r *http.Request) (screenjournal.TmdbID, error) {
 }
 
 func reviewIDFromRequestPath(r *http.Request) (screenjournal.ReviewID, error) {
-	return parse.ReviewIDFromString(mux.Vars(r)["reviewID"])
+	return parse.ReviewIDFromString(r.PathValue("reviewID"))
 }
 
 func reviewIDFromQueryParams(r *http.Request) (screenjournal.ReviewID, error) {
@@ -89,7 +87,7 @@ func reviewIDFromQueryParams(r *http.Request) (screenjournal.ReviewID, error) {
 }
 
 func commentIDFromRequestPath(r *http.Request) (screenjournal.CommentID, error) {
-	return parse.CommentID(mux.Vars(r)["commentID"])
+	return parse.CommentID(r.PathValue("commentID"))
 }
 
 func commentIDFromQueryParams(r *http.Request) (screenjournal.CommentID, error) {
@@ -102,7 +100,7 @@ func commentIDFromQueryParams(r *http.Request) (screenjournal.CommentID, error) 
 }
 
 func usernameFromRequestPath(r *http.Request) (screenjournal.Username, error) {
-	return parse.Username(mux.Vars(r)["username"])
+	return parse.Username(r.PathValue("username"))
 }
 
 func inviteCodeFromQueryParams(r *http.Request) (screenjournal.InviteCode, error) {

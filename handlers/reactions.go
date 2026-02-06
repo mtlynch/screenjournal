@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -119,7 +120,15 @@ func (s Server) reactionsDelete() http.HandlerFunc {
 			return
 		}
 
-		if !s.deleteReaction(w, r, rid) {
+		if err := s.deleteReaction(r, rid); err == store.ErrReactionNotFound {
+			http.Error(w, "Reaction not found", http.StatusNotFound)
+			return
+		} else if errors.Is(err, errForbidden) {
+			http.Error(w, "Can't delete another user's reaction", http.StatusForbidden)
+			return
+		} else if err != nil {
+			log.Printf("failed to delete reaction id=%v: %v", rid, err)
+			http.Error(w, "Failed to delete reaction", http.StatusInternalServerError)
 			return
 		}
 

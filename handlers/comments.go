@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -190,14 +191,23 @@ func (s Server) commentsPut() http.HandlerFunc {
 		Funcs(moviePageFns).
 		ParseFS(templatesFS, "templates/pages/reviews-for-single-media-entry.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
-		cid, err := commentIDFromRequestPath(r)
+		req, err := parseCommentPutRequest(r)
 		if err != nil {
-			http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
+			log.Printf("invalid comment PUT request: %v", err)
 			return
 		}
 
-		rc, ok := s.updateComment(w, r, cid)
-		if !ok {
+		rc, err := s.updateComment(r, req.CommentID, req.CommentText)
+		if err == store.ErrCommentNotFound {
+			http.Error(w, "Comment not found", http.StatusNotFound)
+			return
+		} else if errors.Is(err, errForbidden) {
+			http.Error(w, "Can't edit another user's comment", http.StatusForbidden)
+			return
+		} else if err != nil {
+			log.Printf("failed to update comment: %v", err)
+			http.Error(w, fmt.Sprintf("Failed to update comment: %v", err), http.StatusInternalServerError)
 			return
 		}
 
@@ -223,7 +233,15 @@ func (s Server) commentsDelete() http.HandlerFunc {
 			return
 		}
 
-		if !s.deleteComment(w, r, cid) {
+		if err := s.deleteComment(r, cid); err == store.ErrCommentNotFound {
+			http.Error(w, "Comment not found", http.StatusNotFound)
+			return
+		} else if errors.Is(err, errForbidden) {
+			http.Error(w, "Can't delete another user's comment", http.StatusForbidden)
+			return
+		} else if err != nil {
+			log.Printf("failed to delete comment id=%v: %v", cid, err)
+			http.Error(w, "Failed to delete comment: %v", http.StatusInternalServerError)
 			return
 		}
 

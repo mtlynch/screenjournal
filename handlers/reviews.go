@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -91,8 +92,22 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
-		review, ok := s.updateReview(w, r, id)
-		if !ok {
+		parsedRequest, err := parseReviewPutRequest(r)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
+			return
+		}
+
+		review, err := s.updateReview(r, id, parsedRequest)
+		if err == store.ErrReviewNotFound {
+			http.Error(w, "Review not found", http.StatusNotFound)
+			return
+		} else if errors.Is(err, errForbidden) {
+			http.Error(w, "You can't edit another user's review", http.StatusForbidden)
+			return
+		} else if err != nil {
+			log.Printf("failed to update review: %v", err)
+			http.Error(w, fmt.Sprintf("Failed to update review: %v", err), http.StatusInternalServerError)
 			return
 		}
 
@@ -114,7 +129,15 @@ func (s Server) reviewsDelete() http.HandlerFunc {
 			return
 		}
 
-		if !s.deleteReview(w, r, id) {
+		if err := s.deleteReview(r, id); err == store.ErrReviewNotFound {
+			http.Error(w, "Review not found", http.StatusNotFound)
+			return
+		} else if errors.Is(err, errForbidden) {
+			http.Error(w, "You can't delete another user's review", http.StatusForbidden)
+			return
+		} else if err != nil {
+			log.Printf("failed to delete review: %v", err)
+			http.Error(w, fmt.Sprintf("Failed to delete review: %v", err), http.StatusInternalServerError)
 			return
 		}
 

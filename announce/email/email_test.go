@@ -2,12 +2,11 @@ package email_test
 
 import (
 	"net/mail"
-	"reflect"
-	"strings"
 	"testing"
+	"time"
 
-	"github.com/go-test/deep"
-	"github.com/kylelemons/godebug/diff"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	email_announce "github.com/mtlynch/screenjournal/v2/announce/email"
 	"github.com/mtlynch/screenjournal/v2/email"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -222,20 +221,8 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 			announcer := email_announce.New("https://dev.thescreenjournal.com", &sender, tt.store)
 			announcer.AnnounceNewReview(tt.review)
 
-			if len(sender.emailsSent) == len(tt.expectedEmails) {
-				for i, emailGot := range sender.emailsSent {
-					emailWant := tt.expectedEmails[i]
-					if diff := diff.Diff(emailWant.TextBody, emailGot.TextBody); diff != "" {
-						t.Errorf("email #%d (plaintext): %s", i, diff)
-					}
-					if diff := diff.Diff(emailWant.HtmlBody, emailGot.HtmlBody); diff != "" {
-						t.Errorf("email #%d (html) %s", i, diff)
-					}
-				}
-			}
-
-			if got, want := sender.emailsSent, tt.expectedEmails; !reflect.DeepEqual(got, want) {
-				t.Errorf("unexpected announcement emails, got=%+v, want=%+v", got, want)
+			if diff := cmp.Diff(tt.expectedEmails, sender.emailsSent, cmpopts.EquateComparable(time.Time{})); diff != "" {
+				t.Errorf("announcement emails mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
@@ -440,20 +427,8 @@ To manage your notifications, visit https://dev.thescreenjournal.com/account/not
 			announcer := email_announce.New("https://dev.thescreenjournal.com", &sender, tt.store)
 			announcer.AnnounceNewComment(tt.comment)
 
-			if len(sender.emailsSent) == len(tt.expectedEmails) {
-				for i, emailGot := range sender.emailsSent {
-					emailWant := tt.expectedEmails[i]
-					if diff := diff.Diff(emailWant.TextBody, emailGot.TextBody); diff != "" {
-						t.Errorf("email #%d (plaintext): %s", i, diff)
-					}
-					if diff := diff.Diff(emailWant.HtmlBody, emailGot.HtmlBody); diff != "" {
-						t.Errorf("email #%d (html) %s", i, diff)
-					}
-				}
-			}
-
-			if got, want := sender.emailsSent, tt.expectedEmails; !reflect.DeepEqual(got, want) {
-				t.Errorf("commentAnnouncements don't match expected: %s", strings.Join(deep.Equal(got, want), "\n"))
+			if diff := cmp.Diff(tt.expectedEmails, sender.emailsSent, cmpopts.EquateComparable(time.Time{})); diff != "" {
+				t.Errorf("comment announcement emails mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

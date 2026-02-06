@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-test/deep"
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
@@ -263,8 +263,8 @@ func TestCommentsPost(t *testing.T) {
 
 			clearUnpredictableCommentProperties(&announcer.announcedComments[0])
 			clearUnpredictableCommentProperties(&tt.expectedComments[0])
-			if !reflect.DeepEqual(announcer.announcedComments, tt.expectedComments) {
-				t.Errorf("did not find expected announced comments: %v", deep.Equal(announcer.announcedComments, tt.expectedComments))
+			if diff := cmp.Diff(tt.expectedComments, announcer.announcedComments, cmpOpts...); diff != "" {
+				t.Errorf("announced comments mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

@@ -7,12 +7,12 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/go-test/deep"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
@@ -33,6 +33,10 @@ var contextKeySession = &contextKey{"session"}
 var nilAnnouncer handlers.Announcer
 
 var nilAuthenticator auth.Authenticator
+
+var cmpOpts = []cmp.Option{
+	cmpopts.EquateComparable(time.Time{}, screenjournal.WatchDate{}, screenjournal.ReleaseDate{}),
+}
 
 type mockAnnouncer struct {
 	announcedReviews  []screenjournal.Review
@@ -448,8 +452,8 @@ func TestReviewsPost(t *testing.T) {
 			}
 
 			clearUnpredictableReviewProperties(&rr[0])
-			if got, want := rr[0], tt.expected; !reflect.DeepEqual(got, want) {
-				t.Errorf("got=%#v, want=%#v, diff=%s", got, want, deep.Equal(got, want))
+			if diff := cmp.Diff(tt.expected, rr[0], cmpOpts...); diff != "" {
+				t.Errorf("review mismatch (-want +got):\n%s", diff)
 			}
 
 			if got, want := len(announcer.announcedReviews), 1; got != want {
@@ -457,8 +461,8 @@ func TestReviewsPost(t *testing.T) {
 			}
 
 			clearUnpredictableReviewProperties(&announcer.announcedReviews[0])
-			if got, want := announcer.announcedReviews[0], tt.expected; !reflect.DeepEqual(got, want) {
-				t.Errorf("got=%#v, want=%#v, diff=%s", got, want, deep.Equal(got, want))
+			if diff := cmp.Diff(tt.expected, announcer.announcedReviews[0], cmpOpts...); diff != "" {
+				t.Errorf("announced review mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
@@ -906,8 +910,8 @@ func TestReviewsPut(t *testing.T) {
 			}
 
 			clearUnpredictableReviewProperties(&rr[0])
-			if got, want := rr[0], tt.expected; !reflect.DeepEqual(got, want) {
-				t.Errorf("unexpected reviews, got=%+v, want=%+v, diff=%s", got, want, deep.Equal(got, want))
+			if diff := cmp.Diff(tt.expected, rr[0], cmpOpts...); diff != "" {
+				t.Errorf("review mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

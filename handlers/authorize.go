@@ -10,14 +10,14 @@ import (
 var errForbidden = errors.New("forbidden")
 
 type accessService struct {
-	db           Store
+	db           AccessStore
 	actor        screenjournal.Username
 	actorIsAdmin bool
 }
 
 func (s Server) access(r *http.Request) accessService {
 	return accessService{
-		db:           s.getDB(r),
+		db:           s.getAccessDB(r),
 		actor:        mustGetUsernameFromContext(r.Context()),
 		actorIsAdmin: isAdmin(r.Context()),
 	}

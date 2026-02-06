@@ -186,13 +186,13 @@ type (
 
 	dbSettings struct {
 		isolateBySession bool
-		tokenToDB        map[dbToken]Store
+		tokenToDB        map[dbToken]AccessStore
 		lock             sync.RWMutex
 	}
 )
 
 var sharedDBSettings = dbSettings{
-	tokenToDB: map[dbToken]Store{},
+	tokenToDB: map[dbToken]AccessStore{},
 }
 
 func (dbs *dbSettings) IsSessionIsolationEnabled() bool {
@@ -208,19 +208,30 @@ func (dbs *dbSettings) EnableSessionIsolation() {
 	log.Print("per-session database = on")
 }
 
-func (dbs *dbSettings) GetDB(token dbToken) Store {
+func (dbs *dbSettings) GetDB(token dbToken) AccessStore {
 	dbs.lock.RLock()
 	defer dbs.lock.RUnlock()
 	return dbs.tokenToDB[token]
 }
 
-func (dbs *dbSettings) SaveDB(token dbToken, db Store) {
+func (dbs *dbSettings) SaveDB(token dbToken, db AccessStore) {
 	dbs.lock.Lock()
 	defer dbs.lock.Unlock()
 	dbs.tokenToDB[token] = db
 }
 
 func (s Server) getDB(r *http.Request) Store {
+	if !sharedDBSettings.IsSessionIsolationEnabled() {
+		return s.store
+	}
+	c, err := r.Cookie(dbTokenCookieName)
+	if err != nil {
+		panic(err)
+	}
+	return sharedDBSettings.GetDB(dbToken(c.Value))
+}
+
+func (s Server) getAccessDB(r *http.Request) AccessStore {
 	if !sharedDBSettings.IsSessionIsolationEnabled() {
 		return s.store
 	}

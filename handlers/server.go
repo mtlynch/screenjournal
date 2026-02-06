@@ -43,7 +43,7 @@ type (
 		authenticator  Authenticator
 		announcer      Announcer
 		sessionManager SessionManager
-		store          Store
+		store          AccessStore
 		metadataFinder MetadataFinder
 	}
 )
@@ -55,7 +55,7 @@ func (s Server) Router() *mux.Router {
 
 // New creates a new server with all the state it needs to satisfy HTTP
 // requests.
-func New(authenticator Authenticator, announcer Announcer, sessionManager SessionManager, store Store, metadataFinder MetadataFinder) Server {
+func New(authenticator Authenticator, announcer Announcer, sessionManager SessionManager, store AccessStore, metadataFinder MetadataFinder) Server {
 	s := Server{
 		router:         mux.NewRouter(),
 		authenticator:  authenticator,

@@ -31,10 +31,7 @@ func (d dbService) readReaction(id screenjournal.ReactionID) (screenjournal.Revi
 	return d.ReadReaction(id)
 }
 
-func (d dbService) updateReview(
-	id screenjournal.ReviewID,
-	updated reviewPutRequest,
-) (screenjournal.Review, error) {
+func (d dbService) updateReview(id screenjournal.ReviewID, updated reviewPutRequest) (screenjournal.Review, error) {
 	review, err := d.readReview(id)
 	if err != nil {
 		return screenjournal.Review{}, err
@@ -70,10 +67,7 @@ func (d dbService) deleteReview(id screenjournal.ReviewID) error {
 	return nil
 }
 
-func (d dbService) updateComment(
-	id screenjournal.CommentID,
-	commentText screenjournal.CommentText,
-) (screenjournal.ReviewComment, error) {
+func (d dbService) updateComment(id screenjournal.CommentID, commentText screenjournal.CommentText) (screenjournal.ReviewComment, error) {
 	rc, err := d.readComment(id)
 	if err != nil {
 		return screenjournal.ReviewComment{}, err

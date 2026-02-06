@@ -10,13 +10,12 @@ import (
 	"strconv"
 	"time"
 
-	gorilla "github.com/mtlynch/gorilla-handlers"
-
 	email_announce "github.com/mtlynch/screenjournal/v2/announce/email"
 	"github.com/mtlynch/screenjournal/v2/announce/quiet"
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/email/smtp"
 	"github.com/mtlynch/screenjournal/v2/handlers"
+	"github.com/mtlynch/screenjournal/v2/handlers/middleware"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
@@ -67,9 +66,9 @@ func main() {
 		log.Fatalf("failed to create metadata finder: %v", err)
 	}
 
-	h := gorilla.LoggingHandler(os.Stdout, handlers.New(authenticator, announcer, sessionManager, store, metadataFinder).Router())
+	h := middleware.LoggingHandler(os.Stdout, handlers.New(authenticator, announcer, sessionManager, store, metadataFinder).Router())
 	if os.Getenv("SJ_BEHIND_PROXY") != "" {
-		h = gorilla.ProxyIPHeadersHandler(h)
+		h = middleware.ProxyIPHeaders(h)
 	}
 	http.Handle("/", h)
 

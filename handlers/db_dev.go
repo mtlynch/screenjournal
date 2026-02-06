@@ -186,13 +186,13 @@ type (
 
 	dbSettings struct {
 		isolateBySession bool
-		tokenToDB        map[dbToken]AccessStore
+		tokenToDB        map[dbToken]Store
 		lock             sync.RWMutex
 	}
 )
 
 var sharedDBSettings = dbSettings{
-	tokenToDB: map[dbToken]AccessStore{},
+	tokenToDB: map[dbToken]Store{},
 }
 
 func (dbs *dbSettings) IsSessionIsolationEnabled() bool {
@@ -208,19 +208,19 @@ func (dbs *dbSettings) EnableSessionIsolation() {
 	log.Print("per-session database = on")
 }
 
-func (dbs *dbSettings) GetDB(token dbToken) AccessStore {
+func (dbs *dbSettings) GetDB(token dbToken) Store {
 	dbs.lock.RLock()
 	defer dbs.lock.RUnlock()
 	return dbs.tokenToDB[token]
 }
 
-func (dbs *dbSettings) SaveDB(token dbToken, db AccessStore) {
+func (dbs *dbSettings) SaveDB(token dbToken, db Store) {
 	dbs.lock.Lock()
 	defer dbs.lock.Unlock()
 	dbs.tokenToDB[token] = db
 }
 
-func (s Server) getDB(r *http.Request) Store {
+func (s Server) getRawDB(r *http.Request) Store {
 	if !sharedDBSettings.IsSessionIsolationEnabled() {
 		return s.store
 	}
@@ -231,22 +231,18 @@ func (s Server) getDB(r *http.Request) Store {
 	return sharedDBSettings.GetDB(dbToken(c.Value))
 }
 
-func (s Server) getAccessDB(r *http.Request) AccessStore {
-	if !sharedDBSettings.IsSessionIsolationEnabled() {
-		return s.store
+func (s Server) getDB(r *http.Request) dbService {
+	return dbService{
+		Store:   s.getRawDB(r),
+		request: r,
 	}
-	c, err := r.Cookie(dbTokenCookieName)
-	if err != nil {
-		panic(err)
-	}
-	return sharedDBSettings.GetDB(dbToken(c.Value))
 }
 
 func (s Server) getAuthenticator(r *http.Request) Authenticator {
 	if !sharedDBSettings.IsSessionIsolationEnabled() {
 		return s.authenticator
 	}
-	return auth.New(s.getDB(r))
+	return auth.New(s.getRawDB(r))
 }
 
 func dbPerSessionPost() http.HandlerFunc {

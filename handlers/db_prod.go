@@ -10,12 +10,11 @@ func (s *Server) addDevRoutes() {
 	// no-op
 }
 
-func (s Server) getDB(*http.Request) Store {
-	return s.store
-}
-
-func (s Server) getAccessDB(*http.Request) AccessStore {
-	return s.store
+func (s Server) getDB(r *http.Request) dbService {
+	return dbService{
+		Store:   s.store,
+		request: r,
+	}
 }
 
 func (s Server) getAuthenticator(_ *http.Request) Authenticator {

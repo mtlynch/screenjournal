@@ -190,22 +190,14 @@ func (s Server) commentsPut() http.HandlerFunc {
 		Funcs(moviePageFns).
 		ParseFS(templatesFS, "templates/pages/reviews-for-single-media-entry.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
-		req, err := parseCommentPutRequest(r)
+		cid, err := commentIDFromRequestPath(r)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
-			log.Printf("invalid comment PUT request: %v", err)
+			http.Error(w, "Invalid comment ID", http.StatusBadRequest)
 			return
 		}
 
-		rc, ok := s.readOwnedComment(w, r, req.CommentID)
+		rc, ok := s.updateComment(w, r, cid)
 		if !ok {
-			return
-		}
-
-		rc.CommentText = req.CommentText
-		if err := s.getDB(r).UpdateComment(rc); err != nil {
-			log.Printf("failed to update comment: %v", err)
-			http.Error(w, fmt.Sprintf("Failed to update comment: %v", err), http.StatusInternalServerError)
 			return
 		}
 
@@ -231,13 +223,7 @@ func (s Server) commentsDelete() http.HandlerFunc {
 			return
 		}
 
-		if _, ok := s.readOwnedComment(w, r, cid); !ok {
-			return
-		}
-
-		if err := s.getDB(r).DeleteComment(cid); err != nil {
-			log.Printf("failed to delete comment id=%v: %v", cid, err)
-			http.Error(w, "Failed to delete comment: %v", http.StatusInternalServerError)
+		if !s.deleteComment(w, r, cid) {
 			return
 		}
 

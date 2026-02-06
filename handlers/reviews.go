@@ -91,24 +91,8 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
-		review, ok := s.readOwnedReview(w, r, id)
+		review, ok := s.updateReview(w, r, id)
 		if !ok {
-			return
-		}
-
-		parsedRequest, err := parseReviewPutRequest(r)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
-			return
-		}
-
-		review.Rating = parsedRequest.Rating
-		review.Blurb = parsedRequest.Blurb
-		review.Watched = parsedRequest.Watched
-
-		if err := s.getDB(r).UpdateReview(review); err != nil {
-			log.Printf("failed to update review: %v", err)
-			http.Error(w, fmt.Sprintf("Failed to update review: %v", err), http.StatusInternalServerError)
 			return
 		}
 
@@ -130,13 +114,7 @@ func (s Server) reviewsDelete() http.HandlerFunc {
 			return
 		}
 
-		if _, ok := s.readOwnedReview(w, r, id); !ok {
-			return
-		}
-
-		if err := s.getDB(r).DeleteReview(id); err != nil {
-			log.Printf("failed to delete review: %v", err)
-			http.Error(w, fmt.Sprintf("Failed to delete review: %v", err), http.StatusInternalServerError)
+		if !s.deleteReview(w, r, id) {
 			return
 		}
 

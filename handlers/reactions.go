@@ -119,13 +119,7 @@ func (s Server) reactionsDelete() http.HandlerFunc {
 			return
 		}
 
-		if _, ok := s.readOwnedReaction(w, r, rid); !ok {
-			return
-		}
-
-		if err := s.getDB(r).DeleteReaction(rid); err != nil {
-			log.Printf("failed to delete reaction id=%v: %v", rid, err)
-			http.Error(w, "Failed to delete reaction", http.StatusInternalServerError)
+		if !s.deleteReaction(w, r, rid) {
 			return
 		}
 

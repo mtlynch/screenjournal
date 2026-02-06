@@ -98,7 +98,8 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.updateReview(r, id, parsedRequest)
+		access := s.access(r)
+		review, err := access.updateReview(id, parsedRequest)
 		if err == store.ErrReviewNotFound {
 			http.Error(w, "Review not found", http.StatusNotFound)
 			return
@@ -129,7 +130,8 @@ func (s Server) reviewsDelete() http.HandlerFunc {
 			return
 		}
 
-		if err := s.deleteReview(r, id); err == store.ErrReviewNotFound {
+		access := s.access(r)
+		if err := access.deleteReview(id); err == store.ErrReviewNotFound {
 			http.Error(w, "Review not found", http.StatusNotFound)
 			return
 		} else if errors.Is(err, errForbidden) {

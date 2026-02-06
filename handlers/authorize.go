@@ -9,32 +9,45 @@ import (
 
 var errForbidden = errors.New("forbidden")
 
-func (s Server) isOwnerOrAdmin(r *http.Request, owner screenjournal.Username) bool {
-	return mustGetUsernameFromContext(r.Context()).Equal(owner) || isAdmin(r.Context())
+type accessService struct {
+	db           Store
+	actor        screenjournal.Username
+	actorIsAdmin bool
 }
 
-func (s Server) readReview(r *http.Request, id screenjournal.ReviewID) (screenjournal.Review, error) {
-	return s.getDB(r).ReadReview(id)
+func (s Server) access(r *http.Request) accessService {
+	return accessService{
+		db:           s.getDB(r),
+		actor:        mustGetUsernameFromContext(r.Context()),
+		actorIsAdmin: isAdmin(r.Context()),
+	}
 }
 
-func (s Server) readComment(r *http.Request, id screenjournal.CommentID) (screenjournal.ReviewComment, error) {
-	return s.getDB(r).ReadComment(id)
+func (a accessService) isOwnerOrAdmin(owner screenjournal.Username) bool {
+	return a.actor.Equal(owner) || a.actorIsAdmin
 }
 
-func (s Server) readReaction(r *http.Request, id screenjournal.ReactionID) (screenjournal.ReviewReaction, error) {
-	return s.getDB(r).ReadReaction(id)
+func (a accessService) readReview(id screenjournal.ReviewID) (screenjournal.Review, error) {
+	return a.db.ReadReview(id)
 }
 
-func (s Server) updateReview(
-	r *http.Request,
+func (a accessService) readComment(id screenjournal.CommentID) (screenjournal.ReviewComment, error) {
+	return a.db.ReadComment(id)
+}
+
+func (a accessService) readReaction(id screenjournal.ReactionID) (screenjournal.ReviewReaction, error) {
+	return a.db.ReadReaction(id)
+}
+
+func (a accessService) updateReview(
 	id screenjournal.ReviewID,
 	updated reviewPutRequest,
 ) (screenjournal.Review, error) {
-	review, err := s.readReview(r, id)
+	review, err := a.readReview(id)
 	if err != nil {
 		return screenjournal.Review{}, err
 	}
-	if !s.isOwnerOrAdmin(r, review.Owner) {
+	if !a.isOwnerOrAdmin(review.Owner) {
 		return screenjournal.Review{}, errForbidden
 	}
 
@@ -42,76 +55,75 @@ func (s Server) updateReview(
 	review.Blurb = updated.Blurb
 	review.Watched = updated.Watched
 
-	if err := s.getDB(r).UpdateReview(review); err != nil {
+	if err := a.db.UpdateReview(review); err != nil {
 		return screenjournal.Review{}, err
 	}
 
 	return review, nil
 }
 
-func (s Server) deleteReview(r *http.Request, id screenjournal.ReviewID) error {
-	review, err := s.readReview(r, id)
+func (a accessService) deleteReview(id screenjournal.ReviewID) error {
+	review, err := a.readReview(id)
 	if err != nil {
 		return err
 	}
-	if !s.isOwnerOrAdmin(r, review.Owner) {
+	if !a.isOwnerOrAdmin(review.Owner) {
 		return errForbidden
 	}
 
-	if err := s.getDB(r).DeleteReview(id); err != nil {
+	if err := a.db.DeleteReview(id); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s Server) updateComment(
-	r *http.Request,
+func (a accessService) updateComment(
 	id screenjournal.CommentID,
 	commentText screenjournal.CommentText,
 ) (screenjournal.ReviewComment, error) {
-	rc, err := s.readComment(r, id)
+	rc, err := a.readComment(id)
 	if err != nil {
 		return screenjournal.ReviewComment{}, err
 	}
-	if !s.isOwnerOrAdmin(r, rc.Owner) {
+	if !a.isOwnerOrAdmin(rc.Owner) {
 		return screenjournal.ReviewComment{}, errForbidden
 	}
 
 	rc.CommentText = commentText
-	if err := s.getDB(r).UpdateComment(rc); err != nil {
+	if err := a.db.UpdateComment(rc); err != nil {
 		return screenjournal.ReviewComment{}, err
 	}
 
 	return rc, nil
 }
 
-func (s Server) deleteComment(r *http.Request, id screenjournal.CommentID) error {
-	rc, err := s.readComment(r, id)
+func (a accessService) deleteComment(id screenjournal.CommentID) error {
+	rc, err := a.readComment(id)
 	if err != nil {
 		return err
 	}
-	if !s.isOwnerOrAdmin(r, rc.Owner) {
+	if !a.isOwnerOrAdmin(rc.Owner) {
 		return errForbidden
 	}
 
-	if err := s.getDB(r).DeleteComment(id); err != nil {
+	if err := a.db.DeleteComment(id); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s Server) deleteReaction(r *http.Request, id screenjournal.ReactionID) error {
-	rr, err := s.readReaction(r, id)
+func (a accessService) deleteReaction(id screenjournal.ReactionID) error {
+	rr, err := a.readReaction(id)
 	if err != nil {
 		return err
 	}
-	if !s.isOwnerOrAdmin(r, rr.Owner) {
+	if !a.isOwnerOrAdmin(rr.Owner) {
 		return errForbidden
 	}
 
-	if err := s.getDB(r).DeleteReaction(id); err != nil {
+	if err := a.db.DeleteReaction(id); err != nil {
 		return err
 	}
 

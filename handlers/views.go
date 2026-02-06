@@ -192,30 +192,12 @@ func (s Server) indexGet() http.HandlerFunc {
 	}
 }
 
-func (s Server) aboutGet() http.HandlerFunc {
+func (s Server) simplePage(templatePath string) http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").
 			ParseFS(
 				templatesFS,
-				append(baseTemplates, "templates/pages/about.html")...))
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := t.Execute(w, struct {
-			commonProps
-		}{
-			commonProps: makeCommonProps(r.Context()),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-}
-
-func (s Server) logInGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").
-			ParseFS(
-				templatesFS,
-				append(baseTemplates, "templates/pages/login.html")...))
+				append(baseTemplates, templatePath)...))
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := t.Execute(w, struct {
 			commonProps
@@ -630,28 +612,6 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 	}
 }
 
-func (s Server) reviewsNewTitleSearchGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").
-			Funcs(reviewPageFns).
-			ParseFS(
-				templatesFS,
-				append(
-					baseTemplates,
-					"templates/pages/reviews-new.html")...))
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := t.Execute(w, struct {
-			commonProps
-		}{
-			commonProps: makeCommonProps(r.Context()),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-}
-
 func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").
@@ -1041,24 +1001,6 @@ func (s Server) accountNotificationsGet() http.HandlerFunc {
 			commonProps:               makeCommonProps(r.Context()),
 			ReceivesReviewNotices:     prefs.NewReviews,
 			ReceivesAllCommentNotices: prefs.AllNewComments,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-}
-
-func (s Server) accountSecurityGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").ParseFS(
-			templatesFS,
-			append(baseTemplates, "templates/pages/account-security.html")...))
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := t.Execute(w, struct {
-			commonProps
-		}{
-			commonProps: makeCommonProps(r.Context()),
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

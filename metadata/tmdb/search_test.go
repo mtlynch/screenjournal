@@ -4,8 +4,6 @@ import (
 	"net/url"
 	"testing"
 
-	tmdbWrapper "github.com/ryanbradynd05/go-tmdb"
-
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
@@ -13,26 +11,26 @@ import (
 )
 
 type mockTmdbAPI struct {
-	searchTvResponse *tmdbWrapper.TvSearchResults
+	searchTvResponse *tmdb.TvSearchResults
 }
 
-func (m *mockTmdbAPI) GetMovieInfo(id int, options map[string]string) (*tmdbWrapper.Movie, error) {
+func (m *mockTmdbAPI) GetMovieInfo(id int) (*tmdb.MovieResponse, error) {
 	return nil, nil
 }
 
-func (m *mockTmdbAPI) GetTvInfo(id int, options map[string]string) (*tmdbWrapper.TV, error) {
+func (m *mockTmdbAPI) GetTvInfo(id int) (*tmdb.TvResponse, error) {
 	return nil, nil
 }
 
-func (m *mockTmdbAPI) GetTvExternalIds(id int, options map[string]string) (*tmdbWrapper.TvExternalIds, error) {
+func (m *mockTmdbAPI) GetTvExternalIds(id int) (*tmdb.TvExternalIDs, error) {
 	return nil, nil
 }
 
-func (m *mockTmdbAPI) SearchMovie(query string, options map[string]string) (*tmdbWrapper.MovieSearchResults, error) {
+func (m *mockTmdbAPI) SearchMovie(query string) (*tmdb.MovieSearchResults, error) {
 	return nil, nil
 }
 
-func (m *mockTmdbAPI) SearchTv(query string, options map[string]string) (*tmdbWrapper.TvSearchResults, error) {
+func (m *mockTmdbAPI) SearchTv(query string) (*tmdb.TvSearchResults, error) {
 	return m.searchTvResponse, nil
 }
 
@@ -40,26 +38,15 @@ func TestSearchTvShows(t *testing.T) {
 	for _, tt := range []struct {
 		description string
 		query       screenjournal.SearchQuery
-		mockResults tmdbWrapper.TvSearchResults
+		mockResults tmdb.TvSearchResults
 		want        []metadata.SearchResult
 		err         error
 	}{
 		{
 			description: "processes valid TV show result",
 			query:       screenjournal.SearchQuery("valid show"),
-			mockResults: tmdbWrapper.TvSearchResults{
-				Results: []struct {
-					BackdropPath  string `json:"backdrop_path"`
-					ID            int
-					OriginalName  string   `json:"original_name"`
-					FirstAirDate  string   `json:"first_air_date"`
-					OriginCountry []string `json:"origin_country"`
-					PosterPath    string   `json:"poster_path"`
-					Popularity    float32
-					Name          string
-					VoteAverage   float32 `json:"vote_average"`
-					VoteCount     uint32  `json:"vote_count"`
-				}{
+			mockResults: tmdb.TvSearchResults{
+				Results: []tmdb.TvSearchResult{
 					{
 						ID:           12345,
 						Name:         "Black Mirror",
@@ -81,19 +68,8 @@ func TestSearchTvShows(t *testing.T) {
 		{
 			description: "handles empty results",
 			query:       screenjournal.SearchQuery("nonexistent show"),
-			mockResults: tmdbWrapper.TvSearchResults{
-				Results: []struct {
-					BackdropPath  string `json:"backdrop_path"`
-					ID            int
-					OriginalName  string   `json:"original_name"`
-					FirstAirDate  string   `json:"first_air_date"`
-					OriginCountry []string `json:"origin_country"`
-					PosterPath    string   `json:"poster_path"`
-					Popularity    float32
-					Name          string
-					VoteAverage   float32 `json:"vote_average"`
-					VoteCount     uint32  `json:"vote_count"`
-				}{},
+			mockResults: tmdb.TvSearchResults{
+				Results: []tmdb.TvSearchResult{},
 			},
 			want: []metadata.SearchResult{},
 			err:  nil,
@@ -101,19 +77,8 @@ func TestSearchTvShows(t *testing.T) {
 		{
 			description: "handles multiple results",
 			query:       screenjournal.SearchQuery("popular shows"),
-			mockResults: tmdbWrapper.TvSearchResults{
-				Results: []struct {
-					BackdropPath  string `json:"backdrop_path"`
-					ID            int
-					OriginalName  string   `json:"original_name"`
-					FirstAirDate  string   `json:"first_air_date"`
-					OriginCountry []string `json:"origin_country"`
-					PosterPath    string   `json:"poster_path"`
-					Popularity    float32
-					Name          string
-					VoteAverage   float32 `json:"vote_average"`
-					VoteCount     uint32  `json:"vote_count"`
-				}{
+			mockResults: tmdb.TvSearchResults{
+				Results: []tmdb.TvSearchResult{
 					{
 						ID:           12345,
 						Name:         "Show One",
@@ -147,19 +112,8 @@ func TestSearchTvShows(t *testing.T) {
 		{
 			description: "ignores shows with no poster",
 			query:       screenjournal.SearchQuery("no poster show"),
-			mockResults: tmdbWrapper.TvSearchResults{
-				Results: []struct {
-					BackdropPath  string `json:"backdrop_path"`
-					ID            int
-					OriginalName  string   `json:"original_name"`
-					FirstAirDate  string   `json:"first_air_date"`
-					OriginCountry []string `json:"origin_country"`
-					PosterPath    string   `json:"poster_path"`
-					Popularity    float32
-					Name          string
-					VoteAverage   float32 `json:"vote_average"`
-					VoteCount     uint32  `json:"vote_count"`
-				}{
+			mockResults: tmdb.TvSearchResults{
+				Results: []tmdb.TvSearchResult{
 					{
 						ID:           12345,
 						Name:         "No Poster Show",
@@ -174,19 +128,8 @@ func TestSearchTvShows(t *testing.T) {
 		{
 			description: "ignores shows with missing release date",
 			query:       screenjournal.SearchQuery("breaking bad"),
-			mockResults: tmdbWrapper.TvSearchResults{
-				Results: []struct {
-					BackdropPath  string `json:"backdrop_path"`
-					ID            int
-					OriginalName  string   `json:"original_name"`
-					FirstAirDate  string   `json:"first_air_date"`
-					OriginCountry []string `json:"origin_country"`
-					PosterPath    string   `json:"poster_path"`
-					Popularity    float32
-					Name          string
-					VoteAverage   float32 `json:"vote_average"`
-					VoteCount     uint32  `json:"vote_count"`
-				}{
+			mockResults: tmdb.TvSearchResults{
+				Results: []tmdb.TvSearchResult{
 					{
 						ID:           62428,
 						Name:         "Breaking Bad",
@@ -201,19 +144,8 @@ func TestSearchTvShows(t *testing.T) {
 		{
 			description: "ignores shows with invalid release date format",
 			query:       screenjournal.SearchQuery("stranger things"),
-			mockResults: tmdbWrapper.TvSearchResults{
-				Results: []struct {
-					BackdropPath  string `json:"backdrop_path"`
-					ID            int
-					OriginalName  string   `json:"original_name"`
-					FirstAirDate  string   `json:"first_air_date"`
-					OriginCountry []string `json:"origin_country"`
-					PosterPath    string   `json:"poster_path"`
-					Popularity    float32
-					Name          string
-					VoteAverage   float32 `json:"vote_average"`
-					VoteCount     uint32  `json:"vote_count"`
-				}{
+			mockResults: tmdb.TvSearchResults{
+				Results: []tmdb.TvSearchResult{
 					{
 						ID:           66732,
 						Name:         "Stranger Things",
@@ -228,19 +160,8 @@ func TestSearchTvShows(t *testing.T) {
 		{
 			description: "fails when a show has an invalid poster path",
 			query:       screenjournal.SearchQuery("the office"),
-			mockResults: tmdbWrapper.TvSearchResults{
-				Results: []struct {
-					BackdropPath  string `json:"backdrop_path"`
-					ID            int
-					OriginalName  string   `json:"original_name"`
-					FirstAirDate  string   `json:"first_air_date"`
-					OriginCountry []string `json:"origin_country"`
-					PosterPath    string   `json:"poster_path"`
-					Popularity    float32
-					Name          string
-					VoteAverage   float32 `json:"vote_average"`
-					VoteCount     uint32  `json:"vote_count"`
-				}{
+			mockResults: tmdb.TvSearchResults{
+				Results: []tmdb.TvSearchResult{
 					{
 						ID:           2316,
 						Name:         "The Office",
@@ -255,19 +176,8 @@ func TestSearchTvShows(t *testing.T) {
 		{
 			description: "fails when the result contains an empty title",
 			query:       screenjournal.SearchQuery("friends"),
-			mockResults: tmdbWrapper.TvSearchResults{
-				Results: []struct {
-					BackdropPath  string `json:"backdrop_path"`
-					ID            int
-					OriginalName  string   `json:"original_name"`
-					FirstAirDate  string   `json:"first_air_date"`
-					OriginCountry []string `json:"origin_country"`
-					PosterPath    string   `json:"poster_path"`
-					Popularity    float32
-					Name          string
-					VoteAverage   float32 `json:"vote_average"`
-					VoteCount     uint32  `json:"vote_count"`
-				}{
+			mockResults: tmdb.TvSearchResults{
+				Results: []tmdb.TvSearchResult{
 					{
 						ID:           1668,
 						Name:         "",

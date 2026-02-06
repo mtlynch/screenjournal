@@ -7,9 +7,7 @@ import (
 )
 
 func (f Finder) SearchMovies(query screenjournal.SearchQuery) ([]metadata.SearchResult, error) {
-	tmdbResults, err := f.tmdbAPI.SearchMovie(query.String(), map[string]string{
-		"include_adult": "false",
-	})
+	tmdbResults, err := f.tmdbAPI.SearchMovie(query.String())
 	if err != nil {
 		return []metadata.SearchResult{}, err
 	}
@@ -51,9 +49,7 @@ func (f Finder) SearchMovies(query screenjournal.SearchQuery) ([]metadata.Search
 }
 
 func (f Finder) SearchTvShows(query screenjournal.SearchQuery) ([]metadata.SearchResult, error) {
-	tmdbResults, err := f.tmdbAPI.SearchTv(query.String(), map[string]string{
-		"include_adult": "false",
-	})
+	tmdbResults, err := f.tmdbAPI.SearchTv(query.String())
 	if err != nil {
 		return []metadata.SearchResult{}, err
 	}

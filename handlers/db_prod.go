@@ -10,13 +10,23 @@ func (s *Server) addDevRoutes() {
 	// no-op
 }
 
-func (s Server) getDB(r *http.Request) dbService {
+type staticDBProvider struct {
+	store Store
+}
+
+func newDBProvider(store Store) dbProvider {
+	return staticDBProvider{
+		store: store,
+	}
+}
+
+func (p staticDBProvider) dbForRequest(r *http.Request) dbService {
 	return dbService{
-		Store:   s.store,
+		Store:   p.store,
 		request: r,
 	}
 }
 
-func (s Server) getAuthenticator(_ *http.Request) Authenticator {
-	return s.authenticator
+func (p staticDBProvider) authenticatorForRequest(_ *http.Request, fallback Authenticator) Authenticator {
+	return fallback
 }

@@ -27,6 +27,20 @@ type commonProps struct {
 	CspNonce         string
 }
 
+// mediaViewStub holds the media-specific fields passed to the
+// reviews-for-single-media-entry.html template.
+type mediaViewStub struct {
+	Type         screenjournal.MediaType
+	IsTvShow     bool
+	ID           int64
+	Title        screenjournal.MediaTitle
+	SeasonNumber screenjournal.TvShowSeason
+	PosterPath   url.URL
+	ImdbID       screenjournal.ImdbID
+	TmdbID       screenjournal.TmdbID
+	ReleaseDate  screenjournal.ReleaseDate
+}
+
 // reviewViewModel is a template model for displaying a review in
 // reviews-for-single-media-entry.html.
 // It intentionally exposes only what the template needs.
@@ -378,6 +392,50 @@ func (s Server) reviewsGet() http.HandlerFunc {
 	}
 }
 
+// renderMediaReviews is a shared helper that loads comments/reactions for each
+// review, converts them to view models, and renders the
+// reviews-for-single-media-entry template.
+func (s Server) renderMediaReviews(w http.ResponseWriter, r *http.Request, t *template.Template, media mediaViewStub, reviews []screenjournal.Review) {
+	loggedInUsername := mustGetUsernameFromContext(r.Context())
+	isAdminUser := isAdmin(r.Context())
+
+	for i, review := range reviews {
+		cc, err := s.getDB(r).ReadComments(review.ID)
+		if err != nil {
+			log.Printf("failed to read reviews comments: %v", err)
+			http.Error(w, "Failed to retrieve comments", http.StatusInternalServerError)
+			return
+		}
+		reviews[i].Comments = cc
+
+		rr, err := s.getDB(r).ReadReactions(review.ID)
+		if err != nil {
+			log.Printf("failed to read reviews reactions: %v", err)
+			http.Error(w, "Failed to retrieve reactions", http.StatusInternalServerError)
+			return
+		}
+		reviews[i].Reactions = rr
+	}
+
+	reviewsForTemplate := makeReviewViewModels(reviews, loggedInUsername, isAdminUser)
+
+	if err := t.Execute(w, struct {
+		commonProps
+		Media           mediaViewStub
+		Reviews         []reviewViewModel
+		AvailableEmojis []screenjournal.ReactionEmoji
+	}{
+		commonProps:     makeCommonProps(r.Context()),
+		Media:           media,
+		Reviews:         reviewsForTemplate,
+		AvailableEmojis: screenjournal.AllowedReactionEmojis(),
+	}); err != nil {
+		log.Printf("failed to render template: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 func (s Server) moviesReadGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").
@@ -409,64 +467,16 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			return
 		}
 
-		loggedInUsername := mustGetUsernameFromContext(r.Context())
-		isAdminUser := isAdmin(r.Context())
-
-		for i, review := range reviews {
-			cc, err := s.getDB(r).ReadComments(review.ID)
-			if err != nil {
-				log.Printf("failed to read reviews comments: %v", err)
-				http.Error(w, "Failed to retrieve comments", http.StatusInternalServerError)
-				return
-			}
-			reviews[i].Comments = cc
-
-			rr, err := s.getDB(r).ReadReactions(review.ID)
-			if err != nil {
-				log.Printf("failed to read reviews reactions: %v", err)
-				http.Error(w, "Failed to retrieve reactions", http.StatusInternalServerError)
-				return
-			}
-			reviews[i].Reactions = rr
-		}
-
-		// Convert reviews to view models for templates.
-		reviewsForTemplate := makeReviewViewModels(reviews, loggedInUsername, isAdminUser)
-
-		type mediaStub struct {
-			IsTvShow     bool
-			Type         screenjournal.MediaType
-			ID           int64
-			Title        screenjournal.MediaTitle
-			SeasonNumber screenjournal.TvShowSeason
-			PosterPath   url.URL
-			ImdbID       screenjournal.ImdbID
-			TmdbID       screenjournal.TmdbID
-			ReleaseDate  screenjournal.ReleaseDate
-		}
-		if err := t.Execute(w, struct {
-			commonProps
-			Media           mediaStub
-			Reviews         []reviewViewModel
-			AvailableEmojis []screenjournal.ReactionEmoji
-		}{
-			commonProps: makeCommonProps(r.Context()),
-			Media: mediaStub{
-				Type:        screenjournal.MediaTypeMovie,
-				IsTvShow:    false,
-				ID:          movie.ID.Int64(),
-				Title:       movie.Title,
-				PosterPath:  movie.PosterPath,
-				ImdbID:      movie.ImdbID,
-				TmdbID:      movie.TmdbID,
-				ReleaseDate: movie.ReleaseDate,
-			},
-			Reviews:         reviewsForTemplate,
-			AvailableEmojis: screenjournal.AllowedReactionEmojis(),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		s.renderMediaReviews(w, r, t, mediaViewStub{
+			Type:        screenjournal.MediaTypeMovie,
+			IsTvShow:    false,
+			ID:          movie.ID.Int64(),
+			Title:       movie.Title,
+			PosterPath:  movie.PosterPath,
+			ImdbID:      movie.ImdbID,
+			TmdbID:      movie.TmdbID,
+			ReleaseDate: movie.ReleaseDate,
+		}, reviews)
 	}
 }
 
@@ -508,67 +518,17 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			return
 		}
 
-		loggedInUsername := mustGetUsernameFromContext(r.Context())
-		isAdminUser := isAdmin(r.Context())
-
-		for i, review := range reviews {
-			cc, err := s.getDB(r).ReadComments(review.ID)
-			if err != nil {
-				log.Printf("failed to read reviews comments: %v", err)
-				http.Error(w, "Failed to retrieve comments", http.StatusInternalServerError)
-				return
-			}
-			reviews[i].Comments = cc
-
-			rr, err := s.getDB(r).ReadReactions(review.ID)
-			if err != nil {
-				log.Printf("failed to read reviews reactions: %v", err)
-				http.Error(w, "Failed to retrieve reactions", http.StatusInternalServerError)
-				return
-			}
-			reviews[i].Reactions = rr
-		}
-
-		// Convert reviews to view models for templates.
-		reviewsForTemplate := makeReviewViewModels(reviews, loggedInUsername, isAdminUser)
-
-		type mediaStub struct {
-			Type         screenjournal.MediaType
-			IsTvShow     bool
-			ID           int64
-			Title        screenjournal.MediaTitle
-			SeasonNumber screenjournal.TvShowSeason
-			PosterPath   url.URL
-			ImdbID       screenjournal.ImdbID
-			TmdbID       screenjournal.TmdbID
-			ReleaseDate  screenjournal.ReleaseDate
-		}
-
-		if err := t.Execute(w, struct {
-			commonProps
-			Media           mediaStub
-			Reviews         []reviewViewModel
-			AvailableEmojis []screenjournal.ReactionEmoji
-		}{
-			commonProps: makeCommonProps(r.Context()),
-			Media: mediaStub{
-				Type:         screenjournal.MediaTypeTvShow,
-				IsTvShow:     true,
-				ID:           tvShow.ID.Int64(),
-				Title:        tvShow.Title,
-				SeasonNumber: seasonNumber,
-				PosterPath:   tvShow.PosterPath,
-				ImdbID:       tvShow.ImdbID,
-				TmdbID:       tvShow.TmdbID,
-				ReleaseDate:  tvShow.AirDate,
-			},
-			Reviews:         reviewsForTemplate,
-			AvailableEmojis: screenjournal.AllowedReactionEmojis(),
-		}); err != nil {
-			log.Printf("failed to render template: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		s.renderMediaReviews(w, r, t, mediaViewStub{
+			Type:         screenjournal.MediaTypeTvShow,
+			IsTvShow:     true,
+			ID:           tvShow.ID.Int64(),
+			Title:        tvShow.Title,
+			SeasonNumber: seasonNumber,
+			PosterPath:   tvShow.PosterPath,
+			ImdbID:       tvShow.ImdbID,
+			TmdbID:       tvShow.TmdbID,
+			ReleaseDate:  tvShow.AirDate,
+		}, reviews)
 	}
 }
 

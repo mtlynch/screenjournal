@@ -404,6 +404,40 @@ func TestCommentsPut(t *testing.T) {
 			status: http.StatusForbidden,
 		},
 		{
+			description:  "allows an admin to update another user's comment",
+			route:        "/api/comments/1",
+			payload:      "comment=Admin%20updated%20this%20comment",
+			sessionToken: "adm123",
+			sessions: []mockSessionEntry{
+				makeCommentsTestData().sessions.userA,
+				makeCommentsTestData().sessions.userB,
+				{
+					token: "adm123",
+					session: sessions.Session{
+						Username: screenjournal.Username("admin"),
+						IsAdmin:  true,
+					},
+				},
+			},
+			comments: []screenjournal.ReviewComment{
+				{
+					ID:          screenjournal.CommentID(1),
+					Owner:       makeCommentsTestData().sessions.userA.session.Username,
+					CommentText: screenjournal.CommentText("Good insights!"),
+					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
+				},
+			},
+			status: http.StatusOK,
+			expectedComments: []screenjournal.ReviewComment{
+				{
+					ID:          screenjournal.CommentID(1),
+					Owner:       makeCommentsTestData().sessions.userA.session.Username,
+					CommentText: screenjournal.CommentText("Admin updated this comment"),
+					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
+				},
+			},
+		},
+		{
 			description:  "prevents an unauthenticated user from updating any comment",
 			route:        "/api/comments/1",
 			payload:      "comment=I%20overwrote%20your%20comment!",
@@ -572,6 +606,32 @@ func TestCommentsDelete(t *testing.T) {
 				},
 			},
 			status: http.StatusForbidden,
+		},
+		{
+			description:  "allows an admin to delete another user's comment",
+			route:        "/api/comments/1",
+			sessionToken: "adm123",
+			sessions: []mockSessionEntry{
+				makeCommentsTestData().sessions.userA,
+				makeCommentsTestData().sessions.userB,
+				{
+					token: "adm123",
+					session: sessions.Session{
+						Username: screenjournal.Username("admin"),
+						IsAdmin:  true,
+					},
+				},
+			},
+			comments: []screenjournal.ReviewComment{
+				{
+					ID:          screenjournal.CommentID(1),
+					Owner:       makeCommentsTestData().sessions.userA.session.Username,
+					CommentText: screenjournal.CommentText("Good insights!"),
+					Review:      makeCommentsTestData().reviews.userBTheWaterBoy,
+				},
+			},
+			status:           http.StatusNoContent,
+			expectedComments: []screenjournal.ReviewComment{},
 		},
 		{
 			description:  "prevents an unauthenticated user from deleting any comment",

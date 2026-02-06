@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -82,8 +81,7 @@ func (s Server) passwordResetAdminPost() http.HandlerFunc {
 
 func (s Server) passwordResetAdminDelete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		token, err := parse.PasswordResetToken(vars["token"])
+		token, err := parse.PasswordResetToken(r.PathValue("token"))
 		if err != nil {
 			http.Error(w, "Invalid password reset token", http.StatusBadRequest)
 			return

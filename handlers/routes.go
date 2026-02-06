@@ -2,90 +2,130 @@ package handlers
 
 import "net/http"
 
+func withMiddleware(h http.Handler, mw ...func(http.Handler) http.Handler) http.Handler {
+	for i := len(mw) - 1; i >= 0; i-- {
+		h = mw[i](h)
+	}
+	return h
+}
+
+// withMiddlewareFunc is a convenience wrapper for http.HandlerFunc.
+func withMiddlewareFunc(h http.HandlerFunc, mw ...func(http.Handler) http.Handler) http.Handler {
+	return withMiddleware(h, mw...)
+}
+
 func (s *Server) routes() {
-	s.router.HandleFunc("/api/auth", s.authPost()).Methods(http.MethodPost)
-	s.router.HandleFunc("/api/auth", s.authDelete()).Methods(http.MethodDelete)
-	s.router.HandleFunc("/api/users/{username}", s.usersPut()).Methods(http.MethodPut)
-	s.router.Use(s.populateAuthenticationContext)
+	// Unauthenticated APIs
+	s.router.Handle("POST /api/auth", s.authPost())
+	s.router.Handle("DELETE /api/auth", s.authDelete())
+	s.router.Handle("PUT /api/users/{username}", s.usersPut())
 
-	adminApis := s.router.PathPrefix("/api/admin").Subrouter()
-	adminApis.Use(s.requireAuthenticationForAPI)
-	adminApis.Use(s.requireAdmin)
-	adminApis.HandleFunc("/repopulate/movies", s.repopulateMoviesGet()).Methods(http.MethodGet)
-	adminApis.HandleFunc("/repopulate/tv", s.repopulateTvShowsGet()).Methods(http.MethodGet)
-	adminApis.HandleFunc("/invites", s.invitesPost()).Methods(http.MethodPost)
+	// Admin APIs
+	adminAPI := func(h http.HandlerFunc) http.Handler {
+		return withMiddlewareFunc(h, s.requireAuthenticationForAPI, s.requireAdmin)
+	}
+	s.router.Handle("GET /api/admin/repopulate/movies", adminAPI(s.repopulateMoviesGet()))
+	s.router.Handle("GET /api/admin/repopulate/tv", adminAPI(s.repopulateTvShowsGet()))
+	s.router.Handle("POST /api/admin/invites", adminAPI(s.invitesPost()))
 
-	authenticatedApis := s.router.PathPrefix("/api").Subrouter()
-	authenticatedApis.Use(s.requireAuthenticationForAPI)
-	authenticatedApis.HandleFunc("/comments", s.commentsPost()).Methods(http.MethodPost)
-	authenticatedApis.HandleFunc("/comments/add", s.commentsAddGet()).Methods(http.MethodGet)
-	authenticatedApis.HandleFunc("/comments/edit", s.commentsEditGet()).Methods(http.MethodGet)
-	authenticatedApis.HandleFunc("/comments/{commentID}", s.commentsGet()).Methods(http.MethodGet)
-	authenticatedApis.HandleFunc("/comments/{commentID}", s.commentsPut()).Methods(http.MethodPut)
-	authenticatedApis.HandleFunc("/comments/{commentID}", s.commentsDelete()).Methods(http.MethodDelete)
-	authenticatedApis.HandleFunc("/search", s.searchGet()).Methods(http.MethodGet)
+	// Authenticated APIs
+	authAPI := func(h http.HandlerFunc) http.Handler {
+		return withMiddlewareFunc(h, s.requireAuthenticationForAPI)
+	}
+	s.router.Handle("POST /api/comments", authAPI(s.commentsPost()))
+	s.router.Handle("GET /api/comments/add", authAPI(s.commentsAddGet()))
+	s.router.Handle("GET /api/comments/edit", authAPI(s.commentsEditGet()))
+	s.router.Handle("GET /api/comments/{commentID}", authAPI(s.commentsGet()))
+	s.router.Handle("PUT /api/comments/{commentID}", authAPI(s.commentsPut()))
+	s.router.Handle("DELETE /api/comments/{commentID}", authAPI(s.commentsDelete()))
+	s.router.Handle("GET /api/search", authAPI(s.searchGet()))
 
-	static := s.router.PathPrefix("/").Subrouter()
-	static.PathPrefix("/css/").Handler(getStaticFilesHandler()).Methods(http.MethodGet)
-	static.PathPrefix("/js/").Handler(getStaticFilesHandler()).Methods(http.MethodGet)
-	static.PathPrefix("/third-party/").Handler(getStaticFilesHandler()).Methods(http.MethodGet)
+	// Static files
+	staticHandler := getStaticFilesHandler()
+	s.router.Handle("GET /css/", staticHandler)
+	s.router.Handle("GET /js/", staticHandler)
+	s.router.Handle("GET /third-party/", staticHandler)
 
-	adminViews := s.router.PathPrefix("/admin").Subrouter()
-	adminViews.Use(s.requireAuthenticationForView)
-	adminViews.Use(s.requireAdmin)
-	adminViews.Use(enforceContentSecurityPolicy)
-	adminViews.HandleFunc("/invites", s.invitesGet()).Methods(http.MethodGet)
-	adminViews.HandleFunc("/reset-password", s.passwordResetAdminGet()).Methods(http.MethodGet)
+	// Admin views
+	adminViewMW := func(h http.HandlerFunc) http.Handler {
+		return withMiddlewareFunc(h, s.requireAuthenticationForView, s.requireAdmin, enforceContentSecurityPolicy)
+	}
+	s.router.Handle("GET /admin/invites", adminViewMW(s.invitesGet()))
+	s.router.Handle("GET /admin/reset-password", adminViewMW(s.passwordResetAdminGet()))
 
-	views := s.router.PathPrefix("/").Subrouter()
-	views.Use(upgradeToHttps)
-	views.Use(enforceContentSecurityPolicy)
-	views.HandleFunc("/about", s.aboutGet()).Methods(http.MethodGet)
-	views.HandleFunc("/login", s.logInGet()).Methods(http.MethodGet)
-	views.HandleFunc("/sign-up", s.signUpGet()).Methods(http.MethodGet)
-	views.HandleFunc("/account/password-reset", s.accountPasswordResetGet()).Methods(http.MethodGet)
-	views.HandleFunc("/account/password-reset", s.accountPasswordResetPut()).Methods(http.MethodPut)
-	views.HandleFunc("/", s.indexGet()).Methods(http.MethodGet)
+	// Public views
+	viewMW := func(h http.HandlerFunc) http.Handler {
+		return withMiddlewareFunc(h, upgradeToHttps, enforceContentSecurityPolicy)
+	}
+	s.router.Handle("GET /about", viewMW(s.aboutGet()))
+	s.router.Handle("GET /login", viewMW(s.logInGet()))
+	s.router.Handle("GET /sign-up", viewMW(s.signUpGet()))
+	s.router.Handle("GET /account/password-reset", viewMW(s.accountPasswordResetGet()))
+	s.router.Handle("PUT /account/password-reset", viewMW(s.accountPasswordResetPut()))
+	s.router.Handle("GET /{$}", viewMW(s.indexGet()))
 
-	// Transitional subrouter as we get rid of the idea of separate API routes vs.
-	// view routes.
-	authenticatedRoutes := s.router.PathPrefix("/").Subrouter()
-	authenticatedRoutes.Use(s.requireAuthenticationForAPI)
-	authenticatedRoutes.Use(enforceContentSecurityPolicy)
-	authenticatedRoutes.HandleFunc("/account/notifications", s.accountNotificationsPut()).Methods(http.MethodPut)
-	authenticatedRoutes.HandleFunc("/account/password", s.accountChangePasswordPut()).Methods(http.MethodPut)
-	authenticatedRoutes.HandleFunc("/reviews", s.reviewsPost()).Methods(http.MethodPost)
-	authenticatedRoutes.HandleFunc("/reviews/{reviewID}", s.reviewsPut()).Methods(http.MethodPut)
-	authenticatedRoutes.HandleFunc("/reviews/{reviewID}", s.reviewsDelete()).Methods(http.MethodDelete)
-	authenticatedRoutes.HandleFunc("/reactions", s.reactionsPost()).Methods(http.MethodPost)
-	authenticatedRoutes.HandleFunc("/reactions/{reactionID}", s.reactionsDelete()).Methods(http.MethodDelete)
+	// Authenticated routes (transitional)
+	authRouteMW := func(h http.HandlerFunc) http.Handler {
+		return withMiddlewareFunc(h, s.requireAuthenticationForAPI, enforceContentSecurityPolicy)
+	}
+	s.router.Handle("PUT /account/notifications", authRouteMW(s.accountNotificationsPut()))
+	s.router.Handle("PUT /account/password", authRouteMW(s.accountChangePasswordPut()))
+	s.router.Handle("POST /reviews", authRouteMW(s.reviewsPost()))
+	s.router.Handle("PUT /reviews/{reviewID}", authRouteMW(s.reviewsPut()))
+	s.router.Handle("DELETE /reviews/{reviewID}", authRouteMW(s.reviewsDelete()))
+	s.router.Handle("POST /reactions", authRouteMW(s.reactionsPost()))
+	s.router.Handle("DELETE /reactions/{reactionID}", authRouteMW(s.reactionsDelete()))
 
-	// Transitional subrouter as we get rid of the idea of separate API routes vs.
-	// view routes.
-	adminRoutes := s.router.PathPrefix("/admin").Subrouter()
-	adminRoutes.Use(s.requireAuthenticationForAPI)
-	adminRoutes.Use(s.requireAdmin)
-	adminRoutes.Use(enforceContentSecurityPolicy)
-	adminRoutes.HandleFunc("/invites", s.invitesPost()).Methods(http.MethodPost)
-	adminRoutes.HandleFunc("/reset-password", s.passwordResetAdminPost()).Methods(http.MethodPost)
-	adminRoutes.HandleFunc("/reset-password/{token}", s.passwordResetAdminDelete()).Methods(http.MethodDelete)
+	// Admin routes (transitional)
+	adminRouteMW := func(h http.HandlerFunc) http.Handler {
+		return withMiddlewareFunc(h, s.requireAuthenticationForAPI, s.requireAdmin, enforceContentSecurityPolicy)
+	}
+	s.router.Handle("POST /admin/invites", adminRouteMW(s.invitesPost()))
+	s.router.Handle("POST /admin/reset-password", adminRouteMW(s.passwordResetAdminPost()))
+	s.router.Handle("DELETE /admin/reset-password/{token}", adminRouteMW(s.passwordResetAdminDelete()))
 
-	authenticatedViews := s.router.PathPrefix("/").Subrouter()
-	authenticatedViews.Use(s.requireAuthenticationForView)
-	authenticatedViews.Use(enforceContentSecurityPolicy)
-	authenticatedViews.HandleFunc("/account/change-password", s.accountChangePasswordGet()).Methods(http.MethodGet)
-	authenticatedViews.HandleFunc("/account/notifications", s.accountNotificationsGet()).Methods(http.MethodGet)
-	authenticatedViews.HandleFunc("/account/security", s.accountSecurityGet()).Methods(http.MethodGet)
-	authenticatedViews.HandleFunc("/activity", s.activityGet()).Methods(http.MethodGet)
-	authenticatedViews.HandleFunc("/movies/{movieID}", s.moviesReadGet()).Methods(http.MethodGet)
-	authenticatedViews.HandleFunc("/tv-shows/{tvShowID}", s.tvShowsReadGet()).Methods(http.MethodGet)
-	authenticatedViews.HandleFunc("/reviews", s.reviewsGet()).Methods(http.MethodGet)
-	authenticatedViews.HandleFunc("/reviews/by/{username}", s.reviewsGet()).Methods(http.MethodGet)
-	authenticatedViews.HandleFunc("/reviews/new", s.reviewsNewTitleSearchGet()).Methods(http.MethodGet)
-	authenticatedViews.HandleFunc("/reviews/new/tv/pick-season", s.reviewsNewPickSeasonGet()).Methods(http.MethodGet)
-	authenticatedViews.HandleFunc("/reviews/new/write", s.reviewsNewWriteReviewGet()).Methods(http.MethodGet)
-	authenticatedViews.HandleFunc("/reviews/{reviewID}/edit", s.reviewsEditGet()).Methods(http.MethodGet)
-	authenticatedViews.HandleFunc("/users", s.usersGet()).Methods(http.MethodGet)
+	// Authenticated views
+	authViewMW := func(h http.HandlerFunc) http.Handler {
+		return withMiddlewareFunc(h, s.requireAuthenticationForView, enforceContentSecurityPolicy)
+	}
+	s.router.Handle("GET /account/change-password", authViewMW(s.accountChangePasswordGet()))
+	s.router.Handle("GET /account/notifications", authViewMW(s.accountNotificationsGet()))
+	s.router.Handle("GET /account/security", authViewMW(s.accountSecurityGet()))
+	s.router.Handle("GET /activity", authViewMW(s.activityGet()))
+	s.router.Handle("GET /movies/{movieID}", authViewMW(s.moviesReadGet()))
+	s.router.Handle("GET /tv-shows/{tvShowID}", authViewMW(s.tvShowsReadGet()))
+	s.router.Handle("GET /reviews", authViewMW(s.reviewsGet()))
+	s.router.Handle("GET /reviews/new", authViewMW(s.reviewsNewTitleSearchGet()))
+	s.router.Handle("GET /reviews/new/tv/pick-season", authViewMW(s.reviewsNewPickSeasonGet()))
+	s.router.Handle("GET /reviews/new/write", authViewMW(s.reviewsNewWriteReviewGet()))
+	// "/reviews/by/{username}" and "/reviews/{reviewID}/edit" conflict in
+	// Go's ServeMux because neither pattern is more specific than the other
+	// (they both match "/reviews/by/edit"). We use a catch-all wildcard and
+	// dispatch manually.
+	s.router.Handle("GET /reviews/{segment}/{rest...}", authViewMW(s.reviewsSubpathDispatch()))
+	s.router.Handle("GET /users", authViewMW(s.usersGet()))
 
 	s.addDevRoutes()
+}
+
+// reviewsSubpathDispatch handles the ambiguous /reviews/{segment}/{rest...}
+// pattern, manually dispatching to either /reviews/by/{username} or
+// /reviews/{reviewID}/edit.
+func (s *Server) reviewsSubpathDispatch() http.HandlerFunc {
+	byUsername := s.reviewsGet()
+	editReview := s.reviewsEditGet()
+	return func(w http.ResponseWriter, r *http.Request) {
+		segment := r.PathValue("segment")
+		rest := r.PathValue("rest")
+		switch {
+		case segment == "by" && rest != "":
+			r.SetPathValue("username", rest)
+			byUsername.ServeHTTP(w, r)
+		case rest == "edit":
+			r.SetPathValue("reviewID", segment)
+			editReview.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	}
 }

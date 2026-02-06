@@ -19,9 +19,14 @@ import (
 // addDevRoutes adds debug routes that we only use during development or e2e
 // tests.
 func (s *Server) addDevRoutes() {
-	s.router.Use(assignSessionDB)
-	s.router.HandleFunc("/api/debug/db/populate-dummy-data", s.populateDummyData()).Methods(http.MethodGet)
-	s.router.HandleFunc("/api/debug/db/per-session", dbPerSessionPost()).Methods(http.MethodPost)
+	s.router.Handle("GET /api/debug/db/populate-dummy-data", s.populateDummyData())
+	s.router.Handle("POST /api/debug/db/per-session", dbPerSessionPost())
+}
+
+// devMiddleware returns middleware that should wrap the entire router in dev
+// builds (e.g., per-session database assignment).
+func (s Server) devMiddleware(h http.Handler) http.Handler {
+	return assignSessionDB(h)
 }
 
 func (s Server) populateDummyData() http.HandlerFunc {

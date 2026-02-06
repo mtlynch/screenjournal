@@ -4,6 +4,9 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
 
+    # Use https://www.nixhub.io/ to find the exact nixpkgs reference for exact
+    # package versions.
+
     # 1.25.4 release
     go-nixpkgs.url = "github:NixOS/nixpkgs/ee09932cedcef15aaf476f9343d1dea2cb77e261";
 

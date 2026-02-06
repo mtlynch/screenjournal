@@ -43,7 +43,10 @@ func (s Store) ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error) 
 	return subscribers, nil
 }
 
-func (s Store) ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error) {
+func (s Store) ReadCommentSubscribers(
+	reviewID screenjournal.ReviewID,
+	commentAuthor screenjournal.Username,
+) ([]screenjournal.EmailSubscriber, error) {
 	rows, err := s.ctx.Query(`
 	SELECT
 		users.username AS username,
@@ -52,7 +55,25 @@ func (s Store) ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error)
 		users, notification_preferences
 	WHERE
 		users.username = notification_preferences.username AND
-		notification_preferences.all_new_comments = 1`)
+		notification_preferences.all_new_comments = 1 AND
+		users.username != :comment_author AND
+		users.username IN (
+			SELECT
+				review_owner
+			FROM
+				reviews
+			WHERE
+				id = :review_id
+			UNION
+			SELECT
+				comment_owner
+			FROM
+				review_comments
+			WHERE
+				review_id = :review_id
+		)`,
+		sql.Named("review_id", reviewID.UInt64()),
+		sql.Named("comment_author", commentAuthor.String()))
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return []screenjournal.EmailSubscriber{}, nil

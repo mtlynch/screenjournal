@@ -19,6 +19,12 @@
       border-collapse: separate;
       border-spacing: 1rem 0;
     }
+
+    #blurb {
+      overflow: hidden;
+      resize: none;
+      height: auto;
+    }
   </style>
 {{ end }}
 
@@ -36,6 +42,15 @@
     });
 
     document.addEventListener("DOMContentLoaded", function () {
+      const blurbTextarea = document.getElementById("blurb");
+      function resizeTextarea(textarea) {
+        textarea.style.height = textarea.scrollHeight + "px";
+      }
+      resizeTextarea(blurbTextarea);
+      blurbTextarea.addEventListener("input", function (evt) {
+        resizeTextarea(evt.target);
+      });
+
       document
         .getElementById("formatting-help-icon")
         .addEventListener("click", function (evt) {

@@ -119,19 +119,7 @@ func (s Server) reactionsDelete() http.HandlerFunc {
 			return
 		}
 
-		rr, err := s.getDB(r).ReadReaction(rid)
-		if err == store.ErrReactionNotFound {
-			http.Error(w, "Reaction not found", http.StatusNotFound)
-			return
-		} else if err != nil {
-			log.Printf("failed to read reaction: %v", err)
-			http.Error(w, fmt.Sprintf("Failed to read reaction: %v", err), http.StatusInternalServerError)
-			return
-		}
-
-		loggedInUsername := mustGetUsernameFromContext(r.Context())
-		if !loggedInUsername.Equal(rr.Owner) && !isAdmin(r.Context()) {
-			http.Error(w, "Can't delete another user's reaction", http.StatusForbidden)
+		if _, ok := s.readOwnedReaction(w, r, rid); !ok {
 			return
 		}
 

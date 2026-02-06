@@ -91,18 +91,8 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.getDB(r).ReadReview(id)
-		if err == store.ErrReviewNotFound {
-			http.Error(w, "Review not found", http.StatusNotFound)
-			return
-		} else if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to read review: %v", err), http.StatusInternalServerError)
-			return
-		}
-
-		loggedInUsername := mustGetUsernameFromContext(r.Context())
-		if !review.Owner.Equal(loggedInUsername) {
-			http.Error(w, "You can't edit another user's review", http.StatusForbidden)
+		review, ok := s.readOwnedReview(w, r, id)
+		if !ok {
 			return
 		}
 
@@ -140,18 +130,7 @@ func (s Server) reviewsDelete() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.getDB(r).ReadReview(id)
-		if err == store.ErrReviewNotFound {
-			http.Error(w, "Review not found", http.StatusNotFound)
-			return
-		} else if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to read review: %v", err), http.StatusInternalServerError)
-			return
-		}
-
-		loggedInUsername := mustGetUsernameFromContext(r.Context())
-		if !review.Owner.Equal(loggedInUsername) {
-			http.Error(w, "You can't delete another user's review", http.StatusForbidden)
+		if _, ok := s.readOwnedReview(w, r, id); !ok {
 			return
 		}
 

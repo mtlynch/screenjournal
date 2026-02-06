@@ -197,18 +197,8 @@ func (s Server) commentsPut() http.HandlerFunc {
 			return
 		}
 
-		rc, err := s.getDB(r).ReadComment(req.CommentID)
-		if err == store.ErrCommentNotFound {
-			http.Error(w, "Comment not found", http.StatusNotFound)
-			return
-		} else if err != nil {
-			log.Printf("failed to read comment: %v", err)
-			http.Error(w, fmt.Sprintf("Failed to read comment: %v", err), http.StatusInternalServerError)
-			return
-		}
-
-		if !mustGetUsernameFromContext(r.Context()).Equal(rc.Owner) {
-			http.Error(w, "Can't edit another user's comment", http.StatusForbidden)
+		rc, ok := s.readOwnedComment(w, r, req.CommentID)
+		if !ok {
 			return
 		}
 
@@ -241,18 +231,7 @@ func (s Server) commentsDelete() http.HandlerFunc {
 			return
 		}
 
-		rc, err := s.getDB(r).ReadComment(cid)
-		if err == store.ErrCommentNotFound {
-			http.Error(w, "Comment not found", http.StatusNotFound)
-			return
-		} else if err != nil {
-			log.Printf("failed to read comment: %v", err)
-			http.Error(w, fmt.Sprintf("Failed to read comment: %v", err), http.StatusInternalServerError)
-			return
-		}
-
-		if !mustGetUsernameFromContext(r.Context()).Equal(rc.Owner) {
-			http.Error(w, "Can't delete another user's comment", http.StatusForbidden)
+		if _, ok := s.readOwnedComment(w, r, cid); !ok {
 			return
 		}
 

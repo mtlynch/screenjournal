@@ -5,45 +5,91 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store"
 )
 
-type Store interface {
+// ReviewStore handles review persistence.
+type ReviewStore interface {
 	ReadReview(screenjournal.ReviewID) (screenjournal.Review, error)
 	ReadReviews(...store.ReadReviewsOption) ([]screenjournal.Review, error)
 	InsertReview(screenjournal.Review) (screenjournal.ReviewID, error)
 	UpdateReview(screenjournal.Review) error
 	DeleteReview(screenjournal.ReviewID) error
+}
+
+// CommentStore handles comment persistence.
+type CommentStore interface {
 	ReadComments(screenjournal.ReviewID) ([]screenjournal.ReviewComment, error)
 	ReadComment(screenjournal.CommentID) (screenjournal.ReviewComment, error)
 	InsertComment(screenjournal.ReviewComment) (screenjournal.CommentID, error)
 	UpdateComment(screenjournal.ReviewComment) error
 	DeleteComment(screenjournal.CommentID) error
+}
+
+// ReactionStore handles reaction persistence.
+type ReactionStore interface {
 	ReadReactions(screenjournal.ReviewID) ([]screenjournal.ReviewReaction, error)
 	ReadReaction(screenjournal.ReactionID) (screenjournal.ReviewReaction, error)
 	InsertReaction(screenjournal.ReviewReaction) (screenjournal.ReactionID, error)
 	DeleteReaction(screenjournal.ReactionID) error
+}
+
+// MovieStore handles movie persistence.
+type MovieStore interface {
 	ReadMovie(screenjournal.MovieID) (screenjournal.Movie, error)
 	ReadMovieByTmdbID(screenjournal.TmdbID) (screenjournal.Movie, error)
 	InsertMovie(screenjournal.Movie) (screenjournal.MovieID, error)
 	UpdateMovie(screenjournal.Movie) error
+}
+
+// TvShowStore handles TV show persistence.
+type TvShowStore interface {
 	ReadTvShow(screenjournal.TvShowID) (screenjournal.TvShow, error)
 	ReadTvShowByTmdbID(screenjournal.TmdbID) (screenjournal.TvShow, error)
 	InsertTvShow(screenjournal.TvShow) (screenjournal.TvShowID, error)
 	UpdateTvShow(screenjournal.TvShow) error
+}
+
+// UserStore handles user persistence.
+type UserStore interface {
 	CountUsers() (uint, error)
 	ReadUser(screenjournal.Username) (screenjournal.User, error)
 	ReadUsersPublicMeta() ([]screenjournal.UserPublicMeta, error)
 	InsertUser(screenjournal.User) error
 	UpdateUserPassword(screenjournal.Username, screenjournal.PasswordHash) error
+}
+
+// InviteStore handles signup invitation persistence.
+type InviteStore interface {
 	InsertSignupInvitation(screenjournal.SignupInvitation) error
 	ReadSignupInvitation(screenjournal.InviteCode) (screenjournal.SignupInvitation, error)
 	ReadSignupInvitations() ([]screenjournal.SignupInvitation, error)
 	DeleteSignupInvitation(screenjournal.InviteCode) error
+}
+
+// NotificationStore handles notification preference persistence.
+type NotificationStore interface {
 	ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error)
 	ReadCommentSubscribers() ([]screenjournal.EmailSubscriber, error)
 	ReadNotificationPreferences(screenjournal.Username) (screenjournal.NotificationPreferences, error)
 	UpdateNotificationPreferences(screenjournal.Username, screenjournal.NotificationPreferences) error
+}
+
+// PasswordResetStore handles password reset persistence.
+type PasswordResetStore interface {
 	InsertPasswordResetEntry(screenjournal.PasswordResetEntry) error
 	ReadPasswordResetEntry(screenjournal.PasswordResetToken) (screenjournal.PasswordResetEntry, error)
 	ReadPasswordResetEntries() ([]screenjournal.PasswordResetEntry, error)
 	DeletePasswordResetEntry(screenjournal.PasswordResetToken) error
 	DeleteExpiredPasswordResetEntries() error
+}
+
+// Store composes all store interfaces.
+type Store interface {
+	ReviewStore
+	CommentStore
+	ReactionStore
+	MovieStore
+	TvShowStore
+	UserStore
+	InviteStore
+	NotificationStore
+	PasswordResetStore
 }

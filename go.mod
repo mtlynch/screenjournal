@@ -8,7 +8,6 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/kylelemons/godebug v1.1.0
 	github.com/microcosm-cc/bluemonday v1.0.27
-	github.com/mtlynch/gorilla-handlers v1.5.2
 	github.com/mtlynch/simpleauth/v2 v2.0.0-20241108014613-2f32145d692d
 	github.com/ncruces/go-sqlite3 v0.22.0
 	github.com/ryanbradynd05/go-tmdb v0.0.0-20220721194547-2ab6191c6273
@@ -17,7 +16,6 @@ require (
 require (
 	codeberg.org/mtlynch/go-evolutionary-migrate v0.0.1
 	github.com/aymerick/douceur v0.2.0 // indirect
-	github.com/felixge/httpsnoop v1.0.1 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/kylelemons/go-gypsy v1.0.0 // indirect
 	github.com/mtlynch/jeff v0.2.4 // indirect

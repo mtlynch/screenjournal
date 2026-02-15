@@ -8,9 +8,14 @@ import (
 )
 
 const (
+	// perUserLimit is the maximum number of password reset emails a single
+	// user can receive within the rate limit window.
 	perUserLimit = 2
-	globalLimit  = 8
-	window       = 24 * time.Hour
+	// globalLimit is the maximum number of password reset emails that can
+	// be sent to all users combined within the rate limit window.
+	globalLimit = 8
+	// window is the sliding time window over which rate limits are enforced.
+	window = 24 * time.Hour
 )
 
 type event struct {

@@ -225,7 +225,7 @@ func TestCommentsPost(t *testing.T) {
 			announcer := mockAnnouncer{}
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(authenticator, &announcer, &sessionManager, dataStore, nilMetadataFinder, nil)
+			s := handlers.New(authenticator, &announcer, &sessionManager, dataStore, nilMetadataFinder, nilPasswordResetter)
 
 			req, err := http.NewRequest("POST", "/api/comments", strings.NewReader(tt.payload))
 			if err != nil {
@@ -455,7 +455,7 @@ func TestCommentsPut(t *testing.T) {
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder, nil)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder, nilPasswordResetter)
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {
@@ -621,7 +621,7 @@ func TestCommentsDelete(t *testing.T) {
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder, nil)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder, nilPasswordResetter)
 
 			req, err := http.NewRequest("DELETE", tt.route, strings.NewReader(""))
 			if err != nil {

@@ -220,13 +220,7 @@ func (s Server) forgotPasswordPost() http.HandlerFunc {
 			}
 		}
 
-		emailRaw := r.FormValue("email")
-		if emailRaw == "" {
-			renderSuccess()
-			return
-		}
-
-		emailAddr, err := parse.Email(emailRaw)
+		emailAddr, err := parse.Email(r.FormValue("email"))
 		if err != nil {
 			renderSuccess()
 			return

@@ -228,18 +228,20 @@ func (s Server) forgotPasswordPost() http.HandlerFunc {
 
 		// Look up user by email.
 		user, err := s.getDB(r).ReadUserByEmail(emailAddr)
-		if err != nil {
-			if err == store.ErrUserNotFound {
-				log.Printf("password reset requested for unregistered email: %s", emailAddr)
-			} else {
-				log.Printf("failed to look up user by email: %v", err)
-			}
+		if err == store.ErrUserNotFound {
+			log.Printf("password reset requested for unregistered email: %s", emailAddr)
 			renderSuccess()
+			return
+		} else if err != nil {
+			log.Printf("failed to look up user by email: %v", err)
+			http.Error(w, "Failed to process password reset request", http.StatusInternalServerError)
 			return
 		}
 
 		if err := s.passwordResetter.RequestReset(user); err != nil {
 			log.Printf("failed to process password reset for %s: %v", user.Username, err)
+			http.Error(w, "Failed to process password reset request", http.StatusInternalServerError)
+			return
 		}
 
 		renderSuccess()

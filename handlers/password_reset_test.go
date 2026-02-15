@@ -204,7 +204,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			var nilAnnouncer handlers.Announcer
 			var nilMetadataFinder handlers.MetadataFinder
 
-			s := handlers.New(authenticator, nilAnnouncer, sessionMgr, dataStore, nilMetadataFinder, nil, "", nil)
+			s := handlers.New(authenticator, nilAnnouncer, sessionMgr, dataStore, nilMetadataFinder, nil)
 
 			url := "/account/password-reset?token=" + tt.token.String()
 			req, err := http.NewRequest("PUT", url, strings.NewReader(tt.payload))

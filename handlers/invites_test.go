@@ -107,7 +107,7 @@ func TestInvitesPost(t *testing.T) {
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder, nil, "", nil)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder, nil)
 
 			req, err := http.NewRequest("POST", "/admin/invites", strings.NewReader(tt.payload))
 			if err != nil {

@@ -6,10 +6,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mtlynch/screenjournal/v2/email"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
-	"github.com/mtlynch/screenjournal/v2/ratelimit"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
@@ -19,13 +17,17 @@ type (
 		AnnounceNewComment(screenjournal.ReviewComment)
 	}
 
+	PasswordResetter interface {
+		RequestReset(user screenjournal.User) error
+	}
+
 	SessionManager interface {
 		CreateSession(http.ResponseWriter, context.Context, screenjournal.Username, bool) error
 		SessionFromContext(context.Context) (sessions.Session, error)
 		EndSession(context.Context, http.ResponseWriter)
-		// WrapRequest wraps the given handler, adding the Session object (if
-		// there's an active session) to the request context before passing control
-		// to the next handler.
+		// WrapRequest wraps the given handler, adding the Session object
+		// (if there's an active session) to the request context before
+		// passing control to the next handler.
 		WrapRequest(http.Handler) http.Handler
 	}
 
@@ -41,15 +43,13 @@ type (
 	}
 
 	Server struct {
-		router               *mux.Router
-		authenticator        Authenticator
-		announcer            Announcer
-		sessionManager       SessionManager
-		store                Store
-		metadataFinder       MetadataFinder
-		emailSender          email.Sender
-		baseURL              string
-		passwordResetLimiter *ratelimit.PasswordResetLimiter
+		router           *mux.Router
+		authenticator    Authenticator
+		announcer        Announcer
+		sessionManager   SessionManager
+		store            Store
+		metadataFinder   MetadataFinder
+		passwordResetter PasswordResetter
 	}
 )
 
@@ -60,17 +60,15 @@ func (s Server) Router() *mux.Router {
 
 // New creates a new server with all the state it needs to satisfy HTTP
 // requests.
-func New(authenticator Authenticator, announcer Announcer, sessionManager SessionManager, store Store, metadataFinder MetadataFinder, emailSender email.Sender, baseURL string, passwordResetLimiter *ratelimit.PasswordResetLimiter) Server {
+func New(authenticator Authenticator, announcer Announcer, sessionManager SessionManager, store Store, metadataFinder MetadataFinder, passwordResetter PasswordResetter) Server {
 	s := Server{
-		router:               mux.NewRouter(),
-		authenticator:        authenticator,
-		announcer:            announcer,
-		sessionManager:       sessionManager,
-		store:                store,
-		metadataFinder:       metadataFinder,
-		emailSender:          emailSender,
-		baseURL:              baseURL,
-		passwordResetLimiter: passwordResetLimiter,
+		router:           mux.NewRouter(),
+		authenticator:    authenticator,
+		announcer:        announcer,
+		sessionManager:   sessionManager,
+		store:            store,
+		metadataFinder:   metadataFinder,
+		passwordResetter: passwordResetter,
 	}
 
 	s.routes()

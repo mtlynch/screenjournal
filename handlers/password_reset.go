@@ -1,17 +1,23 @@
 package handlers
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"net/mail"
+	text_template "text/template"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/mtlynch/screenjournal/v2/auth"
+	"github.com/mtlynch/screenjournal/v2/email"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/markdown"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
+	"github.com/mtlynch/screenjournal/v2/store"
 )
 
 type passwordResetAdminGetRequest struct {
@@ -174,6 +180,151 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 		if _, err := fmt.Fprint(w, "Password updated successfully"); err != nil {
 			log.Printf("failed to write response: %v", err)
 		}
+	}
+}
+
+func (s Server) forgotPasswordGet() http.HandlerFunc {
+	t := template.Must(
+		template.New("base.html").
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/forgot-password.html")...))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := t.Execute(w, struct {
+			commonProps
+			Submitted bool
+		}{
+			commonProps: makeCommonProps(r.Context()),
+			Submitted:   false,
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func (s Server) forgotPasswordPost() http.HandlerFunc {
+	pageTemplate := template.Must(
+		template.New("base.html").
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/forgot-password.html")...))
+
+	emailTemplate := text_template.Must(
+		text_template.New("password-reset.tmpl.txt").
+			ParseFS(templatesFS, "templates/emails/password-reset.tmpl.txt"))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Always render the same success page regardless of outcome.
+		renderSuccess := func() {
+			if err := pageTemplate.Execute(w, struct {
+				commonProps
+				Submitted bool
+			}{
+				commonProps: makeCommonProps(r.Context()),
+				Submitted:   true,
+			}); err != nil {
+				log.Printf("failed to render forgot password success page: %v", err)
+			}
+		}
+
+		emailRaw := r.FormValue("email")
+		if emailRaw == "" {
+			renderSuccess()
+			return
+		}
+
+		emailAddr, err := parse.Email(emailRaw)
+		if err != nil {
+			renderSuccess()
+			return
+		}
+
+		// Look up user by email.
+		user, err := s.getDB(r).ReadUserByEmail(emailAddr)
+		if err != nil {
+			if err == store.ErrUserNotFound {
+				log.Printf("password reset requested for unregistered email: %s", emailAddr)
+			} else {
+				log.Printf("failed to look up user by email: %v", err)
+			}
+			renderSuccess()
+			return
+		}
+
+		// Check rate limits.
+		if s.passwordResetLimiter != nil && !s.passwordResetLimiter.Allow(user.Username) {
+			log.Printf("password reset rate limited for user %s", user.Username)
+			renderSuccess()
+			return
+		}
+
+		// Create the password reset token.
+		passwordResetEntry := screenjournal.PasswordResetEntry{
+			Username:  user.Username,
+			Token:     screenjournal.NewPasswordResetToken(),
+			ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
+		}
+
+		if err := s.getDB(r).InsertPasswordResetEntry(passwordResetEntry); err != nil {
+			log.Printf("failed to insert password reset entry: %v", err)
+			renderSuccess()
+			return
+		}
+
+		// Send the email.
+		if s.emailSender == nil {
+			log.Printf("SMTP not configured, skipping password reset email for %s (token: %s)", user.Username, passwordResetEntry.Token)
+			renderSuccess()
+			return
+		}
+
+		resetURL := fmt.Sprintf("%s/account/password-reset?token=%s", s.baseURL, passwordResetEntry.Token)
+
+		var bodyBuf bytes.Buffer
+		if err := emailTemplate.Execute(&bodyBuf, struct {
+			Username string
+			ResetURL string
+		}{
+			Username: user.Username.String(),
+			ResetURL: resetURL,
+		}); err != nil {
+			log.Printf("failed to render password reset email template: %v", err)
+			renderSuccess()
+			return
+		}
+
+		bodyMarkdown := screenjournal.EmailBodyMarkdown(bodyBuf.String())
+		msg := email.Message{
+			From: mail.Address{
+				Name:    "ScreenJournal",
+				Address: "activity@thescreenjournal.com",
+			},
+			To: []mail.Address{
+				{
+					Name:    user.Username.String(),
+					Address: user.Email.String(),
+				},
+			},
+			Subject:  "Reset your ScreenJournal password",
+			TextBody: bodyMarkdown.String(),
+			HtmlBody: markdown.RenderEmail(bodyMarkdown),
+		}
+
+		if err := s.emailSender.Send(msg); err != nil {
+			log.Printf("failed to send password reset email to %s: %v", user.Email, err)
+			renderSuccess()
+			return
+		}
+
+		// Only record the rate limit event after successfully sending.
+		if s.passwordResetLimiter != nil {
+			s.passwordResetLimiter.Record(user.Username)
+		}
+
+		log.Printf("sent password reset email to %s for user %s", user.Email, user.Username)
+		renderSuccess()
 	}
 }
 

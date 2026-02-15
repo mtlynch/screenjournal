@@ -15,10 +15,12 @@ import (
 	email_announce "github.com/mtlynch/screenjournal/v2/announce/email"
 	"github.com/mtlynch/screenjournal/v2/announce/quiet"
 	"github.com/mtlynch/screenjournal/v2/auth"
+	"github.com/mtlynch/screenjournal/v2/email"
 	"github.com/mtlynch/screenjournal/v2/email/smtp"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
+	"github.com/mtlynch/screenjournal/v2/ratelimit"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
@@ -45,6 +47,7 @@ func main() {
 	}
 
 	var announcer handlers.Announcer
+	var mailSender email.Sender
 	if isSmtpEnabled() {
 		smtpHost := requireEnv("SJ_SMTP_HOST")
 		smtpPort, err := strconv.Atoi(requireEnv("SJ_SMTP_PORT"))
@@ -52,7 +55,7 @@ func main() {
 			log.Printf("failed to parse SMTP port: %v", err)
 		}
 		log.Printf("SMTP is enabled using server at %s:%d", smtpHost, smtpPort)
-		mailSender, err := smtp.New(smtpHost, smtpPort, requireEnv("SJ_SMTP_USERNAME"), requireEnv("SJ_SMTP_PASSWORD"))
+		mailSender, err = smtp.New(smtpHost, smtpPort, requireEnv("SJ_SMTP_USERNAME"), requireEnv("SJ_SMTP_PASSWORD"))
 		if err != nil {
 			log.Fatalf("failed to create mail sender: %v", err)
 		}
@@ -62,12 +65,15 @@ func main() {
 		announcer = quiet.New()
 	}
 
+	baseURL := os.Getenv("SJ_BASE_URL")
+	passwordResetLimiter := ratelimit.NewPasswordResetLimiter(time.Now)
+
 	metadataFinder, err := tmdb.New(requireEnv("SJ_TMDB_API"))
 	if err != nil {
 		log.Fatalf("failed to create metadata finder: %v", err)
 	}
 
-	h := gorilla.LoggingHandler(os.Stdout, handlers.New(authenticator, announcer, sessionManager, store, metadataFinder).Router())
+	h := gorilla.LoggingHandler(os.Stdout, handlers.New(authenticator, announcer, sessionManager, store, metadataFinder, mailSender, baseURL, passwordResetLimiter).Router())
 	if os.Getenv("SJ_BEHIND_PROXY") != "" {
 		h = gorilla.ProxyIPHeadersHandler(h)
 	}

@@ -6,8 +6,10 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/mtlynch/screenjournal/v2/email"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
+	"github.com/mtlynch/screenjournal/v2/ratelimit"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
@@ -39,12 +41,15 @@ type (
 	}
 
 	Server struct {
-		router         *mux.Router
-		authenticator  Authenticator
-		announcer      Announcer
-		sessionManager SessionManager
-		store          Store
-		metadataFinder MetadataFinder
+		router               *mux.Router
+		authenticator        Authenticator
+		announcer            Announcer
+		sessionManager       SessionManager
+		store                Store
+		metadataFinder       MetadataFinder
+		emailSender          email.Sender
+		baseURL              string
+		passwordResetLimiter *ratelimit.PasswordResetLimiter
 	}
 )
 
@@ -55,14 +60,17 @@ func (s Server) Router() *mux.Router {
 
 // New creates a new server with all the state it needs to satisfy HTTP
 // requests.
-func New(authenticator Authenticator, announcer Announcer, sessionManager SessionManager, store Store, metadataFinder MetadataFinder) Server {
+func New(authenticator Authenticator, announcer Announcer, sessionManager SessionManager, store Store, metadataFinder MetadataFinder, emailSender email.Sender, baseURL string, passwordResetLimiter *ratelimit.PasswordResetLimiter) Server {
 	s := Server{
-		router:         mux.NewRouter(),
-		authenticator:  authenticator,
-		announcer:      announcer,
-		sessionManager: sessionManager,
-		store:          store,
-		metadataFinder: metadataFinder,
+		router:               mux.NewRouter(),
+		authenticator:        authenticator,
+		announcer:            announcer,
+		sessionManager:       sessionManager,
+		store:                store,
+		metadataFinder:       metadataFinder,
+		emailSender:          emailSender,
+		baseURL:              baseURL,
+		passwordResetLimiter: passwordResetLimiter,
 	}
 
 	s.routes()

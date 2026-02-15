@@ -162,7 +162,7 @@ func TestUsersPut(t *testing.T) {
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager([]mockSessionEntry{})
 
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder, nil, "", nil)
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {

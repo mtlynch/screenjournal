@@ -11,6 +11,7 @@ COPY ./handlers /app/handlers
 COPY ./markdown /app/markdown
 COPY ./metadata /app/metadata
 COPY ./random /app/random
+COPY ./ratelimit /app/ratelimit
 COPY ./screenjournal /app/screenjournal
 COPY ./store /app/store
 COPY ./go.* /app/

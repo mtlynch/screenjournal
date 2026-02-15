@@ -414,7 +414,7 @@ func TestReviewsPost(t *testing.T) {
 
 			announcer := mockAnnouncer{}
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo, nil))
+			s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo, nil), nil, "", nil)
 
 			req, err := http.NewRequest("POST", "/reviews", strings.NewReader(tt.payload))
 			if err != nil {
@@ -872,7 +872,7 @@ func TestReviewsPut(t *testing.T) {
 			}
 
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(nilAuthenticator, nilAnnouncer, &sessionManager, dataStore, mockMetadataFinder{})
+			s := handlers.New(nilAuthenticator, nilAnnouncer, &sessionManager, dataStore, mockMetadataFinder{}, nil, "", nil)
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {

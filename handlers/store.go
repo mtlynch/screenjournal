@@ -30,6 +30,7 @@ type Store interface {
 	UpdateTvShow(screenjournal.TvShow) error
 	CountUsers() (uint, error)
 	ReadUser(screenjournal.Username) (screenjournal.User, error)
+	ReadUserByEmail(screenjournal.Email) (screenjournal.User, error)
 	ReadUsersPublicMeta() ([]screenjournal.UserPublicMeta, error)
 	InsertUser(screenjournal.User) error
 	UpdateUserPassword(screenjournal.Username, screenjournal.PasswordHash) error

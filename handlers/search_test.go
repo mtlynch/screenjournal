@@ -195,7 +195,7 @@ func TestSearchGet(t *testing.T) {
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
 			metadataFinder := NewMockMetadataFinder(mockSearchableMovies, mockSearchableTvShows)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, metadataFinder)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, metadataFinder, nil, "", nil)
 
 			req, err := http.NewRequest("GET", tt.url, nil)
 			if err != nil {

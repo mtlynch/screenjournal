@@ -97,7 +97,7 @@ func TestAccountChangePasswordPut(t *testing.T) {
 			}
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(mockSessionEntries)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder, nil, "", nil)
 
 			req, err := http.NewRequest("PUT", "/account/password", strings.NewReader(tt.payload))
 			if err != nil {
@@ -219,7 +219,7 @@ func TestAccountNotificationsPut(t *testing.T) {
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
 
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder, nil, "", nil)
 
 			req, err := http.NewRequest("PUT", "/account/notifications", strings.NewReader(tt.payload))
 			if err != nil {

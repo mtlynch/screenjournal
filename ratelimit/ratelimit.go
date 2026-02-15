@@ -44,7 +44,7 @@ func (l *PasswordResetLimiter) Allow(username screenjournal.Username) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	l.prune()
+	l.removeExpiredEvents()
 
 	var userCount, globalCount int
 	for _, e := range l.events {
@@ -74,7 +74,7 @@ func (l *PasswordResetLimiter) Record(username screenjournal.Username) {
 	})
 }
 
-func (l *PasswordResetLimiter) prune() {
+func (l *PasswordResetLimiter) removeExpiredEvents() {
 	cutoff := l.now().Add(-window)
 	kept := l.events[:0]
 	for _, e := range l.events {

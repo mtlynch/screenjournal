@@ -3,11 +3,14 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"sync"
 
+	"github.com/gorilla/mux"
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
@@ -16,12 +19,20 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
+// initDev sets up dev-mode state before routes are created.
+func (s *Server) initDev() {
+	// Provide a dev-mode password resetter that skips sending email.
+	// Token creation is handled by the handler via s.getDB(r).
+	s.passwordResetter = devPasswordResetter{}
+}
+
 // addDevRoutes adds debug routes that we only use during development or e2e
 // tests.
 func (s *Server) addDevRoutes() {
 	s.router.Use(assignSessionDB)
 	s.router.HandleFunc("/api/debug/db/populate-dummy-data", s.populateDummyData()).Methods(http.MethodGet)
 	s.router.HandleFunc("/api/debug/db/per-session", dbPerSessionPost()).Methods(http.MethodPost)
+	s.router.HandleFunc("/api/debug/password-reset-token/{username}", s.debugPasswordResetTokenGet()).Methods(http.MethodGet)
 }
 
 func (s Server) populateDummyData() http.HandlerFunc {
@@ -291,4 +302,48 @@ func mustCreatePasswordHash(plaintext string) screenjournal.PasswordHash {
 		panic(err)
 	}
 	return screenjournal.PasswordHash(h.Bytes())
+}
+
+// devPasswordResetter is a no-op password resetter that skips sending email.
+// Token creation is handled by the handler itself, so this only needs to log.
+type devPasswordResetter struct{}
+
+func (d devPasswordResetter) Send(user screenjournal.User, entry screenjournal.PasswordResetEntry) error {
+	log.Printf("dev password resetter: skipping email for user %s (token %s)", user.Username, entry.Token)
+	return nil
+}
+
+func (s Server) debugPasswordResetTokenGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		username, err := parse.Username(vars["username"])
+		if err != nil {
+			http.Error(w, "Invalid username", http.StatusBadRequest)
+			return
+		}
+
+		entries, err := s.getDB(r).ReadPasswordResetEntries()
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to read password reset entries: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		// Find the most recent token for this user.
+		var latestToken string
+		for _, entry := range entries {
+			if entry.Username.Equal(username) {
+				latestToken = entry.Token.String()
+			}
+		}
+
+		if latestToken == "" {
+			http.Error(w, "No password reset token found for user", http.StatusNotFound)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(map[string]string{"token": latestToken}); err != nil {
+			log.Printf("failed to encode password reset token response: %v", err)
+		}
+	}
 }

@@ -40,17 +40,23 @@ func (s *mockEmailSender) Send(msg email.Message) error {
 	return nil
 }
 
+var dummyToken = screenjournal.NewPasswordResetTokenFromString("abc123tokenXYZ")
+
+func newDummyToken() screenjournal.PasswordResetToken {
+	return dummyToken
+}
+
 func TestRequestReset(t *testing.T) {
 	baseTime := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
 
 	for _, tt := range []struct {
-		description        string
-		user               screenjournal.User
-		recordedResets     []screenjournal.Username
-		storeErr           error
-		sendErr            error
-		errExpected        error
-		emailCountExpected int
+		description    string
+		user           screenjournal.User
+		recordedResets []screenjournal.Username
+		storeErr       error
+		sendErr        error
+		errExpected    error
+		expectedEmails []email.Message
 	}{
 		{
 			description: "sends password reset email to user",
@@ -58,7 +64,44 @@ func TestRequestReset(t *testing.T) {
 				Username: screenjournal.Username("alice"),
 				Email:    screenjournal.Email("alice@example.com"),
 			},
-			emailCountExpected: 1,
+			expectedEmails: []email.Message{
+				{
+					From: mail.Address{
+						Name:    "ScreenJournal",
+						Address: "password-resets@thescreenjournal.com",
+					},
+					To: []mail.Address{
+						{
+							Name:    "alice",
+							Address: "alice@example.com",
+						},
+					},
+					Subject: "Reset your ScreenJournal password",
+					TextBody: `Hi alice,
+
+We received a request to reset your password. Click the link below to choose a new password:
+
+https://dev.thescreenjournal.com/account/password-reset?token=abc123tokenXYZ
+
+This link will expire in 7 days.
+
+If you didn't request a password reset, you can safely ignore this email.
+
+-ScreenJournal Bot
+`,
+					HtmlBody: `<p>Hi alice,</p>
+
+<p>We received a request to reset your password. Click the link below to choose a new password:</p>
+
+<p><a href="https://dev.thescreenjournal.com/account/password-reset?token=abc123tokenXYZ">https://dev.thescreenjournal.com/account/password-reset?token=abc123tokenXYZ</a></p>
+
+<p>This link will expire in 7 days.</p>
+
+<p>If you didn't request a password reset, you can safely ignore this email.</p>
+
+<p>-ScreenJournal Bot</p>`,
+				},
+			},
 		},
 		{
 			description: "returns error when store insert fails",
@@ -66,9 +109,9 @@ func TestRequestReset(t *testing.T) {
 				Username: screenjournal.Username("alice"),
 				Email:    screenjournal.Email("alice@example.com"),
 			},
-			storeErr:           errors.New("database error"),
-			errExpected:        errors.New("inserting password reset entry: database error"),
-			emailCountExpected: 0,
+			storeErr:       errors.New("database error"),
+			errExpected:    errors.New("inserting password reset entry: database error"),
+			expectedEmails: []email.Message{},
 		},
 		{
 			description: "returns error when email send fails",
@@ -76,9 +119,46 @@ func TestRequestReset(t *testing.T) {
 				Username: screenjournal.Username("alice"),
 				Email:    screenjournal.Email("alice@example.com"),
 			},
-			sendErr:            errors.New("SMTP error"),
-			errExpected:        errors.New("sending password reset email for user alice: SMTP error"),
-			emailCountExpected: 1,
+			sendErr:     errors.New("SMTP error"),
+			errExpected: errors.New("sending password reset email for user alice: SMTP error"),
+			expectedEmails: []email.Message{
+				{
+					From: mail.Address{
+						Name:    "ScreenJournal",
+						Address: "password-resets@thescreenjournal.com",
+					},
+					To: []mail.Address{
+						{
+							Name:    "alice",
+							Address: "alice@example.com",
+						},
+					},
+					Subject: "Reset your ScreenJournal password",
+					TextBody: `Hi alice,
+
+We received a request to reset your password. Click the link below to choose a new password:
+
+https://dev.thescreenjournal.com/account/password-reset?token=abc123tokenXYZ
+
+This link will expire in 7 days.
+
+If you didn't request a password reset, you can safely ignore this email.
+
+-ScreenJournal Bot
+`,
+					HtmlBody: `<p>Hi alice,</p>
+
+<p>We received a request to reset your password. Click the link below to choose a new password:</p>
+
+<p><a href="https://dev.thescreenjournal.com/account/password-reset?token=abc123tokenXYZ">https://dev.thescreenjournal.com/account/password-reset?token=abc123tokenXYZ</a></p>
+
+<p>This link will expire in 7 days.</p>
+
+<p>If you didn't request a password reset, you can safely ignore this email.</p>
+
+<p>-ScreenJournal Bot</p>`,
+				},
+			},
 		},
 		{
 			description: "silently skips when rate limited",
@@ -90,7 +170,7 @@ func TestRequestReset(t *testing.T) {
 				screenjournal.Username("alice"),
 				screenjournal.Username("alice"),
 			},
-			emailCountExpected: 0,
+			expectedEmails: []email.Message{},
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
@@ -101,7 +181,9 @@ func TestRequestReset(t *testing.T) {
 				}
 			}
 
-			sender := &mockEmailSender{}
+			sender := &mockEmailSender{
+				emailsSent: []email.Message{},
+			}
 			if tt.sendErr != nil {
 				sender.sendFn = func(email.Message) error {
 					return tt.sendErr
@@ -114,71 +196,28 @@ func TestRequestReset(t *testing.T) {
 				limiter.Record(username)
 			}
 
-			resetter := passwordreset_email.New("https://dev.thescreenjournal.com", sender, store, limiter)
+			resetter := passwordreset_email.New("https://dev.thescreenjournal.com", sender, store, limiter, newDummyToken)
 
 			err := resetter.RequestReset(tt.user)
 
 			if got, want := errToString(err), errToString(tt.errExpected); got != want {
 				t.Fatalf("err=%s, want=%s", got, want)
 			}
-			if got, want := len(sender.emailsSent), tt.emailCountExpected; got != want {
+
+			if len(sender.emailsSent) == len(tt.expectedEmails) {
+				for i, emailGot := range sender.emailsSent {
+					emailWant := tt.expectedEmails[i]
+					if d := diff.Diff(emailWant.TextBody, emailGot.TextBody); d != "" {
+						t.Errorf("email #%d (plaintext): %s", i, d)
+					}
+					if d := diff.Diff(emailWant.HtmlBody, emailGot.HtmlBody); d != "" {
+						t.Errorf("email #%d (html): %s", i, d)
+					}
+				}
+			}
+
+			if got, want := len(sender.emailsSent), len(tt.expectedEmails); got != want {
 				t.Fatalf("email count=%d, want=%d", got, want)
-			}
-
-			if tt.emailCountExpected == 0 {
-				return
-			}
-
-			msg := sender.emailsSent[0]
-
-			if got, want := msg.From, (mail.Address{Name: "ScreenJournal", Address: "password-resets@thescreenjournal.com"}); got != want {
-				t.Errorf("from=%v, want=%v", got, want)
-			}
-			if got, want := len(msg.To), 1; got != want {
-				t.Fatalf("to count=%d, want=%d", got, want)
-			}
-			if got, want := msg.To[0], (mail.Address{Name: tt.user.Username.String(), Address: tt.user.Email.String()}); got != want {
-				t.Errorf("to=%v, want=%v", got, want)
-			}
-			if got, want := msg.Subject, "Reset your ScreenJournal password"; got != want {
-				t.Errorf("subject=%s, want=%s", got, want)
-			}
-
-			// Build the expected email body using the token captured
-			// by the mock store.
-			resetURL := "https://dev.thescreenjournal.com/account/password-reset?token=" + store.entry.Token.String()
-
-			wantTextBody := `Hi ` + tt.user.Username.String() + `,
-
-We received a request to reset your password. Click the link below to choose a new password:
-
-` + resetURL + `
-
-This link will expire in 7 days.
-
-If you didn't request a password reset, you can safely ignore this email.
-
--ScreenJournal Bot
-`
-
-			if d := diff.Diff(wantTextBody, msg.TextBody); d != "" {
-				t.Errorf("text body diff:\n%s", d)
-			}
-
-			wantHtmlBody := `<p>Hi ` + tt.user.Username.String() + `,</p>
-
-<p>We received a request to reset your password. Click the link below to choose a new password:</p>
-
-<p><a href="` + resetURL + `">` + resetURL + `</a></p>
-
-<p>This link will expire in 7 days.</p>
-
-<p>If you didn't request a password reset, you can safely ignore this email.</p>
-
-<p>-ScreenJournal Bot</p>`
-
-			if d := diff.Diff(wantHtmlBody, msg.HtmlBody); d != "" {
-				t.Errorf("html body diff:\n%s", d)
 			}
 		})
 	}

@@ -21,19 +21,21 @@ type (
 	}
 
 	Resetter struct {
-		baseURL string
-		sender  email.Sender
-		store   Store
-		limiter *ratelimit.PasswordResetLimiter
+		baseURL  string
+		sender   email.Sender
+		store    Store
+		limiter  *ratelimit.PasswordResetLimiter
+		newToken func() screenjournal.PasswordResetToken
 	}
 )
 
-func New(baseURL string, sender email.Sender, store Store, limiter *ratelimit.PasswordResetLimiter) Resetter {
+func New(baseURL string, sender email.Sender, store Store, limiter *ratelimit.PasswordResetLimiter, newToken func() screenjournal.PasswordResetToken) Resetter {
 	return Resetter{
-		baseURL: baseURL,
-		sender:  sender,
-		store:   store,
-		limiter: limiter,
+		baseURL:  baseURL,
+		sender:   sender,
+		store:    store,
+		limiter:  limiter,
+		newToken: newToken,
 	}
 }
 
@@ -52,7 +54,7 @@ func (r Resetter) RequestReset(user screenjournal.User) error {
 
 	entry := screenjournal.PasswordResetEntry{
 		Username:  user.Username,
-		Token:     screenjournal.NewPasswordResetToken(),
+		Token:     r.newToken(),
 		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
 	}
 

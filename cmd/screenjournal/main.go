@@ -22,6 +22,7 @@ import (
 	passwordreset_email "github.com/mtlynch/screenjournal/v2/passwordreset/email"
 	passwordreset_quiet "github.com/mtlynch/screenjournal/v2/passwordreset/quiet"
 	"github.com/mtlynch/screenjournal/v2/ratelimit"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
@@ -62,7 +63,7 @@ func main() {
 		}
 		baseURL := requireEnv("SJ_BASE_URL")
 		announcer = email_announce.New(baseURL, mailSender, store)
-		passwordResetter = passwordreset_email.New(baseURL, mailSender, store, ratelimit.NewPasswordResetLimiter(time.Now))
+		passwordResetter = passwordreset_email.New(baseURL, mailSender, store, ratelimit.NewPasswordResetLimiter(time.Now), screenjournal.NewPasswordResetToken)
 	} else {
 		log.Printf("SMTP not configured. Transactional emails are disabled")
 		announcer = quiet.New()

@@ -2,7 +2,6 @@ package email_test
 
 import (
 	"errors"
-	"fmt"
 	"net/mail"
 	"testing"
 	"time"
@@ -145,37 +144,38 @@ func TestRequestReset(t *testing.T) {
 				t.Errorf("subject=%s, want=%s", got, want)
 			}
 
-			// Build expected email body using the token captured by the
-			// mock store.
-			resetURL := fmt.Sprintf("https://dev.thescreenjournal.com/account/password-reset?token=%s", store.entry.Token)
-			wantTextBody := fmt.Sprintf(`Hi %s,
+			// Build the expected email body using the token captured
+			// by the mock store.
+			resetURL := "https://dev.thescreenjournal.com/account/password-reset?token=" + store.entry.Token.String()
+
+			wantTextBody := `Hi ` + tt.user.Username.String() + `,
 
 We received a request to reset your password. Click the link below to choose a new password:
 
-%s
+` + resetURL + `
 
 This link will expire in 7 days.
 
 If you didn't request a password reset, you can safely ignore this email.
 
 -ScreenJournal Bot
-`, tt.user.Username, resetURL)
+`
 
 			if d := diff.Diff(wantTextBody, msg.TextBody); d != "" {
 				t.Errorf("text body diff:\n%s", d)
 			}
 
-			wantHtmlBody := fmt.Sprintf(`<p>Hi %s,</p>
+			wantHtmlBody := `<p>Hi ` + tt.user.Username.String() + `,</p>
 
 <p>We received a request to reset your password. Click the link below to choose a new password:</p>
 
-<p><a href="%s">%s</a></p>
+<p><a href="` + resetURL + `">` + resetURL + `</a></p>
 
 <p>This link will expire in 7 days.</p>
 
 <p>If you didn't request a password reset, you can safely ignore this email.</p>
 
-<p>-ScreenJournal Bot</p>`, tt.user.Username, resetURL, resetURL)
+<p>-ScreenJournal Bot</p>`
 
 			if d := diff.Diff(wantHtmlBody, msg.HtmlBody); d != "" {
 				t.Errorf("html body diff:\n%s", d)

@@ -59,25 +59,29 @@ func TestSend(t *testing.T) {
 					Subject: "Reset your ScreenJournal password",
 					TextBody: `Hi alice,
 
-We received a request to reset your password. Click the link below to choose a new password:
+You have brought great shame upon your ScreenJournal community by forgetting your password.
+
+To hide this mistake from your peers, click the link below to reset your password:
 
 https://dev.thescreenjournal.com/account/password-reset?username=alice&token=abc123tokenXYZ
 
-This link will expire in 7 days.
+This link will self-destruct in 7 days.
 
-If you didn't request a password reset, you can safely ignore this email.
+If you didn't request a password reset, reply and let me know.
 
 -ScreenJournal Bot
 `,
 					HtmlBody: `<p>Hi alice,</p>
 
-<p>We received a request to reset your password. Click the link below to choose a new password:</p>
+<p>You have brought great shame upon your ScreenJournal community by forgetting your password.</p>
+
+<p>To hide this mistake from your peers, click the link below to reset your password:</p>
 
 <p><a href="https://dev.thescreenjournal.com/account/password-reset?username=alice&amp;token=abc123tokenXYZ">https://dev.thescreenjournal.com/account/password-reset?username=alice&amp;token=abc123tokenXYZ</a></p>
 
-<p>This link will expire in 7 days.</p>
+<p>This link will self-destruct in 7 days.</p>
 
-<p>If you didn't request a password reset, you can safely ignore this email.</p>
+<p>If you didn't request a password reset, reply and let me know.</p>
 
 <p>-ScreenJournal Bot</p>`,
 				},
@@ -106,25 +110,29 @@ If you didn't request a password reset, you can safely ignore this email.
 					Subject: "Reset your ScreenJournal password",
 					TextBody: `Hi alice,
 
-We received a request to reset your password. Click the link below to choose a new password:
+You have brought great shame upon your ScreenJournal community by forgetting your password.
+
+To hide this mistake from your peers, click the link below to reset your password:
 
 https://dev.thescreenjournal.com/account/password-reset?username=alice&token=abc123tokenXYZ
 
-This link will expire in 7 days.
+This link will self-destruct in 7 days.
 
-If you didn't request a password reset, you can safely ignore this email.
+If you didn't request a password reset, reply and let me know.
 
 -ScreenJournal Bot
 `,
 					HtmlBody: `<p>Hi alice,</p>
 
-<p>We received a request to reset your password. Click the link below to choose a new password:</p>
+<p>You have brought great shame upon your ScreenJournal community by forgetting your password.</p>
+
+<p>To hide this mistake from your peers, click the link below to reset your password:</p>
 
 <p><a href="https://dev.thescreenjournal.com/account/password-reset?username=alice&amp;token=abc123tokenXYZ">https://dev.thescreenjournal.com/account/password-reset?username=alice&amp;token=abc123tokenXYZ</a></p>
 
-<p>This link will expire in 7 days.</p>
+<p>This link will self-destruct in 7 days.</p>
 
-<p>If you didn't request a password reset, you can safely ignore this email.</p>
+<p>If you didn't request a password reset, reply and let me know.</p>
 
 <p>-ScreenJournal Bot</p>`,
 				},

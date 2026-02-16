@@ -10,22 +10,8 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/email"
 	passwordreset_email "github.com/mtlynch/screenjournal/v2/passwordreset/email"
-	"github.com/mtlynch/screenjournal/v2/ratelimit"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
-
-type mockStore struct {
-	entry    screenjournal.PasswordResetEntry
-	insertFn func(screenjournal.PasswordResetEntry) error
-}
-
-func (s *mockStore) InsertPasswordResetEntry(entry screenjournal.PasswordResetEntry) error {
-	s.entry = entry
-	if s.insertFn != nil {
-		return s.insertFn(entry)
-	}
-	return nil
-}
 
 type mockEmailSender struct {
 	emailsSent []email.Message
@@ -42,18 +28,12 @@ func (s *mockEmailSender) Send(msg email.Message) error {
 
 var dummyToken = screenjournal.NewPasswordResetTokenFromString("abc123tokenXYZ")
 
-func newDummyToken() screenjournal.PasswordResetToken {
-	return dummyToken
-}
-
-func TestRequest(t *testing.T) {
+func TestSend(t *testing.T) {
 	baseTime := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
 
 	for _, tt := range []struct {
 		description    string
 		user           screenjournal.User
-		recordedResets []screenjournal.Username
-		storeErr       error
 		sendErr        error
 		errExpected    error
 		expectedEmails []email.Message
@@ -81,7 +61,7 @@ func TestRequest(t *testing.T) {
 
 We received a request to reset your password. Click the link below to choose a new password:
 
-https://dev.thescreenjournal.com/account/password-reset?token=abc123tokenXYZ
+https://dev.thescreenjournal.com/account/password-reset?username=alice&token=abc123tokenXYZ
 
 This link will expire in 7 days.
 
@@ -93,7 +73,7 @@ If you didn't request a password reset, you can safely ignore this email.
 
 <p>We received a request to reset your password. Click the link below to choose a new password:</p>
 
-<p><a href="https://dev.thescreenjournal.com/account/password-reset?token=abc123tokenXYZ">https://dev.thescreenjournal.com/account/password-reset?token=abc123tokenXYZ</a></p>
+<p><a href="https://dev.thescreenjournal.com/account/password-reset?username=alice&amp;token=abc123tokenXYZ">https://dev.thescreenjournal.com/account/password-reset?username=alice&amp;token=abc123tokenXYZ</a></p>
 
 <p>This link will expire in 7 days.</p>
 
@@ -102,16 +82,6 @@ If you didn't request a password reset, you can safely ignore this email.
 <p>-ScreenJournal Bot</p>`,
 				},
 			},
-		},
-		{
-			description: "returns error when store insert fails",
-			user: screenjournal.User{
-				Username: screenjournal.Username("alice"),
-				Email:    screenjournal.Email("alice@example.com"),
-			},
-			storeErr:       errors.New("database error"),
-			errExpected:    errors.New("inserting password reset entry: database error"),
-			expectedEmails: []email.Message{},
 		},
 		{
 			description: "returns error when email send fails",
@@ -138,7 +108,7 @@ If you didn't request a password reset, you can safely ignore this email.
 
 We received a request to reset your password. Click the link below to choose a new password:
 
-https://dev.thescreenjournal.com/account/password-reset?token=abc123tokenXYZ
+https://dev.thescreenjournal.com/account/password-reset?username=alice&token=abc123tokenXYZ
 
 This link will expire in 7 days.
 
@@ -150,7 +120,7 @@ If you didn't request a password reset, you can safely ignore this email.
 
 <p>We received a request to reset your password. Click the link below to choose a new password:</p>
 
-<p><a href="https://dev.thescreenjournal.com/account/password-reset?token=abc123tokenXYZ">https://dev.thescreenjournal.com/account/password-reset?token=abc123tokenXYZ</a></p>
+<p><a href="https://dev.thescreenjournal.com/account/password-reset?username=alice&amp;token=abc123tokenXYZ">https://dev.thescreenjournal.com/account/password-reset?username=alice&amp;token=abc123tokenXYZ</a></p>
 
 <p>This link will expire in 7 days.</p>
 
@@ -160,27 +130,8 @@ If you didn't request a password reset, you can safely ignore this email.
 				},
 			},
 		},
-		{
-			description: "silently skips when rate limited",
-			user: screenjournal.User{
-				Username: screenjournal.Username("alice"),
-				Email:    screenjournal.Email("alice@example.com"),
-			},
-			recordedResets: []screenjournal.Username{
-				screenjournal.Username("alice"),
-				screenjournal.Username("alice"),
-			},
-			expectedEmails: []email.Message{},
-		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			store := &mockStore{}
-			if tt.storeErr != nil {
-				store.insertFn = func(screenjournal.PasswordResetEntry) error {
-					return tt.storeErr
-				}
-			}
-
 			sender := &mockEmailSender{
 				emailsSent: []email.Message{},
 			}
@@ -190,15 +141,15 @@ If you didn't request a password reset, you can safely ignore this email.
 				}
 			}
 
-			now := baseTime
-			limiter := ratelimit.NewPasswordResetLimiter(func() time.Time { return now })
-			for _, username := range tt.recordedResets {
-				limiter.Record(username)
+			resetter := passwordreset_email.New("https://dev.thescreenjournal.com", sender)
+
+			entry := screenjournal.PasswordResetEntry{
+				Username:  tt.user.Username,
+				Token:     dummyToken,
+				ExpiresAt: baseTime.Add(7 * 24 * time.Hour),
 			}
 
-			resetter := passwordreset_email.New("https://dev.thescreenjournal.com", sender, store, limiter, newDummyToken, func() time.Time { return now })
-
-			err := resetter.Request(tt.user)
+			err := resetter.Send(tt.user, entry)
 
 			if got, want := errToString(err), errToString(tt.errExpected); got != want {
 				t.Fatalf("err=%s, want=%s", got, want)

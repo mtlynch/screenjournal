@@ -83,3 +83,67 @@ func (l *PasswordResetLimiter) removeExpiredEvents() {
 	}
 	l.events = kept
 }
+
+const (
+	// tokenAttemptPerUserLimit is the maximum number of password reset
+	// token attempts a single user can make within the rate limit window.
+	tokenAttemptPerUserLimit = 5
+	// tokenAttemptWindow is the sliding time window over which token
+	// attempt rate limits are enforced.
+	tokenAttemptWindow = 24 * time.Hour
+)
+
+// TokenAttemptLimiter enforces rate limits on password reset token attempts.
+type TokenAttemptLimiter struct {
+	mu     sync.Mutex
+	events []event
+	now    func() time.Time
+}
+
+// NewTokenAttemptLimiter creates a limiter that uses the given function to
+// determine the current time.
+func NewTokenAttemptLimiter(now func() time.Time) *TokenAttemptLimiter {
+	return &TokenAttemptLimiter{
+		now: now,
+	}
+}
+
+// Allow reports whether a password reset token attempt may proceed for the
+// given user without exceeding the per-user (5/24h) limit.
+func (l *TokenAttemptLimiter) Allow(username screenjournal.Username) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	l.removeExpiredEvents()
+
+	var userCount int
+	for _, e := range l.events {
+		if e.username.Equal(username) {
+			userCount++
+		}
+	}
+
+	return userCount < tokenAttemptPerUserLimit
+}
+
+// Record logs that a password reset token attempt was made for the given user.
+func (l *TokenAttemptLimiter) Record(username screenjournal.Username) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	l.events = append(l.events, event{
+		username:  username,
+		timestamp: l.now(),
+	})
+}
+
+func (l *TokenAttemptLimiter) removeExpiredEvents() {
+	cutoff := l.now().Add(-tokenAttemptWindow)
+	kept := l.events[:0]
+	for _, e := range l.events {
+		if !e.timestamp.Before(cutoff) {
+			kept = append(kept, e)
+		}
+	}
+	l.events = kept
+}

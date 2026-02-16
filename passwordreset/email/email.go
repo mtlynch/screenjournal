@@ -7,37 +7,21 @@ import (
 	"log"
 	"net/mail"
 	"text/template"
-	"time"
 
 	"github.com/mtlynch/screenjournal/v2/email"
 	"github.com/mtlynch/screenjournal/v2/markdown"
-	"github.com/mtlynch/screenjournal/v2/ratelimit"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-type (
-	Store interface {
-		InsertPasswordResetEntry(screenjournal.PasswordResetEntry) error
-	}
+type Resetter struct {
+	baseURL string
+	sender  email.Sender
+}
 
-	Resetter struct {
-		baseURL  string
-		sender   email.Sender
-		store    Store
-		limiter  *ratelimit.PasswordResetLimiter
-		newToken func() screenjournal.PasswordResetToken
-		now      func() time.Time
-	}
-)
-
-func New(baseURL string, sender email.Sender, store Store, limiter *ratelimit.PasswordResetLimiter, newToken func() screenjournal.PasswordResetToken, now func() time.Time) Resetter {
+func New(baseURL string, sender email.Sender) Resetter {
 	return Resetter{
-		baseURL:  baseURL,
-		sender:   sender,
-		store:    store,
-		limiter:  limiter,
-		newToken: newToken,
-		now:      now,
+		baseURL: baseURL,
+		sender:  sender,
 	}
 }
 
@@ -48,23 +32,8 @@ var emailTemplate = template.Must(
 	template.New("password-reset.tmpl.txt").
 		ParseFS(templatesFS, "templates/password-reset.tmpl.txt"))
 
-func (r Resetter) Request(user screenjournal.User) error {
-	if !r.limiter.Allow(user.Username) {
-		log.Printf("password reset rate limited for user %s", user.Username)
-		return nil
-	}
-
-	entry := screenjournal.PasswordResetEntry{
-		Username:  user.Username,
-		Token:     r.newToken(),
-		ExpiresAt: r.now().Add(7 * 24 * time.Hour),
-	}
-
-	if err := r.store.InsertPasswordResetEntry(entry); err != nil {
-		return fmt.Errorf("inserting password reset entry: %w", err)
-	}
-
-	resetURL := fmt.Sprintf("%s/account/password-reset?token=%s", r.baseURL, entry.Token)
+func (r Resetter) Send(user screenjournal.User, entry screenjournal.PasswordResetEntry) error {
+	resetURL := fmt.Sprintf("%s/account/password-reset?username=%s&token=%s", r.baseURL, user.Username, entry.Token)
 
 	var bodyBuf bytes.Buffer
 	if err := emailTemplate.Execute(&bodyBuf, struct {
@@ -97,8 +66,6 @@ func (r Resetter) Request(user screenjournal.User) error {
 	if err := r.sender.Send(msg); err != nil {
 		return fmt.Errorf("sending password reset email for user %s: %w", user.Username, err)
 	}
-
-	r.limiter.Record(user.Username)
 
 	log.Printf("sent password reset email for user %s", user.Username)
 	return nil

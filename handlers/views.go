@@ -955,7 +955,12 @@ func (s Server) accountPasswordResetGet() http.HandlerFunc {
 			append(baseTemplates, "templates/pages/account-change-password.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		// If a token is provided, validate it before rendering the page.
+		username, err := parse.Username(r.URL.Query().Get("username"))
+		if err != nil {
+			http.Error(w, "Invalid username", http.StatusBadRequest)
+			return
+		}
+
 		token, err := parse.PasswordResetToken(r.URL.Query().Get("token"))
 		if err != nil {
 			http.Error(w, "Invalid password reset token", http.StatusUnauthorized)
@@ -965,6 +970,12 @@ func (s Server) accountPasswordResetGet() http.HandlerFunc {
 		// Verify token exists and hasn't expired.
 		passwordResetEntry, err := s.getDB(r).ReadPasswordResetEntry(token)
 		if err != nil {
+			http.Error(w, "Invalid or expired password reset token", http.StatusUnauthorized)
+			return
+		}
+
+		// Verify the token was generated for this user.
+		if !passwordResetEntry.Username.Equal(username) {
 			http.Error(w, "Invalid or expired password reset token", http.StatusUnauthorized)
 			return
 		}
@@ -986,7 +997,7 @@ func (s Server) accountPasswordResetGet() http.HandlerFunc {
 		}{
 			commonProps:   makeCommonProps(r.Context()),
 			Token:         token.String(),
-			FormTargetURL: fmt.Sprintf("/account/password-reset?token=%s", token),
+			FormTargetURL: fmt.Sprintf("/account/password-reset?username=%s&token=%s", username, token),
 			CancelURL:     "/login",
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

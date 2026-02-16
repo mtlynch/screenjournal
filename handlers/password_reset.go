@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/ratelimit"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store"
 )
@@ -101,9 +102,24 @@ func (s Server) passwordResetAdminDelete() http.HandlerFunc {
 }
 
 func (s Server) accountPasswordResetPut() http.HandlerFunc {
+	limiter := ratelimit.NewTokenAttemptLimiter(time.Now)
+
 	return func(w http.ResponseWriter, r *http.Request) {
+		username, err := parse.Username(r.URL.Query().Get("username"))
+		if err != nil {
+			http.Error(w, "Invalid username", http.StatusBadRequest)
+			return
+		}
+
+		if !limiter.Allow(username) {
+			log.Printf("password reset token attempt rate limited for user %s", username)
+			http.Error(w, "Too many password reset attempts. Please try again later.", http.StatusTooManyRequests)
+			return
+		}
+
 		token, err := parse.PasswordResetToken(r.URL.Query().Get("token"))
 		if err != nil {
+			limiter.Record(username)
 			http.Error(w, "Invalid password reset token", http.StatusBadRequest)
 			return
 		}
@@ -111,6 +127,7 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 		// Verify token exists and hasn't expired.
 		passwordResetEntry, err := s.getDB(r).ReadPasswordResetEntry(token)
 		if err != nil {
+			limiter.Record(username)
 			if err == sql.ErrNoRows {
 				http.Error(w, "Invalid or expired password reset token", http.StatusBadRequest)
 				return
@@ -120,11 +137,19 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 			return
 		}
 
+		// Verify the token was generated for this user.
+		if !passwordResetEntry.Username.Equal(username) {
+			limiter.Record(username)
+			http.Error(w, "Invalid or expired password reset token", http.StatusBadRequest)
+			return
+		}
+
 		if passwordResetEntry.IsExpired() {
 			// Clean up expired token.
 			if err := s.getDB(r).DeletePasswordResetEntry(token); err != nil {
 				log.Printf("failed to delete expired password reset token %s: %v", token, err)
 			}
+			limiter.Record(username)
 			http.Error(w, "Password reset token has expired", http.StatusBadRequest)
 			return
 		}
@@ -153,7 +178,7 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 		// Delete the used token.
 		if err := s.getDB(r).DeletePasswordResetEntry(token); err != nil {
 			log.Printf("failed to delete used password reset token %s: %v", token, err)
-			// Don't fail the request since password was updated successfully
+			// Don't fail the request since password was updated successfully.
 		}
 
 		// Read user data to get admin status for session creation.
@@ -191,7 +216,7 @@ func (s Server) resetPasswordGet() http.HandlerFunc {
 			Submitted   bool
 			Unavailable bool
 		}{
-			commonProps:  makeCommonProps(r.Context()),
+			commonProps: makeCommonProps(r.Context()),
 			Unavailable: s.passwordResetter == nil,
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -206,6 +231,8 @@ func (s Server) resetPasswordPost() http.HandlerFunc {
 			ParseFS(
 				templatesFS,
 				append(baseTemplates, "templates/pages/reset-password.html")...))
+
+	limiter := ratelimit.NewPasswordResetLimiter(time.Now)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		if s.passwordResetter == nil {
@@ -245,11 +272,31 @@ func (s Server) resetPasswordPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.passwordResetter.Request(user); err != nil {
-			log.Printf("failed to process password reset for %s: %v", user.Username, err)
+		if !limiter.Allow(user.Username) {
+			log.Printf("password reset rate limited for user %s", user.Username)
+			renderSuccess()
+			return
+		}
+
+		entry := screenjournal.PasswordResetEntry{
+			Username:  user.Username,
+			Token:     screenjournal.NewPasswordResetToken(),
+			ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
+		}
+
+		if err := s.getDB(r).InsertPasswordResetEntry(entry); err != nil {
+			log.Printf("failed to insert password reset entry: %v", err)
 			http.Error(w, "Failed to process password reset request", http.StatusInternalServerError)
 			return
 		}
+
+		if err := s.passwordResetter.Send(user, entry); err != nil {
+			log.Printf("failed to send password reset for %s: %v", user.Username, err)
+			http.Error(w, "Failed to process password reset request", http.StatusInternalServerError)
+			return
+		}
+
+		limiter.Record(user.Username)
 
 		renderSuccess()
 	}

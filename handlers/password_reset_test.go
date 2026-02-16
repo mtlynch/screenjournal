@@ -62,6 +62,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 	for _, tt := range []struct {
 		description          string
 		payload              string
+		username             screenjournal.Username
 		token                screenjournal.PasswordResetToken
 		existingUsers        []screenjournal.User
 		existingTokens       []screenjournal.PasswordResetEntry
@@ -73,6 +74,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 		{
 			description: "valid password reset creates session and logs user in",
 			payload:     "password=newpass123",
+			username:    screenjournal.Username("userA"),
 			token:       screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef23"),
 			existingUsers: []screenjournal.User{
 				{
@@ -97,6 +99,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 		{
 			description: "admin user password reset creates admin session",
 			payload:     "password=newadminpass789",
+			username:    screenjournal.Username("userB"),
 			token:       screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef99"),
 			existingUsers: []screenjournal.User{
 				{
@@ -121,6 +124,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 		{
 			description: "expired token is rejected and no session created",
 			payload:     "password=newpass123",
+			username:    screenjournal.Username("userB"),
 			token:       screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef56"),
 			existingUsers: []screenjournal.User{
 				{
@@ -142,6 +146,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 		{
 			description: "nonexistent token is rejected and no session created",
 			payload:     "password=newpass123",
+			username:    screenjournal.Username("userA"),
 			token:       screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdefNE"),
 			existingUsers: []screenjournal.User{
 				{
@@ -157,6 +162,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 		{
 			description: "invalid password is rejected and no session created",
 			payload:     "password=short",
+			username:    screenjournal.Username("userA"),
 			token:       screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef12"),
 			existingUsers: []screenjournal.User{
 				{
@@ -170,6 +176,34 @@ func TestAccountPasswordResetPut(t *testing.T) {
 				{
 					Username:  screenjournal.Username("userA"),
 					Token:     screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef12"),
+					ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // 7 days from now.
+				},
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			description: "valid token for different user is rejected",
+			payload:     "password=newpass123",
+			username:    screenjournal.Username("userB"),
+			token:       screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef23"),
+			existingUsers: []screenjournal.User{
+				{
+					Username:     screenjournal.Username("userA"),
+					PasswordHash: createPasswordHash("oldpass123"),
+					Email:        screenjournal.Email("userA@example.com"),
+					IsAdmin:      false,
+				},
+				{
+					Username:     screenjournal.Username("userB"),
+					PasswordHash: createPasswordHash("userBpass456"),
+					Email:        screenjournal.Email("userB@example.com"),
+					IsAdmin:      false,
+				},
+			},
+			existingTokens: []screenjournal.PasswordResetEntry{
+				{
+					Username:  screenjournal.Username("userA"),
+					Token:     screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef23"),
 					ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // 7 days from now.
 				},
 			},
@@ -208,7 +242,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 
 			s := handlers.New(authenticator, nilAnnouncer, sessionMgr, dataStore, nilMetadataFinder, nilPasswordResetter)
 
-			url := "/account/password-reset?token=" + tt.token.String()
+			url := "/account/password-reset?username=" + tt.username.String() + "&token=" + tt.token.String()
 			req, err := http.NewRequest("PUT", url, strings.NewReader(tt.payload))
 			if err != nil {
 				t.Fatal(err)

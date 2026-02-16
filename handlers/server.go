@@ -18,7 +18,7 @@ type (
 	}
 
 	PasswordResetter interface {
-		Request(user screenjournal.User) error
+		Send(user screenjournal.User, entry screenjournal.PasswordResetEntry) error
 	}
 
 	SessionManager interface {
@@ -71,6 +71,7 @@ func New(authenticator Authenticator, announcer Announcer, sessionManager Sessio
 		passwordResetter: passwordResetter,
 	}
 
+	s.initDev()
 	s.routes()
 	return s
 }

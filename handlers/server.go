@@ -38,12 +38,17 @@ type (
 		GetTvShow(id screenjournal.TmdbID) (screenjournal.TvShow, error)
 	}
 
+	dbProvider interface {
+		dbForRequest(*http.Request) dbService
+		authenticatorForRequest(*http.Request, Authenticator) Authenticator
+	}
+
 	Server struct {
 		router         *mux.Router
 		authenticator  Authenticator
 		announcer      Announcer
 		sessionManager SessionManager
-		store          Store
+		db             dbProvider
 		metadataFinder MetadataFinder
 	}
 )
@@ -61,7 +66,7 @@ func New(authenticator Authenticator, announcer Announcer, sessionManager Sessio
 		authenticator:  authenticator,
 		announcer:      announcer,
 		sessionManager: sessionManager,
-		store:          store,
+		db:             newDBProvider(store),
 		metadataFinder: metadataFinder,
 	}
 

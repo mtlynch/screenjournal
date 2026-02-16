@@ -844,6 +844,66 @@ func TestReviewsPut(t *testing.T) {
 			sessionToken:   "def456",
 			expectedStatus: http.StatusForbidden,
 		},
+		{
+			description: "allows an admin to overwrite another user's review",
+			localMovies: []screenjournal.Movie{
+				{
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+			},
+			priorReviews: []screenjournal.Review{
+				{
+					ID:      screenjournal.ReviewID(1),
+					Owner:   screenjournal.Username("userA"),
+					Rating:  screenjournal.NewRating(5),
+					Watched: mustParseWatchDate("2022-10-28"),
+					Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+					Movie: screenjournal.Movie{
+						ID:          screenjournal.MovieID(1),
+						TmdbID:      screenjournal.TmdbID(38),
+						ImdbID:      screenjournal.ImdbID("tt0338013"),
+						Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+						ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+					},
+				},
+			},
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("userA"),
+					},
+				},
+				{
+					token: "adm123",
+					session: sessions.Session{
+						Username: screenjournal.Username("admin"),
+						IsAdmin:  true,
+					},
+				},
+			},
+			route:          "/reviews/1",
+			payload:        "rating=4&watch-date=2022-10-30&blurb=Admin%20updated%20this%20review",
+			sessionToken:   "adm123",
+			expectedStatus: http.StatusSeeOther,
+			expected: screenjournal.Review{
+				Owner:   screenjournal.Username("userA"),
+				Rating:  screenjournal.NewRating(4),
+				Watched: mustParseWatchDate("2022-10-30"),
+				Blurb:   screenjournal.Blurb("Admin updated this review"),
+				Movie: screenjournal.Movie{
+					ID:          screenjournal.MovieID(1),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+				Comments: []screenjournal.ReviewComment{},
+			},
+		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
@@ -908,6 +968,129 @@ func TestReviewsPut(t *testing.T) {
 			clearUnpredictableReviewProperties(&rr[0])
 			if got, want := rr[0], tt.expected; !reflect.DeepEqual(got, want) {
 				t.Errorf("unexpected reviews, got=%+v, want=%+v, diff=%s", got, want, deep.Equal(got, want))
+			}
+		})
+	}
+}
+
+func TestReviewsDelete(t *testing.T) {
+	for _, tt := range []struct {
+		description          string
+		sessionToken         string
+		sessions             []mockSessionEntry
+		expectedStatus       int
+		expectedReviewsCount int
+	}{
+		{
+			description:  "allows an admin to delete another user's review",
+			sessionToken: "adm123",
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("userA"),
+					},
+				},
+				{
+					token: "adm123",
+					session: sessions.Session{
+						Username: screenjournal.Username("admin"),
+						IsAdmin:  true,
+					},
+				},
+			},
+			expectedStatus:       http.StatusSeeOther,
+			expectedReviewsCount: 0,
+		},
+		{
+			description:  "prevents a non-admin user from deleting another user's review",
+			sessionToken: "def456",
+			sessions: []mockSessionEntry{
+				{
+					token: "abc123",
+					session: sessions.Session{
+						Username: screenjournal.Username("userA"),
+					},
+				},
+				{
+					token: "def456",
+					session: sessions.Session{
+						Username: screenjournal.Username("userB"),
+					},
+				},
+			},
+			expectedStatus:       http.StatusForbidden,
+			expectedReviewsCount: 1,
+		},
+	} {
+		t.Run(tt.description, func(t *testing.T) {
+			dataStore := test_sqlite.New()
+
+			for _, s := range tt.sessions {
+				mockUser := screenjournal.User{
+					Username:     s.session.Username,
+					Email:        screenjournal.Email(s.session.Username.String() + "@example.com"),
+					PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+				}
+				if err := dataStore.InsertUser(mockUser); err != nil {
+					t.Fatalf("failed to insert mock user: %+v: %v", mockUser, err)
+				}
+			}
+
+			movie := screenjournal.Movie{
+				TmdbID:      screenjournal.TmdbID(38),
+				ImdbID:      screenjournal.ImdbID("tt0338013"),
+				Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+				ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+			}
+			if _, err := dataStore.InsertMovie(movie); err != nil {
+				t.Fatalf("failed to insert mock movie %+v: %v", movie, err)
+			}
+
+			review := screenjournal.Review{
+				ID:      screenjournal.ReviewID(1),
+				Owner:   screenjournal.Username("userA"),
+				Rating:  screenjournal.NewRating(5),
+				Watched: mustParseWatchDate("2022-10-28"),
+				Blurb:   screenjournal.Blurb("It's my favorite movie!"),
+				Movie: screenjournal.Movie{
+					ID:          screenjournal.MovieID(1),
+					TmdbID:      screenjournal.TmdbID(38),
+					ImdbID:      screenjournal.ImdbID("tt0338013"),
+					Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+					ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+				},
+			}
+			if _, err := dataStore.InsertReview(review); err != nil {
+				t.Fatalf("failed to insert mock review %+v: %v", review, err)
+			}
+
+			sessionManager := newMockSessionManager(tt.sessions)
+			s := handlers.New(nilAuthenticator, nilAnnouncer, &sessionManager, dataStore, mockMetadataFinder{})
+
+			req, err := http.NewRequest("DELETE", "/reviews/1", strings.NewReader(""))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.AddCookie(&http.Cookie{
+				Name:  mockSessionTokenName,
+				Value: tt.sessionToken,
+			})
+
+			rec := httptest.NewRecorder()
+			s.Router().ServeHTTP(rec, req)
+			res := rec.Result()
+
+			if got, want := res.StatusCode, tt.expectedStatus; got != want {
+				t.Fatalf("status=%d, want=%d", got, want)
+			}
+
+			reviews, err := dataStore.ReadReviews()
+			if err != nil {
+				t.Fatalf("failed to read reviews: %v", err)
+			}
+			if got, want := len(reviews), tt.expectedReviewsCount; got != want {
+				t.Fatalf("reviewCount=%d, want=%d", got, want)
 			}
 		})
 	}

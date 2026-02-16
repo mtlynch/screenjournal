@@ -12,7 +12,7 @@ func New() Resetter {
 	return Resetter{}
 }
 
-func (r Resetter) RequestReset(user screenjournal.User) error {
+func (r Resetter) Request(user screenjournal.User) error {
 	log.Printf("skipping password reset email for %s because no email sender is configured", user.Username)
 	return nil
 }

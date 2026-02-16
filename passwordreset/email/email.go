@@ -48,7 +48,7 @@ var emailTemplate = template.Must(
 	template.New("password-reset.tmpl.txt").
 		ParseFS(templatesFS, "templates/password-reset.tmpl.txt"))
 
-func (r Resetter) RequestReset(user screenjournal.User) error {
+func (r Resetter) Request(user screenjournal.User) error {
 	if !r.limiter.Allow(user.Username) {
 		log.Printf("password reset rate limited for user %s", user.Username)
 		return nil

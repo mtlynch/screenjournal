@@ -238,7 +238,7 @@ func (s Server) forgotPasswordPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.passwordResetter.RequestReset(user); err != nil {
+		if err := s.passwordResetter.Request(user); err != nil {
 			log.Printf("failed to process password reset for %s: %v", user.Username, err)
 			http.Error(w, "Failed to process password reset request", http.StatusInternalServerError)
 			return

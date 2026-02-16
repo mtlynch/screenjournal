@@ -18,7 +18,7 @@ type (
 	}
 
 	PasswordResetter interface {
-		RequestReset(user screenjournal.User) error
+		Request(user screenjournal.User) error
 	}
 
 	SessionManager interface {

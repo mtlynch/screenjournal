@@ -46,7 +46,7 @@ func newDummyToken() screenjournal.PasswordResetToken {
 	return dummyToken
 }
 
-func TestRequestReset(t *testing.T) {
+func TestRequest(t *testing.T) {
 	baseTime := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
 
 	for _, tt := range []struct {
@@ -198,7 +198,7 @@ If you didn't request a password reset, you can safely ignore this email.
 
 			resetter := passwordreset_email.New("https://dev.thescreenjournal.com", sender, store, limiter, newDummyToken, func() time.Time { return now })
 
-			err := resetter.RequestReset(tt.user)
+			err := resetter.Request(tt.user)
 
 			if got, want := errToString(err), errToString(tt.errExpected); got != want {
 				t.Fatalf("err=%s, want=%s", got, want)

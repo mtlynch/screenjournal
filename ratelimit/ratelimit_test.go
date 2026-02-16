@@ -1,6 +1,7 @@
 package ratelimit_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -11,104 +12,66 @@ import (
 func TestPasswordResetLimiter(t *testing.T) {
 	baseTime := time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
 
-	type recordedEvent struct {
-		username screenjournal.Username
-		offset   time.Duration
-	}
-
 	for _, tt := range []struct {
-		description    string
-		recordedEvents []recordedEvent
-		queryUser      screenjournal.Username
-		queryOffset    time.Duration
-		want           bool
+		description          string
+		priorResetsForUser   int
+		priorResetsForOthers int
+		timeSincePriorResets time.Duration
+		allowExpected        bool
 	}{
 		{
-			description:    "first request is allowed",
-			recordedEvents: []recordedEvent{},
-			queryUser:      screenjournal.Username("alice"),
-			want:           true,
+			description:   "first request is allowed",
+			allowExpected: true,
 		},
 		{
-			description: "second request for same user is allowed",
-			recordedEvents: []recordedEvent{
-				{username: screenjournal.Username("alice")},
-			},
-			queryUser: screenjournal.Username("alice"),
-			want:      true,
+			description:        "second request for same user is allowed",
+			priorResetsForUser: 1,
+			allowExpected:      true,
 		},
 		{
-			description: "third request for same user is blocked",
-			recordedEvents: []recordedEvent{
-				{username: screenjournal.Username("alice")},
-				{username: screenjournal.Username("alice")},
-			},
-			queryUser: screenjournal.Username("alice"),
-			want:      false,
+			description:        "third request for same user is blocked",
+			priorResetsForUser: 2,
+			allowExpected:      false,
 		},
 		{
-			description: "per-user limit resets after 24 hours",
-			recordedEvents: []recordedEvent{
-				{username: screenjournal.Username("alice")},
-				{username: screenjournal.Username("alice")},
-			},
-			queryUser:   screenjournal.Username("alice"),
-			queryOffset: 24*time.Hour + time.Second,
-			want:        true,
+			description:          "per-user limit resets after 24 hours",
+			priorResetsForUser:   2,
+			timeSincePriorResets: 24*time.Hour + time.Second,
+			allowExpected:        true,
 		},
 		{
-			description: "global limit of 8 blocks ninth user",
-			recordedEvents: []recordedEvent{
-				{username: screenjournal.Username("user0")},
-				{username: screenjournal.Username("user1")},
-				{username: screenjournal.Username("user2")},
-				{username: screenjournal.Username("user3")},
-				{username: screenjournal.Username("user4")},
-				{username: screenjournal.Username("user5")},
-				{username: screenjournal.Username("user6")},
-				{username: screenjournal.Username("user7")},
-			},
-			queryUser: screenjournal.Username("newuser"),
-			want:      false,
+			description:          "global limit of 8 blocks new user",
+			priorResetsForOthers: 8,
+			allowExpected:        false,
 		},
 		{
-			description: "global limit resets after 24 hours",
-			recordedEvents: []recordedEvent{
-				{username: screenjournal.Username("user0")},
-				{username: screenjournal.Username("user1")},
-				{username: screenjournal.Username("user2")},
-				{username: screenjournal.Username("user3")},
-				{username: screenjournal.Username("user4")},
-				{username: screenjournal.Username("user5")},
-				{username: screenjournal.Username("user6")},
-				{username: screenjournal.Username("user7")},
-			},
-			queryUser:   screenjournal.Username("newuser"),
-			queryOffset: 24*time.Hour + time.Second,
-			want:        true,
+			description:          "global limit resets after 24 hours",
+			priorResetsForOthers: 8,
+			timeSincePriorResets: 24*time.Hour + time.Second,
+			allowExpected:        true,
 		},
 		{
-			description: "per-user blocked but other users still allowed",
-			recordedEvents: []recordedEvent{
-				{username: screenjournal.Username("alice")},
-				{username: screenjournal.Username("alice")},
-			},
-			queryUser: screenjournal.Username("bob"),
-			want:      true,
+			description:          "per-user blocked but other users still allowed",
+			priorResetsForOthers: 2,
+			allowExpected:        true,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			now := baseTime
 			limiter := ratelimit.NewPasswordResetLimiter(func() time.Time { return now })
 
-			for _, e := range tt.recordedEvents {
-				now = baseTime.Add(e.offset)
-				limiter.Record(e.username)
+			queryUser := screenjournal.Username("alice")
+			for range tt.priorResetsForUser {
+				limiter.Record(queryUser)
+			}
+			for i := range tt.priorResetsForOthers {
+				limiter.Record(screenjournal.Username(fmt.Sprintf("other-user-%d", i)))
 			}
 
-			now = baseTime.Add(tt.queryOffset)
-			if got, want := limiter.Allow(tt.queryUser), tt.want; got != want {
-				t.Errorf("Allow(%s)=%v, want=%v", tt.queryUser, got, want)
+			now = baseTime.Add(tt.timeSincePriorResets)
+
+			if got, want := limiter.Allow(queryUser), tt.allowExpected; got != want {
+				t.Errorf("Allow(%s)=%v, want=%v", queryUser, got, want)
 			}
 		})
 	}

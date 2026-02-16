@@ -178,12 +178,12 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 	}
 }
 
-func (s Server) forgotPasswordGet() http.HandlerFunc {
+func (s Server) resetPasswordGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").
 			ParseFS(
 				templatesFS,
-				append(baseTemplates, "templates/pages/forgot-password.html")...))
+				append(baseTemplates, "templates/pages/reset-password.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := t.Execute(w, struct {
@@ -199,12 +199,12 @@ func (s Server) forgotPasswordGet() http.HandlerFunc {
 	}
 }
 
-func (s Server) forgotPasswordPost() http.HandlerFunc {
+func (s Server) resetPasswordPost() http.HandlerFunc {
 	pageTemplate := template.Must(
 		template.New("base.html").
 			ParseFS(
 				templatesFS,
-				append(baseTemplates, "templates/pages/forgot-password.html")...))
+				append(baseTemplates, "templates/pages/reset-password.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Always render the same success page regardless of outcome.
@@ -216,7 +216,7 @@ func (s Server) forgotPasswordPost() http.HandlerFunc {
 				commonProps: makeCommonProps(r.Context()),
 				Submitted:   true,
 			}); err != nil {
-				log.Printf("failed to render forgot password success page: %v", err)
+				log.Printf("failed to render reset password success page: %v", err)
 			}
 		}
 

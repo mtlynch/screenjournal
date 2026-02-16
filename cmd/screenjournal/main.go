@@ -20,7 +20,6 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	passwordreset_email "github.com/mtlynch/screenjournal/v2/passwordreset/email"
-	passwordreset_quiet "github.com/mtlynch/screenjournal/v2/passwordreset/quiet"
 	"github.com/mtlynch/screenjournal/v2/ratelimit"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
@@ -67,7 +66,6 @@ func main() {
 	} else {
 		log.Printf("SMTP not configured. Transactional emails are disabled")
 		announcer = quiet.New()
-		passwordResetter = passwordreset_quiet.New()
 	}
 
 	metadataFinder, err := tmdb.New(requireEnv("SJ_TMDB_API"))

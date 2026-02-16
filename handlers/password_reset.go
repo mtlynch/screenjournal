@@ -188,10 +188,11 @@ func (s Server) resetPasswordGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := t.Execute(w, struct {
 			commonProps
-			Submitted bool
+			Submitted   bool
+			Unavailable bool
 		}{
-			commonProps: makeCommonProps(r.Context()),
-			Submitted:   false,
+			commonProps:  makeCommonProps(r.Context()),
+			Unavailable: s.passwordResetter == nil,
 		}); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -207,11 +208,17 @@ func (s Server) resetPasswordPost() http.HandlerFunc {
 				append(baseTemplates, "templates/pages/reset-password.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		if s.passwordResetter == nil {
+			http.Error(w, "Password resets are not available on this server", http.StatusServiceUnavailable)
+			return
+		}
+
 		// Always render the same success page regardless of outcome.
 		renderSuccess := func() {
 			if err := pageTemplate.Execute(w, struct {
 				commonProps
-				Submitted bool
+				Submitted   bool
+				Unavailable bool
 			}{
 				commonProps: makeCommonProps(r.Context()),
 				Submitted:   true,

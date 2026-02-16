@@ -98,8 +98,7 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
-		db := s.getDB(r)
-		review, err := db.updateReview(id, parsedRequest)
+		review, err := s.getDB(r).updateReview(id, parsedRequest)
 		if err == store.ErrReviewNotFound {
 			http.Error(w, "Review not found", http.StatusNotFound)
 			return
@@ -130,8 +129,7 @@ func (s Server) reviewsDelete() http.HandlerFunc {
 			return
 		}
 
-		db := s.getDB(r)
-		if err := db.deleteReview(id); err == store.ErrReviewNotFound {
+		if err := s.getDB(r).deleteReview(id); err == store.ErrReviewNotFound {
 			http.Error(w, "Review not found", http.StatusNotFound)
 			return
 		} else if errors.Is(err, errForbidden) {

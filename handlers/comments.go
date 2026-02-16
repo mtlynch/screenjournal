@@ -198,8 +198,7 @@ func (s Server) commentsPut() http.HandlerFunc {
 			return
 		}
 
-		db := s.getDB(r)
-		rc, err := db.updateComment(req.CommentID, req.CommentText)
+		rc, err := s.getDB(r).updateComment(req.CommentID, req.CommentText)
 		if err == store.ErrCommentNotFound {
 			http.Error(w, "Comment not found", http.StatusNotFound)
 			return
@@ -234,8 +233,7 @@ func (s Server) commentsDelete() http.HandlerFunc {
 			return
 		}
 
-		db := s.getDB(r)
-		if err := db.deleteComment(cid); err == store.ErrCommentNotFound {
+		if err := s.getDB(r).deleteComment(cid); err == store.ErrCommentNotFound {
 			http.Error(w, "Comment not found", http.StatusNotFound)
 			return
 		} else if errors.Is(err, errForbidden) {

@@ -120,8 +120,7 @@ func (s Server) reactionsDelete() http.HandlerFunc {
 			return
 		}
 
-		db := s.getDB(r)
-		if err := db.deleteReaction(rid); err == store.ErrReactionNotFound {
+		if err := s.getDB(r).deleteReaction(rid); err == store.ErrReactionNotFound {
 			http.Error(w, "Reaction not found", http.StatusNotFound)
 			return
 		} else if errors.Is(err, errForbidden) {

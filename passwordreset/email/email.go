@@ -77,7 +77,7 @@ func (r Resetter) RequestReset(user screenjournal.User) error {
 	msg := email.Message{
 		From: mail.Address{
 			Name:    "ScreenJournal",
-			Address: "activity@thescreenjournal.com",
+			Address: "password-resets@thescreenjournal.com",
 		},
 		To: []mail.Address{
 			{
@@ -91,11 +91,11 @@ func (r Resetter) RequestReset(user screenjournal.User) error {
 	}
 
 	if err := r.sender.Send(msg); err != nil {
-		return fmt.Errorf("sending password reset email to %s: %w", user.Email, err)
+		return fmt.Errorf("sending password reset email for user %s: %w", user.Username, err)
 	}
 
 	r.limiter.Record(user.Username)
 
-	log.Printf("sent password reset email to %s for user %s", user.Email, user.Username)
+	log.Printf("sent password reset email for user %s", user.Username)
 	return nil
 }

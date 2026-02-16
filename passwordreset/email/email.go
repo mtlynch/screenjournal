@@ -26,16 +26,18 @@ type (
 		store    Store
 		limiter  *ratelimit.PasswordResetLimiter
 		newToken func() screenjournal.PasswordResetToken
+		now      func() time.Time
 	}
 )
 
-func New(baseURL string, sender email.Sender, store Store, limiter *ratelimit.PasswordResetLimiter, newToken func() screenjournal.PasswordResetToken) Resetter {
+func New(baseURL string, sender email.Sender, store Store, limiter *ratelimit.PasswordResetLimiter, newToken func() screenjournal.PasswordResetToken, now func() time.Time) Resetter {
 	return Resetter{
 		baseURL:  baseURL,
 		sender:   sender,
 		store:    store,
 		limiter:  limiter,
 		newToken: newToken,
+		now:      now,
 	}
 }
 
@@ -55,7 +57,7 @@ func (r Resetter) RequestReset(user screenjournal.User) error {
 	entry := screenjournal.PasswordResetEntry{
 		Username:  user.Username,
 		Token:     r.newToken(),
-		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
+		ExpiresAt: r.now().Add(7 * 24 * time.Hour),
 	}
 
 	if err := r.store.InsertPasswordResetEntry(entry); err != nil {

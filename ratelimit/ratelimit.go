@@ -46,9 +46,8 @@ func (l *PasswordResetLimiter) Allow(username screenjournal.Username) bool {
 
 	l.removeExpiredEvents()
 
-	var userCount, globalCount int
+	var userCount int
 	for _, e := range l.events {
-		globalCount++
 		if e.username.Equal(username) {
 			userCount++
 		}
@@ -57,7 +56,7 @@ func (l *PasswordResetLimiter) Allow(username screenjournal.Username) bool {
 	if userCount >= perUserLimit {
 		return false
 	}
-	if globalCount >= globalLimit {
+	if len(l.events) >= globalLimit {
 		return false
 	}
 	return true

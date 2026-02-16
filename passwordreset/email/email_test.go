@@ -196,7 +196,7 @@ If you didn't request a password reset, you can safely ignore this email.
 				limiter.Record(username)
 			}
 
-			resetter := passwordreset_email.New("https://dev.thescreenjournal.com", sender, store, limiter, newDummyToken)
+			resetter := passwordreset_email.New("https://dev.thescreenjournal.com", sender, store, limiter, newDummyToken, func() time.Time { return now })
 
 			err := resetter.RequestReset(tt.user)
 

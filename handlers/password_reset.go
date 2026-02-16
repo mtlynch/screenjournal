@@ -229,7 +229,7 @@ func (s Server) forgotPasswordPost() http.HandlerFunc {
 		// Look up user by email.
 		user, err := s.getDB(r).ReadUserByEmail(emailAddr)
 		if err == store.ErrUserNotFound {
-			log.Printf("password reset requested for unregistered email: %s", emailAddr)
+			log.Printf("password reset requested for unregistered email")
 			renderSuccess()
 			return
 		} else if err != nil {

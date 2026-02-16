@@ -27,6 +27,12 @@
 - Return single error types that can represent multiple failure modes.
 - One method should have one clear responsibility from the caller's perspective.
 
+### Avoid redundant naming in interface methods
+
+- Method names should not repeat the domain implied by the interface or type name.
+- Read the method at its callsite (`s.field.Method()`) to check for redundancy.
+- Example: `PasswordResetter.Request(user)` instead of `PasswordResetter.RequestReset(user)`, following the same pattern as `Announcer.AnnounceNewReview` and `MetadataFinder.GetMovie`.
+
 ## Assistant guidelines
 
 ### Documenting lessons learned
@@ -83,6 +89,7 @@ If you learned that methods shouldn't be exported just for testing, add to `AGEN
 - Attempt to break bash lines at 80 characters.
 - Never keep dead code for the sake of backwards compatibility.
 - If there are no calls to a function or uses of a type/variable outside of test code, it is dead code and should be deleted.
+- Never log PII (e.g., email addresses) in server log messages.
 
 ## Markdown
 
@@ -106,7 +113,9 @@ If you learned that methods shouldn't be exported just for testing, add to `AGEN
 - To run unit tests, run `./dev-scripts/run-go-tests`.
 - When writing tests to verify a bugfix, follow TDD conventions: write the test with the failing test first, verify the test fails, fix the bug, and verify that the test passes.
 - When writing new test cases, avoid having t.Run have special-case behavior for particular inputs. Instead, use general purpose logic that doesn't assume particular inputs.
+- Design test table fields to describe the scenario at a high level (e.g., `priorResetsForUser int`) rather than exposing raw data structures the reader must mentally reconstruct (e.g., `recordedEvents []recordedEvent`). A reader should understand the test behavior from the table alone, before reading the test body.
 - Never use `time.Now` in tests. Use a hardcoded fixed time.
+- Inject `time.Now` as a `func() time.Time` dependency so production code is testable. If a type already injects a clock for one purpose, use the same clock for all time-dependent logic in that type.
 - Go tests should be in a separate `_tests` package so they don't test non-exported interfaces.
 - Test HTTP handlers by sending requests to the relevant routes. Minimize test coupling by avoiding tests that call HTTP handler functions directly.
 
@@ -159,6 +168,10 @@ func TestParseTwitterHandle(t *testing.T) {
   }
 }
 ```
+
+## Docker
+
+- Keep `COPY` lines for source directories in alphabetical order in the Dockerfile.
 
 ## Security
 

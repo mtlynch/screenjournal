@@ -11,6 +11,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
+	"github.com/mtlynch/screenjournal/v2/passwordreset"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -234,13 +235,13 @@ func TestAccountPasswordResetPut(t *testing.T) {
 				sessions: make(map[string]sessions.Session),
 			}
 
-			// Create handler with nil announcer, metadata finder, and
-			// password resetter.
+			passwordResetter := passwordreset.NewNoEmail(dataStore, time.Now)
+
+			// Create handler with nil announcer and metadata finder.
 			var nilAnnouncer handlers.Announcer
 			var nilMetadataFinder handlers.MetadataFinder
-			var nilPasswordResetter handlers.PasswordResetter
 
-			s := handlers.New(authenticator, nilAnnouncer, sessionMgr, dataStore, nilMetadataFinder, nilPasswordResetter)
+			s := handlers.New(authenticator, nilAnnouncer, sessionMgr, dataStore, nilMetadataFinder, passwordResetter)
 
 			url := "/account/password-reset?username=" + tt.username.String() + "&token=" + tt.token.String()
 			req, err := http.NewRequest("PUT", url, strings.NewReader(tt.payload))

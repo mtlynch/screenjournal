@@ -18,7 +18,8 @@ type (
 	}
 
 	PasswordResetter interface {
-		Send(user screenjournal.User, entry screenjournal.PasswordResetEntry) error
+		SendEmail(screenjournal.Email) error
+		Reset(screenjournal.Username, screenjournal.PasswordResetToken, screenjournal.PasswordHash) error
 	}
 
 	SessionManager interface {

@@ -19,6 +19,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
+	"github.com/mtlynch/screenjournal/v2/passwordreset"
 	passwordreset_email "github.com/mtlynch/screenjournal/v2/passwordreset/email"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
@@ -60,7 +61,7 @@ func main() {
 		}
 		baseURL := requireEnv("SJ_BASE_URL")
 		announcer = email_announce.New(baseURL, mailSender, store)
-		passwordResetter = passwordreset_email.New(baseURL, mailSender)
+		passwordResetter = passwordreset.New(store, passwordreset_email.New(baseURL, mailSender), time.Now)
 	} else {
 		log.Printf("SMTP not configured. Transactional emails are disabled")
 		announcer = quiet.New()

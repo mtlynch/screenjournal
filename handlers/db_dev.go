@@ -9,13 +9,11 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
-	"github.com/mtlynch/screenjournal/v2/passwordreset"
 	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
@@ -23,9 +21,7 @@ import (
 
 // initDev sets up dev-mode state before routes are created.
 func (s *Server) initDev() {
-	// Provide a dev-mode password resetter that generates tokens and skips
-	// sending email.
-	s.passwordResetter = passwordreset.NewNoEmail(s.store, time.Now)
+	// no-op
 }
 
 // addDevRoutes adds debug routes that we only use during development or e2e

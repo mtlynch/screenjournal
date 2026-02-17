@@ -58,14 +58,34 @@ test("user can reset password via forgot-password flow", async ({
   await userPage.goto(resetLink);
   await expect(userPage).toHaveURL(resetLink);
 
+  await userPage.route(
+    /\/account\/password-reset\?username=userA&token=.*/,
+    async (route) => {
+      if (route.request().method() === "PUT") {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+      await route.continue();
+    }
+  );
+
   // Reset password.
   await expect(userPage.getByLabel("Current Password")).not.toBeVisible();
   await userPage.getByLabel(/^New Password$/).fill("brandnewpass99");
   await userPage.getByLabel("Confirm New Password").fill("brandnewpass99");
+  const passwordResetResponse = userPage.waitForResponse((response) => {
+    return (
+      response.request().method() === "PUT" &&
+      response.url().includes("/account/password-reset?username=userA&token=")
+    );
+  });
   await userPage.getByRole("button", { name: /Reset password/i }).click();
+  await expect(userPage.getByLabel(/^New Password$/)).toBeDisabled();
+  await expect(userPage.getByLabel("Confirm New Password")).toBeDisabled();
+  await passwordResetResponse;
 
   // Verify successful reset.
   await expect(userPage.getByText("Password updated")).toBeVisible();
+  await expect(userPage.locator("#password-form")).toBeHidden();
 
   // User should be redirected to reviews after password reset.
   await expect(userPage).toHaveURL("/reviews");

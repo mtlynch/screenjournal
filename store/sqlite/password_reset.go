@@ -61,67 +61,34 @@ func (s Store) ReadPasswordResetEntry(token screenjournal.PasswordResetToken) (s
 	}, nil
 }
 
-func (s Store) ReadPasswordResetEntries() ([]screenjournal.PasswordResetEntry, error) {
-	rows, err := s.ctx.Query(`
+func (s Store) ReadLatestPasswordResetEntryForUser(username screenjournal.Username) (screenjournal.PasswordResetEntry, error) {
+	var tokenRaw string
+	var expiresAtRaw string
+	if err := s.ctx.QueryRow(`
 		SELECT
-			username,
 			token,
 			expires_at
 		FROM
 			password_reset_tokens
+		WHERE
+			username = :username
 		ORDER BY
-			expires_at DESC`)
+			expires_at DESC
+		LIMIT 1`, sql.Named("username", username.String())).
+		Scan(&tokenRaw, &expiresAtRaw); err != nil {
+		return screenjournal.PasswordResetEntry{}, err
+	}
+
+	expiresAt, err := parseDatetime(expiresAtRaw)
 	if err != nil {
-		return []screenjournal.PasswordResetEntry{}, err
-	}
-	defer func() {
-		if err := rows.Close(); err != nil && err != sql.ErrTxDone {
-			log.Printf("failed to close rows after reading password reset tokens: %v", err)
-		}
-	}()
-
-	requests := []screenjournal.PasswordResetEntry{}
-	for rows.Next() {
-		var usernameRaw string
-		var tokenRaw string
-		var expiresAtRaw string
-		if err := rows.Scan(&usernameRaw, &tokenRaw, &expiresAtRaw); err != nil {
-			return []screenjournal.PasswordResetEntry{}, err
-		}
-
-		expiresAt, err := parseDatetime(expiresAtRaw)
-		if err != nil {
-			return []screenjournal.PasswordResetEntry{}, err
-		}
-
-		requests = append(requests, screenjournal.PasswordResetEntry{
-			Username:  screenjournal.Username(usernameRaw),
-			Token:     screenjournal.NewPasswordResetTokenFromString(tokenRaw),
-			ExpiresAt: expiresAt,
-		})
-	}
-	if err := rows.Err(); err != nil {
-		return []screenjournal.PasswordResetEntry{}, err
+		return screenjournal.PasswordResetEntry{}, err
 	}
 
-	return requests, nil
-}
-
-func (s Store) DeletePasswordResetEntry(token screenjournal.PasswordResetToken) error {
-	log.Printf("deleting password reset token: %s", passwordResetTokenPrefix(token))
-	if _, err := s.ctx.Exec(`DELETE FROM password_reset_tokens WHERE token = :token`, sql.Named("token", token.String())); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s Store) DeleteExpiredPasswordResetEntries() error {
-	log.Printf("deleting expired password reset tokens")
-	now := time.Now()
-	if _, err := s.ctx.Exec(`DELETE FROM password_reset_tokens WHERE expires_at < :now`, sql.Named("now", formatTime(now))); err != nil {
-		return err
-	}
-	return nil
+	return screenjournal.PasswordResetEntry{
+		Username:  username,
+		Token:     screenjournal.NewPasswordResetTokenFromString(tokenRaw),
+		ExpiresAt: expiresAt,
+	}, nil
 }
 
 func (s Store) UsePasswordResetEntry(
@@ -217,13 +184,4 @@ func (s Store) UsePasswordResetEntry(
 	}
 
 	return tx.Commit()
-}
-
-func passwordResetTokenPrefix(token screenjournal.PasswordResetToken) string {
-	tokenRaw := token.String()
-	const tokenPreviewLength = 6
-	if len(tokenRaw) <= tokenPreviewLength {
-		return tokenRaw
-	}
-	return tokenRaw[:tokenPreviewLength] + "..."
 }

@@ -3,7 +3,9 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -311,27 +313,18 @@ func (s Server) debugPasswordResetTokenGet() http.HandlerFunc {
 			return
 		}
 
-		entries, err := s.getDB(r).ReadPasswordResetEntries()
+		entry, err := s.getDB(r).ReadLatestPasswordResetEntryForUser(username)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to read password reset entries: %v", err), http.StatusInternalServerError)
-			return
-		}
-
-		// Find the most recent token for this user.
-		var latestToken string
-		for _, entry := range entries {
-			if entry.Username.Equal(username) {
-				latestToken = entry.Token.String()
+			if errors.Is(err, sql.ErrNoRows) {
+				http.Error(w, "No password reset token found for user", http.StatusNotFound)
+				return
 			}
-		}
-
-		if latestToken == "" {
-			http.Error(w, "No password reset token found for user", http.StatusNotFound)
+			http.Error(w, fmt.Sprintf("Failed to read password reset entry: %v", err), http.StatusInternalServerError)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(map[string]string{"token": latestToken}); err != nil {
+		if err := json.NewEncoder(w).Encode(map[string]string{"token": entry.Token.String()}); err != nil {
 			log.Printf("failed to encode password reset token response: %v", err)
 		}
 	}

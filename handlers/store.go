@@ -49,8 +49,6 @@ type Store interface {
 	UpdateNotificationPreferences(screenjournal.Username, screenjournal.NotificationPreferences) error
 	InsertPasswordResetEntry(screenjournal.PasswordResetEntry) error
 	ReadPasswordResetEntry(screenjournal.PasswordResetToken) (screenjournal.PasswordResetEntry, error)
-	ReadPasswordResetEntries() ([]screenjournal.PasswordResetEntry, error)
-	DeletePasswordResetEntry(screenjournal.PasswordResetToken) error
+	ReadLatestPasswordResetEntryForUser(screenjournal.Username) (screenjournal.PasswordResetEntry, error)
 	UsePasswordResetEntry(screenjournal.Username, screenjournal.PasswordResetToken, screenjournal.PasswordHash, time.Time) error
-	DeleteExpiredPasswordResetEntries() error
 }

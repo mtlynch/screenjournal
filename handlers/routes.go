@@ -35,7 +35,6 @@ func (s *Server) routes() {
 	adminViews.Use(s.requireAdmin)
 	adminViews.Use(enforceContentSecurityPolicy)
 	adminViews.HandleFunc("/invites", s.invitesGet()).Methods(http.MethodGet)
-	adminViews.HandleFunc("/reset-password", s.passwordResetAdminGet()).Methods(http.MethodGet)
 
 	views := s.router.PathPrefix("/").Subrouter()
 	views.Use(upgradeToHttps)
@@ -69,8 +68,6 @@ func (s *Server) routes() {
 	adminRoutes.Use(s.requireAdmin)
 	adminRoutes.Use(enforceContentSecurityPolicy)
 	adminRoutes.HandleFunc("/invites", s.invitesPost()).Methods(http.MethodPost)
-	adminRoutes.HandleFunc("/reset-password", s.passwordResetAdminPost()).Methods(http.MethodPost)
-	adminRoutes.HandleFunc("/reset-password/{token}", s.passwordResetAdminDelete()).Methods(http.MethodDelete)
 
 	authenticatedViews := s.router.PathPrefix("/").Subrouter()
 	authenticatedViews.Use(s.requireAuthenticationForView)

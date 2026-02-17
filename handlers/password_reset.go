@@ -92,7 +92,11 @@ func (s Server) passwordResetAdminDelete() http.HandlerFunc {
 		}
 
 		if err := s.getDB(r).DeletePasswordResetEntry(token); err != nil {
-			log.Printf("failed to delete password reset token %s: %v", token, err)
+			log.Printf(
+				"failed to delete password reset token %s: %v",
+				passwordResetTokenPrefix(token),
+				err,
+			)
 			http.Error(w, "Failed to delete password reset token", http.StatusInternalServerError)
 			return
 		}
@@ -263,4 +267,13 @@ func parsePasswordResetAdminPostRequest(r *http.Request) (passwordResetAdminPost
 	return passwordResetAdminPostRequest{
 		Username: username,
 	}, nil
+}
+
+func passwordResetTokenPrefix(token screenjournal.PasswordResetToken) string {
+	tokenRaw := token.String()
+	const tokenPreviewLength = 6
+	if len(tokenRaw) <= tokenPreviewLength {
+		return tokenRaw
+	}
+	return tokenRaw[:tokenPreviewLength] + "..."
 }

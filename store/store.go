@@ -31,6 +31,8 @@ var (
 	ErrUserNotFound                      = errors.New("could not find user")
 	ErrUsernameNotAvailable              = errors.New("username is not available")
 	ErrEmailAssociatedWithAnotherAccount = errors.New("email address is associated with another account")
+	ErrInvalidPasswordResetToken         = errors.New("could not find password reset token")
+	ErrExpiredPasswordResetToken         = errors.New("password reset token has expired")
 )
 
 func FilterReviewsByUsername(u screenjournal.Username) func(*ReadReviewsParams) {

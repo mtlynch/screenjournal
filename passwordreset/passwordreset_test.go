@@ -63,6 +63,37 @@ func (s *mockStore) InsertPasswordResetEntry(entry screenjournal.PasswordResetEn
 	return nil
 }
 
+func (s *mockStore) UsePasswordResetEntry(
+	username screenjournal.Username,
+	token screenjournal.PasswordResetToken,
+	newPasswordHash screenjournal.PasswordHash,
+	now time.Time,
+) error {
+	entry, err := s.ReadPasswordResetEntry(token)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return store.ErrInvalidPasswordResetToken
+		}
+		return err
+	}
+	if !entry.Username.Equal(username) {
+		return store.ErrInvalidPasswordResetToken
+	}
+	if now.After(entry.ExpiresAt) {
+		if err := s.DeletePasswordResetEntry(token); err != nil {
+			return err
+		}
+		return store.ErrExpiredPasswordResetToken
+	}
+	if err := s.UpdateUserPassword(entry.Username, newPasswordHash); err != nil {
+		return err
+	}
+	if err := s.DeletePasswordResetEntry(token); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *mockStore) UpdateUserPassword(username screenjournal.Username, newPasswordHash screenjournal.PasswordHash) error {
 	if s.updatePasswordErr != nil {
 		return s.updatePasswordErr
@@ -257,6 +288,28 @@ func TestReset(t *testing.T) {
 		err := resetter.Reset(username, token, screenjournal.PasswordHash("new-password-hash"))
 		if got, want := errors.Is(err, passwordreset.ErrTooManyResetAttempts), true; got != want {
 			t.Fatalf("isTooManyAttemptsErr=%v, want=%v (err=%v)", got, want, err)
+		}
+	})
+
+	t.Run("returns error when deleting used token fails", func(t *testing.T) {
+		dataStore := newMockStore()
+		dataStore.deleteEntryErr = errors.New("delete failed")
+		sender := &mockEmailSender{}
+		username := screenjournal.Username("alice")
+		token := screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef23")
+		newPasswordHash := screenjournal.PasswordHash("new-password-hash")
+
+		dataStore.entriesByToken[token.String()] = screenjournal.PasswordResetEntry{
+			Username:  username,
+			Token:     token,
+			ExpiresAt: fixedNow.Add(time.Hour),
+		}
+
+		resetter := passwordreset.New(dataStore, sender, func() time.Time { return fixedNow })
+
+		err := resetter.Reset(username, token, newPasswordHash)
+		if got, want := err != nil, true; got != want {
+			t.Fatalf("hasErr=%v, want=%v", got, want)
 		}
 	})
 }

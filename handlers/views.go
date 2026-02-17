@@ -983,7 +983,11 @@ func (s Server) accountPasswordResetGet() http.HandlerFunc {
 		if passwordResetEntry.IsExpired() {
 			// Clean up expired token.
 			if err := s.getDB(r).DeletePasswordResetEntry(token); err != nil {
-				log.Printf("failed to delete expired password reset token %s: %v", token, err)
+				log.Printf(
+					"failed to delete expired password reset token %s: %v",
+					passwordResetTokenPrefix(token),
+					err,
+				)
 			}
 			http.Error(w, "Password reset token has expired", http.StatusUnauthorized)
 			return

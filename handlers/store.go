@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"time"
+
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store"
 )
@@ -49,5 +51,6 @@ type Store interface {
 	ReadPasswordResetEntry(screenjournal.PasswordResetToken) (screenjournal.PasswordResetEntry, error)
 	ReadPasswordResetEntries() ([]screenjournal.PasswordResetEntry, error)
 	DeletePasswordResetEntry(screenjournal.PasswordResetToken) error
+	UsePasswordResetEntry(screenjournal.Username, screenjournal.PasswordResetToken, screenjournal.PasswordHash, time.Time) error
 	DeleteExpiredPasswordResetEntries() error
 }

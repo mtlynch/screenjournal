@@ -1,7 +1,6 @@
 package passwordreset
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -23,10 +22,13 @@ var (
 type (
 	Store interface {
 		ReadUserByEmail(screenjournal.Email) (screenjournal.User, error)
-		ReadPasswordResetEntry(screenjournal.PasswordResetToken) (screenjournal.PasswordResetEntry, error)
 		InsertPasswordResetEntry(screenjournal.PasswordResetEntry) error
-		UpdateUserPassword(screenjournal.Username, screenjournal.PasswordHash) error
-		DeletePasswordResetEntry(screenjournal.PasswordResetToken) error
+		UsePasswordResetEntry(
+			screenjournal.Username,
+			screenjournal.PasswordResetToken,
+			screenjournal.PasswordHash,
+			time.Time,
+		) error
 	}
 
 	emailSender interface {
@@ -102,34 +104,19 @@ func (r Resetter) Reset(username screenjournal.Username, token screenjournal.Pas
 		return ErrTooManyResetAttempts
 	}
 
-	entry, err := r.store.ReadPasswordResetEntry(token)
+	err := r.store.UsePasswordResetEntry(username, token, newPasswordHash, r.now())
 	if err != nil {
-		r.tokenAttemptLimiter.RecordAttempt(username)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, store.ErrInvalidPasswordResetToken):
+			r.tokenAttemptLimiter.RecordAttempt(username)
 			return ErrInvalidResetToken
+		case errors.Is(err, store.ErrExpiredPasswordResetToken):
+			r.tokenAttemptLimiter.RecordAttempt(username)
+			return ErrExpiredResetToken
 		}
-		return fmt.Errorf("read password reset entry for token %s: %w", token, err)
-	}
 
-	if !entry.Username.Equal(username) {
 		r.tokenAttemptLimiter.RecordAttempt(username)
-		return ErrInvalidResetToken
-	}
-
-	if r.now().After(entry.ExpiresAt) {
-		if err := r.store.DeletePasswordResetEntry(token); err != nil {
-			log.Printf("failed to delete expired password reset token %s: %v", token, err)
-		}
-		r.tokenAttemptLimiter.RecordAttempt(username)
-		return ErrExpiredResetToken
-	}
-
-	if err := r.store.UpdateUserPassword(entry.Username, newPasswordHash); err != nil {
-		return fmt.Errorf("update password for user %s: %w", entry.Username, err)
-	}
-
-	if err := r.store.DeletePasswordResetEntry(token); err != nil {
-		log.Printf("failed to delete used password reset token %s: %v", token, err)
+		return fmt.Errorf("use password reset token %s: %w", tokenPrefix(token), err)
 	}
 
 	return nil
@@ -138,6 +125,19 @@ func (r Resetter) Reset(username screenjournal.Username, token screenjournal.Pas
 type noopEmailSender struct{}
 
 func (noopEmailSender) Send(user screenjournal.User, entry screenjournal.PasswordResetEntry) error {
-	log.Printf("password reset email skipped for user %s (token %s)", user.Username, entry.Token)
+	log.Printf(
+		"password reset email skipped for user %s (token %s)",
+		user.Username,
+		tokenPrefix(entry.Token),
+	)
 	return nil
+}
+
+func tokenPrefix(token screenjournal.PasswordResetToken) string {
+	tokenRaw := token.String()
+	const tokenPreviewLength = 6
+	if len(tokenRaw) <= tokenPreviewLength {
+		return tokenRaw
+	}
+	return tokenRaw[:tokenPreviewLength] + "..."
 }

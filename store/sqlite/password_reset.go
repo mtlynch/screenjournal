@@ -1,11 +1,14 @@
 package sqlite
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"log"
 	"time"
 
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
+	"github.com/mtlynch/screenjournal/v2/store"
 )
 
 func (s Store) InsertPasswordResetEntry(request screenjournal.PasswordResetEntry) error {
@@ -105,7 +108,7 @@ func (s Store) ReadPasswordResetEntries() ([]screenjournal.PasswordResetEntry, e
 }
 
 func (s Store) DeletePasswordResetEntry(token screenjournal.PasswordResetToken) error {
-	log.Printf("deleting password reset token: %s", token)
+	log.Printf("deleting password reset token: %s", passwordResetTokenPrefix(token))
 	if _, err := s.ctx.Exec(`DELETE FROM password_reset_tokens WHERE token = :token`, sql.Named("token", token.String())); err != nil {
 		return err
 	}
@@ -119,4 +122,108 @@ func (s Store) DeleteExpiredPasswordResetEntries() error {
 		return err
 	}
 	return nil
+}
+
+func (s Store) UsePasswordResetEntry(
+	username screenjournal.Username,
+	token screenjournal.PasswordResetToken,
+	newPasswordHash screenjournal.PasswordHash,
+	now time.Time,
+) error {
+	tx, err := s.ctx.BeginTx(context.Background(), nil)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
+			log.Printf("failed to rollback password reset transaction: %v", err)
+		}
+	}()
+
+	var entryUsernameRaw string
+	var expiresAtRaw string
+	if err := tx.QueryRow(`
+		SELECT
+			username,
+			expires_at
+		FROM
+			password_reset_tokens
+		WHERE
+			token = :token`, sql.Named("token", token.String())).Scan(&entryUsernameRaw, &expiresAtRaw); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return store.ErrInvalidPasswordResetToken
+		}
+		return err
+	}
+
+	entryUsername := screenjournal.Username(entryUsernameRaw)
+	if !entryUsername.Equal(username) {
+		return store.ErrInvalidPasswordResetToken
+	}
+
+	expiresAt, err := parseDatetime(expiresAtRaw)
+	if err != nil {
+		return err
+	}
+	if now.After(expiresAt) {
+		if _, err := tx.Exec(`
+			DELETE FROM
+				password_reset_tokens
+			WHERE
+				token = :token`,
+			sql.Named("token", token.String())); err != nil {
+			return err
+		}
+		if err := tx.Commit(); err != nil {
+			return err
+		}
+		return store.ErrExpiredPasswordResetToken
+	}
+
+	updateResult, err := tx.Exec(`
+		UPDATE users
+		SET
+			password_hash = :password_hash
+		WHERE
+			username = :username`,
+		sql.Named("password_hash", encodePasswordHash(newPasswordHash)),
+		sql.Named("username", entryUsername.String()))
+	if err != nil {
+		return err
+	}
+	rowsUpdated, err := updateResult.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsUpdated != 1 {
+		return store.ErrUserNotFound
+	}
+
+	deleteResult, err := tx.Exec(`
+		DELETE FROM
+			password_reset_tokens
+		WHERE
+			token = :token`,
+		sql.Named("token", token.String()))
+	if err != nil {
+		return err
+	}
+	rowsDeleted, err := deleteResult.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsDeleted != 1 {
+		return store.ErrInvalidPasswordResetToken
+	}
+
+	return tx.Commit()
+}
+
+func passwordResetTokenPrefix(token screenjournal.PasswordResetToken) string {
+	tokenRaw := token.String()
+	const tokenPreviewLength = 6
+	if len(tokenRaw) <= tokenPreviewLength {
+		return tokenRaw
+	}
+	return tokenRaw[:tokenPreviewLength] + "..."
 }

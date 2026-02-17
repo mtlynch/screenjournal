@@ -6,6 +6,10 @@ import (
 	"net/http"
 )
 
+func (s *Server) initDev() {
+	// no-op
+}
+
 func (s *Server) addDevRoutes() {
 	// no-op
 }

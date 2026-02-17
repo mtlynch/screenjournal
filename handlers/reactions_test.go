@@ -216,7 +216,7 @@ func TestReactionsPost(t *testing.T) {
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder, nilPasswordResetter)
 
 			req, err := http.NewRequest("POST", "/reactions", strings.NewReader(tt.payload))
 			if err != nil {
@@ -445,7 +445,7 @@ func TestReactionsDelete(t *testing.T) {
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder, nilPasswordResetter)
 
 			req, err := http.NewRequest("DELETE", tt.route, strings.NewReader(""))
 			if err != nil {

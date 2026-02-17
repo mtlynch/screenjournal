@@ -96,6 +96,28 @@ func (s Store) ReadUser(username screenjournal.Username) (screenjournal.User, er
 	return user, nil
 }
 
+func (s Store) ReadUserByEmail(email screenjournal.Email) (screenjournal.User, error) {
+	row := s.ctx.QueryRow(`
+	SELECT
+		username,
+		is_admin,
+		email,
+		password_hash
+	FROM
+		users
+	WHERE
+		email = :email`, sql.Named("email", email.String()))
+	user, err := userFromRow(row)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return screenjournal.User{}, store.ErrUserNotFound
+		}
+		return screenjournal.User{}, err
+	}
+
+	return user, nil
+}
+
 func userFromRow(row rowScanner) (screenjournal.User, error) {
 	var username string
 	var isAdmin bool

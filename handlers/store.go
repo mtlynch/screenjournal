@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"time"
+
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store"
 )
@@ -30,6 +32,7 @@ type Store interface {
 	UpdateTvShow(screenjournal.TvShow) error
 	CountUsers() (uint, error)
 	ReadUser(screenjournal.Username) (screenjournal.User, error)
+	ReadUserByEmail(screenjournal.Email) (screenjournal.User, error)
 	ReadUsersPublicMeta() ([]screenjournal.UserPublicMeta, error)
 	InsertUser(screenjournal.User) error
 	UpdateUserPassword(screenjournal.Username, screenjournal.PasswordHash) error
@@ -46,7 +49,6 @@ type Store interface {
 	UpdateNotificationPreferences(screenjournal.Username, screenjournal.NotificationPreferences) error
 	InsertPasswordResetEntry(screenjournal.PasswordResetEntry) error
 	ReadPasswordResetEntry(screenjournal.PasswordResetToken) (screenjournal.PasswordResetEntry, error)
-	ReadPasswordResetEntries() ([]screenjournal.PasswordResetEntry, error)
-	DeletePasswordResetEntry(screenjournal.PasswordResetToken) error
-	DeleteExpiredPasswordResetEntries() error
+	ReadLatestPasswordResetEntryForUser(screenjournal.Username) (screenjournal.PasswordResetEntry, error)
+	UsePasswordResetEntry(screenjournal.Username, screenjournal.PasswordResetToken, screenjournal.PasswordHash, time.Time) error
 }

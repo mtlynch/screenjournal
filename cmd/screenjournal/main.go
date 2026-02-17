@@ -19,6 +19,8 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
+	"github.com/mtlynch/screenjournal/v2/passwordreset"
+	passwordreset_email "github.com/mtlynch/screenjournal/v2/passwordreset/email"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
@@ -45,6 +47,7 @@ func main() {
 	}
 
 	var announcer handlers.Announcer
+	var passwordResetter handlers.PasswordResetter
 	if isSmtpEnabled() {
 		smtpHost := requireEnv("SJ_SMTP_HOST")
 		smtpPort, err := strconv.Atoi(requireEnv("SJ_SMTP_PORT"))
@@ -56,7 +59,9 @@ func main() {
 		if err != nil {
 			log.Fatalf("failed to create mail sender: %v", err)
 		}
-		announcer = email_announce.New(requireEnv("SJ_BASE_URL"), mailSender, store)
+		baseURL := requireEnv("SJ_BASE_URL")
+		announcer = email_announce.New(baseURL, mailSender, store)
+		passwordResetter = passwordreset.New(store, passwordreset_email.New(baseURL, mailSender), time.Now)
 	} else {
 		log.Printf("SMTP not configured. Transactional emails are disabled")
 		announcer = quiet.New()
@@ -67,7 +72,7 @@ func main() {
 		log.Fatalf("failed to create metadata finder: %v", err)
 	}
 
-	h := gorilla.LoggingHandler(os.Stdout, handlers.New(authenticator, announcer, sessionManager, store, metadataFinder).Router())
+	h := gorilla.LoggingHandler(os.Stdout, handlers.New(authenticator, announcer, sessionManager, store, metadataFinder, passwordResetter).Router())
 	if os.Getenv("SJ_BEHIND_PROXY") != "" {
 		h = gorilla.ProxyIPHeadersHandler(h)
 	}

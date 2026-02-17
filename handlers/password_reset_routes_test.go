@@ -99,7 +99,7 @@ func TestResetPasswordPost(t *testing.T) {
 			passwordResetter:   noopPasswordResetter{},
 			email:              "user@example.com",
 			expectedStatusCode: http.StatusOK,
-			bodyMustContain:    "Reset successful!",
+			bodyMustContain:    "Request successful!",
 		},
 		{
 			description:        "returns bad request for invalid email",
@@ -107,7 +107,7 @@ func TestResetPasswordPost(t *testing.T) {
 			email:              "user@example@com",
 			expectedStatusCode: http.StatusBadRequest,
 			bodyMustContain:    "Invalid email address",
-			bodyMustNotContain: "Reset successful!",
+			bodyMustNotContain: "Request successful!",
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {

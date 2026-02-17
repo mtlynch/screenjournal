@@ -212,7 +212,8 @@ func (s Server) resetPasswordPost() http.HandlerFunc {
 			return
 		}
 
-		// Always render the same success page regardless of outcome.
+		// Always render the same success page regardless of account lookup
+		// outcome.
 		renderSuccess := func() {
 			if err := pageTemplate.Execute(w, struct {
 				commonProps
@@ -229,7 +230,7 @@ func (s Server) resetPasswordPost() http.HandlerFunc {
 
 		emailAddr, err := parse.Email(r.FormValue("email"))
 		if err != nil {
-			renderSuccess()
+			http.Error(w, "Invalid email address", http.StatusBadRequest)
 			return
 		}
 

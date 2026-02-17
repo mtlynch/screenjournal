@@ -82,20 +82,32 @@ func TestResetPasswordPost(t *testing.T) {
 	for _, tt := range []struct {
 		description        string
 		passwordResetter   handlers.PasswordResetter
+		email              string
 		expectedStatusCode int
 		bodyMustContain    string
+		bodyMustNotContain string
 	}{
 		{
 			description:        "returns service unavailable when server does not support resets",
 			passwordResetter:   nil,
+			email:              "user@example.com",
 			expectedStatusCode: http.StatusServiceUnavailable,
 			bodyMustContain:    "Password resets are not available on this server",
 		},
 		{
 			description:        "renders success page when server supports resets",
 			passwordResetter:   noopPasswordResetter{},
+			email:              "user@example.com",
 			expectedStatusCode: http.StatusOK,
 			bodyMustContain:    "Reset successful!",
+		},
+		{
+			description:        "returns bad request for invalid email",
+			passwordResetter:   noopPasswordResetter{},
+			email:              "user@example@com",
+			expectedStatusCode: http.StatusBadRequest,
+			bodyMustContain:    "Invalid email address",
+			bodyMustNotContain: "Reset successful!",
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
@@ -114,7 +126,7 @@ func TestResetPasswordPost(t *testing.T) {
 			req := httptest.NewRequest(
 				http.MethodPost,
 				"/reset-password",
-				strings.NewReader("email=user@example.com"),
+				strings.NewReader("email="+tt.email),
 			)
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
@@ -129,6 +141,11 @@ func TestResetPasswordPost(t *testing.T) {
 			body := rec.Body.String()
 			if got, want := strings.Contains(body, tt.bodyMustContain), true; got != want {
 				t.Errorf("bodyContains(%q)=%v, want=%v", tt.bodyMustContain, got, want)
+			}
+			if tt.bodyMustNotContain != "" {
+				if got, want := strings.Contains(body, tt.bodyMustNotContain), false; got != want {
+					t.Errorf("bodyContains(%q)=%v, want=%v", tt.bodyMustNotContain, got, want)
+				}
 			}
 		})
 	}

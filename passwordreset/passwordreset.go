@@ -74,7 +74,7 @@ func (r Resetter) SendEmail(emailAddr screenjournal.Email) error {
 		return fmt.Errorf("look up user by email: %w", err)
 	}
 
-	if !r.passwordResetLimiter.Allow(user.Username) {
+	if !r.passwordResetLimiter.HasAttemptsRemaining(user.Username) {
 		log.Printf("password reset rate limited for user %s", user.Username)
 		return nil
 	}
@@ -92,19 +92,19 @@ func (r Resetter) SendEmail(emailAddr screenjournal.Email) error {
 		return fmt.Errorf("send password reset email for user %s: %w", user.Username, err)
 	}
 
-	r.passwordResetLimiter.Record(user.Username)
+	r.passwordResetLimiter.RecordAttempt(user.Username)
 	return nil
 }
 
 func (r Resetter) Reset(username screenjournal.Username, token screenjournal.PasswordResetToken, newPasswordHash screenjournal.PasswordHash) error {
-	if !r.tokenAttemptLimiter.Allow(username) {
+	if !r.tokenAttemptLimiter.HasAttemptsRemaining(username) {
 		log.Printf("password reset token attempt rate limited for user %s", username)
 		return ErrTooManyResetAttempts
 	}
 
 	entry, err := r.store.ReadPasswordResetEntry(token)
 	if err != nil {
-		r.tokenAttemptLimiter.Record(username)
+		r.tokenAttemptLimiter.RecordAttempt(username)
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrInvalidResetToken
 		}
@@ -112,7 +112,7 @@ func (r Resetter) Reset(username screenjournal.Username, token screenjournal.Pas
 	}
 
 	if !entry.Username.Equal(username) {
-		r.tokenAttemptLimiter.Record(username)
+		r.tokenAttemptLimiter.RecordAttempt(username)
 		return ErrInvalidResetToken
 	}
 
@@ -120,7 +120,7 @@ func (r Resetter) Reset(username screenjournal.Username, token screenjournal.Pas
 		if err := r.store.DeletePasswordResetEntry(token); err != nil {
 			log.Printf("failed to delete expired password reset token %s: %v", token, err)
 		}
-		r.tokenAttemptLimiter.Record(username)
+		r.tokenAttemptLimiter.RecordAttempt(username)
 		return ErrExpiredResetToken
 	}
 

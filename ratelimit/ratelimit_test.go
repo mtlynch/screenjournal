@@ -62,16 +62,16 @@ func TestPasswordResetLimiter(t *testing.T) {
 
 			queryUser := screenjournal.Username("alice")
 			for range tt.priorResetsForUser {
-				limiter.Record(queryUser)
+				limiter.RecordAttempt(queryUser)
 			}
 			for i := range tt.priorResetsForOthers {
-				limiter.Record(screenjournal.Username(fmt.Sprintf("other-user-%d", i)))
+				limiter.RecordAttempt(screenjournal.Username(fmt.Sprintf("other-user-%d", i)))
 			}
 
 			now = baseTime.Add(tt.timeSincePriorResets)
 
-			if got, want := limiter.Allow(queryUser), tt.allowExpected; got != want {
-				t.Errorf("Allow(%s)=%v, want=%v", queryUser, got, want)
+			if got, want := limiter.HasAttemptsRemaining(queryUser), tt.allowExpected; got != want {
+				t.Errorf("HasAttemptsRemaining(%s)=%v, want=%v", queryUser, got, want)
 			}
 		})
 	}
@@ -113,13 +113,13 @@ func TestTokenAttemptLimiter(t *testing.T) {
 
 			queryUser := screenjournal.Username("alice")
 			for range tt.priorAttemptsForUser {
-				limiter.Record(queryUser)
+				limiter.RecordAttempt(queryUser)
 			}
 
 			now = baseTime.Add(tt.timeSincePriorAttempts)
 
-			if got, want := limiter.Allow(queryUser), tt.allowExpected; got != want {
-				t.Errorf("Allow(%s)=%v, want=%v", queryUser, got, want)
+			if got, want := limiter.HasAttemptsRemaining(queryUser), tt.allowExpected; got != want {
+				t.Errorf("HasAttemptsRemaining(%s)=%v, want=%v", queryUser, got, want)
 			}
 		})
 	}

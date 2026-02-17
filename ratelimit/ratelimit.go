@@ -38,9 +38,10 @@ func NewPasswordResetLimiter(now func() time.Time) *PasswordResetLimiter {
 	}
 }
 
-// Allow reports whether a password reset email may be sent for the given user
-// without exceeding the per-user (2/24h) or global (8/24h) limits.
-func (l *PasswordResetLimiter) Allow(username screenjournal.Username) bool {
+// HasAttemptsRemaining reports whether a password reset email may be sent for
+// the given user without exceeding the per-user (2/24h) or global (8/24h)
+// limits.
+func (l *PasswordResetLimiter) HasAttemptsRemaining(username screenjournal.Username) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -62,8 +63,8 @@ func (l *PasswordResetLimiter) Allow(username screenjournal.Username) bool {
 	return true
 }
 
-// Record logs that a password reset email was sent for the given user.
-func (l *PasswordResetLimiter) Record(username screenjournal.Username) {
+// RecordAttempt logs that a password reset email was sent for the given user.
+func (l *PasswordResetLimiter) RecordAttempt(username screenjournal.Username) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -108,9 +109,9 @@ func NewTokenAttemptLimiter(now func() time.Time) *TokenAttemptLimiter {
 	}
 }
 
-// Allow reports whether a password reset token attempt may proceed for the
-// given user without exceeding the per-user (5/24h) limit.
-func (l *TokenAttemptLimiter) Allow(username screenjournal.Username) bool {
+// HasAttemptsRemaining reports whether a password reset token attempt may
+// proceed for the given user without exceeding the per-user (5/24h) limit.
+func (l *TokenAttemptLimiter) HasAttemptsRemaining(username screenjournal.Username) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -126,8 +127,9 @@ func (l *TokenAttemptLimiter) Allow(username screenjournal.Username) bool {
 	return userCount < tokenAttemptPerUserLimit
 }
 
-// Record logs that a password reset token attempt was made for the given user.
-func (l *TokenAttemptLimiter) Record(username screenjournal.Username) {
+// RecordAttempt logs that a password reset token attempt was made for the
+// given user.
+func (l *TokenAttemptLimiter) RecordAttempt(username screenjournal.Username) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 

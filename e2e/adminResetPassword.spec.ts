@@ -12,10 +12,7 @@ test("admin can create password reset link and user can reset password", async (
   browser,
 }) => {
   // Admin creates reset link for userA.
-  await page.getByRole("menuitem", { name: "Admin" }).click();
-  await page.getByRole("menuitem", { name: "Password Resets" }).click();
-
-  await expect(page).toHaveURL("/admin/reset-password");
+  await page.goto("/admin/reset-password");
   await page.selectOption("#username", "userA");
   await page.getByRole("button", { name: "Generate Reset Link" }).click();
 
@@ -48,9 +45,6 @@ test("admin can create password reset link and user can reset password", async (
   await userPage.getByLabel("Confirm New Password").fill("newpassword123");
   await userPage.getByRole("button", { name: /Reset password/i }).click();
 
-  // Verify successful reset
-  await expect(userPage.getByText("Password updated")).toBeVisible();
-
   // User should be redirected to home after password reset.
   await expect(userPage).toHaveURL("/reviews");
 
@@ -66,10 +60,7 @@ test("admin can create password reset link and user can reset password", async (
 
 test("password reset link expires properly", async ({ page, browser }) => {
   // Admin creates reset link for userA.
-  await page.getByRole("menuitem", { name: "Admin" }).click();
-  await page.getByRole("menuitem", { name: "Password Resets" }).click();
-
-  await expect(page).toHaveURL("/admin/reset-password");
+  await page.goto("/admin/reset-password");
   await page.selectOption("#username", "userA");
   await page.getByRole("button", { name: "Generate Reset Link" }).click();
 

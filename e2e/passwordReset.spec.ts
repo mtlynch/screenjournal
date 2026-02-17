@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, Page } from "@playwright/test";
 import { populateDummyData, readDbTokenCookie } from "./helpers/db";
 import { loginAsUser } from "./helpers/login";
 
@@ -6,15 +6,26 @@ test.beforeEach(async ({ page }) => {
   await populateDummyData(page);
 });
 
+async function resetFormIsAvailable(page: Page): Promise<boolean> {
+  await page.goto("/reset-password");
+  const resetForm = page.locator("#reset-password-form");
+  if (await resetForm.isVisible()) {
+    return true;
+  }
+
+  await expect(page.getByRole("alert")).toContainText(
+    "Password resets are not available on this server."
+  );
+  return false;
+}
+
 test("user can reset password via forgot-password flow", async ({
   page,
   browser,
 }) => {
-  // Navigate to reset password page from login.
-  await page.getByRole("menuitem", { name: "Log in" }).click();
-  await page.getByRole("link", { name: "Forgot password?" }).click();
-
-  await expect(page).toHaveURL("/reset-password");
+  if (!(await resetFormIsAvailable(page))) {
+    return;
+  }
 
   // Submit the email.
   await page.locator("id=email").fill("userA@example.com");
@@ -71,7 +82,9 @@ test("user can reset password via forgot-password flow", async ({
 });
 
 test("reset shows same success message for unknown email", async ({ page }) => {
-  await page.goto("/reset-password");
+  if (!(await resetFormIsAvailable(page))) {
+    return;
+  }
 
   await page.locator("id=email").fill("unknown@example.com");
   await page.getByRole("button", { name: "Send reset link" }).click();

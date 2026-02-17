@@ -32,7 +32,7 @@ test("user can reset password via forgot-password flow", async ({
   await page.getByRole("button", { name: "Send reset link" }).click();
 
   // Verify success message.
-  await expect(page.getByText("Reset successful!")).toBeVisible();
+  await expect(page.getByText("Request successful!")).toBeVisible();
 
   // Retrieve the token from the debug endpoint.
   const dbCookie = readDbTokenCookie(await page.context().cookies());
@@ -90,7 +90,7 @@ test("reset shows same success message for unknown email", async ({ page }) => {
   await page.getByRole("button", { name: "Send reset link" }).click();
 
   // Should show the same success message to prevent email enumeration.
-  await expect(page.getByText("Reset successful!")).toBeVisible();
+  await expect(page.getByText("Request successful!")).toBeVisible();
 });
 
 test("incorrect password reset token is rejected", async ({

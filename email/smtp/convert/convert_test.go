@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kylelemons/godebug/diff"
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/mtlynch/screenjournal/v2/email"
 	"github.com/mtlynch/screenjournal/v2/email/smtp/convert"
@@ -86,8 +86,8 @@ com/movies/1#review25</a></p>
 			t.Fatalf("failed to generate email: %v", err)
 		}
 
-		if diff := diff.Diff(actual, tt.expected); diff != "" {
-			t.Fatalf("unexpected smtp message for email: %s\n%s", tt.input.Subject, diff)
+		if diff := cmp.Diff(tt.expected, actual); diff != "" {
+			t.Fatalf("unexpected smtp message for email: %s (-want +got):\n%s", tt.input.Subject, diff)
 		}
 	}
 }

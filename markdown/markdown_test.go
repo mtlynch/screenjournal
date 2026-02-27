@@ -3,7 +3,7 @@ package markdown_test
 import (
 	"testing"
 
-	"github.com/kylelemons/godebug/diff"
+	"github.com/google/go-cmp/cmp"
 	"github.com/mtlynch/screenjournal/v2/markdown"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
@@ -107,10 +107,10 @@ The butler did it!`,
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			if got, want := markdown.RenderBlurb(screenjournal.Blurb(tt.in)), tt.out; got != want {
-				t.Errorf("rendered blurb=%s, want=%s, diff=%s", got, want, diff.Diff(got, want))
+				t.Errorf("rendered blurb mismatch (-want +got):\n%s", cmp.Diff(want, got))
 			}
 			if got, want := markdown.RenderComment(screenjournal.CommentText(tt.in)), tt.out; got != want {
-				t.Errorf("rendered comment=%s, want=%s, diff=%s", got, want, diff.Diff(got, want))
+				t.Errorf("rendered comment mismatch (-want +got):\n%s", cmp.Diff(want, got))
 			}
 		})
 	}

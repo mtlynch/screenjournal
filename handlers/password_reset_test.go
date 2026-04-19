@@ -44,7 +44,9 @@ func (sm *passwordResetMockSessionManager) SessionFromToken(token string) (sessi
 	return sessions.Session{}, nil
 }
 
-func (sm *passwordResetMockSessionManager) EndSession(context.Context, http.ResponseWriter) {}
+func (sm *passwordResetMockSessionManager) EndSession(context.Context, http.ResponseWriter) error {
+	return nil
+}
 
 func (sm *passwordResetMockSessionManager) WrapRequest(next http.Handler) http.Handler {
 	return next // Simple passthrough for this test.

@@ -25,7 +25,7 @@ type (
 	SessionManager interface {
 		CreateSession(http.ResponseWriter, context.Context, screenjournal.Username, bool) error
 		SessionFromContext(context.Context) (sessions.Session, error)
-		EndSession(context.Context, http.ResponseWriter)
+		EndSession(context.Context, http.ResponseWriter) error
 		// WrapRequest wraps the given handler, adding the Session object
 		// (if there's an active session) to the request context before
 		// passing control to the next handler.

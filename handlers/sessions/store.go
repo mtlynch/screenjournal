@@ -1,0 +1,125 @@
+package sessions
+
+import (
+	"context"
+	"database/sql"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"time"
+
+	"codeberg.org/mtlynch/simpleauth/v3"
+	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
+)
+
+const (
+	sqliteDatetimeFormat = "2006-01-02 15:04:05"
+	sessionLifetime      = 30 * 24 * time.Hour
+)
+
+type (
+	store struct {
+		db *sql.DB
+	}
+
+	storedSession struct {
+		UserID      string          `json:"userID"`
+		SessionData json.RawMessage `json:"sessionData"`
+		CreatedAt   time.Time       `json:"createdAt"`
+	}
+)
+
+func newStore(db *sql.DB) (store, error) {
+	if _, err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS auth_sessions (
+			session_id TEXT PRIMARY KEY,
+			session_data BLOB,
+			expires_at TEXT NOT NULL
+		)`); err != nil {
+		return store{}, err
+	}
+	return store{db: db}, nil
+}
+
+func (s store) CreateSession(ctx context.Context, session simple_sessions.Session) error {
+	b, err := json.Marshal(storedSession{
+		UserID:      session.UserID.String(),
+		SessionData: session.SessionData,
+		CreatedAt:   session.CreatedAt,
+	})
+	if err != nil {
+		return err
+	}
+
+	if _, err := s.db.ExecContext(ctx, `
+		INSERT OR REPLACE INTO auth_sessions
+		(
+			session_id,
+			session_data,
+			expires_at
+		)
+		VALUES
+		(
+			?,
+			?,
+			?
+		)`,
+		session.ID.String(),
+		b,
+		formatSessionExpiration(session.CreatedAt),
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s store) ReadSession(ctx context.Context, id simple_sessions.ID) (simple_sessions.Session, error) {
+	var b []byte
+	if err := s.db.QueryRowContext(ctx, `
+		SELECT
+			session_data
+		FROM
+			auth_sessions
+		WHERE
+			session_id = ?
+			AND expires_at > datetime('now', 'localtime')`,
+		id.String(),
+	).Scan(&b); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return simple_sessions.Session{}, simple_sessions.ErrNoSessionFound
+		}
+		return simple_sessions.Session{}, err
+	}
+
+	var stored storedSession
+	if err := json.Unmarshal(b, &stored); err != nil {
+		return simple_sessions.Session{}, err
+	}
+	userID, err := simpleauth.NewUserID(stored.UserID)
+	if err != nil {
+		return simple_sessions.Session{}, fmt.Errorf("parse stored user ID: %w", err)
+	}
+	return simple_sessions.Session{
+		ID:          id,
+		UserID:      userID,
+		SessionData: stored.SessionData,
+		CreatedAt:   stored.CreatedAt,
+	}, nil
+}
+
+func (s store) DeleteSession(ctx context.Context, id simple_sessions.ID) error {
+	if _, err := s.db.ExecContext(ctx, `
+		DELETE FROM
+			auth_sessions
+		WHERE
+			session_id = ?`,
+		id.String(),
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+func formatSessionExpiration(createdAt time.Time) string {
+	return createdAt.Add(sessionLifetime).Format(sqliteDatetimeFormat)
+}

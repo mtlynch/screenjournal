@@ -98,7 +98,9 @@ func (sm mockSessionManager) SessionFromToken(token string) (sessions.Session, e
 	return session, nil
 }
 
-func (sm mockSessionManager) EndSession(context.Context, http.ResponseWriter) {}
+func (sm mockSessionManager) EndSession(context.Context, http.ResponseWriter) error {
+	return nil
+}
 
 func (sm mockSessionManager) WrapRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

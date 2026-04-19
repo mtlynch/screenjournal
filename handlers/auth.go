@@ -51,7 +51,10 @@ func (s Server) authPost() http.HandlerFunc {
 
 func (s Server) authDelete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		s.sessionManager.EndSession(r.Context(), w)
+		if err := s.sessionManager.EndSession(r.Context(), w); err != nil {
+			log.Printf("failed to end session: %v", err)
+			http.Error(w, "Failed to end session", http.StatusInternalServerError)
+		}
 	}
 }
 
@@ -62,7 +65,11 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 			if err != sessions.ErrNoSessionFound {
 				log.Printf("invalid session token: %v", err)
 			}
-			s.sessionManager.EndSession(r.Context(), w)
+			if err := s.sessionManager.EndSession(r.Context(), w); err != nil {
+				log.Printf("failed to end invalid session: %v", err)
+				http.Error(w, "Failed to end session", http.StatusInternalServerError)
+				return
+			}
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -75,7 +82,11 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 func (s Server) requireAuthenticationForAPI(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if _, ok := sessionFromContext(r.Context()); !ok {
-			s.sessionManager.EndSession(r.Context(), w)
+			if err := s.sessionManager.EndSession(r.Context(), w); err != nil {
+				log.Printf("failed to end unauthenticated session: %v", err)
+				http.Error(w, "Failed to end session", http.StatusInternalServerError)
+				return
+			}
 			http.Error(w, "Authentication required", http.StatusUnauthorized)
 			return
 		}
@@ -87,7 +98,11 @@ func (s Server) requireAuthenticationForAPI(next http.Handler) http.Handler {
 func (s Server) requireAuthenticationForView(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if _, ok := sessionFromContext(r.Context()); !ok {
-			s.sessionManager.EndSession(r.Context(), w)
+			if err := s.sessionManager.EndSession(r.Context(), w); err != nil {
+				log.Printf("failed to end unauthenticated session: %v", err)
+				http.Error(w, "Failed to end session", http.StatusInternalServerError)
+				return
+			}
 
 			newURL := "/login?next=" + url.QueryEscape(r.URL.String())
 			http.Redirect(w, r, newURL, http.StatusTemporaryRedirect)

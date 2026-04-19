@@ -45,13 +45,13 @@ func (s store) CreateSession(ctx context.Context, session simple_sessions.Sessio
 		)
 		VALUES
 		(
-			?,
-			?,
-			?
+			:session_id,
+			:session_data,
+			:expires_at
 		)`,
-		session.ID.String(),
-		b,
-		formatSessionExpiration(session.CreatedAt),
+		sql.Named("session_id", session.ID.String()),
+		sql.Named("session_data", b),
+		sql.Named("expires_at", formatSessionExpiration(session.CreatedAt)),
 	); err != nil {
 		return err
 	}
@@ -66,9 +66,9 @@ func (s store) ReadSession(ctx context.Context, id simple_sessions.ID) (simple_s
 		FROM
 			auth_sessions
 		WHERE
-			session_id = ?
+			session_id = :session_id
 			AND expires_at > datetime('now', 'localtime')`,
-		id.String(),
+		sql.Named("session_id", id.String()),
 	).Scan(&b); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return simple_sessions.Session{}, simple_sessions.ErrNoSessionFound
@@ -96,8 +96,8 @@ func (s store) DeleteSession(ctx context.Context, id simple_sessions.ID) error {
 		DELETE FROM
 			auth_sessions
 		WHERE
-			session_id = ?`,
-		id.String(),
+			session_id = :session_id`,
+		sql.Named("session_id", id.String()),
 	); err != nil {
 		return err
 	}

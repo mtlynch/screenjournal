@@ -61,7 +61,14 @@ func (s Server) usersPut() http.HandlerFunc {
 			return
 		}
 
-		if err := s.sessionManager.CreateSession(w, r.Context(), user.Username); err != nil {
+		userID, err := userIDFromUsername(user.Username)
+		if err != nil {
+			log.Printf("failed to create user ID for new user %+v: %v", user, err)
+			http.Error(w, "Failed to create session", http.StatusInternalServerError)
+			return
+		}
+
+		if err := s.sessionManager.LogIn(r.Context(), w, userID); err != nil {
 			log.Printf("failed to create session for new user %+v: %v", user, err)
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return

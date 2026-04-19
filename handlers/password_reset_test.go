@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
+
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/passwordreset"
@@ -20,11 +22,11 @@ type passwordResetMockSessionManager struct {
 	sessions map[string]mockSession
 }
 
-func (sm *passwordResetMockSessionManager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username) error {
+func (sm *passwordResetMockSessionManager) LogIn(ctx context.Context, w http.ResponseWriter, userID simple_sessions.UserID) error {
 	_ = ctx
 	token := "mock-session-token-12345"
 	sm.sessions[token] = mockSession{
-		Username: username,
+		Username: screenjournal.Username(userID.String()),
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:  "mock-session-token",
@@ -33,17 +35,17 @@ func (sm *passwordResetMockSessionManager) CreateSession(w http.ResponseWriter, 
 	return nil
 }
 
-func (sm *passwordResetMockSessionManager) UsernameFromContext(ctx context.Context) (screenjournal.Username, error) {
+func (sm *passwordResetMockSessionManager) UserIDFromContext(ctx context.Context) (simple_sessions.UserID, error) {
 	_ = ctx
 	// Not used in this test.
-	return screenjournal.Username(""), nil
+	return simple_sessions.UserID{}, nil
 }
 
-func (sm *passwordResetMockSessionManager) EndSession(context.Context, http.ResponseWriter) error {
+func (sm *passwordResetMockSessionManager) LogOut(context.Context, http.ResponseWriter) error {
 	return nil
 }
 
-func (sm *passwordResetMockSessionManager) WrapRequest(next http.Handler) http.Handler {
+func (sm *passwordResetMockSessionManager) LoadUser(next http.Handler) http.Handler {
 	return next // Simple passthrough for this test.
 }
 

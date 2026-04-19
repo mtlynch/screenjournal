@@ -9,8 +9,9 @@ import (
 	"net/http"
 	"net/url"
 
+	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
+
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store"
 )
@@ -48,7 +49,14 @@ func (s Server) authPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.sessionManager.CreateSession(w, r.Context(), user.Username); err != nil {
+		userID, err := userIDFromUsername(user.Username)
+		if err != nil {
+			log.Printf("failed to create user ID for user %s: %v", user.Username.String(), err)
+			http.Error(w, "Failed to create session", http.StatusInternalServerError)
+			return
+		}
+
+		if err := s.sessionManager.LogIn(r.Context(), w, userID); err != nil {
 			log.Printf("failed to create session for user %s: %v", user.Username.String(), err)
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
@@ -58,7 +66,7 @@ func (s Server) authPost() http.HandlerFunc {
 
 func (s Server) authDelete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := s.sessionManager.EndSession(r.Context(), w); err != nil {
+		if err := s.sessionManager.LogOut(r.Context(), w); err != nil {
 			log.Printf("failed to end session: %v", err)
 			http.Error(w, "Failed to end session", http.StatusInternalServerError)
 		}
@@ -66,13 +74,13 @@ func (s Server) authDelete() http.HandlerFunc {
 }
 
 func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
-	return s.sessionManager.WrapRequest(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		username, err := s.sessionManager.UsernameFromContext(r.Context())
+	return s.sessionManager.LoadUser(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID, err := s.sessionManager.UserIDFromContext(r.Context())
 		if err != nil {
-			if err != sessions.ErrNoSessionFound {
+			if !errors.Is(err, simple_sessions.ErrNoSessionFound) {
 				log.Printf("invalid session token: %v", err)
 			}
-			if err := s.sessionManager.EndSession(r.Context(), w); err != nil {
+			if err := s.sessionManager.LogOut(r.Context(), w); err != nil {
 				log.Printf("failed to end invalid session: %v", err)
 				http.Error(w, "Failed to end session", http.StatusInternalServerError)
 				return
@@ -81,10 +89,11 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 			return
 		}
 
+		username := screenjournal.Username(userID.String())
 		user, err := s.getDB(r).ReadUser(username)
 		if err != nil {
 			if errors.Is(err, store.ErrUserNotFound) {
-				if err := s.sessionManager.EndSession(r.Context(), w); err != nil {
+				if err := s.sessionManager.LogOut(r.Context(), w); err != nil {
 					log.Printf("failed to end session for missing user: %v", err)
 					http.Error(w, "Failed to end session", http.StatusInternalServerError)
 					return
@@ -109,7 +118,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 func (s Server) requireAuthenticationForAPI(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if _, ok := sessionFromContext(r.Context()); !ok {
-			if err := s.sessionManager.EndSession(r.Context(), w); err != nil {
+			if err := s.sessionManager.LogOut(r.Context(), w); err != nil {
 				log.Printf("failed to end unauthenticated session: %v", err)
 				http.Error(w, "Failed to end session", http.StatusInternalServerError)
 				return
@@ -125,7 +134,7 @@ func (s Server) requireAuthenticationForAPI(next http.Handler) http.Handler {
 func (s Server) requireAuthenticationForView(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if _, ok := sessionFromContext(r.Context()); !ok {
-			if err := s.sessionManager.EndSession(r.Context(), w); err != nil {
+			if err := s.sessionManager.LogOut(r.Context(), w); err != nil {
 				log.Printf("failed to end unauthenticated session: %v", err)
 				http.Error(w, "Failed to end session", http.StatusInternalServerError)
 				return
@@ -179,6 +188,10 @@ func credentialsFromRequest(r *http.Request) (screenjournal.Username, screenjour
 	}
 
 	return username, password, nil
+}
+
+func userIDFromUsername(username screenjournal.Username) (simple_sessions.UserID, error) {
+	return simple_sessions.NewUserID(username.String())
 }
 
 func isAdmin(ctx context.Context) bool {

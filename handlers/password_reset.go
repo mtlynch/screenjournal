@@ -61,7 +61,13 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 		}
 
 		// Create a session to automatically log in the user.
-		if err := s.sessionManager.CreateSession(w, r.Context(), username); err != nil {
+		userID, err := userIDFromUsername(username)
+		if err != nil {
+			log.Printf("failed to create user ID after password reset: %v", err)
+			http.Error(w, "Password updated but failed to log in", http.StatusInternalServerError)
+			return
+		}
+		if err := s.sessionManager.LogIn(r.Context(), w, userID); err != nil {
 			log.Printf("failed to create session after password reset: %v", err)
 			http.Error(w, "Password updated but failed to log in", http.StatusInternalServerError)
 			return

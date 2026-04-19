@@ -6,6 +6,8 @@ import (
 
 	"github.com/gorilla/mux"
 
+	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
+
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
@@ -22,13 +24,13 @@ type (
 	}
 
 	SessionManager interface {
-		CreateSession(http.ResponseWriter, context.Context, screenjournal.Username) error
-		UsernameFromContext(context.Context) (screenjournal.Username, error)
-		EndSession(context.Context, http.ResponseWriter) error
-		// WrapRequest wraps the given handler, adding the session identity
-		// (if there's an active session) to the request context before passing
-		// control to the next handler.
-		WrapRequest(http.Handler) http.Handler
+		LogIn(context.Context, http.ResponseWriter, simple_sessions.UserID) error
+		UserIDFromContext(context.Context) (simple_sessions.UserID, error)
+		LogOut(context.Context, http.ResponseWriter) error
+		// LoadUser wraps the given handler, adding the user ID (if there's an
+		// active session) to the request context before passing control to the
+		// next handler.
+		LoadUser(http.Handler) http.Handler
 	}
 
 	Authenticator interface {

@@ -13,10 +13,11 @@ import (
 
 	"github.com/go-test/deep"
 
+	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
+
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -72,11 +73,11 @@ func newMockSessionManager(mockSessions []mockSessionEntry) mockSessionManager {
 	}
 }
 
-func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username) error {
+func (sm *mockSessionManager) LogIn(ctx context.Context, w http.ResponseWriter, userID simple_sessions.UserID) error {
 	_ = ctx
 	token := random.String(10, []rune("abcdefghijklmnopqrstuvwxyz0123456789"))
 	sm.sessions[token] = mockSession{
-		Username: username,
+		Username: screenjournal.Username(userID.String()),
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:  mockSessionTokenName,
@@ -85,16 +86,16 @@ func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, ctx context.C
 	return nil
 }
 
-func (sm mockSessionManager) UsernameFromContext(ctx context.Context) (screenjournal.Username, error) {
+func (sm mockSessionManager) UserIDFromContext(ctx context.Context) (simple_sessions.UserID, error) {
 	token, ok := ctx.Value(contextKeySession).(string)
 	if !ok {
-		return screenjournal.Username(""), sessions.ErrNoSessionFound
+		return simple_sessions.UserID{}, simple_sessions.ErrNoSessionFound
 	}
 	session, err := sm.SessionFromToken(token)
 	if err != nil {
-		return screenjournal.Username(""), err
+		return simple_sessions.UserID{}, err
 	}
-	return session.Username, nil
+	return simple_sessions.NewUserID(session.Username.String())
 }
 
 func (sm mockSessionManager) SessionFromToken(token string) (mockSession, error) {
@@ -106,11 +107,11 @@ func (sm mockSessionManager) SessionFromToken(token string) (mockSession, error)
 	return session, nil
 }
 
-func (sm mockSessionManager) EndSession(context.Context, http.ResponseWriter) error {
+func (sm mockSessionManager) LogOut(context.Context, http.ResponseWriter) error {
 	return nil
 }
 
-func (sm mockSessionManager) WrapRequest(next http.Handler) http.Handler {
+func (sm mockSessionManager) LoadUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if token, err := r.Cookie(mockSessionTokenName); err == nil {
 			r = r.WithContext(context.WithValue(r.Context(), contextKeySession, token.Value))

@@ -15,6 +15,7 @@ COPY ./random /app/random
 COPY ./ratelimit /app/ratelimit
 COPY ./screenjournal /app/screenjournal
 COPY ./store /app/store
+COPY ./third_party /app/third_party
 COPY ./go.* /app/
 
 WORKDIR /app

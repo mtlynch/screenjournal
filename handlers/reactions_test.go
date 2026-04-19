@@ -10,7 +10,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -33,19 +32,19 @@ func makeReactionsTestData() reactionsTestData {
 	td := reactionsTestData{}
 	td.sessions.userA = mockSessionEntry{
 		token: "abc123",
-		session: sessions.Session{
+		session: mockSession{
 			Username: screenjournal.Username("userA"),
 		},
 	}
 	td.sessions.userB = mockSessionEntry{
 		token: "def456",
-		session: sessions.Session{
+		session: mockSession{
 			Username: screenjournal.Username("userB"),
 		},
 	}
 	td.sessions.admin = mockSessionEntry{
 		token: "admin789",
-		session: sessions.Session{
+		session: mockSession{
 			Username: screenjournal.Username("admin"),
 			IsAdmin:  true,
 		},

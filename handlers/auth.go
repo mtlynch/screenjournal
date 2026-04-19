@@ -19,6 +19,11 @@ type contextKey struct {
 	name string
 }
 
+type authenticatedSession struct {
+	Username screenjournal.Username
+	IsAdmin  bool
+}
+
 var contextKeySession = &contextKey{"user"}
 
 func (s Server) authPost() http.HandlerFunc {
@@ -62,7 +67,7 @@ func (s Server) authDelete() http.HandlerFunc {
 
 func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 	return s.sessionManager.WrapRequest(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sessionIdentity, err := s.sessionManager.SessionFromContext(r.Context())
+		username, err := s.sessionManager.UsernameFromContext(r.Context())
 		if err != nil {
 			if err != sessions.ErrNoSessionFound {
 				log.Printf("invalid session token: %v", err)
@@ -76,7 +81,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 			return
 		}
 
-		user, err := s.getDB(r).ReadUser(sessionIdentity.Username)
+		user, err := s.getDB(r).ReadUser(username)
 		if err != nil {
 			if errors.Is(err, store.ErrUserNotFound) {
 				if err := s.sessionManager.EndSession(r.Context(), w); err != nil {
@@ -92,7 +97,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 			return
 		}
 
-		session := sessions.Session{
+		session := authenticatedSession{
 			Username: user.Username,
 			IsAdmin:  user.IsAdmin,
 		}
@@ -190,10 +195,10 @@ func isAuthenticated(ctx context.Context) bool {
 	return ok
 }
 
-func sessionFromContext(ctx context.Context) (sessions.Session, bool) {
-	session, ok := ctx.Value(contextKeySession).(sessions.Session)
+func sessionFromContext(ctx context.Context) (authenticatedSession, bool) {
+	session, ok := ctx.Value(contextKeySession).(authenticatedSession)
 	if !ok {
-		return sessions.Session{}, false
+		return authenticatedSession{}, false
 	}
 	return session, true
 }

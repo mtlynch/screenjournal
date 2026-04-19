@@ -8,7 +8,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -91,7 +90,7 @@ func TestAccountChangePasswordPut(t *testing.T) {
 				}
 				mockSessionEntries = append(mockSessionEntries, mockSessionEntry{
 					token: entry.sessionToken,
-					session: sessions.Session{
+					session: mockSession{
 						Username: entry.username,
 					},
 				})
@@ -146,7 +145,7 @@ func TestAccountNotificationsPut(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
+					session: mockSession{
 						Username: screenjournal.Username("userA"),
 					},
 				},
@@ -164,7 +163,7 @@ func TestAccountNotificationsPut(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
+					session: mockSession{
 						Username: screenjournal.Username("userA"),
 					},
 				},
@@ -182,7 +181,7 @@ func TestAccountNotificationsPut(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
+					session: mockSession{
 						Username: screenjournal.Username("userA"),
 					},
 				},

@@ -10,7 +10,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/passwordreset"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
@@ -18,13 +17,13 @@ import (
 
 // Simple mock session manager implementation for this test.
 type passwordResetMockSessionManager struct {
-	sessions map[string]sessions.Session
+	sessions map[string]mockSession
 }
 
 func (sm *passwordResetMockSessionManager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username) error {
 	_ = ctx
 	token := "mock-session-token-12345"
-	sm.sessions[token] = sessions.Session{
+	sm.sessions[token] = mockSession{
 		Username: username,
 	}
 	http.SetCookie(w, &http.Cookie{
@@ -34,14 +33,10 @@ func (sm *passwordResetMockSessionManager) CreateSession(w http.ResponseWriter, 
 	return nil
 }
 
-func (sm *passwordResetMockSessionManager) SessionFromContext(ctx context.Context) (sessions.Session, error) {
+func (sm *passwordResetMockSessionManager) UsernameFromContext(ctx context.Context) (screenjournal.Username, error) {
+	_ = ctx
 	// Not used in this test.
-	return sessions.Session{}, nil
-}
-
-func (sm *passwordResetMockSessionManager) SessionFromToken(token string) (sessions.Session, error) {
-	// Not used in this test.
-	return sessions.Session{}, nil
+	return screenjournal.Username(""), nil
 }
 
 func (sm *passwordResetMockSessionManager) EndSession(context.Context, http.ResponseWriter) error {
@@ -231,7 +226,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 
 			// Create mock session manager for this test.
 			sessionMgr := &passwordResetMockSessionManager{
-				sessions: make(map[string]sessions.Session),
+				sessions: make(map[string]mockSession),
 			}
 
 			passwordResetter := passwordreset.NewNoEmail(dataStore, time.Now)
@@ -271,7 +266,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			}
 
 			// Find the created session.
-			var createdSession sessions.Session
+			var createdSession mockSession
 			for _, session := range sessionMgr.sessions {
 				createdSession = session
 				break

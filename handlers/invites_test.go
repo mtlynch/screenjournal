@@ -8,7 +8,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -24,14 +23,14 @@ func makeInvitesTestData() invitesTestData {
 	td := invitesTestData{}
 	td.sessions.adminUser = mockSessionEntry{
 		token: "admintok555",
-		session: sessions.Session{
+		session: mockSession{
 			Username: screenjournal.Username("admin"),
 			IsAdmin:  true,
 		},
 	}
 	td.sessions.regularUser = mockSessionEntry{
 		token: "abc123",
-		session: sessions.Session{
+		session: mockSession{
 			Username: screenjournal.Username("regularUser"),
 		},
 	}

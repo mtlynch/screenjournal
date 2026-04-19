@@ -6,7 +6,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
@@ -24,11 +23,11 @@ type (
 
 	SessionManager interface {
 		CreateSession(http.ResponseWriter, context.Context, screenjournal.Username) error
-		SessionFromContext(context.Context) (sessions.Session, error)
+		UsernameFromContext(context.Context) (screenjournal.Username, error)
 		EndSession(context.Context, http.ResponseWriter) error
-		// WrapRequest wraps the given handler, adding the Session object
-		// (if there's an active session) to the request context before
-		// passing control to the next handler.
+		// WrapRequest wraps the given handler, adding the session identity
+		// (if there's an active session) to the request context before passing
+		// control to the next handler.
 		WrapRequest(http.Handler) http.Handler
 	}
 

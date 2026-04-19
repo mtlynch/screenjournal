@@ -6,22 +6,14 @@ import (
 	"net/http"
 	"time"
 
-	"codeberg.org/mtlynch/simpleauth/v3"
 	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
 
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )
 
-type (
-	Session struct {
-		Username screenjournal.Username
-		IsAdmin  bool
-	}
-
-	Manager struct {
-		inner simple_sessions.Manager
-	}
-)
+type Manager struct {
+	inner simple_sessions.Manager
+}
 
 var ErrNoSessionFound = simple_sessions.ErrNoSessionFound
 
@@ -36,7 +28,7 @@ func NewManager(db *sql.DB, requireTls bool) Manager {
 }
 
 func (sm Manager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username) error {
-	userID, err := simpleauth.NewUserID(username.String())
+	userID, err := simple_sessions.NewUserID(username.String())
 	if err != nil {
 		return err
 	}
@@ -46,15 +38,13 @@ func (sm Manager) CreateSession(w http.ResponseWriter, ctx context.Context, user
 	return nil
 }
 
-func (sm Manager) SessionFromContext(ctx context.Context) (Session, error) {
+func (sm Manager) UsernameFromContext(ctx context.Context) (screenjournal.Username, error) {
 	sess, err := sm.inner.SessionFromContext(ctx)
 	if err != nil {
-		return Session{}, err
+		return screenjournal.Username(""), err
 	}
 
-	return Session{
-		Username: screenjournal.Username(sess.UserID.String()),
-	}, nil
+	return screenjournal.Username(sess.UserID.String()), nil
 }
 
 func (sm Manager) EndSession(ctx context.Context, w http.ResponseWriter) error {

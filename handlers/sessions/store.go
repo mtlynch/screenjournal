@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"codeberg.org/mtlynch/simpleauth/v3"
 	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
 )
 
@@ -81,7 +80,7 @@ func (s store) ReadSession(ctx context.Context, id simple_sessions.ID) (simple_s
 	if err := json.Unmarshal(b, &stored); err != nil {
 		return simple_sessions.Session{}, err
 	}
-	userID, err := simpleauth.NewUserID(stored.UserID)
+	userID, err := simple_sessions.NewUserID(stored.UserID)
 	if err != nil {
 		return simple_sessions.Session{}, fmt.Errorf("parse stored user ID: %w", err)
 	}

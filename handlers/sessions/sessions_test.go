@@ -29,17 +29,17 @@ func TestManagerStoresSessionsInSQLite(t *testing.T) {
 		t.Fatalf("len(cookies)=%d, want=%d", got, want)
 	}
 
-	var loaded sessions.Session
+	var loaded screenjournal.Username
 	var loadErr error
 	manager.WrapRequest(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		loaded, loadErr = manager.SessionFromContext(r.Context())
+		loaded, loadErr = manager.UsernameFromContext(r.Context())
 	})).ServeHTTP(httptest.NewRecorder(), requestWithCookie(cookies[0]))
 
 	if got, want := loadErr, error(nil); got != want {
 		t.Fatalf("loadErr=%v, want=%v", got, want)
 	}
-	if got, want := loaded.Username, screenjournal.Username("mavis"); got != want {
-		t.Errorf("loaded.Username=%v, want=%v", got, want)
+	if got, want := loaded, screenjournal.Username("mavis"); got != want {
+		t.Errorf("loaded=%v, want=%v", got, want)
 	}
 	endRec := httptest.NewRecorder()
 	var endErr error
@@ -51,7 +51,7 @@ func TestManagerStoresSessionsInSQLite(t *testing.T) {
 	}
 
 	manager.WrapRequest(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, loadErr = manager.SessionFromContext(r.Context())
+		_, loadErr = manager.UsernameFromContext(r.Context())
 	})).ServeHTTP(httptest.NewRecorder(), requestWithCookie(cookies[0]))
 	if got, want := loadErr, sessions.ErrNoSessionFound; got != want {
 		t.Fatalf("loadErr=%v, want=%v", got, want)

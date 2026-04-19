@@ -12,7 +12,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -71,7 +70,7 @@ func TestSearchGet(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
+					session: mockSession{
 						Username: screenjournal.Username("user123"),
 					},
 				},
@@ -105,7 +104,7 @@ func TestSearchGet(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
+					session: mockSession{
 						Username: screenjournal.Username("user123"),
 					},
 				},
@@ -139,7 +138,7 @@ func TestSearchGet(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
+					session: mockSession{
 						Username: screenjournal.Username("user123"),
 					},
 				},
@@ -158,7 +157,7 @@ func TestSearchGet(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
+					session: mockSession{
 						Username: screenjournal.Username("user123"),
 					},
 				},
@@ -173,7 +172,7 @@ func TestSearchGet(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
+					session: mockSession{
 						Username: screenjournal.Username("user123"),
 					},
 				},

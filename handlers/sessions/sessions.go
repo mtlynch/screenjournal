@@ -28,10 +28,9 @@ type (
 var ErrNoSessionFound = errors.New("no session in request context")
 
 func NewManager(db *sql.DB, requireTls bool) Manager {
-	store := newStore(db)
 	return Manager{
 		inner: simple_sessions.NewManager(simple_sessions.Config{
-			Store:      store,
+			Store:      store{db: db},
 			RequireTLS: requireTls,
 			Now:        time.Now,
 		}),

@@ -29,10 +29,6 @@ type (
 	}
 )
 
-func newStore(db *sql.DB) store {
-	return store{db: db}
-}
-
 func (s store) CreateSession(ctx context.Context, session simple_sessions.Session) error {
 	b, err := json.Marshal(storedSession{
 		UserID:      session.UserID.String(),

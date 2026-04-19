@@ -3,7 +3,7 @@ module github.com/mtlynch/screenjournal/v2
 go 1.23
 
 require (
-	codeberg.org/mtlynch/simpleauth/v3 v3.0.0
+	codeberg.org/mtlynch/simpleauth/v3 v3.0.0-20260419204402-296b389fc48a
 	github.com/go-test/deep v1.0.8
 	github.com/gomarkdown/markdown v0.0.0-20240723152757-afa4a469d4f9
 	github.com/gorilla/mux v1.8.0
@@ -28,5 +28,3 @@ require (
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 )
-
-replace codeberg.org/mtlynch/simpleauth/v3 => ./third_party/simpleauth

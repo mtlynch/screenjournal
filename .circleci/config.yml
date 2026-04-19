@@ -6,15 +6,6 @@ executors:
   go:
     docker:
       - image: cimg/go:1.25.4
-commands:
-  checkout_with_submodules:
-    steps:
-      - checkout
-      - run:
-          name: Check out git submodules
-          command: |
-            git submodule sync --recursive
-            git submodule update --init --recursive
 jobs:
   check_whitespace:
     executor: go
@@ -53,7 +44,7 @@ jobs:
     executor: go
     resource_class: medium
     steps:
-      - checkout_with_submodules
+      - checkout
       - attach_workspace:
           at: ./
       - restore_cache:
@@ -74,7 +65,7 @@ jobs:
   build_backend:
     executor: go
     steps:
-      - checkout_with_submodules
+      - checkout
       - attach_workspace:
           at: ./
       - restore_cache:
@@ -123,7 +114,7 @@ jobs:
   package_release:
     executor: base
     steps:
-      - checkout_with_submodules
+      - checkout
       - setup_remote_docker:
           version: docker24
           docker_layer_caching: true
@@ -197,7 +188,7 @@ jobs:
     environment:
       BUILD_TARGETS: "linux/arm/v7,linux/arm64,linux/amd64"
     steps:
-      - checkout_with_submodules
+      - checkout
       - setup_remote_docker:
           version: docker24
           docker_layer_caching: true
@@ -221,7 +212,7 @@ jobs:
     executor: go
     resource_class: small
     steps:
-      - checkout_with_submodules
+      - checkout
       - run:
           name: Install flyctl
           # The flyctl changes too much to use a specific version, so use the latest for the

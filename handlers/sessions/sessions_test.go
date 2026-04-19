@@ -18,11 +18,9 @@ func TestManagerStoresSessionsInSQLite(t *testing.T) {
 			t.Fatalf("failed to close db: %v", err)
 		}
 	}()
+	sqlite.New(db, false)
 
-	manager, err := sessions.NewManager(db, false)
-	if got, want := err, error(nil); got != want {
-		t.Fatalf("err=%v, want=%v", got, want)
-	}
+	manager := sessions.NewManager(db, false)
 
 	rec := httptest.NewRecorder()
 	if err := manager.CreateSession(

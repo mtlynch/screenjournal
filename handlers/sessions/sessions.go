@@ -27,18 +27,15 @@ type (
 
 var ErrNoSessionFound = errors.New("no session in request context")
 
-func NewManager(db *sql.DB, requireTls bool) (Manager, error) {
-	store, err := newStore(db)
-	if err != nil {
-		return Manager{}, err
-	}
+func NewManager(db *sql.DB, requireTls bool) Manager {
+	store := newStore(db)
 	return Manager{
 		inner: simple_sessions.NewManager(simple_sessions.Config{
 			Store:      store,
 			RequireTLS: requireTls,
 			Now:        time.Now,
 		}),
-	}, nil
+	}
 }
 
 func (sm Manager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username, isAdmin bool) error {

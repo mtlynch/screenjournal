@@ -29,3 +29,5 @@ require (
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 )
+
+replace github.com/mtlynch/simpleauth/v2 => ./third_party/simpleauth

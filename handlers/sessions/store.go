@@ -3,7 +3,6 @@ package sessions
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -20,37 +19,27 @@ type (
 	store struct {
 		db *sql.DB
 	}
-
-	storedSession struct {
-		UserID    string    `json:"userID"`
-		CreatedAt time.Time `json:"createdAt"`
-	}
 )
 
 func (s store) CreateSession(ctx context.Context, session simple_sessions.Session) error {
-	b, err := json.Marshal(storedSession{
-		UserID:    session.UserID.String(),
-		CreatedAt: session.CreatedAt,
-	})
-	if err != nil {
-		return err
-	}
-
 	if _, err := s.db.ExecContext(ctx, `
 		INSERT OR REPLACE INTO auth_sessions
 		(
 			session_id,
-			session_data,
+			user_id,
+			created_at,
 			expires_at
 		)
 		VALUES
 		(
 			:session_id,
-			:session_data,
+			:user_id,
+			:created_at,
 			:expires_at
 		)`,
 		sql.Named("session_id", session.ID.String()),
-		sql.Named("session_data", b),
+		sql.Named("user_id", session.UserID.String()),
+		sql.Named("created_at", formatSessionTime(session.CreatedAt)),
 		sql.Named("expires_at", formatSessionExpiration(session.CreatedAt)),
 	); err != nil {
 		return err
@@ -59,35 +48,37 @@ func (s store) CreateSession(ctx context.Context, session simple_sessions.Sessio
 }
 
 func (s store) ReadSession(ctx context.Context, id simple_sessions.ID) (simple_sessions.Session, error) {
-	var b []byte
+	var userIDRaw string
+	var createdAtRaw string
 	if err := s.db.QueryRowContext(ctx, `
 		SELECT
-			session_data
+			user_id,
+			created_at
 		FROM
 			auth_sessions
 		WHERE
 			session_id = :session_id
 			AND expires_at > datetime('now', 'localtime')`,
 		sql.Named("session_id", id.String()),
-	).Scan(&b); err != nil {
+	).Scan(&userIDRaw, &createdAtRaw); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return simple_sessions.Session{}, simple_sessions.ErrNoSessionFound
 		}
 		return simple_sessions.Session{}, err
 	}
 
-	var stored storedSession
-	if err := json.Unmarshal(b, &stored); err != nil {
-		return simple_sessions.Session{}, err
-	}
-	userID, err := simple_sessions.NewUserID(stored.UserID)
+	userID, err := simple_sessions.NewUserID(userIDRaw)
 	if err != nil {
 		return simple_sessions.Session{}, fmt.Errorf("parse stored user ID: %w", err)
+	}
+	createdAt, err := parseSessionTime(createdAtRaw)
+	if err != nil {
+		return simple_sessions.Session{}, fmt.Errorf("parse stored created at: %w", err)
 	}
 	return simple_sessions.Session{
 		ID:        id,
 		UserID:    userID,
-		CreatedAt: stored.CreatedAt,
+		CreatedAt: createdAt,
 	}, nil
 }
 
@@ -105,5 +96,13 @@ func (s store) DeleteSession(ctx context.Context, id simple_sessions.ID) error {
 }
 
 func formatSessionExpiration(createdAt time.Time) string {
-	return createdAt.Add(sessionLifetime).Format(sqliteDatetimeFormat)
+	return formatSessionTime(createdAt.Add(sessionLifetime))
+}
+
+func formatSessionTime(t time.Time) string {
+	return t.Format(sqliteDatetimeFormat)
+}
+
+func parseSessionTime(raw string) (time.Time, error) {
+	return time.Parse(sqliteDatetimeFormat, raw)
 }

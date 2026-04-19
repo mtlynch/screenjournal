@@ -2,9 +2,11 @@ package sessions_test
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
 
@@ -46,6 +48,7 @@ func TestManagerStoresSessionsInSQLite(t *testing.T) {
 	if got, want := loaded.String(), "mavis"; got != want {
 		t.Errorf("loaded=%v, want=%v", got, want)
 	}
+	assertSessionStoredInSQLite(t, db, cookies[0].Value, userID.String())
 	endRec := httptest.NewRecorder()
 	var endErr error
 	manager.LoadUser(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -67,4 +70,33 @@ func requestWithCookie(cookie *http.Cookie) *http.Request {
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.AddCookie(cookie)
 	return req
+}
+
+func assertSessionStoredInSQLite(
+	t testing.TB,
+	db *sql.DB,
+	sessionID string,
+	userIDExpected string,
+) {
+	t.Helper()
+	var userIDRaw string
+	var createdAtRaw string
+	if err := db.QueryRow(`
+		SELECT
+			user_id,
+			created_at
+		FROM
+			auth_sessions
+		WHERE
+			session_id = :session_id`,
+		sql.Named("session_id", sessionID)).
+		Scan(&userIDRaw, &createdAtRaw); err != nil {
+		t.Fatalf("failed to read stored session: %v", err)
+	}
+	if got, want := userIDRaw, userIDExpected; got != want {
+		t.Errorf("userID=%s, want=%s", got, want)
+	}
+	if _, err := time.Parse("2006-01-02 15:04:05", createdAtRaw); err != nil {
+		t.Fatalf("createdAt=%q failed to parse: %v", createdAtRaw, err)
+	}
 }

@@ -20,7 +20,6 @@ func TestManagerStoresSessionsInSQLite(t *testing.T) {
 		rec,
 		context.Background(),
 		screenjournal.Username("mavis"),
-		true,
 	); err != nil {
 		t.Fatalf("CreateSession err=%v, want=%v", err, nil)
 	}
@@ -42,10 +41,6 @@ func TestManagerStoresSessionsInSQLite(t *testing.T) {
 	if got, want := loaded.Username, screenjournal.Username("mavis"); got != want {
 		t.Errorf("loaded.Username=%v, want=%v", got, want)
 	}
-	if got, want := loaded.IsAdmin, true; got != want {
-		t.Errorf("loaded.IsAdmin=%v, want=%v", got, want)
-	}
-
 	endRec := httptest.NewRecorder()
 	var endErr error
 	manager.WrapRequest(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

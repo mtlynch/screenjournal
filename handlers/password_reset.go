@@ -60,17 +60,9 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 			return
 		}
 
-		// Read user data to get admin status for session creation.
-		user, err := s.getDB(r).ReadUser(username)
-		if err != nil {
-			log.Printf("failed to read user data for session creation %s: %v", username, err)
-			http.Error(w, "Failed to read user information", http.StatusInternalServerError)
-			return
-		}
-
-		// Create session to automatically log in the user.
-		if err := s.sessionManager.CreateSession(w, r.Context(), user.Username, user.IsAdmin); err != nil {
-			log.Printf("failed to create session for user %s after password reset: %v", user.Username.String(), err)
+		// Create a session to automatically log in the user.
+		if err := s.sessionManager.CreateSession(w, r.Context(), username); err != nil {
+			log.Printf("failed to create session after password reset: %v", err)
 			http.Error(w, "Password updated but failed to log in", http.StatusInternalServerError)
 			return
 		}

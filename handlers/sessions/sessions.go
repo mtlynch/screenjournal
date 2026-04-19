@@ -3,8 +3,6 @@ package sessions
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
-	"errors"
 	"net/http"
 	"time"
 
@@ -25,7 +23,7 @@ type (
 	}
 )
 
-var ErrNoSessionFound = errors.New("no session in request context")
+var ErrNoSessionFound = simple_sessions.ErrNoSessionFound
 
 func NewManager(db *sql.DB, requireTls bool) Manager {
 	return Manager{
@@ -37,18 +35,12 @@ func NewManager(db *sql.DB, requireTls bool) Manager {
 	}
 }
 
-func (sm Manager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username, isAdmin bool) error {
+func (sm Manager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username) error {
 	userID, err := simpleauth.NewUserID(username.String())
 	if err != nil {
 		return err
 	}
-	if err := sm.inner.CreateSession(ctx, w, simpleauth.User{
-		ID: userID,
-		SessionData: json.RawMessage(serializeSession(Session{
-			Username: username,
-			IsAdmin:  isAdmin,
-		})),
-	}); err != nil {
+	if err := sm.inner.CreateSession(ctx, w, userID); err != nil {
 		return err
 	}
 	return nil
@@ -57,19 +49,12 @@ func (sm Manager) CreateSession(w http.ResponseWriter, ctx context.Context, user
 func (sm Manager) SessionFromContext(ctx context.Context) (Session, error) {
 	sess, err := sm.inner.SessionFromContext(ctx)
 	if err != nil {
-		// Wrap the third-party error with a local one.
-		if errors.Is(err, simple_sessions.ErrNoSessionFound) {
-			return Session{}, ErrNoSessionFound
-		}
 		return Session{}, err
 	}
 
-	session, err := deserializeSession(sess.SessionData)
-	if err != nil {
-		return Session{}, err
-	}
-
-	return session, nil
+	return Session{
+		Username: screenjournal.Username(sess.UserID.String()),
+	}, nil
 }
 
 func (sm Manager) EndSession(ctx context.Context, w http.ResponseWriter) error {

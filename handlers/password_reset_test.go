@@ -21,11 +21,11 @@ type passwordResetMockSessionManager struct {
 	sessions map[string]sessions.Session
 }
 
-func (sm *passwordResetMockSessionManager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username, isAdmin bool) error {
+func (sm *passwordResetMockSessionManager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username) error {
+	_ = ctx
 	token := "mock-session-token-12345"
 	sm.sessions[token] = sessions.Session{
 		Username: username,
-		IsAdmin:  isAdmin,
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:  "mock-session-token",
@@ -71,7 +71,6 @@ func TestAccountPasswordResetPut(t *testing.T) {
 		existingTokens       []screenjournal.PasswordResetEntry
 		expectedStatus       int
 		expectSessionFor     screenjournal.Username
-		expectSessionIsAdmin bool
 		newPasswordInPayload screenjournal.Password
 	}{
 		{
@@ -96,11 +95,10 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			},
 			expectedStatus:       http.StatusOK,
 			expectSessionFor:     screenjournal.Username("userA"),
-			expectSessionIsAdmin: false,
 			newPasswordInPayload: screenjournal.Password("newpass123"),
 		},
 		{
-			description: "admin user password reset creates admin session",
+			description: "admin user password reset creates session",
 			payload:     "password=newadminpass789",
 			username:    screenjournal.Username("userB"),
 			token:       screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef99"),
@@ -121,7 +119,6 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			},
 			expectedStatus:       http.StatusOK,
 			expectSessionFor:     screenjournal.Username("userB"),
-			expectSessionIsAdmin: true,
 			newPasswordInPayload: screenjournal.Password("newadminpass789"),
 		},
 		{
@@ -283,11 +280,6 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			// Verify the session is for the correct user.
 			if got, want := createdSession.Username, tt.expectSessionFor; !got.Equal(want) {
 				t.Errorf("sessionUsername=%+v, want=%+v", got, want)
-			}
-
-			// Verify the session has correct admin status.
-			if got, want := createdSession.IsAdmin, tt.expectSessionIsAdmin; got != want {
-				t.Errorf("sessionIsAdmin=%t, want=%t", got, want)
 			}
 
 			// Verify that the password was actually changed by attempting to

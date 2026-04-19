@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
+	"github.com/mtlynch/screenjournal/v2/store"
 )
 
 type contextKey struct {
@@ -41,7 +43,7 @@ func (s Server) authPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.sessionManager.CreateSession(w, r.Context(), user.Username, user.IsAdmin); err != nil {
+		if err := s.sessionManager.CreateSession(w, r.Context(), user.Username); err != nil {
 			log.Printf("failed to create session for user %s: %v", user.Username.String(), err)
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
@@ -60,7 +62,7 @@ func (s Server) authDelete() http.HandlerFunc {
 
 func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 	return s.sessionManager.WrapRequest(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, err := s.sessionManager.SessionFromContext(r.Context())
+		sessionIdentity, err := s.sessionManager.SessionFromContext(r.Context())
 		if err != nil {
 			if err != sessions.ErrNoSessionFound {
 				log.Printf("invalid session token: %v", err)
@@ -74,6 +76,26 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 			return
 		}
 
+		user, err := s.getDB(r).ReadUser(sessionIdentity.Username)
+		if err != nil {
+			if errors.Is(err, store.ErrUserNotFound) {
+				if err := s.sessionManager.EndSession(r.Context(), w); err != nil {
+					log.Printf("failed to end session for missing user: %v", err)
+					http.Error(w, "Failed to end session", http.StatusInternalServerError)
+					return
+				}
+				next.ServeHTTP(w, r)
+				return
+			}
+			log.Printf("failed to read session user: %v", err)
+			http.Error(w, "Failed to read user information", http.StatusInternalServerError)
+			return
+		}
+
+		session := sessions.Session{
+			Username: user.Username,
+			IsAdmin:  user.IsAdmin,
+		}
 		ctx := context.WithValue(r.Context(), contextKeySession, session)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}))

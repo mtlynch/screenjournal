@@ -204,18 +204,7 @@ func TestAccountNotificationsPut(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			// Populate datastore with dummy users.
-			for _, s := range tt.sessions {
-				mockUser := screenjournal.User{
-					Username:     s.session.Username,
-					IsAdmin:      s.session.IsAdmin,
-					Email:        screenjournal.Email(s.session.Username + "@example.com"),
-					PasswordHash: screenjournal.PasswordHash("dummy-pw-hash"),
-				}
-				if err := dataStore.InsertUser(mockUser); err != nil {
-					t.Fatalf("failed to insert mock user %+v: %v", mockUser, err)
-				}
-			}
+			insertMockSessionUsers(t, dataStore, tt.sessions)
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)

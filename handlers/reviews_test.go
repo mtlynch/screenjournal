@@ -2,7 +2,6 @@ package handlers_test
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -68,11 +67,11 @@ func newMockSessionManager(mockSessions []mockSessionEntry) mockSessionManager {
 	}
 }
 
-func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username, isAdmin bool) error {
+func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username) error {
+	_ = ctx
 	token := random.String(10, []rune("abcdefghijklmnopqrstuvwxyz0123456789"))
 	sm.sessions[token] = sessions.Session{
 		Username: username,
-		IsAdmin:  isAdmin,
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:  mockSessionTokenName,
@@ -84,7 +83,7 @@ func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, ctx context.C
 func (sm mockSessionManager) SessionFromContext(ctx context.Context) (sessions.Session, error) {
 	token, ok := ctx.Value(contextKeySession).(string)
 	if !ok {
-		return sessions.Session{}, errors.New("dummy no session in context")
+		return sessions.Session{}, sessions.ErrNoSessionFound
 	}
 	return sm.SessionFromToken(token)
 }
@@ -109,6 +108,25 @@ func (sm mockSessionManager) WrapRequest(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+type mockUserStore interface {
+	InsertUser(screenjournal.User) error
+}
+
+func insertMockSessionUsers(t *testing.T, userStore mockUserStore, mockSessions []mockSessionEntry) {
+	t.Helper()
+	for _, s := range mockSessions {
+		mockUser := screenjournal.User{
+			Username:     s.session.Username,
+			IsAdmin:      s.session.IsAdmin,
+			Email:        screenjournal.Email(s.session.Username.String() + "@example.com"),
+			PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+		}
+		if err := userStore.InsertUser(mockUser); err != nil {
+			t.Fatalf("failed to insert mock user %+v: %v", mockUser, err)
+		}
+	}
 }
 
 type mockMetadataFinder struct {
@@ -397,16 +415,7 @@ func TestReviewsPost(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			for _, s := range tt.sessions {
-				mockUser := screenjournal.User{
-					Username:     s.session.Username,
-					Email:        screenjournal.Email(s.session.Username + "@example.com"),
-					PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
-				}
-				if err := dataStore.InsertUser(mockUser); err != nil {
-					t.Fatalf("failed to insert mock user: %+v: %v", mockUser, err)
-				}
-			}
+			insertMockSessionUsers(t, dataStore, tt.sessions)
 
 			for _, movie := range tt.localMovies {
 				if _, err := dataStore.InsertMovie(movie); err != nil {
@@ -850,16 +859,7 @@ func TestReviewsPut(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			for _, s := range tt.sessions {
-				mockUser := screenjournal.User{
-					Username:     s.session.Username,
-					Email:        screenjournal.Email(s.session.Username.String() + "@example.com"),
-					PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
-				}
-				if err := dataStore.InsertUser(mockUser); err != nil {
-					t.Fatalf("failed to insert mock user: %+v: %v", mockUser, err)
-				}
-			}
+			insertMockSessionUsers(t, dataStore, tt.sessions)
 
 			for _, movie := range tt.localMovies {
 				if _, err := dataStore.InsertMovie(movie); err != nil {

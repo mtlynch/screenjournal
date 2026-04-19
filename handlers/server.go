@@ -23,7 +23,7 @@ type (
 	}
 
 	SessionManager interface {
-		CreateSession(http.ResponseWriter, context.Context, screenjournal.Username, bool) error
+		CreateSession(http.ResponseWriter, context.Context, screenjournal.Username) error
 		SessionFromContext(context.Context) (sessions.Session, error)
 		EndSession(context.Context, http.ResponseWriter) error
 		// WrapRequest wraps the given handler, adding the Session object

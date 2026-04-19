@@ -23,17 +23,15 @@ type (
 	}
 
 	storedSession struct {
-		UserID      string          `json:"userID"`
-		SessionData json.RawMessage `json:"sessionData"`
-		CreatedAt   time.Time       `json:"createdAt"`
+		UserID    string    `json:"userID"`
+		CreatedAt time.Time `json:"createdAt"`
 	}
 )
 
 func (s store) CreateSession(ctx context.Context, session simple_sessions.Session) error {
 	b, err := json.Marshal(storedSession{
-		UserID:      session.UserID.String(),
-		SessionData: session.SessionData,
-		CreatedAt:   session.CreatedAt,
+		UserID:    session.UserID.String(),
+		CreatedAt: session.CreatedAt,
 	})
 	if err != nil {
 		return err
@@ -88,10 +86,9 @@ func (s store) ReadSession(ctx context.Context, id simple_sessions.ID) (simple_s
 		return simple_sessions.Session{}, fmt.Errorf("parse stored user ID: %w", err)
 	}
 	return simple_sessions.Session{
-		ID:          id,
-		UserID:      userID,
-		SessionData: stored.SessionData,
-		CreatedAt:   stored.CreatedAt,
+		ID:        id,
+		UserID:    userID,
+		CreatedAt: stored.CreatedAt,
 	}, nil
 }
 

@@ -185,12 +185,7 @@ func TestSearchGet(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			// Populate datastore with dummy users.
-			for _, s := range tt.sessions {
-				dataStore.InsertUser(screenjournal.User{
-					Username: s.session.Username,
-				})
-			}
+			insertMockSessionUsers(t, dataStore, tt.sessions)
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)

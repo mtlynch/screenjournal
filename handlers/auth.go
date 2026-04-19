@@ -89,7 +89,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 			return
 		}
 
-		username := screenjournal.Username(userID.String())
+		username := usernameFromUserID(userID)
 		user, err := s.getDB(r).ReadUser(username)
 		if err != nil {
 			if errors.Is(err, store.ErrUserNotFound) {
@@ -192,6 +192,10 @@ func credentialsFromRequest(r *http.Request) (screenjournal.Username, screenjour
 
 func userIDFromUsername(username screenjournal.Username) (simple_sessions.UserID, error) {
 	return simple_sessions.NewUserID(username.String())
+}
+
+func usernameFromUserID(userID simple_sessions.UserID) screenjournal.Username {
+	return screenjournal.Username(userID.String())
 }
 
 func isAdmin(ctx context.Context) bool {

@@ -81,22 +81,32 @@ func assertSessionStoredInSQLite(
 	t.Helper()
 	var userIDRaw string
 	var createdAtRaw string
+	var expiresAtRaw string
 	if err := db.QueryRow(`
 		SELECT
 			user_id,
-			created_at
+			created_at,
+			expires_at
 		FROM
 			auth_sessions
 		WHERE
 			session_id = :session_id`,
 		sql.Named("session_id", sessionID)).
-		Scan(&userIDRaw, &createdAtRaw); err != nil {
+		Scan(&userIDRaw, &createdAtRaw, &expiresAtRaw); err != nil {
 		t.Fatalf("failed to read stored session: %v", err)
 	}
 	if got, want := userIDRaw, userIDExpected; got != want {
 		t.Errorf("userID=%s, want=%s", got, want)
 	}
-	if _, err := time.Parse("2006-01-02 15:04:05", createdAtRaw); err != nil {
+	createdAt, err := time.Parse("2006-01-02 15:04:05", createdAtRaw)
+	if err != nil {
 		t.Fatalf("createdAt=%q failed to parse: %v", createdAtRaw, err)
+	}
+	expiresAt, err := time.Parse("2006-01-02 15:04:05", expiresAtRaw)
+	if err != nil {
+		t.Fatalf("expiresAt=%q failed to parse: %v", expiresAtRaw, err)
+	}
+	if got, want := expiresAt.Sub(createdAt), 30*24*time.Hour; got != want {
+		t.Errorf("session lifetime=%v, want=%v", got, want)
 	}
 }

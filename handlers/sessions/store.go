@@ -12,7 +12,6 @@ import (
 
 const (
 	sqliteDatetimeFormat = "2006-01-02 15:04:05"
-	sessionLifetime      = 30 * 24 * time.Hour
 )
 
 type (
@@ -40,7 +39,7 @@ func (s store) CreateSession(ctx context.Context, session simple_sessions.Sessio
 		sql.Named("session_id", session.ID.String()),
 		sql.Named("user_id", session.UserID.String()),
 		sql.Named("created_at", formatSessionTime(session.CreatedAt)),
-		sql.Named("expires_at", formatSessionExpiration(session.CreatedAt)),
+		sql.Named("expires_at", formatSessionTime(session.ExpiresAt)),
 	); err != nil {
 		return err
 	}
@@ -50,17 +49,18 @@ func (s store) CreateSession(ctx context.Context, session simple_sessions.Sessio
 func (s store) ReadSession(ctx context.Context, id simple_sessions.ID) (simple_sessions.Session, error) {
 	var userIDRaw string
 	var createdAtRaw string
+	var expiresAtRaw string
 	if err := s.db.QueryRowContext(ctx, `
 		SELECT
 			user_id,
-			created_at
+			created_at,
+			expires_at
 		FROM
 			auth_sessions
 		WHERE
-			session_id = :session_id
-			AND expires_at > datetime('now', 'localtime')`,
+			session_id = :session_id`,
 		sql.Named("session_id", id.String()),
-	).Scan(&userIDRaw, &createdAtRaw); err != nil {
+	).Scan(&userIDRaw, &createdAtRaw, &expiresAtRaw); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return simple_sessions.Session{}, simple_sessions.ErrNoSessionFound
 		}
@@ -75,10 +75,15 @@ func (s store) ReadSession(ctx context.Context, id simple_sessions.ID) (simple_s
 	if err != nil {
 		return simple_sessions.Session{}, fmt.Errorf("parse stored created at: %w", err)
 	}
+	expiresAt, err := parseSessionTime(expiresAtRaw)
+	if err != nil {
+		return simple_sessions.Session{}, fmt.Errorf("parse stored expires at: %w", err)
+	}
 	return simple_sessions.Session{
 		ID:        id,
 		UserID:    userID,
 		CreatedAt: createdAt,
+		ExpiresAt: expiresAt,
 	}, nil
 }
 
@@ -93,10 +98,6 @@ func (s store) DeleteSession(ctx context.Context, id simple_sessions.ID) error {
 		return err
 	}
 	return nil
-}
-
-func formatSessionExpiration(createdAt time.Time) string {
-	return formatSessionTime(createdAt.Add(sessionLifetime))
 }
 
 func formatSessionTime(t time.Time) string {

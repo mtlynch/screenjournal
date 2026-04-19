@@ -8,18 +8,11 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
-	"github.com/mtlynch/screenjournal/v2/store/sqlite"
+	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
 func TestManagerStoresSessionsInSQLite(t *testing.T) {
-	db := sqlite.MustOpen("file:sessions-test?mode=memory&cache=shared")
-	defer func() {
-		if err := db.Close(); err != nil {
-			t.Fatalf("failed to close db: %v", err)
-		}
-	}()
-	sqlite.New(db, false)
-
+	db := test_sqlite.NewDB(t)
 	manager := sessions.NewManager(db, false)
 
 	rec := httptest.NewRecorder()

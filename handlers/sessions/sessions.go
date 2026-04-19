@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	simple_sessions "github.com/mtlynch/simpleauth/v2/sessions"
+	simple_sessions "codeberg.org/mtlynch/simpleauth/v2/sessions"
 
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )

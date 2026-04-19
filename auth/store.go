@@ -1,8 +1,9 @@
 package auth
 
 import (
+	simple_auth "codeberg.org/mtlynch/simpleauth/v2/auth"
+
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
-	simple_auth "github.com/mtlynch/simpleauth/v2/auth"
 )
 
 type authStore struct {

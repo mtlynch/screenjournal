@@ -7,8 +7,8 @@
     # Use https://www.nixhub.io/ to find the exact nixpkgs reference for exact
     # package versions.
 
-    # 1.25.4 release
-    go-nixpkgs.url = "github:NixOS/nixpkgs/ee09932cedcef15aaf476f9343d1dea2cb77e261";
+    # 1.26.1 release
+    go-nixpkgs.url = "github:NixOS/nixpkgs/e607cb5360ff1234862ac9f8839522becb853bb9";
 
     # 3.44.2 release
     sqlite-nixpkgs.url = "github:NixOS/nixpkgs/5ad9903c16126a7d949101687af0aa589b1d7d3d";
@@ -46,7 +46,7 @@
   } @ inputs:
     flake-utils.lib.eachDefaultSystem (system: let
       gopkg = go-nixpkgs.legacyPackages.${system};
-      go = gopkg.go;
+      go = gopkg.go_1_26;
       sqlite = sqlite-nixpkgs.legacyPackages.${system}.sqlite;
       nodejs = nodejs-nixpkgs.legacyPackages.${system}.nodejs_20;
       shellcheck = shellcheck-nixpkgs.legacyPackages.${system}.shellcheck;

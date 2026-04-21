@@ -1060,7 +1060,7 @@ func ratingToStars(rating screenjournal.Rating) []string {
 	}
 	// Add empty stars.
 	emptyStars := (parse.MaxRating / 2) - (ratingVal / 2) - ratingVal%2
-	for i := uint8(0); i < emptyStars; i++ {
+	for range emptyStars {
 		stars = append(stars, "fa-regular fa-star")
 	}
 	return stars

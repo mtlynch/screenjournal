@@ -1,6 +1,6 @@
 module github.com/mtlynch/screenjournal/v2
 
-go 1.23
+go 1.26
 
 require (
 	codeberg.org/mtlynch/simpleauth/v3 v3.0.0-20260419204402-296b389fc48a

@@ -34,3 +34,11 @@ data/
 /e2e-results/
 
 .direnv
+result*
+
+# Scratch directories for sharing data with AI agents.
+/reference
+/tmp
+
+# Temporary screenshots pasted into the root for AI agents.
+/image*.png

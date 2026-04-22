@@ -79,6 +79,10 @@
           PROJECT_NAME="$(basename "$PWD")"
           export GOPATH="$HOME/.local/share/go-workspaces/$PROJECT_NAME"
 
+          # Override GOROOT set by Go tools (built with older Go) to match our
+          # Go version.
+          export GOROOT='${go}/share/go'
+
           export PLAYWRIGHT_BROWSERS_PATH=${playwright}
           export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
 

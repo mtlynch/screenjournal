@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -91,32 +92,20 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.getDB(r).ReadReview(id)
-		if err == store.ErrReviewNotFound {
-			http.Error(w, "Review not found", http.StatusNotFound)
-			return
-		} else if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to read review: %v", err), http.StatusInternalServerError)
-			return
-		}
-
-		loggedInUsername := mustGetUsernameFromContext(r.Context())
-		if !review.Owner.Equal(loggedInUsername) {
-			http.Error(w, "You can't edit another user's review", http.StatusForbidden)
-			return
-		}
-
 		parsedRequest, err := parseReviewPutRequest(r)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			return
 		}
 
-		review.Rating = parsedRequest.Rating
-		review.Blurb = parsedRequest.Blurb
-		review.Watched = parsedRequest.Watched
-
-		if err := s.getDB(r).UpdateReview(review); err != nil {
+		review, err := s.updateReview(r, id, parsedRequest)
+		if err == store.ErrReviewNotFound {
+			http.Error(w, "Review not found", http.StatusNotFound)
+			return
+		} else if errors.Is(err, errForbidden) {
+			http.Error(w, "You can't edit another user's review", http.StatusForbidden)
+			return
+		} else if err != nil {
 			log.Printf("failed to update review: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to update review: %v", err), http.StatusInternalServerError)
 			return
@@ -140,22 +129,13 @@ func (s Server) reviewsDelete() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.getDB(r).ReadReview(id)
-		if err == store.ErrReviewNotFound {
+		if err := s.deleteReview(r, id); err == store.ErrReviewNotFound {
 			http.Error(w, "Review not found", http.StatusNotFound)
 			return
-		} else if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to read review: %v", err), http.StatusInternalServerError)
-			return
-		}
-
-		loggedInUsername := mustGetUsernameFromContext(r.Context())
-		if !review.Owner.Equal(loggedInUsername) {
+		} else if errors.Is(err, errForbidden) {
 			http.Error(w, "You can't delete another user's review", http.StatusForbidden)
 			return
-		}
-
-		if err := s.getDB(r).DeleteReview(id); err != nil {
+		} else if err != nil {
 			log.Printf("failed to delete review: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to delete review: %v", err), http.StatusInternalServerError)
 			return

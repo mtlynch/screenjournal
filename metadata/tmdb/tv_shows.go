@@ -11,7 +11,7 @@ import (
 )
 
 func (f Finder) GetTvShow(id screenjournal.TmdbID) (screenjournal.TvShow, error) {
-	m, err := f.tmdbAPI.GetTvInfo(int(id.Int32()), map[string]string{})
+	m, err := f.tmdbAPI.GetTvInfo(int(id.Int32()))
 	if err != nil {
 		return screenjournal.TvShow{}, err
 	}
@@ -82,7 +82,7 @@ func (f Finder) GetTvShow(id screenjournal.TmdbID) (screenjournal.TvShow, error)
 }
 
 func (f Finder) readImdbID(id screenjournal.TmdbID) (screenjournal.ImdbID, error) {
-	externalIDs, err := f.tmdbAPI.GetTvExternalIds(int(id.Int32()), map[string]string{})
+	externalIDs, err := f.tmdbAPI.GetTvExternalIds(int(id.Int32()))
 	if err != nil {
 		return screenjournal.ImdbID(""), fmt.Errorf("failed to read external IDs: %v", err)
 	}

@@ -9,7 +9,7 @@ import (
 )
 
 func (f Finder) GetMovie(id screenjournal.TmdbID) (screenjournal.Movie, error) {
-	m, err := f.tmdbAPI.GetMovieInfo(int(id.Int32()), map[string]string{})
+	m, err := f.tmdbAPI.GetMovieInfo(int(id.Int32()))
 	if err != nil {
 		return screenjournal.Movie{}, err
 	}

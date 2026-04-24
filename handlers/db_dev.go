@@ -3,6 +3,7 @@
 package handlers
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -10,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"sync"
 
 	"github.com/gorilla/mux"
@@ -22,14 +24,16 @@ import (
 )
 
 // initDev sets up dev-mode state before routes are created.
+// It adds the assignSessionDB middleware which must run BEFORE
+// populateAuthenticationContext to ensure the test database is
+// available when looking up user information.
 func (s *Server) initDev() {
-	// no-op
+	s.router.Use(assignSessionDB)
 }
 
 // addDevRoutes adds debug routes that we only use during development or e2e
 // tests.
 func (s *Server) addDevRoutes() {
-	s.router.Use(assignSessionDB)
 	s.router.HandleFunc("/api/debug/db/populate-dummy-data", s.populateDummyData()).Methods(http.MethodGet)
 	s.router.HandleFunc("/api/debug/db/per-session", dbPerSessionPost()).Methods(http.MethodPost)
 	s.router.HandleFunc("/api/debug/password-reset-token/{username}", s.debugPasswordResetTokenGet()).Methods(http.MethodGet)
@@ -208,7 +212,7 @@ var sharedDBSettings = dbSettings{
 
 func (dbs *dbSettings) IsSessionIsolationEnabled() bool {
 	dbs.lock.RLock()
-	dbs.lock.RUnlock()
+	defer dbs.lock.RUnlock()
 	return dbs.isolateBySession
 }
 
@@ -235,6 +239,11 @@ func (s Server) getDB(r *http.Request) Store {
 	if !sharedDBSettings.IsSessionIsolationEnabled() {
 		return s.store
 	}
+	// First, check if token is in context (set by assignSessionDB for new databases)
+	if token, ok := r.Context().Value(dbTokenContextKey{}).(dbToken); ok {
+		return sharedDBSettings.GetDB(token)
+	}
+	// Otherwise, get token from cookie
 	c, err := r.Cookie(dbTokenCookieName)
 	if err != nil {
 		panic(err)
@@ -271,6 +280,8 @@ func mustParseWatchDate(s string) screenjournal.WatchDate {
 	return wd
 }
 
+type dbTokenContextKey struct{}
+
 // assignSessionDB provisions a session-specific database if per-session
 // databases are enabled. If per-session databases are not enabled (the default)
 // this is a no-op.
@@ -282,6 +293,10 @@ func assignSessionDB(h http.Handler) http.Handler {
 				log.Printf("provisioning a new private database with token %s", token)
 				createDBCookie(token, w)
 				sharedDBSettings.SaveDB(token, test_sqlite.New())
+				// Add token to context so getDB can access it for this request
+				// (since the cookie won't be in the request until the next request)
+				ctx := context.WithValue(r.Context(), dbTokenContextKey{}, token)
+				r = r.WithContext(ctx)
 			}
 		}
 		h.ServeHTTP(w, r)
@@ -328,4 +343,40 @@ func (s Server) debugPasswordResetTokenGet() http.HandlerFunc {
 			log.Printf("failed to encode password reset token response: %v", err)
 		}
 	}
+}
+
+const devIsAdminCookieName = "dev-is-admin"
+
+// setDevAuthCookie stores the isAdmin status in a dev-only cookie.
+// This is used in dev mode with per-session databases to avoid database lookups
+// for user metadata that would fail due to session/database mismatch.
+func setDevAuthCookie(w http.ResponseWriter, isAdmin bool) {
+	http.SetCookie(w, &http.Cookie{
+		Name:  devIsAdminCookieName,
+		Value: strconv.FormatBool(isAdmin),
+		Path:  "/",
+	})
+}
+
+// getDevAuthCookie retrieves the isAdmin status from the dev-only cookie.
+func getDevAuthCookie(r *http.Request) (isAdmin bool, ok bool) {
+	c, err := r.Cookie(devIsAdminCookieName)
+	if err != nil {
+		return false, false
+	}
+	isAdmin, err = strconv.ParseBool(c.Value)
+	if err != nil {
+		return false, false
+	}
+	return isAdmin, true
+}
+
+// clearDevAuthCookie removes the dev-only auth cookie.
+func clearDevAuthCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:   devIsAdminCookieName,
+		Value:  "",
+		Path:   "/",
+		MaxAge: -1,
+	})
 }

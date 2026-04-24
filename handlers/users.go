@@ -74,6 +74,9 @@ func (s Server) usersPut() http.HandlerFunc {
 			return
 		}
 
+		// Store isAdmin in a dev-only cookie (no-op in production)
+		setDevAuthCookie(w, user.IsAdmin)
+
 		if !req.InviteCode.Empty() {
 			if err := s.getDB(r).DeleteSignupInvitation(req.InviteCode); err != nil {
 				log.Printf("failed to delete used signup invitation code: %v", err)

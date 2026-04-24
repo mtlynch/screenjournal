@@ -32,8 +32,9 @@ const config: PlaywrightTestConfig = {
   outputDir: "e2e-results/",
 
   webServer: {
-    command: "PORT=6001 ./bin/screenjournal-dev",
+    command: "PORT=6001 SJ_TMDB_API=fake-api-key ./bin/screenjournal-dev",
     port: 6001,
+    reuseExistingServer: !process.env.CI,
   },
 };
 

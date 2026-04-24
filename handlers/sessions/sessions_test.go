@@ -16,7 +16,7 @@ import (
 
 func TestManagerStoresSessionsInSQLite(t *testing.T) {
 	db := test_sqlite.NewDB(t)
-	manager := sessions.NewManager(db, false)
+	manager := sessions.NewManager(func(_ context.Context) *sql.DB { return db }, false)
 	userID, err := simple_sessions.NewUserID("mavis")
 	if err != nil {
 		t.Fatalf("failed to create user ID: %v", err)

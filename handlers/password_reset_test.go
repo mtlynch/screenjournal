@@ -208,7 +208,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
+			_, dataStore := test_sqlite.New()
 
 			// Insert existing users into datastore.
 			for _, user := range tt.existingUsers {
@@ -237,7 +237,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			var nilAnnouncer handlers.Announcer
 			var nilMetadataFinder handlers.MetadataFinder
 
-			s := handlers.New(authenticator, nilAnnouncer, sessionMgr, dataStore, nilMetadataFinder, passwordResetter)
+			s := handlers.New(authenticator, nilAnnouncer, sessionMgr, nil, dataStore, nilMetadataFinder, passwordResetter)
 
 			url := "/account/password-reset?username=" + tt.username.String() + "&token=" + tt.token.String()
 			req, err := http.NewRequest("PUT", url, strings.NewReader(tt.payload))

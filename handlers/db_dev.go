@@ -11,12 +11,12 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"strconv"
 	"sync"
 
 	"github.com/gorilla/mux"
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -27,8 +27,25 @@ import (
 // It adds the assignSessionDB middleware which must run BEFORE
 // populateAuthenticationContext to ensure the test database is
 // available when looking up user information.
+//
+// It also replaces the session manager so that sessions are stored in
+// the same per-session database as application data (users, reviews,
+// etc.), eliminating the shared-DB/per-session-DB mismatch.
 func (s *Server) initDev() {
 	s.router.Use(assignSessionDB)
+	if s.rawDB != nil {
+		s.sessionManager = sessions.NewManager(func(ctx context.Context) *sql.DB {
+			if !sharedDBSettings.IsSessionIsolationEnabled() {
+				return s.rawDB
+			}
+			if token, ok := ctx.Value(dbTokenContextKey{}).(dbToken); ok {
+				if sess := sharedDBSettings.GetDB(token); sess.db != nil {
+					return sess.db
+				}
+			}
+			return s.rawDB
+		}, false)
+	}
 }
 
 // addDevRoutes adds debug routes that we only use during development or e2e
@@ -199,15 +216,20 @@ const dbTokenCookieName = "db-token"
 type (
 	dbToken string
 
+	sessionDB struct {
+		store Store
+		db    *sql.DB
+	}
+
 	dbSettings struct {
 		isolateBySession bool
-		tokenToDB        map[dbToken]Store
+		tokenToDB        map[dbToken]sessionDB
 		lock             sync.RWMutex
 	}
 )
 
 var sharedDBSettings = dbSettings{
-	tokenToDB: map[dbToken]Store{},
+	tokenToDB: map[dbToken]sessionDB{},
 }
 
 func (dbs *dbSettings) IsSessionIsolationEnabled() bool {
@@ -223,32 +245,27 @@ func (dbs *dbSettings) EnableSessionIsolation() {
 	log.Print("per-session database = on")
 }
 
-func (dbs *dbSettings) GetDB(token dbToken) Store {
+func (dbs *dbSettings) GetDB(token dbToken) sessionDB {
 	dbs.lock.RLock()
 	defer dbs.lock.RUnlock()
 	return dbs.tokenToDB[token]
 }
 
-func (dbs *dbSettings) SaveDB(token dbToken, db Store) {
+func (dbs *dbSettings) SaveDB(token dbToken, sdb sessionDB) {
 	dbs.lock.Lock()
 	defer dbs.lock.Unlock()
-	dbs.tokenToDB[token] = db
+	dbs.tokenToDB[token] = sdb
 }
 
 func (s Server) getDB(r *http.Request) Store {
 	if !sharedDBSettings.IsSessionIsolationEnabled() {
 		return s.store
 	}
-	// First, check if token is in context (set by assignSessionDB for new databases)
-	if token, ok := r.Context().Value(dbTokenContextKey{}).(dbToken); ok {
-		return sharedDBSettings.GetDB(token)
+	token, ok := r.Context().Value(dbTokenContextKey{}).(dbToken)
+	if !ok {
+		panic("per-session database token not found in context")
 	}
-	// Otherwise, get token from cookie
-	c, err := r.Cookie(dbTokenCookieName)
-	if err != nil {
-		panic(err)
-	}
-	return sharedDBSettings.GetDB(dbToken(c.Value))
+	return sharedDBSettings.GetDB(token).store
 }
 
 func (s Server) getAuthenticator(r *http.Request) Authenticator {
@@ -288,14 +305,17 @@ type dbTokenContextKey struct{}
 func assignSessionDB(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if sharedDBSettings.IsSessionIsolationEnabled() {
-			if _, err := r.Cookie(dbTokenCookieName); err != nil {
+			c, err := r.Cookie(dbTokenCookieName)
+			if err != nil {
 				token := dbToken(random.String(30, []rune("abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")))
 				log.Printf("provisioning a new private database with token %s", token)
 				createDBCookie(token, w)
-				sharedDBSettings.SaveDB(token, test_sqlite.New())
-				// Add token to context so getDB can access it for this request
-				// (since the cookie won't be in the request until the next request)
+				db, store := test_sqlite.New()
+				sharedDBSettings.SaveDB(token, sessionDB{store: store, db: db})
 				ctx := context.WithValue(r.Context(), dbTokenContextKey{}, token)
+				r = r.WithContext(ctx)
+			} else {
+				ctx := context.WithValue(r.Context(), dbTokenContextKey{}, dbToken(c.Value))
 				r = r.WithContext(ctx)
 			}
 		}
@@ -343,40 +363,4 @@ func (s Server) debugPasswordResetTokenGet() http.HandlerFunc {
 			log.Printf("failed to encode password reset token response: %v", err)
 		}
 	}
-}
-
-const devIsAdminCookieName = "dev-is-admin"
-
-// setDevAuthCookie stores the isAdmin status in a dev-only cookie.
-// This is used in dev mode with per-session databases to avoid database lookups
-// for user metadata that would fail due to session/database mismatch.
-func setDevAuthCookie(w http.ResponseWriter, isAdmin bool) {
-	http.SetCookie(w, &http.Cookie{
-		Name:  devIsAdminCookieName,
-		Value: strconv.FormatBool(isAdmin),
-		Path:  "/",
-	})
-}
-
-// getDevAuthCookie retrieves the isAdmin status from the dev-only cookie.
-func getDevAuthCookie(r *http.Request) (isAdmin bool, ok bool) {
-	c, err := r.Cookie(devIsAdminCookieName)
-	if err != nil {
-		return false, false
-	}
-	isAdmin, err = strconv.ParseBool(c.Value)
-	if err != nil {
-		return false, false
-	}
-	return isAdmin, true
-}
-
-// clearDevAuthCookie removes the dev-only auth cookie.
-func clearDevAuthCookie(w http.ResponseWriter) {
-	http.SetCookie(w, &http.Cookie{
-		Name:   devIsAdminCookieName,
-		Value:  "",
-		Path:   "/",
-		MaxAge: -1,
-	})
 }

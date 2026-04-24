@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -49,6 +50,7 @@ type (
 		authenticator    Authenticator
 		announcer        Announcer
 		sessionManager   SessionManager
+		rawDB            *sql.DB
 		store            Store
 		metadataFinder   MetadataFinder
 		passwordResetter PasswordResetter
@@ -62,12 +64,13 @@ func (s Server) Router() *mux.Router {
 
 // New creates a new server with all the state it needs to satisfy HTTP
 // requests.
-func New(authenticator Authenticator, announcer Announcer, sessionManager SessionManager, store Store, metadataFinder MetadataFinder, passwordResetter PasswordResetter) Server {
+func New(authenticator Authenticator, announcer Announcer, sessionManager SessionManager, rawDB *sql.DB, store Store, metadataFinder MetadataFinder, passwordResetter PasswordResetter) Server {
 	s := Server{
 		router:           mux.NewRouter(),
 		authenticator:    authenticator,
 		announcer:        announcer,
 		sessionManager:   sessionManager,
+		rawDB:            rawDB,
 		store:            store,
 		metadataFinder:   metadataFinder,
 		passwordResetter: passwordResetter,

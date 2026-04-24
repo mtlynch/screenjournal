@@ -89,13 +89,13 @@ func TestInvitesPost(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
+			_, dataStore := test_sqlite.New()
 
 			insertMockSessionUsers(t, dataStore, tt.sessions)
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder, nilPasswordResetter)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, nil, dataStore, nilMetadataFinder, nilPasswordResetter)
 
 			req, err := http.NewRequest("POST", "/admin/invites", strings.NewReader(tt.payload))
 			if err != nil {

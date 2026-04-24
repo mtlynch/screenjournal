@@ -16,12 +16,12 @@ const (
 
 type (
 	store struct {
-		db *sql.DB
+		dbFunc func(context.Context) *sql.DB
 	}
 )
 
 func (s store) CreateSession(ctx context.Context, session simple_sessions.Session) error {
-	if _, err := s.db.ExecContext(ctx, `
+	if _, err := s.dbFunc(ctx).ExecContext(ctx, `
 		INSERT OR REPLACE INTO auth_sessions
 		(
 			session_id,
@@ -50,7 +50,7 @@ func (s store) ReadSession(ctx context.Context, id simple_sessions.ID) (simple_s
 	var userIDRaw string
 	var createdAtRaw string
 	var expiresAtRaw string
-	if err := s.db.QueryRowContext(ctx, `
+	if err := s.dbFunc(ctx).QueryRowContext(ctx, `
 		SELECT
 			user_id,
 			created_at,
@@ -88,7 +88,7 @@ func (s store) ReadSession(ctx context.Context, id simple_sessions.ID) (simple_s
 }
 
 func (s store) DeleteSession(ctx context.Context, id simple_sessions.ID) error {
-	if _, err := s.db.ExecContext(ctx, `
+	if _, err := s.dbFunc(ctx).ExecContext(ctx, `
 		DELETE FROM
 			auth_sessions
 		WHERE

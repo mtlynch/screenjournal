@@ -182,14 +182,14 @@ func TestSearchGet(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
+			_, dataStore := test_sqlite.New()
 
 			insertMockSessionUsers(t, dataStore, tt.sessions)
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
 			metadataFinder := NewMockMetadataFinder(mockSearchableMovies, mockSearchableTvShows)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, metadataFinder, nilPasswordResetter)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, nil, dataStore, metadataFinder, nilPasswordResetter)
 
 			req, err := http.NewRequest("GET", tt.url, nil)
 			if err != nil {

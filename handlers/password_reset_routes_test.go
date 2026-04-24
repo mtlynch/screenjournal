@@ -46,13 +46,14 @@ func TestResetPasswordGet(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
+			_, dataStore := test_sqlite.New()
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager([]mockSessionEntry{})
 			s := handlers.New(
 				authenticator,
 				nilAnnouncer,
 				&sessionManager,
+				nil,
 				dataStore,
 				nilMetadataFinder,
 				tt.passwordResetter,
@@ -111,13 +112,14 @@ func TestResetPasswordPost(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
+			_, dataStore := test_sqlite.New()
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager([]mockSessionEntry{})
 			s := handlers.New(
 				authenticator,
 				nilAnnouncer,
 				&sessionManager,
+				nil,
 				dataStore,
 				nilMetadataFinder,
 				tt.passwordResetter,

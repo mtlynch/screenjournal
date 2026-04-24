@@ -13,9 +13,8 @@ import (
 
 const optimizeForLitestream = false
 
-func New() sqlite.Store {
-	_, store := newDBAndStore()
-	return store
+func New() (*sql.DB, sqlite.Store) {
+	return newDBAndStore()
 }
 
 // NewDB returns an ephemeral SQLite database with all migrations applied.

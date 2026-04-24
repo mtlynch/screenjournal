@@ -146,7 +146,7 @@ func TestUsersPut(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
+			_, dataStore := test_sqlite.New()
 
 			for _, user := range tt.users {
 				if err := dataStore.InsertUser(user); err != nil {
@@ -162,7 +162,7 @@ func TestUsersPut(t *testing.T) {
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager([]mockSessionEntry{})
 
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder, nilPasswordResetter)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, nil, dataStore, nilMetadataFinder, nilPasswordResetter)
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {

@@ -74,7 +74,7 @@ func TestAccountChangePasswordPut(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
+			_, dataStore := test_sqlite.New()
 
 			mockSessionEntries := []mockSessionEntry{}
 
@@ -97,7 +97,7 @@ func TestAccountChangePasswordPut(t *testing.T) {
 			}
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(mockSessionEntries)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder, nilPasswordResetter)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, nil, dataStore, nilMetadataFinder, nilPasswordResetter)
 
 			req, err := http.NewRequest("PUT", "/account/password", strings.NewReader(tt.payload))
 			if err != nil {
@@ -201,14 +201,14 @@ func TestAccountNotificationsPut(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
+			_, dataStore := test_sqlite.New()
 
 			insertMockSessionUsers(t, dataStore, tt.sessions)
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
 
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder, nilPasswordResetter)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, nil, dataStore, nilMetadataFinder, nilPasswordResetter)
 
 			req, err := http.NewRequest("PUT", "/account/notifications", strings.NewReader(tt.payload))
 			if err != nil {

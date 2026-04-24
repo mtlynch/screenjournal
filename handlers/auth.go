@@ -62,14 +62,11 @@ func (s Server) authPost() http.HandlerFunc {
 			return
 		}
 
-		// Store isAdmin in a dev-only cookie (no-op in production)
-		setDevAuthCookie(w, user.IsAdmin)
 	}
 }
 
 func (s Server) authDelete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		clearDevAuthCookie(w) // no-op in production
 		if err := s.sessionManager.LogOut(r.Context(), w); err != nil {
 			log.Printf("failed to end session: %v", err)
 			http.Error(w, "Failed to end session", http.StatusInternalServerError)
@@ -96,21 +93,6 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 		username := usernameFromUserID(userID)
 		user, err := s.getDB(r).ReadUser(username)
 		if err != nil {
-			// In dev mode with per-session databases, the user may exist in the
-			// per-session database but the session was created before the database
-			// was provisioned. Try to use dev cookie fallback.
-			if isAdmin, ok := getDevAuthCookie(r); ok {
-				// Dev cookie has auth info - use it
-				session := authenticatedSession{
-					Username: username,
-					IsAdmin:  isAdmin,
-				}
-				ctx := context.WithValue(r.Context(), contextKeySession, session)
-				next.ServeHTTP(w, r.WithContext(ctx))
-				return
-			}
-
-			// No dev cookie - handle as normal error
 			if !errors.Is(err, store.ErrUserNotFound) {
 				log.Printf("failed to read session user: %v", err)
 			}

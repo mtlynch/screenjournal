@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"flag"
 	"fmt"
 	"log"
@@ -41,7 +43,7 @@ func main() {
 	if !useTls {
 		log.Printf("TLS has not been marked as required, so session cookies will not have Secure flag")
 	}
-	sessionManager := sessions.NewManager(db, useTls)
+	sessionManager := sessions.NewManager(func(_ context.Context) *sql.DB { return db }, useTls)
 
 	var announcer handlers.Announcer
 	var passwordResetter handlers.PasswordResetter
@@ -69,7 +71,7 @@ func main() {
 		log.Fatalf("failed to create metadata finder: %v", err)
 	}
 
-	h := gorilla.LoggingHandler(os.Stdout, handlers.New(authenticator, announcer, sessionManager, store, metadataFinder, passwordResetter).Router())
+	h := gorilla.LoggingHandler(os.Stdout, handlers.New(authenticator, announcer, sessionManager, db, store, metadataFinder, passwordResetter).Router())
 	if os.Getenv("SJ_BEHIND_PROXY") != "" {
 		h = gorilla.ProxyIPHeadersHandler(h)
 	}

@@ -190,7 +190,7 @@ func TestReactionsPost(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
+			_, dataStore := test_sqlite.New()
 
 			insertMockSessionUsers(t, dataStore, tt.sessions)
 			for _, movie := range tt.movies {
@@ -206,7 +206,7 @@ func TestReactionsPost(t *testing.T) {
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder, nilPasswordResetter)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, nil, dataStore, nilMetadataFinder, nilPasswordResetter)
 
 			req, err := http.NewRequest("POST", "/reactions", strings.NewReader(tt.payload))
 			if err != nil {
@@ -405,7 +405,7 @@ func TestReactionsDelete(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
+			_, dataStore := test_sqlite.New()
 
 			insertMockSessionUsers(t, dataStore, tt.sessions)
 			for _, movie := range tt.movies {
@@ -426,7 +426,7 @@ func TestReactionsDelete(t *testing.T) {
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder, nilPasswordResetter)
+			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, nil, dataStore, nilMetadataFinder, nilPasswordResetter)
 
 			req, err := http.NewRequest("DELETE", tt.route, strings.NewReader(""))
 			if err != nil {

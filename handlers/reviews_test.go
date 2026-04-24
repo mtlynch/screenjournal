@@ -423,7 +423,7 @@ func TestReviewsPost(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
+			_, dataStore := test_sqlite.New()
 
 			insertMockSessionUsers(t, dataStore, tt.sessions)
 
@@ -435,7 +435,7 @@ func TestReviewsPost(t *testing.T) {
 
 			announcer := mockAnnouncer{}
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo, nil), nilPasswordResetter)
+			s := handlers.New(nilAuthenticator, &announcer, &sessionManager, nil, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo, nil), nilPasswordResetter)
 
 			req, err := http.NewRequest("POST", "/reviews", strings.NewReader(tt.payload))
 			if err != nil {
@@ -867,7 +867,7 @@ func TestReviewsPut(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
+			_, dataStore := test_sqlite.New()
 
 			insertMockSessionUsers(t, dataStore, tt.sessions)
 
@@ -884,7 +884,7 @@ func TestReviewsPut(t *testing.T) {
 			}
 
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(nilAuthenticator, nilAnnouncer, &sessionManager, dataStore, mockMetadataFinder{}, nilPasswordResetter)
+			s := handlers.New(nilAuthenticator, nilAnnouncer, &sessionManager, nil, dataStore, mockMetadataFinder{}, nilPasswordResetter)
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {

@@ -8,9 +8,6 @@ export async function loginAsUser(page, username, password) {
   await page.getByRole("button", { name: "Log in" }).click();
 
   await expect(page).toHaveURL("/reviews");
-
-  // Wait for session to be fully established
-  await page.waitForTimeout(300);
 }
 
 export async function loginAsAdmin(page) {

@@ -35,6 +35,11 @@ func newDBAndStore() (*sql.DB, sqlite.Store) {
 	// Suppress log output, as the migration logs are too noisy during tests.
 	defer quietLogs()()
 	db := sqlite.MustOpen(ephemeralDbURI())
+	// The ncruces/go-sqlite3 WASM driver does not implement cache=shared for
+	// in-memory databases: each new connection gets an empty database instead
+	// of sharing the named one. Limiting to one connection ensures every
+	// caller uses the same underlying database.
+	db.SetMaxOpenConns(1)
 	store := sqlite.New(db, optimizeForLitestream)
 	return db, store
 }

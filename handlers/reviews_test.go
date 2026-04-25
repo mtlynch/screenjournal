@@ -2,11 +2,13 @@ package handlers_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"reflect"
 	"strings"
 	"testing"
@@ -21,6 +23,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
+	"github.com/mtlynch/screenjournal/v2/store"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
@@ -910,6 +913,385 @@ func TestReviewsPut(t *testing.T) {
 				t.Errorf("unexpected reviews, got=%+v, want=%+v, diff=%s", got, want, deep.Equal(got, want))
 			}
 		})
+	}
+}
+
+func TestReviewsDraftsPost(t *testing.T) {
+	dataStore := test_sqlite.New()
+
+	mockUser := screenjournal.User{
+		Username:     screenjournal.Username("userA"),
+		Email:        screenjournal.Email("userA@example.com"),
+		PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+	}
+	if err := dataStore.InsertUser(mockUser); err != nil {
+		t.Fatalf("failed to insert mock user: %+v: %v", mockUser, err)
+	}
+
+	movie := screenjournal.Movie{
+		TmdbID:      screenjournal.TmdbID(38),
+		ImdbID:      screenjournal.ImdbID("tt0338013"),
+		Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+		ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+	}
+	if _, err := dataStore.InsertMovie(movie); err != nil {
+		t.Fatalf("failed to insert mock movie: %+v: %v", movie, err)
+	}
+
+	announcer := mockAnnouncer{}
+	sessions := []mockSessionEntry{
+		{
+			token: "abc123",
+			session: sessions.Session{
+				Username: screenjournal.Username("userA"),
+			},
+		},
+	}
+	sessionManager := newMockSessionManager(sessions)
+	s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(nil, nil))
+
+	payload := "media-type=movie&tmdb-id=38&rating=5&watch-date=2022-10-28&blurb=Draft%20thoughts"
+	req, err := http.NewRequest("POST", "/reviews/drafts", strings.NewReader(payload))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.AddCookie(&http.Cookie{
+		Name:  mockSessionTokenName,
+		Value: "abc123",
+	})
+
+	rec := httptest.NewRecorder()
+	s.Router().ServeHTTP(rec, req)
+	res := rec.Result()
+
+	if got, want := res.StatusCode, http.StatusCreated; got != want {
+		t.Fatalf("httpStatus=%v, want=%v", got, want)
+	}
+
+	var response struct {
+		ReviewID screenjournal.ReviewID `json:"reviewId"`
+	}
+	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	review, err := dataStore.ReadReview(response.ReviewID)
+	if err != nil {
+		t.Fatalf("failed to read draft: %v", err)
+	}
+
+	if got, want := review.Owner, screenjournal.Username("userA"); got != want {
+		t.Fatalf("owner=%v, want=%v", got, want)
+	}
+	if got, want := review.IsDraft, true; got != want {
+		t.Fatalf("isDraft=%v, want=%v", got, want)
+	}
+	if got, want := review.Blurb, screenjournal.Blurb("Draft thoughts"); got != want {
+		t.Fatalf("blurb=%v, want=%v", got, want)
+	}
+	if got, want := review.Rating, screenjournal.NewRating(5); !got.Equal(want) {
+		t.Fatalf("rating=%v, want=%v", got, want)
+	}
+
+	if got, want := len(announcer.announcedReviews), 0; got != want {
+		t.Fatalf("announcedReviews=%d, want=%d", got, want)
+	}
+}
+
+func TestReviewsDraftsPostReusesExistingDraft(t *testing.T) {
+	dataStore := test_sqlite.New()
+
+	mockUser := screenjournal.User{
+		Username:     screenjournal.Username("userA"),
+		Email:        screenjournal.Email("userA@example.com"),
+		PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+	}
+	if err := dataStore.InsertUser(mockUser); err != nil {
+		t.Fatalf("failed to insert mock user: %+v: %v", mockUser, err)
+	}
+
+	movie := screenjournal.Movie{
+		TmdbID:      screenjournal.TmdbID(38),
+		ImdbID:      screenjournal.ImdbID("tt0338013"),
+		Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+		ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+	}
+	if _, err := dataStore.InsertMovie(movie); err != nil {
+		t.Fatalf("failed to insert mock movie: %+v: %v", movie, err)
+	}
+
+	announcer := mockAnnouncer{}
+	sessions := []mockSessionEntry{
+		{
+			token: "abc123",
+			session: sessions.Session{
+				Username: screenjournal.Username("userA"),
+			},
+		},
+	}
+	sessionManager := newMockSessionManager(sessions)
+	s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(nil, nil))
+
+	firstPayload := "media-type=movie&tmdb-id=38&rating=5&watch-date=2022-10-28&blurb=Draft%20thoughts"
+	firstReq, err := http.NewRequest("POST", "/reviews/drafts", strings.NewReader(firstPayload))
+	if err != nil {
+		t.Fatal(err)
+	}
+	firstReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	firstReq.AddCookie(&http.Cookie{
+		Name:  mockSessionTokenName,
+		Value: "abc123",
+	})
+
+	firstRec := httptest.NewRecorder()
+	s.Router().ServeHTTP(firstRec, firstReq)
+	firstRes := firstRec.Result()
+
+	if got, want := firstRes.StatusCode, http.StatusCreated; got != want {
+		t.Fatalf("httpStatus=%v, want=%v", got, want)
+	}
+
+	var firstResponse struct {
+		ReviewID screenjournal.ReviewID `json:"reviewId"`
+	}
+	if err := json.NewDecoder(firstRes.Body).Decode(&firstResponse); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	secondPayload := "media-type=movie&tmdb-id=38&rating=4&watch-date=2022-10-29&blurb=Updated%20draft"
+	secondReq, err := http.NewRequest("POST", "/reviews/drafts", strings.NewReader(secondPayload))
+	if err != nil {
+		t.Fatal(err)
+	}
+	secondReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	secondReq.AddCookie(&http.Cookie{
+		Name:  mockSessionTokenName,
+		Value: "abc123",
+	})
+
+	secondRec := httptest.NewRecorder()
+	s.Router().ServeHTTP(secondRec, secondReq)
+	secondRes := secondRec.Result()
+
+	if got, want := secondRes.StatusCode, http.StatusOK; got != want {
+		t.Fatalf("httpStatus=%v, want=%v", got, want)
+	}
+
+	var secondResponse struct {
+		ReviewID screenjournal.ReviewID `json:"reviewId"`
+	}
+	if err := json.NewDecoder(secondRes.Body).Decode(&secondResponse); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	if got, want := secondResponse.ReviewID, firstResponse.ReviewID; got != want {
+		t.Fatalf("reviewID=%v, want=%v", got, want)
+	}
+
+	drafts, err := dataStore.ReadReviews(
+		store.FilterReviewsByUsername(screenjournal.Username("userA")),
+		store.FilterReviewsByMovieID(screenjournal.MovieID(1)),
+		store.FilterReviewsByDraftStatus(true),
+	)
+	if err != nil {
+		t.Fatalf("failed to read drafts: %v", err)
+	}
+	if got, want := len(drafts), 1; got != want {
+		t.Fatalf("draftCount=%d, want=%d", got, want)
+	}
+
+	if got, want := drafts[0].Blurb, screenjournal.Blurb("Updated draft"); got != want {
+		t.Fatalf("blurb=%v, want=%v", got, want)
+	}
+	if got, want := drafts[0].Rating, screenjournal.NewRating(4); !got.Equal(want) {
+		t.Fatalf("rating=%v, want=%v", got, want)
+	}
+}
+
+func TestReviewsDraftsPut(t *testing.T) {
+	dataStore := test_sqlite.New()
+
+	mockUser := screenjournal.User{
+		Username:     screenjournal.Username("userA"),
+		Email:        screenjournal.Email("userA@example.com"),
+		PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+	}
+	if err := dataStore.InsertUser(mockUser); err != nil {
+		t.Fatalf("failed to insert mock user: %+v: %v", mockUser, err)
+	}
+
+	movie := screenjournal.Movie{
+		TmdbID:      screenjournal.TmdbID(38),
+		ImdbID:      screenjournal.ImdbID("tt0338013"),
+		Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+		ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+	}
+	movieID, err := dataStore.InsertMovie(movie)
+	if err != nil {
+		t.Fatalf("failed to insert mock movie: %+v: %v", movie, err)
+	}
+
+	draft := screenjournal.Review{
+		Owner:   screenjournal.Username("userA"),
+		IsDraft: true,
+		Rating:  screenjournal.NewRating(3),
+		Watched: mustParseWatchDate("2022-10-28"),
+		Blurb:   screenjournal.Blurb("Initial thoughts"),
+		Movie: screenjournal.Movie{
+			ID: movieID,
+		},
+	}
+	draftID, err := dataStore.InsertReview(draft)
+	if err != nil {
+		t.Fatalf("failed to insert draft: %v", err)
+	}
+
+	announcer := mockAnnouncer{}
+	sessions := []mockSessionEntry{
+		{
+			token: "abc123",
+			session: sessions.Session{
+				Username: screenjournal.Username("userA"),
+			},
+		},
+	}
+	sessionManager := newMockSessionManager(sessions)
+	s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(nil, nil))
+
+	payload := "rating=4&watch-date=2022-10-30&blurb=Updated%20draft"
+	req, err := http.NewRequest("PUT", fmt.Sprintf("/reviews/drafts/%d", draftID), strings.NewReader(payload))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.AddCookie(&http.Cookie{
+		Name:  mockSessionTokenName,
+		Value: "abc123",
+	})
+
+	rec := httptest.NewRecorder()
+	s.Router().ServeHTTP(rec, req)
+	res := rec.Result()
+
+	if got, want := res.StatusCode, http.StatusNoContent; got != want {
+		t.Fatalf("httpStatus=%v, want=%v", got, want)
+	}
+
+	updated, err := dataStore.ReadReview(draftID)
+	if err != nil {
+		t.Fatalf("failed to read updated draft: %v", err)
+	}
+
+	if got, want := updated.IsDraft, true; got != want {
+		t.Fatalf("isDraft=%v, want=%v", got, want)
+	}
+	if got, want := updated.Blurb, screenjournal.Blurb("Updated draft"); got != want {
+		t.Fatalf("blurb=%v, want=%v", got, want)
+	}
+	if got, want := updated.Rating, screenjournal.NewRating(4); !got.Equal(want) {
+		t.Fatalf("rating=%v, want=%v", got, want)
+	}
+}
+
+func TestReviewsPostPublishesDraft(t *testing.T) {
+	dataStore := test_sqlite.New()
+
+	mockUser := screenjournal.User{
+		Username:     screenjournal.Username("userA"),
+		Email:        screenjournal.Email("userA@example.com"),
+		PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+	}
+	if err := dataStore.InsertUser(mockUser); err != nil {
+		t.Fatalf("failed to insert mock user: %+v: %v", mockUser, err)
+	}
+
+	movie := screenjournal.Movie{
+		TmdbID:      screenjournal.TmdbID(38),
+		ImdbID:      screenjournal.ImdbID("tt0338013"),
+		Title:       screenjournal.MediaTitle("Eternal Sunshine of the Spotless Mind"),
+		ReleaseDate: screenjournal.ReleaseDate(mustParseDate("2004-03-19")),
+	}
+	movieID, err := dataStore.InsertMovie(movie)
+	if err != nil {
+		t.Fatalf("failed to insert mock movie: %+v: %v", movie, err)
+	}
+
+	draft := screenjournal.Review{
+		Owner:   screenjournal.Username("userA"),
+		IsDraft: true,
+		Rating:  screenjournal.NewRating(3),
+		Watched: mustParseWatchDate("2022-10-28"),
+		Blurb:   screenjournal.Blurb("Initial draft"),
+		Movie: screenjournal.Movie{
+			ID: movieID,
+		},
+	}
+	draftID, err := dataStore.InsertReview(draft)
+	if err != nil {
+		t.Fatalf("failed to insert draft: %v", err)
+	}
+
+	announcer := mockAnnouncer{}
+	sessions := []mockSessionEntry{
+		{
+			token: "abc123",
+			session: sessions.Session{
+				Username: screenjournal.Username("userA"),
+			},
+		},
+	}
+	sessionManager := newMockSessionManager(sessions)
+	s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(nil, nil))
+
+	payload := fmt.Sprintf(
+		"draft-id=%d&media-type=movie&tmdb-id=38&rating=5&watch-date=2022-10-30&blurb=%s",
+		draftID,
+		url.QueryEscape("Final thoughts"),
+	)
+	req, err := http.NewRequest("POST", "/reviews", strings.NewReader(payload))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.AddCookie(&http.Cookie{
+		Name:  mockSessionTokenName,
+		Value: "abc123",
+	})
+
+	rec := httptest.NewRecorder()
+	s.Router().ServeHTTP(rec, req)
+	res := rec.Result()
+
+	if got, want := res.StatusCode, http.StatusSeeOther; got != want {
+		t.Fatalf("httpStatus=%v, want=%v", got, want)
+	}
+
+	published, err := dataStore.ReadReview(draftID)
+	if err != nil {
+		t.Fatalf("failed to read published review: %v", err)
+	}
+
+	if got, want := published.IsDraft, false; got != want {
+		t.Fatalf("isDraft=%v, want=%v", got, want)
+	}
+	if got, want := published.Blurb, screenjournal.Blurb("Final thoughts"); got != want {
+		t.Fatalf("blurb=%v, want=%v", got, want)
+	}
+	if got, want := published.Rating, screenjournal.NewRating(5); !got.Equal(want) {
+		t.Fatalf("rating=%v, want=%v", got, want)
+	}
+
+	rr, err := dataStore.ReadReviews()
+	if err != nil {
+		t.Fatalf("failed to read reviews: %v", err)
+	}
+	if got, want := len(rr), 1; got != want {
+		t.Fatalf("reviewCount=%d, want=%d", got, want)
+	}
+
+	if got, want := len(announcer.announcedReviews), 1; got != want {
+		t.Fatalf("announcedReviews=%d, want=%d", got, want)
 	}
 }
 

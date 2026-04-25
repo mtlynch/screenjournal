@@ -20,6 +20,7 @@ type (
 	Review struct {
 		ID           ReviewID
 		Owner        Username
+		IsDraft      bool
 		Rating       Rating
 		Blurb        Blurb
 		Watched      WatchDate

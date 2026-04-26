@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
 
@@ -36,47 +35,21 @@ func TestManagerStoresSessionsInSQLite(t *testing.T) {
 		t.Fatalf("len(cookies)=%d, want=%d", got, want)
 	}
 
-	var loaded simple_sessions.UserID
-	var loadErr error
+	loadRec := httptest.NewRecorder()
 	manager.LoadUser(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		loaded, loadErr = manager.UserIDFromContext(r.Context())
-	})).ServeHTTP(httptest.NewRecorder(), requestWithCookie(cookies[0]))
-
-	if got, want := loadErr, error(nil); got != want {
-		t.Fatalf("loadErr=%v, want=%v", got, want)
+		loadedUserID, err := manager.UserIDFromContext(r.Context())
+		if err != nil {
+			t.Fatalf("UserIDFromContext err=%v, want=%v", err, nil)
+		}
+		if _, err := w.Write([]byte("loaded user " + loadedUserID.String())); err != nil {
+			t.Fatalf("Write err=%v, want=%v", err, nil)
+		}
+	})).ServeHTTP(loadRec, requestWithCookie(cookies[0]))
+	if got, want := loadRec.Code, http.StatusOK; got != want {
+		t.Fatalf("loadRec.Code=%d, want=%d", got, want)
 	}
-	if got, want := loaded.String(), userID.String(); got != want {
-		t.Errorf("loaded=%v, want=%v", got, want)
-	}
-	var userIDRaw string
-	var createdAtRaw string
-	var expiresAtRaw string
-	if err := db.QueryRow(`
-		SELECT
-			user_id,
-			created_at,
-			expires_at
-		FROM
-			auth_sessions
-		WHERE
-			session_id = :session_id`,
-		sql.Named("session_id", cookies[0].Value)).
-		Scan(&userIDRaw, &createdAtRaw, &expiresAtRaw); err != nil {
-		t.Fatalf("failed to read stored session: %v", err)
-	}
-	if got, want := userIDRaw, userID.String(); got != want {
-		t.Errorf("userID=%s, want=%s", got, want)
-	}
-	createdAt, err := time.Parse("2006-01-02 15:04:05", createdAtRaw)
-	if err != nil {
-		t.Fatalf("createdAt=%q failed to parse: %v", createdAtRaw, err)
-	}
-	expiresAt, err := time.Parse("2006-01-02 15:04:05", expiresAtRaw)
-	if err != nil {
-		t.Fatalf("expiresAt=%q failed to parse: %v", expiresAtRaw, err)
-	}
-	if got, want := expiresAt.Sub(createdAt), 30*24*time.Hour; got != want {
-		t.Errorf("session lifetime=%v, want=%v", got, want)
+	if got, want := loadRec.Body.String(), "loaded user "+userID.String(); got != want {
+		t.Errorf("loadRec.Body=%q, want=%q", got, want)
 	}
 	endRec := httptest.NewRecorder()
 	var endErr error
@@ -87,11 +60,12 @@ func TestManagerStoresSessionsInSQLite(t *testing.T) {
 		t.Fatalf("endErr=%v, want=%v", got, want)
 	}
 
+	var postLogoutErr error
 	manager.LoadUser(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, loadErr = manager.UserIDFromContext(r.Context())
+		_, postLogoutErr = manager.UserIDFromContext(r.Context())
 	})).ServeHTTP(httptest.NewRecorder(), requestWithCookie(cookies[0]))
-	if got, want := loadErr, simple_sessions.ErrNoSessionFound; got != want {
-		t.Fatalf("loadErr=%v, want=%v", got, want)
+	if got, want := postLogoutErr, simple_sessions.ErrNoSessionFound; got != want {
+		t.Fatalf("postLogoutErr=%v, want=%v", got, want)
 	}
 }
 

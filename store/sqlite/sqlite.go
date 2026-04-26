@@ -67,6 +67,17 @@ func (s Store) db() *sql.DB {
 	return s.dbFunc(s.ctx)
 }
 
+func NewWithDBFunc(dbFunc func(context.Context) *sql.DB) Store {
+	return Store{
+		dbFunc: dbFunc,
+		ctx:    context.Background(),
+	}
+}
+
+func (s Store) GetDB() *sql.DB {
+	return s.dbFunc(s.ctx)
+}
+
 func parseDatetime(s string) (time.Time, error) {
 	return time.Parse(timeFormat, s)
 }

@@ -43,7 +43,7 @@ func main() {
 	if !useTls {
 		log.Printf("TLS has not been marked as required, so session cookies will not have Secure flag")
 	}
-	sessionManager := sessions.NewManager(func(_ context.Context) sqlite.Store { return store }, useTls)
+	sessionManager := sessions.NewManager(store, useTls)
 
 	var announcer handlers.Announcer
 	var passwordResetter handlers.PasswordResetter

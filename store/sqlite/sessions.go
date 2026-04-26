@@ -5,27 +5,15 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"time"
 
 	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
 )
 
-const sessionDatetimeFormat = "2006-01-02 15:04:05"
-
-type SessionStore struct {
-	storeFunc func(context.Context) Store
-}
-
-func NewSessionStore(storeFunc func(context.Context) Store) SessionStore {
-	return SessionStore{storeFunc: storeFunc}
-}
-
-func (s SessionStore) CreateSession(
+func (s Store) CreateSession(
 	ctx context.Context,
 	session simple_sessions.Session,
 ) error {
-	store := s.storeFunc(ctx).WithContext(ctx)
-	if _, err := store.db().ExecContext(ctx, `
+	if _, err := s.dbFunc(ctx).ExecContext(ctx, `
 		INSERT OR REPLACE INTO auth_sessions
 		(
 			session_id,
@@ -42,23 +30,22 @@ func (s SessionStore) CreateSession(
 		)`,
 		sql.Named("session_id", session.ID.String()),
 		sql.Named("user_id", session.UserID.String()),
-		sql.Named("created_at", formatSessionTime(session.CreatedAt)),
-		sql.Named("expires_at", formatSessionTime(session.ExpiresAt)),
+		sql.Named("created_at", formatTime(session.CreatedAt)),
+		sql.Named("expires_at", formatTime(session.ExpiresAt)),
 	); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s SessionStore) ReadSession(
+func (s Store) ReadSession(
 	ctx context.Context,
 	id simple_sessions.ID,
 ) (simple_sessions.Session, error) {
 	var userIDRaw string
 	var createdAtRaw string
 	var expiresAtRaw string
-	store := s.storeFunc(ctx).WithContext(ctx)
-	if err := store.db().QueryRowContext(ctx, `
+	if err := s.dbFunc(ctx).QueryRowContext(ctx, `
 		SELECT
 			user_id,
 			created_at,
@@ -79,7 +66,7 @@ func (s SessionStore) ReadSession(
 	if err != nil {
 		return simple_sessions.Session{}, fmt.Errorf("parse stored user ID: %w", err)
 	}
-	createdAt, err := parseSessionTime(createdAtRaw)
+	createdAt, err := parseDatetime(createdAtRaw)
 	if err != nil {
 		return simple_sessions.Session{}, fmt.Errorf(
 			"parse stored created at: %w",
@@ -89,7 +76,7 @@ func (s SessionStore) ReadSession(
 
 	// We don't filter out expired sessions at this layer because simpleauth is
 	// responsible for handling session expiration.
-	expiresAt, err := parseSessionTime(expiresAtRaw)
+	expiresAt, err := parseDatetime(expiresAtRaw)
 	if err != nil {
 		return simple_sessions.Session{}, fmt.Errorf(
 			"parse stored expires at: %w",
@@ -104,12 +91,11 @@ func (s SessionStore) ReadSession(
 	}, nil
 }
 
-func (s SessionStore) DeleteSession(
+func (s Store) DeleteSession(
 	ctx context.Context,
 	id simple_sessions.ID,
 ) error {
-	store := s.storeFunc(ctx).WithContext(ctx)
-	if _, err := store.db().ExecContext(ctx, `
+	if _, err := s.dbFunc(ctx).ExecContext(ctx, `
 		DELETE FROM
 			auth_sessions
 		WHERE
@@ -119,12 +105,4 @@ func (s SessionStore) DeleteSession(
 		return err
 	}
 	return nil
-}
-
-func formatSessionTime(t time.Time) string {
-	return t.Format(sessionDatetimeFormat)
-}
-
-func parseSessionTime(raw string) (time.Time, error) {
-	return time.Parse(sessionDatetimeFormat, raw)
 }

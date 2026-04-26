@@ -36,17 +36,18 @@ import (
 func (s *Server) initDev() {
 	s.router.Use(assignSessionDB)
 	if _, ok := s.sessionManager.(simple_sessions.Manager); ok {
-		s.sessionManager = sessions.NewManager(func(ctx context.Context) sqlite.Store {
+		sessionStore := sqlite.NewWithDBFunc(func(ctx context.Context) *sql.DB {
 			if !sharedDBSettings.IsSessionIsolationEnabled() {
-				return s.store
+				return s.store.WithContext(ctx).GetDB()
 			}
 			if token, ok := ctx.Value(dbTokenContextKey{}).(dbToken); ok {
 				if sess := sharedDBSettings.GetDB(token); sess.db != nil {
-					return sess.store
+					return sess.db
 				}
 			}
-			return s.store
-		}, false)
+			return s.store.WithContext(ctx).GetDB()
+		})
+		s.sessionManager = sessions.NewManager(sessionStore, false)
 	}
 }
 

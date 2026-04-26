@@ -1,7 +1,6 @@
 package sessions
 
 import (
-	"context"
 	"time"
 
 	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
@@ -11,16 +10,9 @@ import (
 
 const sessionLifetime = 30 * 24 * time.Hour
 
-// NewManager creates a session manager backed by SQLite.
-//
-// The `storeFunc` parameter allows callers to choose the database at request
-// time from the context rather than binding the manager to a single store at
-// startup. We need this for e2e tests because the e2e tests rely on the session
-// manager having several SQLite databases at once (one for each parallel test)
-// that it needs to resolve on a per-request basis.
-func NewManager(storeFunc func(context.Context) sqlite.Store, requireTls bool) simple_sessions.Manager {
+func NewManager(store sqlite.Store, requireTls bool) simple_sessions.Manager {
 	return simple_sessions.NewManager(simple_sessions.Config{
-		Store:      sqlite.NewSessionStore(storeFunc),
+		Store:      store,
 		RequireTLS: requireTls,
 		Now:        time.Now,
 		Lifetime:   sessionLifetime,

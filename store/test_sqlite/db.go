@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/ncruces/go-sqlite3/vfs/memdb"
+
 	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
@@ -20,7 +22,11 @@ func ephemeralDbURI() string {
 	name := random.String(
 		10,
 		[]rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"))
-	return fmt.Sprintf("file:%s?mode=memory&cache=shared", name)
+	memdb.Create("/"+name, nil)
+
+	// Use memdb instead of shared-cache in-memory DBs:
+	// https://github.com/ncruces/go-sqlite3/discussions/97#discussioncomment-9744524
+	return fmt.Sprintf("file:/%s?vfs=memdb", name)
 }
 
 // quietLogs suppresses log output during a function execution.

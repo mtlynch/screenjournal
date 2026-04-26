@@ -10,12 +10,14 @@ import (
 	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
 
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
+	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
 func TestManagerStoresSessionsInSQLite(t *testing.T) {
 	db := test_sqlite.NewDB(t)
-	manager := sessions.NewManager(func(_ context.Context) *sql.DB { return db }, false)
+	store := sqlite.New(func(_ context.Context) *sql.DB { return db }, false)
+	manager := sessions.NewManager(store, false)
 	userID, err := simple_sessions.NewUserID("dummyuserID")
 	if err != nil {
 		t.Fatalf("failed to create user ID: %v", err)

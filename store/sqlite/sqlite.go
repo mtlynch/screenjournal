@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"time"
@@ -17,7 +18,8 @@ const (
 
 type (
 	Store struct {
-		ctx *sql.DB
+		dbFunc func(context.Context) *sql.DB
+		ctx    context.Context
 	}
 
 	rowScanner interface {
@@ -34,15 +36,19 @@ func MustOpen(path string) *sql.DB {
 	return ctx
 }
 
-func New(ctx *sql.DB, optimizeForLitestream bool) Store {
-	if _, err := ctx.Exec(`
+func New(dbFunc func(context.Context) *sql.DB, optimizeForLitestream bool) Store {
+	db := dbFunc(context.Background())
+	if _, err := db.Exec(`
 		PRAGMA temp_store = FILE;
 		PRAGMA journal_mode = WAL;
 		`); err != nil {
 		log.Fatalf("failed to set pragmas: %v", err)
 	}
 
-	store := Store{ctx: ctx}
+	store := Store{
+		dbFunc: dbFunc,
+		ctx:    context.Background(),
+	}
 	if optimizeForLitestream {
 		store.optimizeForLitestream()
 	}
@@ -50,6 +56,15 @@ func New(ctx *sql.DB, optimizeForLitestream bool) Store {
 	store.applyMigrations()
 
 	return store
+}
+
+func (s Store) WithContext(ctx context.Context) Store {
+	s.ctx = ctx
+	return s
+}
+
+func (s Store) db() *sql.DB {
+	return s.dbFunc(s.ctx)
 }
 
 func parseDatetime(s string) (time.Time, error) {

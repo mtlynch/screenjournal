@@ -35,7 +35,7 @@ import (
 func (s *Server) initDev() {
 	s.router.Use(assignSessionDB)
 	if s.rawDB != nil {
-		s.sessionManager = sessions.NewManager(func(ctx context.Context) *sql.DB {
+		s.store = sqlite.New(func(ctx context.Context) *sql.DB {
 			if !sharedDBSettings.IsSessionIsolationEnabled() {
 				return s.rawDB
 			}
@@ -46,6 +46,7 @@ func (s *Server) initDev() {
 			}
 			return s.rawDB
 		}, false)
+		s.sessionManager = sessions.NewManager(s.store, false)
 	}
 }
 
@@ -218,8 +219,7 @@ type (
 	dbToken string
 
 	sessionDB struct {
-		store sqlite.Store
-		db    *sql.DB
+		db *sql.DB
 	}
 
 	dbSettings struct {
@@ -259,14 +259,7 @@ func (dbs *dbSettings) SaveDB(token dbToken, sdb sessionDB) {
 }
 
 func (s Server) getDB(r *http.Request) sqlite.Store {
-	if !sharedDBSettings.IsSessionIsolationEnabled() {
-		return s.store
-	}
-	token, ok := r.Context().Value(dbTokenContextKey{}).(dbToken)
-	if !ok {
-		panic("per-session database token not found in context")
-	}
-	return sharedDBSettings.GetDB(token).store
+	return s.store.WithContext(r.Context())
 }
 
 func (s Server) getAuthenticator(r *http.Request) Authenticator {
@@ -311,8 +304,8 @@ func assignSessionDB(h http.Handler) http.Handler {
 				token := dbToken(random.String(30, []rune("abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")))
 				log.Printf("provisioning a new private database with token %s", token)
 				createDBCookie(token, w)
-				db, store := test_sqlite.New()
-				sharedDBSettings.SaveDB(token, sessionDB{store: store, db: db})
+				db, _ := test_sqlite.New()
+				sharedDBSettings.SaveDB(token, sessionDB{db: db})
 				ctx := context.WithValue(r.Context(), dbTokenContextKey{}, token)
 				r = r.WithContext(ctx)
 			} else {

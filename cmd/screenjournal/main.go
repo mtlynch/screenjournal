@@ -35,7 +35,7 @@ func main() {
 
 	ensureDirExists(filepath.Dir(*dbPath))
 	db := sqlite.MustOpen(*dbPath)
-	store := sqlite.New(db, isLitestreamEnabled())
+	store := sqlite.New(func(_ context.Context) *sql.DB { return db }, isLitestreamEnabled())
 
 	authenticator := auth.New(store)
 
@@ -43,7 +43,7 @@ func main() {
 	if !useTls {
 		log.Printf("TLS has not been marked as required, so session cookies will not have Secure flag")
 	}
-	sessionManager := sessions.NewManager(func(_ context.Context) *sql.DB { return db }, useTls)
+	sessionManager := sessions.NewManager(store, useTls)
 
 	var announcer handlers.Announcer
 	var passwordResetter handlers.PasswordResetter

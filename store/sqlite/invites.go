@@ -13,7 +13,7 @@ func (s Store) InsertSignupInvitation(invite screenjournal.SignupInvitation) err
 
 	now := time.Now()
 
-	if _, err := s.ctx.Exec(`
+	if _, err := s.db().ExecContext(s.ctx, `
 	INSERT INTO
 		invites
 	(
@@ -36,7 +36,7 @@ func (s Store) InsertSignupInvitation(invite screenjournal.SignupInvitation) err
 
 func (s Store) ReadSignupInvitation(code screenjournal.InviteCode) (screenjournal.SignupInvitation, error) {
 	var invitee string
-	if err := s.ctx.QueryRow(`
+	if err := s.db().QueryRowContext(s.ctx, `
 		SELECT
 			invitee
 		FROM
@@ -53,7 +53,7 @@ func (s Store) ReadSignupInvitation(code screenjournal.InviteCode) (screenjourna
 }
 
 func (s Store) ReadSignupInvitations() ([]screenjournal.SignupInvitation, error) {
-	rows, err := s.ctx.Query(`
+	rows, err := s.db().QueryContext(s.ctx, `
 		SELECT
 			invitee,
 			code
@@ -92,7 +92,7 @@ func (s Store) ReadSignupInvitations() ([]screenjournal.SignupInvitation, error)
 
 func (s Store) DeleteSignupInvitation(code screenjournal.InviteCode) error {
 	log.Printf("deleting signup code: %s", code)
-	_, err := s.ctx.Exec(`DELETE FROM invites WHERE code = :code`, sql.Named("code", code.String()))
+	_, err := s.db().ExecContext(s.ctx, `DELETE FROM invites WHERE code = :code`, sql.Named("code", code.String()))
 	if err != nil {
 		return err
 	}

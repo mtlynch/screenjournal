@@ -16,8 +16,8 @@ func (s *Server) addDevRoutes() {
 	// no-op
 }
 
-func (s Server) getDB(*http.Request) sqlite.Store {
-	return s.store
+func (s Server) getDB(r *http.Request) sqlite.Store {
+	return s.store.WithContext(r.Context())
 }
 
 func (s Server) getAuthenticator(_ *http.Request) Authenticator {

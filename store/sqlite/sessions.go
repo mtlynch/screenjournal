@@ -12,15 +12,7 @@ import (
 
 const sessionDatetimeFormat = "2006-01-02 15:04:05"
 
-type SessionStore struct {
-	dbFunc func(context.Context) *sql.DB
-}
-
-func NewSessionStore(dbFunc func(context.Context) *sql.DB) SessionStore {
-	return SessionStore{dbFunc: dbFunc}
-}
-
-func (s SessionStore) CreateSession(
+func (s Store) CreateSession(
 	ctx context.Context,
 	session simple_sessions.Session,
 ) error {
@@ -49,7 +41,7 @@ func (s SessionStore) CreateSession(
 	return nil
 }
 
-func (s SessionStore) ReadSession(
+func (s Store) ReadSession(
 	ctx context.Context,
 	id simple_sessions.ID,
 ) (simple_sessions.Session, error) {
@@ -102,7 +94,7 @@ func (s SessionStore) ReadSession(
 	}, nil
 }
 
-func (s SessionStore) DeleteSession(
+func (s Store) DeleteSession(
 	ctx context.Context,
 	id simple_sessions.ID,
 ) error {

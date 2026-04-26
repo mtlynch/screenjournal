@@ -52,7 +52,6 @@ type mockSessionEntry struct {
 
 type mockSession struct {
 	Username screenjournal.Username
-	IsAdmin  bool
 }
 
 type mockSessionManager struct {
@@ -122,19 +121,36 @@ type mockUserStore interface {
 	InsertUser(screenjournal.User) error
 }
 
-func insertMockSessionUsers(t *testing.T, userStore mockUserStore, mockSessions []mockSessionEntry) {
+func insertMockUsers(t *testing.T, userStore mockUserStore, users []screenjournal.User) {
 	t.Helper()
-	for _, s := range mockSessions {
-		mockUser := screenjournal.User{
-			Username:     s.session.Username,
-			IsAdmin:      s.session.IsAdmin,
-			Email:        screenjournal.Email(s.session.Username.String() + "@example.com"),
-			PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
-		}
-		if err := userStore.InsertUser(mockUser); err != nil {
-			t.Fatalf("failed to insert mock user %+v: %v", mockUser, err)
+	for _, user := range users {
+		if err := userStore.InsertUser(user); err != nil {
+			t.Fatalf("failed to insert mock user %+v: %v", user, err)
 		}
 	}
+}
+
+func newMockSessionEntry(token string, username screenjournal.Username) mockSessionEntry {
+	return mockSessionEntry{
+		token: token,
+		session: mockSession{
+			Username: username,
+		},
+	}
+}
+
+func newMockUser(username screenjournal.Username) screenjournal.User {
+	return screenjournal.User{
+		Username:     username,
+		Email:        screenjournal.Email(username.String() + "@example.com"),
+		PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+	}
+}
+
+func newMockAdminUser(username screenjournal.Username) screenjournal.User {
+	user := newMockUser(username)
+	user.IsAdmin = true
+	return user
 }
 
 type mockMetadataFinder struct {
@@ -212,6 +228,7 @@ func TestReviewsPost(t *testing.T) {
 		localMovies     []screenjournal.Movie
 		remoteMovieInfo []screenjournal.Movie
 		sessions        []mockSessionEntry
+		users           []screenjournal.User
 		expectedStatus  int
 		expected        screenjournal.Review
 	}{
@@ -228,13 +245,10 @@ func TestReviewsPost(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: mockSession{
-						Username: screenjournal.Username("dummyadmin"),
-						IsAdmin:  true,
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("dummyadmin")),
+			},
+			users: []screenjournal.User{
+				newMockAdminUser(screenjournal.Username("dummyadmin")),
 			},
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
@@ -266,13 +280,10 @@ func TestReviewsPost(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: mockSession{
-						Username: screenjournal.Username("dummyadmin"),
-						IsAdmin:  true,
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("dummyadmin")),
+			},
+			users: []screenjournal.User{
+				newMockAdminUser(screenjournal.Username("dummyadmin")),
 			},
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
@@ -303,13 +314,10 @@ func TestReviewsPost(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: mockSession{
-						Username: screenjournal.Username("dummyadmin"),
-						IsAdmin:  true,
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("dummyadmin")),
+			},
+			users: []screenjournal.User{
+				newMockAdminUser(screenjournal.Username("dummyadmin")),
 			},
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
@@ -332,12 +340,10 @@ func TestReviewsPost(t *testing.T) {
 			payload:      "",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: mockSession{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -346,12 +352,10 @@ func TestReviewsPost(t *testing.T) {
 			payload:      "tmdb-id=&rating=&watch-date=&blurb=",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: mockSession{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -360,12 +364,10 @@ func TestReviewsPost(t *testing.T) {
 			payload:      "tmdb-id=banana&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: mockSession{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -374,12 +376,10 @@ func TestReviewsPost(t *testing.T) {
 			payload:      "tmdb-id=banana&rating=banana&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: mockSession{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -396,12 +396,10 @@ func TestReviewsPost(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: mockSession{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
@@ -423,7 +421,7 @@ func TestReviewsPost(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			_, dataStore := test_sqlite.New()
 
-			insertMockSessionUsers(t, dataStore, tt.sessions)
+			insertMockUsers(t, dataStore, tt.users)
 
 			for _, movie := range tt.localMovies {
 				if _, err := dataStore.InsertMovie(movie); err != nil {
@@ -494,6 +492,7 @@ func TestReviewsPut(t *testing.T) {
 		localMovies    []screenjournal.Movie
 		priorReviews   []screenjournal.Review
 		sessions       []mockSessionEntry
+		users          []screenjournal.User
 		route          string
 		payload        string
 		sessionToken   string
@@ -532,12 +531,10 @@ func TestReviewsPut(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: mockSession{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			route:          "/reviews/1",
 			payload:        "rating=4&watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
@@ -590,12 +587,10 @@ func TestReviewsPut(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: mockSession{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			route:          "/reviews/1",
 			payload:        "rating=3&watch-date=2022-10-28&blurb=",
@@ -643,12 +638,10 @@ func TestReviewsPut(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: mockSession{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			route:          "/reviews/0",
 			payload:        "rating=4&watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
@@ -681,12 +674,10 @@ func TestReviewsPut(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: mockSession{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			route:          "/reviews/9876",
 			payload:        "rating=4&watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
@@ -720,12 +711,10 @@ func TestReviewsPut(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: mockSession{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			route:          "/reviews/1",
 			payload:        "watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
@@ -773,12 +762,10 @@ func TestReviewsPut(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: mockSession{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			route:          "/reviews/1",
 			payload:        "rating=4&blurb=It's%20a%20pretty%20good%20movie!",
@@ -812,12 +799,10 @@ func TestReviewsPut(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: mockSession{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			route:          "/reviews/1",
 			payload:        "rating=4&watch-date=2022-10-30&blurb=Nothing%20evil%20going%20on%20here...%3Cscript%3Ealert(1)%3C%2Fscript%3E",
@@ -851,18 +836,12 @@ func TestReviewsPut(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: mockSession{
-						Username: screenjournal.Username("userA"),
-					},
-				},
-				{
-					token: "def456",
-					session: mockSession{
-						Username: screenjournal.Username("userB"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+				newMockSessionEntry("def456", screenjournal.Username("userB")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
+				newMockUser(screenjournal.Username("userB")),
 			},
 			route:          "/reviews/1",
 			payload:        "rating=4&watch-date=2022-10-30&blurb=I'm%20overwriting%20userA's%20review!",
@@ -873,7 +852,7 @@ func TestReviewsPut(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			_, dataStore := test_sqlite.New()
 
-			insertMockSessionUsers(t, dataStore, tt.sessions)
+			insertMockUsers(t, dataStore, tt.users)
 
 			for _, movie := range tt.localMovies {
 				if _, err := dataStore.InsertMovie(movie); err != nil {

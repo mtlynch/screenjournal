@@ -1,6 +1,7 @@
 package test_sqlite
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -39,7 +40,7 @@ func newDBAndStore() (*sql.DB, sqlite.Store) {
 	// of sharing the named one. Limiting to one connection ensures every
 	// caller uses the same underlying database.
 	db.SetMaxOpenConns(1)
-	store := sqlite.New(db, optimizeForLitestream)
+	store := sqlite.New(func(_ context.Context) *sql.DB { return db }, optimizeForLitestream)
 	return db, store
 }
 

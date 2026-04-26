@@ -4,6 +4,8 @@ package handlers
 
 import (
 	"net/http"
+
+	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
 func (s *Server) initDev() {
@@ -14,8 +16,8 @@ func (s *Server) addDevRoutes() {
 	// no-op
 }
 
-func (s Server) getDB(*http.Request) Store {
-	return s.store
+func (s Server) getDB(r *http.Request) sqlite.Store {
+	return s.store.WithContext(r.Context())
 }
 
 func (s Server) getAuthenticator(_ *http.Request) Authenticator {

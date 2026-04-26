@@ -11,6 +11,7 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
+	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
 type (
@@ -50,7 +51,7 @@ type (
 		Announcer        Announcer
 		SessionManager   SessionManager
 		RawDB            *sql.DB
-		Store            Store
+		Store            sqlite.Store
 		MetadataFinder   MetadataFinder
 		PasswordResetter PasswordResetter
 	}
@@ -61,7 +62,7 @@ type (
 		announcer        Announcer
 		sessionManager   SessionManager
 		rawDB            *sql.DB
-		store            Store
+		store            sqlite.Store
 		metadataFinder   MetadataFinder
 		passwordResetter PasswordResetter
 	}

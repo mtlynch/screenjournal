@@ -18,7 +18,7 @@ func (s Store) applyMigrations() {
 		log.Fatalf("failed to load migration files: %v", err)
 	}
 
-	if err := migrate.Run(context.Background(), s.ctx, migrationsRoot); err != nil {
+	if err := migrate.Run(context.Background(), s.db(), migrationsRoot); err != nil {
 		log.Fatalf("failed to apply migrations: %v", err)
 	}
 }

@@ -1,7 +1,6 @@
 package sqlite
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -14,7 +13,7 @@ import (
 )
 
 func (s Store) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, error) {
-	row := s.ctx.QueryRow(`
+	row := s.queryRow(`
 	SELECT
 		id,
 		review_owner,
@@ -101,7 +100,7 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 	}
 	query += "		created_time DESC\n"
 
-	rows, err := s.ctx.Query(query, queryArgs...)
+	rows, err := s.query(query, queryArgs...)
 	if err != nil {
 		return []screenjournal.Review{}, err
 	}
@@ -164,7 +163,7 @@ func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, err
 		tvShowSeason = &r.TvShowSeason
 	}
 
-	res, err := s.ctx.Exec(`
+	res, err := s.exec(`
 	INSERT INTO
 		reviews
 	(
@@ -216,7 +215,7 @@ func (s Store) UpdateReview(r screenjournal.Review) error {
 
 	now := time.Now()
 
-	if _, err := s.ctx.Exec(`
+	if _, err := s.exec(`
 	UPDATE reviews
 	SET
 		rating = :rating,
@@ -239,7 +238,7 @@ func (s Store) UpdateReview(r screenjournal.Review) error {
 func (s Store) DeleteReview(id screenjournal.ReviewID) error {
 	log.Printf("deleting review and commments for review ID %v", id)
 
-	tx, err := s.ctx.BeginTx(context.Background(), nil)
+	tx, err := s.beginTx()
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"time"
@@ -17,7 +18,8 @@ const (
 
 type (
 	Store struct {
-		ctx *sql.DB
+		dbFunc func(context.Context) *sql.DB
+		ctx    context.Context
 	}
 
 	rowScanner interface {
@@ -34,15 +36,19 @@ func MustOpen(path string) *sql.DB {
 	return ctx
 }
 
-func New(ctx *sql.DB, optimizeForLitestream bool) Store {
-	if _, err := ctx.Exec(`
+func New(dbFunc func(context.Context) *sql.DB, optimizeForLitestream bool) Store {
+	db := dbFunc(context.Background())
+	if _, err := db.Exec(`
 		PRAGMA temp_store = FILE;
 		PRAGMA journal_mode = WAL;
 		`); err != nil {
 		log.Fatalf("failed to set pragmas: %v", err)
 	}
 
-	store := Store{ctx: ctx}
+	store := Store{
+		dbFunc: dbFunc,
+		ctx:    context.Background(),
+	}
 	if optimizeForLitestream {
 		store.optimizeForLitestream()
 	}
@@ -50,6 +56,31 @@ func New(ctx *sql.DB, optimizeForLitestream bool) Store {
 	store.applyMigrations()
 
 	return store
+}
+
+func (s Store) WithContext(ctx context.Context) Store {
+	s.ctx = ctx
+	return s
+}
+
+func (s Store) db() *sql.DB {
+	return s.dbFunc(s.ctx)
+}
+
+func (s Store) exec(query string, args ...any) (sql.Result, error) {
+	return s.db().ExecContext(s.ctx, query, args...)
+}
+
+func (s Store) query(query string, args ...any) (*sql.Rows, error) {
+	return s.db().QueryContext(s.ctx, query, args...)
+}
+
+func (s Store) queryRow(query string, args ...any) *sql.Row {
+	return s.db().QueryRowContext(s.ctx, query, args...)
+}
+
+func (s Store) beginTx() (*sql.Tx, error) {
+	return s.db().BeginTx(s.ctx, nil)
 }
 
 func parseDatetime(s string) (time.Time, error) {

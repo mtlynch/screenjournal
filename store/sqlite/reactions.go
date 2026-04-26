@@ -15,7 +15,7 @@ func (s Store) ReadReactions(rid screenjournal.ReviewID) ([]screenjournal.Review
 		return []screenjournal.ReviewReaction{}, err
 	}
 
-	rows, err := s.ctx.Query(`
+	rows, err := s.query(`
 	SELECT
 		id,
 		review_id,
@@ -57,7 +57,7 @@ func (s Store) ReadReactions(rid screenjournal.ReviewID) ([]screenjournal.Review
 }
 
 func (s Store) ReadReaction(id screenjournal.ReactionID) (screenjournal.ReviewReaction, error) {
-	row := s.ctx.QueryRow(`
+	row := s.queryRow(`
 	SELECT
 		id,
 		review_id,
@@ -78,7 +78,7 @@ func (s Store) InsertReaction(rr screenjournal.ReviewReaction) (screenjournal.Re
 
 	now := time.Now()
 
-	res, err := s.ctx.Exec(`
+	res, err := s.exec(`
 	INSERT INTO
 		review_reactions
 	(
@@ -109,7 +109,7 @@ func (s Store) InsertReaction(rr screenjournal.ReviewReaction) (screenjournal.Re
 
 func (s Store) DeleteReaction(id screenjournal.ReactionID) error {
 	log.Printf("deleting reaction ID=%v", id)
-	_, err := s.ctx.Exec(`DELETE FROM review_reactions WHERE id = :id`, sql.Named("id", id.String()))
+	_, err := s.exec(`DELETE FROM review_reactions WHERE id = :id`, sql.Named("id", id.String()))
 	if err != nil {
 		return err
 	}

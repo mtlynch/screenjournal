@@ -12,8 +12,6 @@ import (
 	"net/url"
 	"sync"
 
-	_ "github.com/ncruces/go-sqlite3/vfs/memdb"
-
 	"github.com/gorilla/mux"
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
@@ -21,6 +19,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
+	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
 // initDev sets up dev-mode state before routes are created.
@@ -283,19 +282,11 @@ func assignSessionDB(h http.Handler) http.Handler {
 				token := dbToken(random.String(30, []rune("abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")))
 				log.Printf("provisioning a new private database with token %s", token)
 				createDBCookie(token, w)
-				sharedDBSettings.SaveDB(token, newSessionStore(token))
+				sharedDBSettings.SaveDB(token, test_sqlite.New())
 			}
 		}
 		h.ServeHTTP(w, r)
 	})
-}
-
-func newSessionStore(token dbToken) sqlite.Store {
-	const optimizeForLitestream = false
-	return sqlite.New(
-		sqlite.MustOpen(fmt.Sprintf("file:/%s?vfs=memdb", token)),
-		optimizeForLitestream,
-	)
 }
 
 func createDBCookie(token dbToken, w http.ResponseWriter) {

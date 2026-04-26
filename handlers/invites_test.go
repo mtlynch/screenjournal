@@ -91,7 +91,7 @@ func TestInvitesPost(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New(t)
+			dataStore := test_sqlite.New()
 
 			for _, s := range tt.sessions {
 				mockUser := screenjournal.User{

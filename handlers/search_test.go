@@ -183,7 +183,7 @@ func TestSearchGet(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New(t)
+			dataStore := test_sqlite.New()
 
 			// Populate datastore with dummy users.
 			for _, s := range tt.sessions {

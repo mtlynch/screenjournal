@@ -212,7 +212,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New(t)
+			dataStore := test_sqlite.New()
 
 			// Insert existing users into datastore.
 			for _, user := range tt.existingUsers {

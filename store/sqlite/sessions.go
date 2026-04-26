@@ -1,4 +1,4 @@
-package sessions
+package sqlite
 
 import (
 	"context"
@@ -10,17 +10,20 @@ import (
 	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
 )
 
-const (
-	sqliteDatetimeFormat = "2006-01-02 15:04:05"
-)
+const sessionDatetimeFormat = "2006-01-02 15:04:05"
 
-type (
-	store struct {
-		dbFunc func(context.Context) *sql.DB
-	}
-)
+type SessionStore struct {
+	dbFunc func(context.Context) *sql.DB
+}
 
-func (s store) CreateSession(ctx context.Context, session simple_sessions.Session) error {
+func NewSessionStore(dbFunc func(context.Context) *sql.DB) SessionStore {
+	return SessionStore{dbFunc: dbFunc}
+}
+
+func (s SessionStore) CreateSession(
+	ctx context.Context,
+	session simple_sessions.Session,
+) error {
 	if _, err := s.dbFunc(ctx).ExecContext(ctx, `
 		INSERT OR REPLACE INTO auth_sessions
 		(
@@ -46,7 +49,10 @@ func (s store) CreateSession(ctx context.Context, session simple_sessions.Sessio
 	return nil
 }
 
-func (s store) ReadSession(ctx context.Context, id simple_sessions.ID) (simple_sessions.Session, error) {
+func (s SessionStore) ReadSession(
+	ctx context.Context,
+	id simple_sessions.ID,
+) (simple_sessions.Session, error) {
 	var userIDRaw string
 	var createdAtRaw string
 	var expiresAtRaw string
@@ -73,14 +79,20 @@ func (s store) ReadSession(ctx context.Context, id simple_sessions.ID) (simple_s
 	}
 	createdAt, err := parseSessionTime(createdAtRaw)
 	if err != nil {
-		return simple_sessions.Session{}, fmt.Errorf("parse stored created at: %w", err)
+		return simple_sessions.Session{}, fmt.Errorf(
+			"parse stored created at: %w",
+			err,
+		)
 	}
 
 	// We don't filter out expired sessions at this layer because simpleauth is
 	// responsible for handling session expiration.
 	expiresAt, err := parseSessionTime(expiresAtRaw)
 	if err != nil {
-		return simple_sessions.Session{}, fmt.Errorf("parse stored expires at: %w", err)
+		return simple_sessions.Session{}, fmt.Errorf(
+			"parse stored expires at: %w",
+			err,
+		)
 	}
 	return simple_sessions.Session{
 		ID:        id,
@@ -90,7 +102,10 @@ func (s store) ReadSession(ctx context.Context, id simple_sessions.ID) (simple_s
 	}, nil
 }
 
-func (s store) DeleteSession(ctx context.Context, id simple_sessions.ID) error {
+func (s SessionStore) DeleteSession(
+	ctx context.Context,
+	id simple_sessions.ID,
+) error {
 	if _, err := s.dbFunc(ctx).ExecContext(ctx, `
 		DELETE FROM
 			auth_sessions
@@ -104,9 +119,9 @@ func (s store) DeleteSession(ctx context.Context, id simple_sessions.ID) error {
 }
 
 func formatSessionTime(t time.Time) string {
-	return t.Format(sqliteDatetimeFormat)
+	return t.Format(sessionDatetimeFormat)
 }
 
 func parseSessionTime(raw string) (time.Time, error) {
-	return time.Parse(sqliteDatetimeFormat, raw)
+	return time.Parse(sessionDatetimeFormat, raw)
 }

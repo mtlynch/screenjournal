@@ -6,6 +6,8 @@ import (
 	"time"
 
 	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
+
+	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
 const sessionLifetime = 30 * 24 * time.Hour
@@ -19,7 +21,7 @@ const sessionLifetime = 30 * 24 * time.Hour
 // that it needs to resolve on a per-request basis.
 func NewManager(dbFunc func(context.Context) *sql.DB, requireTls bool) simple_sessions.Manager {
 	return simple_sessions.NewManager(simple_sessions.Config{
-		Store:      store{dbFunc: dbFunc},
+		Store:      sqlite.NewSessionStore(dbFunc),
 		RequireTLS: requireTls,
 		Now:        time.Now,
 		Lifetime:   sessionLifetime,

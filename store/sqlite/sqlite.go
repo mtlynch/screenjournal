@@ -67,22 +67,6 @@ func (s Store) db() *sql.DB {
 	return s.dbFunc(s.ctx)
 }
 
-func (s Store) exec(query string, args ...any) (sql.Result, error) {
-	return s.db().ExecContext(s.ctx, query, args...)
-}
-
-func (s Store) query(query string, args ...any) (*sql.Rows, error) {
-	return s.db().QueryContext(s.ctx, query, args...)
-}
-
-func (s Store) queryRow(query string, args ...any) *sql.Row {
-	return s.db().QueryRowContext(s.ctx, query, args...)
-}
-
-func (s Store) beginTx() (*sql.Tx, error) {
-	return s.db().BeginTx(s.ctx, nil)
-}
-
 func parseDatetime(s string) (time.Time, error) {
 	return time.Parse(timeFormat, s)
 }

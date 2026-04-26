@@ -8,7 +8,7 @@ import (
 )
 
 func (s Store) ReadReviewSubscribers() ([]screenjournal.EmailSubscriber, error) {
-	rows, err := s.query(`
+	rows, err := s.db().QueryContext(s.ctx, `
 	SELECT
 		users.username AS username,
 		users.email AS email
@@ -47,7 +47,7 @@ func (s Store) ReadCommentSubscribers(
 	reviewID screenjournal.ReviewID,
 	commentAuthor screenjournal.Username,
 ) ([]screenjournal.EmailSubscriber, error) {
-	rows, err := s.query(`
+	rows, err := s.db().QueryContext(s.ctx, `
 	SELECT
 		users.username AS username,
 		users.email AS email
@@ -103,7 +103,7 @@ func (s Store) ReadCommentSubscribers(
 func (s Store) ReadNotificationPreferences(username screenjournal.Username) (screenjournal.NotificationPreferences, error) {
 	var newReviews bool
 	var allNewComments bool
-	err := s.queryRow(`
+	err := s.db().QueryRowContext(s.ctx, `
 	SELECT
 		new_reviews,
 		all_new_comments
@@ -123,7 +123,7 @@ func (s Store) ReadNotificationPreferences(username screenjournal.Username) (scr
 
 func (s Store) UpdateNotificationPreferences(username screenjournal.Username, prefs screenjournal.NotificationPreferences) error {
 	log.Printf("updating notifications preferences for %s: newReviews=%v, allNewComments=%v", username, prefs.NewReviews, prefs.AllNewComments)
-	if _, err := s.exec(`
+	if _, err := s.db().ExecContext(s.ctx, `
 	UPDATE notification_preferences
 	SET
 		new_reviews = :new_reviews,

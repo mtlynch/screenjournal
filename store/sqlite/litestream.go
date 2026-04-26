@@ -3,7 +3,7 @@ package sqlite
 import "log"
 
 func (s Store) optimizeForLitestream() {
-	if _, err := s.exec(`
+	if _, err := s.db().ExecContext(s.ctx, `
 		-- Apply Litestream recommendations: https://litestream.io/tips/
 		PRAGMA busy_timeout = 5000;
 		PRAGMA synchronous = NORMAL;

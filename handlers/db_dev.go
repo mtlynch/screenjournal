@@ -20,6 +20,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
+	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
@@ -217,7 +218,7 @@ type (
 	dbToken string
 
 	sessionDB struct {
-		store Store
+		store sqlite.Store
 		db    *sql.DB
 	}
 
@@ -257,7 +258,7 @@ func (dbs *dbSettings) SaveDB(token dbToken, sdb sessionDB) {
 	dbs.tokenToDB[token] = sdb
 }
 
-func (s Server) getDB(r *http.Request) Store {
+func (s Server) getDB(r *http.Request) sqlite.Store {
 	if !sharedDBSettings.IsSessionIsolationEnabled() {
 		return s.store
 	}

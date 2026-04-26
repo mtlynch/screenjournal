@@ -1,9 +1,11 @@
 package test_sqlite
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
+	"testing"
 
 	"github.com/ncruces/go-sqlite3/vfs/memdb"
 
@@ -11,11 +13,37 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
+const optimizeForLitestream = false
+
 func New() sqlite.Store {
+	_, store := newDBAndStore()
+	return store
+}
+
+// NewDB returns an ephemeral SQLite database with all migrations applied.
+func NewDB(t testing.TB) *sql.DB {
+	t.Helper()
+	db, _ := newDBAndStore()
+	t.Cleanup(func() {
+		t.Helper()
+		if err := db.Close(); err != nil {
+			t.Fatalf("failed to close db: %v", err)
+		}
+	})
+	return db
+}
+
+func newDBAndStore() (*sql.DB, sqlite.Store) {
 	// Suppress log output, as the migration logs are too noisy during tests.
 	defer quietLogs()()
-	const optimizeForLitestream = false
-	return sqlite.New(sqlite.MustOpen(ephemeralDbURI()), optimizeForLitestream)
+	db := sqlite.MustOpen(ephemeralDbURI())
+	// The ncruces/go-sqlite3 WASM driver does not implement cache=shared for
+	// in-memory databases: each new connection gets an empty database instead
+	// of sharing the named one. Limiting to one connection ensures every
+	// caller uses the same underlying database.
+	db.SetMaxOpenConns(1)
+	store := sqlite.New(db, optimizeForLitestream)
+	return db, store
 }
 
 func ephemeralDbURI() string {

@@ -8,9 +8,10 @@ import (
 	"testing"
 	"time"
 
+	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
+
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/passwordreset"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
@@ -18,14 +19,14 @@ import (
 
 // Simple mock session manager implementation for this test.
 type passwordResetMockSessionManager struct {
-	sessions map[string]sessions.Session
+	sessions map[string]mockSession
 }
 
-func (sm *passwordResetMockSessionManager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username, isAdmin bool) error {
+func (sm *passwordResetMockSessionManager) LogIn(ctx context.Context, w http.ResponseWriter, userID simple_sessions.UserID) error {
+	_ = ctx
 	token := "mock-session-token-12345"
-	sm.sessions[token] = sessions.Session{
-		Username: username,
-		IsAdmin:  isAdmin,
+	sm.sessions[token] = mockSession{
+		Username: screenjournal.Username(userID.String()),
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:  "mock-session-token",
@@ -34,19 +35,17 @@ func (sm *passwordResetMockSessionManager) CreateSession(w http.ResponseWriter, 
 	return nil
 }
 
-func (sm *passwordResetMockSessionManager) SessionFromContext(ctx context.Context) (sessions.Session, error) {
+func (sm *passwordResetMockSessionManager) UserIDFromContext(ctx context.Context) (simple_sessions.UserID, error) {
+	_ = ctx
 	// Not used in this test.
-	return sessions.Session{}, nil
+	return simple_sessions.UserID{}, nil
 }
 
-func (sm *passwordResetMockSessionManager) SessionFromToken(token string) (sessions.Session, error) {
-	// Not used in this test.
-	return sessions.Session{}, nil
+func (sm *passwordResetMockSessionManager) LogOut(context.Context, http.ResponseWriter) error {
+	return nil
 }
 
-func (sm *passwordResetMockSessionManager) EndSession(context.Context, http.ResponseWriter) {}
-
-func (sm *passwordResetMockSessionManager) WrapRequest(next http.Handler) http.Handler {
+func (sm *passwordResetMockSessionManager) LoadUser(next http.Handler) http.Handler {
 	return next // Simple passthrough for this test.
 }
 
@@ -69,7 +68,6 @@ func TestAccountPasswordResetPut(t *testing.T) {
 		existingTokens       []screenjournal.PasswordResetEntry
 		expectedStatus       int
 		expectSessionFor     screenjournal.Username
-		expectSessionIsAdmin bool
 		newPasswordInPayload screenjournal.Password
 	}{
 		{
@@ -94,11 +92,10 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			},
 			expectedStatus:       http.StatusOK,
 			expectSessionFor:     screenjournal.Username("userA"),
-			expectSessionIsAdmin: false,
 			newPasswordInPayload: screenjournal.Password("newpass123"),
 		},
 		{
-			description: "admin user password reset creates admin session",
+			description: "admin user password reset creates session",
 			payload:     "password=newadminpass789",
 			username:    screenjournal.Username("userB"),
 			token:       screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef99"),
@@ -119,7 +116,6 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			},
 			expectedStatus:       http.StatusOK,
 			expectSessionFor:     screenjournal.Username("userB"),
-			expectSessionIsAdmin: true,
 			newPasswordInPayload: screenjournal.Password("newadminpass789"),
 		},
 		{
@@ -232,7 +228,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 
 			// Create mock session manager for this test.
 			sessionMgr := &passwordResetMockSessionManager{
-				sessions: make(map[string]sessions.Session),
+				sessions: make(map[string]mockSession),
 			}
 
 			passwordResetter := passwordreset.NewNoEmail(dataStore, time.Now)
@@ -273,7 +269,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			}
 
 			// Find the created session.
-			var createdSession sessions.Session
+			var createdSession mockSession
 			for _, session := range sessionMgr.sessions {
 				createdSession = session
 				break
@@ -282,11 +278,6 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			// Verify the session is for the correct user.
 			if got, want := createdSession.Username, tt.expectSessionFor; !got.Equal(want) {
 				t.Errorf("sessionUsername=%+v, want=%+v", got, want)
-			}
-
-			// Verify the session has correct admin status.
-			if got, want := createdSession.IsAdmin, tt.expectSessionIsAdmin; got != want {
-				t.Errorf("sessionIsAdmin=%t, want=%t", got, want)
 			}
 
 			// Verify that the password was actually changed by attempting to

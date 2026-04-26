@@ -8,7 +8,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -88,7 +87,7 @@ func TestAccountChangePasswordPut(t *testing.T) {
 				}
 				mockSessionEntries = append(mockSessionEntries, mockSessionEntry{
 					token: entry.sessionToken,
-					session: sessions.Session{
+					session: mockSession{
 						Username: entry.username,
 					},
 				})
@@ -137,6 +136,7 @@ func TestAccountNotificationsPut(t *testing.T) {
 		payload       string
 		sessionToken  string
 		sessions      []mockSessionEntry
+		users         []screenjournal.User
 		expectedPrefs screenjournal.NotificationPreferences
 		status        int
 	}{
@@ -147,10 +147,13 @@ func TestAccountNotificationsPut(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
+					session: mockSession{
 						Username: screenjournal.Username("userA"),
 					},
 				},
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			expectedPrefs: screenjournal.NotificationPreferences{
 				NewReviews:     true,
@@ -165,10 +168,13 @@ func TestAccountNotificationsPut(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
+					session: mockSession{
 						Username: screenjournal.Username("userA"),
 					},
 				},
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			expectedPrefs: screenjournal.NotificationPreferences{
 				NewReviews:     false,
@@ -183,10 +189,13 @@ func TestAccountNotificationsPut(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
+					session: mockSession{
 						Username: screenjournal.Username("userA"),
 					},
 				},
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			expectedPrefs: screenjournal.NotificationPreferences{
 				NewReviews:     true,
@@ -199,24 +208,14 @@ func TestAccountNotificationsPut(t *testing.T) {
 			payload:      "new-reviews=on&all-comments=on",
 			sessionToken: "dummy-invalid-token",
 			sessions:     []mockSessionEntry{},
+			users:        []screenjournal.User{},
 			status:       http.StatusUnauthorized,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			// Populate datastore with dummy users.
-			for _, s := range tt.sessions {
-				mockUser := screenjournal.User{
-					Username:     s.session.Username,
-					IsAdmin:      s.session.IsAdmin,
-					Email:        screenjournal.Email(s.session.Username + "@example.com"),
-					PasswordHash: screenjournal.PasswordHash("dummy-pw-hash"),
-				}
-				if err := dataStore.InsertUser(mockUser); err != nil {
-					t.Fatalf("failed to insert mock user %+v: %v", mockUser, err)
-				}
-			}
+			insertMockUsers(t, dataStore, tt.users)
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)

@@ -1,7 +1,6 @@
 package handlers_test
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -9,7 +8,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -19,23 +17,18 @@ type invitesTestData struct {
 		adminUser   mockSessionEntry
 		regularUser mockSessionEntry
 	}
+	users struct {
+		adminUser   screenjournal.User
+		regularUser screenjournal.User
+	}
 }
 
 func makeInvitesTestData() invitesTestData {
 	td := invitesTestData{}
-	td.sessions.adminUser = mockSessionEntry{
-		token: "admintok555",
-		session: sessions.Session{
-			Username: screenjournal.Username("admin"),
-			IsAdmin:  true,
-		},
-	}
-	td.sessions.regularUser = mockSessionEntry{
-		token: "abc123",
-		session: sessions.Session{
-			Username: screenjournal.Username("regularUser"),
-		},
-	}
+	td.sessions.adminUser = newMockSessionEntry("admintok555", screenjournal.Username("admin"))
+	td.sessions.regularUser = newMockSessionEntry("abc123", screenjournal.Username("regularUser"))
+	td.users.adminUser = newMockAdminUser(screenjournal.Username("admin"))
+	td.users.regularUser = newMockUser(screenjournal.Username("regularUser"))
 	return td
 }
 
@@ -45,6 +38,7 @@ func TestInvitesPost(t *testing.T) {
 		payload         string
 		sessionToken    string
 		sessions        []mockSessionEntry
+		users           []screenjournal.User
 		status          int
 		expectedInvitee screenjournal.Invitee
 	}{
@@ -55,6 +49,10 @@ func TestInvitesPost(t *testing.T) {
 			sessions: []mockSessionEntry{
 				makeInvitesTestData().sessions.adminUser,
 				makeInvitesTestData().sessions.regularUser,
+			},
+			users: []screenjournal.User{
+				makeInvitesTestData().users.adminUser,
+				makeInvitesTestData().users.regularUser,
 			},
 			status:          http.StatusOK,
 			expectedInvitee: screenjournal.Invitee("Frank"),
@@ -67,6 +65,10 @@ func TestInvitesPost(t *testing.T) {
 				makeInvitesTestData().sessions.adminUser,
 				makeInvitesTestData().sessions.regularUser,
 			},
+			users: []screenjournal.User{
+				makeInvitesTestData().users.adminUser,
+				makeInvitesTestData().users.regularUser,
+			},
 			status: http.StatusBadRequest,
 		},
 		{
@@ -76,6 +78,10 @@ func TestInvitesPost(t *testing.T) {
 			sessions: []mockSessionEntry{
 				makeInvitesTestData().sessions.adminUser,
 				makeInvitesTestData().sessions.regularUser,
+			},
+			users: []screenjournal.User{
+				makeInvitesTestData().users.adminUser,
+				makeInvitesTestData().users.regularUser,
 			},
 			status: http.StatusUnauthorized,
 		},
@@ -87,23 +93,17 @@ func TestInvitesPost(t *testing.T) {
 				makeInvitesTestData().sessions.adminUser,
 				makeInvitesTestData().sessions.regularUser,
 			},
+			users: []screenjournal.User{
+				makeInvitesTestData().users.adminUser,
+				makeInvitesTestData().users.regularUser,
+			},
 			status: http.StatusUnauthorized,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			for _, s := range tt.sessions {
-				mockUser := screenjournal.User{
-					Username:     s.session.Username,
-					IsAdmin:      s.session.IsAdmin,
-					Email:        screenjournal.Email(fmt.Sprintf("%s@example.com", s.session.Username.String())),
-					PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
-				}
-				if err := dataStore.InsertUser(mockUser); err != nil {
-					t.Fatalf("failed to insert mock user: %+v: %v", mockUser, err)
-				}
-			}
+			insertMockUsers(t, dataStore, tt.users)
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)

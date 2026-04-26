@@ -1,7 +1,7 @@
 package auth
 
 import (
-	simple_auth "codeberg.org/mtlynch/simpleauth/v2/auth"
+	simple_auth "codeberg.org/mtlynch/simpleauth/v3/auth"
 
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )

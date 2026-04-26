@@ -2,7 +2,6 @@ package handlers_test
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,10 +13,11 @@ import (
 
 	"github.com/go-test/deep"
 
+	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
+
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -47,17 +47,21 @@ func (a *mockAnnouncer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 
 type mockSessionEntry struct {
 	token   string
-	session sessions.Session
+	session mockSession
+}
+
+type mockSession struct {
+	Username screenjournal.Username
 }
 
 type mockSessionManager struct {
-	sessions map[string]sessions.Session
+	sessions map[string]mockSession
 }
 
 const mockSessionTokenName = "mock-session-token"
 
 func newMockSessionManager(mockSessions []mockSessionEntry) mockSessionManager {
-	sessions := make(map[string]sessions.Session, len(mockSessions))
+	sessions := make(map[string]mockSession, len(mockSessions))
 	for _, ms := range mockSessions {
 		sessions[ms.token] = ms.session
 	}
@@ -66,11 +70,11 @@ func newMockSessionManager(mockSessions []mockSessionEntry) mockSessionManager {
 	}
 }
 
-func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username, isAdmin bool) error {
+func (sm *mockSessionManager) LogIn(ctx context.Context, w http.ResponseWriter, userID simple_sessions.UserID) error {
+	_ = ctx
 	token := random.String(10, []rune("abcdefghijklmnopqrstuvwxyz0123456789"))
-	sm.sessions[token] = sessions.Session{
-		Username: username,
-		IsAdmin:  isAdmin,
+	sm.sessions[token] = mockSession{
+		Username: screenjournal.Username(userID.String()),
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:  mockSessionTokenName,
@@ -79,32 +83,74 @@ func (sm *mockSessionManager) CreateSession(w http.ResponseWriter, ctx context.C
 	return nil
 }
 
-func (sm mockSessionManager) SessionFromContext(ctx context.Context) (sessions.Session, error) {
+func (sm mockSessionManager) UserIDFromContext(ctx context.Context) (simple_sessions.UserID, error) {
 	token, ok := ctx.Value(contextKeySession).(string)
 	if !ok {
-		return sessions.Session{}, errors.New("dummy no session in context")
+		return simple_sessions.UserID{}, simple_sessions.ErrNoSessionFound
 	}
-	return sm.SessionFromToken(token)
+	session, err := sm.SessionFromToken(token)
+	if err != nil {
+		return simple_sessions.UserID{}, err
+	}
+	return simple_sessions.NewUserID(session.Username.String())
 }
 
-func (sm mockSessionManager) SessionFromToken(token string) (sessions.Session, error) {
+func (sm mockSessionManager) SessionFromToken(token string) (mockSession, error) {
 	session, ok := sm.sessions[token]
 	if !ok {
-		return sessions.Session{}, fmt.Errorf("mock session manager: no session associated with token %s", token)
+		return mockSession{}, fmt.Errorf("mock session manager: no session associated with token %s", token)
 	}
 
 	return session, nil
 }
 
-func (sm mockSessionManager) EndSession(context.Context, http.ResponseWriter) {}
+func (sm mockSessionManager) LogOut(context.Context, http.ResponseWriter) error {
+	return nil
+}
 
-func (sm mockSessionManager) WrapRequest(next http.Handler) http.Handler {
+func (sm mockSessionManager) LoadUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if token, err := r.Cookie(mockSessionTokenName); err == nil {
 			r = r.WithContext(context.WithValue(r.Context(), contextKeySession, token.Value))
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+type mockUserStore interface {
+	InsertUser(screenjournal.User) error
+}
+
+func insertMockUsers(t *testing.T, userStore mockUserStore, users []screenjournal.User) {
+	t.Helper()
+	for _, user := range users {
+		if err := userStore.InsertUser(user); err != nil {
+			t.Fatalf("failed to insert mock user %+v: %v", user, err)
+		}
+	}
+}
+
+func newMockSessionEntry(token string, username screenjournal.Username) mockSessionEntry {
+	return mockSessionEntry{
+		token: token,
+		session: mockSession{
+			Username: username,
+		},
+	}
+}
+
+func newMockUser(username screenjournal.Username) screenjournal.User {
+	return screenjournal.User{
+		Username:     username,
+		Email:        screenjournal.Email(username.String() + "@example.com"),
+		PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+	}
+}
+
+func newMockAdminUser(username screenjournal.Username) screenjournal.User {
+	user := newMockUser(username)
+	user.IsAdmin = true
+	return user
 }
 
 type mockMetadataFinder struct {
@@ -182,6 +228,7 @@ func TestReviewsPost(t *testing.T) {
 		localMovies     []screenjournal.Movie
 		remoteMovieInfo []screenjournal.Movie
 		sessions        []mockSessionEntry
+		users           []screenjournal.User
 		expectedStatus  int
 		expected        screenjournal.Review
 	}{
@@ -198,13 +245,10 @@ func TestReviewsPost(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("dummyadmin"),
-						IsAdmin:  true,
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("dummyadmin")),
+			},
+			users: []screenjournal.User{
+				newMockAdminUser(screenjournal.Username("dummyadmin")),
 			},
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
@@ -236,13 +280,10 @@ func TestReviewsPost(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("dummyadmin"),
-						IsAdmin:  true,
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("dummyadmin")),
+			},
+			users: []screenjournal.User{
+				newMockAdminUser(screenjournal.Username("dummyadmin")),
 			},
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
@@ -273,13 +314,10 @@ func TestReviewsPost(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("dummyadmin"),
-						IsAdmin:  true,
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("dummyadmin")),
+			},
+			users: []screenjournal.User{
+				newMockAdminUser(screenjournal.Username("dummyadmin")),
 			},
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
@@ -302,12 +340,10 @@ func TestReviewsPost(t *testing.T) {
 			payload:      "",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -316,12 +352,10 @@ func TestReviewsPost(t *testing.T) {
 			payload:      "tmdb-id=&rating=&watch-date=&blurb=",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -330,12 +364,10 @@ func TestReviewsPost(t *testing.T) {
 			payload:      "tmdb-id=banana&rating=5&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -344,12 +376,10 @@ func TestReviewsPost(t *testing.T) {
 			payload:      "tmdb-id=banana&rating=banana&watch-date=2022-10-28&blurb=It's%20my%20favorite%20movie!",
 			sessionToken: "abc123",
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
@@ -366,12 +396,10 @@ func TestReviewsPost(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			expectedStatus: http.StatusSeeOther,
 			expected: screenjournal.Review{
@@ -393,16 +421,7 @@ func TestReviewsPost(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			for _, s := range tt.sessions {
-				mockUser := screenjournal.User{
-					Username:     s.session.Username,
-					Email:        screenjournal.Email(s.session.Username + "@example.com"),
-					PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
-				}
-				if err := dataStore.InsertUser(mockUser); err != nil {
-					t.Fatalf("failed to insert mock user: %+v: %v", mockUser, err)
-				}
-			}
+			insertMockUsers(t, dataStore, tt.users)
 
 			for _, movie := range tt.localMovies {
 				if _, err := dataStore.InsertMovie(movie); err != nil {
@@ -473,6 +492,7 @@ func TestReviewsPut(t *testing.T) {
 		localMovies    []screenjournal.Movie
 		priorReviews   []screenjournal.Review
 		sessions       []mockSessionEntry
+		users          []screenjournal.User
 		route          string
 		payload        string
 		sessionToken   string
@@ -511,12 +531,10 @@ func TestReviewsPut(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			route:          "/reviews/1",
 			payload:        "rating=4&watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
@@ -569,12 +587,10 @@ func TestReviewsPut(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			route:          "/reviews/1",
 			payload:        "rating=3&watch-date=2022-10-28&blurb=",
@@ -622,12 +638,10 @@ func TestReviewsPut(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			route:          "/reviews/0",
 			payload:        "rating=4&watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
@@ -660,12 +674,10 @@ func TestReviewsPut(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			route:          "/reviews/9876",
 			payload:        "rating=4&watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
@@ -699,12 +711,10 @@ func TestReviewsPut(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			route:          "/reviews/1",
 			payload:        "watch-date=2022-10-30&blurb=It's%20a%20pretty%20good%20movie!",
@@ -752,12 +762,10 @@ func TestReviewsPut(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			route:          "/reviews/1",
 			payload:        "rating=4&blurb=It's%20a%20pretty%20good%20movie!",
@@ -791,12 +799,10 @@ func TestReviewsPut(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
 			},
 			route:          "/reviews/1",
 			payload:        "rating=4&watch-date=2022-10-30&blurb=Nothing%20evil%20going%20on%20here...%3Cscript%3Ealert(1)%3C%2Fscript%3E",
@@ -830,18 +836,12 @@ func TestReviewsPut(t *testing.T) {
 				},
 			},
 			sessions: []mockSessionEntry{
-				{
-					token: "abc123",
-					session: sessions.Session{
-						Username: screenjournal.Username("userA"),
-					},
-				},
-				{
-					token: "def456",
-					session: sessions.Session{
-						Username: screenjournal.Username("userB"),
-					},
-				},
+				newMockSessionEntry("abc123", screenjournal.Username("userA")),
+				newMockSessionEntry("def456", screenjournal.Username("userB")),
+			},
+			users: []screenjournal.User{
+				newMockUser(screenjournal.Username("userA")),
+				newMockUser(screenjournal.Username("userB")),
 			},
 			route:          "/reviews/1",
 			payload:        "rating=4&watch-date=2022-10-30&blurb=I'm%20overwriting%20userA's%20review!",
@@ -852,16 +852,7 @@ func TestReviewsPut(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			for _, s := range tt.sessions {
-				mockUser := screenjournal.User{
-					Username:     s.session.Username,
-					Email:        screenjournal.Email(s.session.Username.String() + "@example.com"),
-					PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
-				}
-				if err := dataStore.InsertUser(mockUser); err != nil {
-					t.Fatalf("failed to insert mock user: %+v: %v", mockUser, err)
-				}
-			}
+			insertMockUsers(t, dataStore, tt.users)
 
 			for _, movie := range tt.localMovies {
 				if _, err := dataStore.InsertMovie(movie); err != nil {

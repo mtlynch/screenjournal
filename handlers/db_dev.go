@@ -3,6 +3,7 @@
 package handlers
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -12,9 +13,11 @@ import (
 	"net/url"
 	"sync"
 
+	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
 	"github.com/gorilla/mux"
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -22,15 +25,25 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
-// initDev sets up dev-mode state before routes are created.
+// initDev installs dev-only request plumbing before routes are registered.
+// It prepends assignSessionDB so per-session database selection happens before
+// populateAuthenticationContext looks up the authenticated user.
+//
+// When the server is using the default simpleauth SQLite session manager,
+// initDev replaces it with a manager that resolves the backing store from the
+// request context. That keeps session reads and writes aligned with the
+// per-session application database used by e2e tests.
 func (s *Server) initDev() {
-	// no-op
+	s.router.Use(assignSessionDB)
+	if _, ok := s.sessionManager.(simple_sessions.Manager); ok {
+		sessionStore := sessionStore{defaultStore: s.store}
+		s.sessionManager = sessions.NewManager(sessionStore, false)
+	}
 }
 
 // addDevRoutes adds debug routes that we only use during development or e2e
 // tests.
 func (s *Server) addDevRoutes() {
-	s.router.Use(assignSessionDB)
 	s.router.HandleFunc("/api/debug/db/populate-dummy-data", s.populateDummyData()).Methods(http.MethodGet)
 	s.router.HandleFunc("/api/debug/db/per-session", dbPerSessionPost()).Methods(http.MethodPost)
 	s.router.HandleFunc("/api/debug/password-reset-token/{username}", s.debugPasswordResetTokenGet()).Methods(http.MethodGet)
@@ -196,20 +209,24 @@ const dbTokenCookieName = "db-token"
 type (
 	dbToken string
 
+	sessionDB struct {
+		store sqlite.Store
+	}
+
 	dbSettings struct {
 		isolateBySession bool
-		tokenToDB        map[dbToken]sqlite.Store
+		tokenToDB        map[dbToken]sessionDB
 		lock             sync.RWMutex
 	}
 )
 
 var sharedDBSettings = dbSettings{
-	tokenToDB: map[dbToken]sqlite.Store{},
+	tokenToDB: map[dbToken]sessionDB{},
 }
 
 func (dbs *dbSettings) IsSessionIsolationEnabled() bool {
 	dbs.lock.RLock()
-	dbs.lock.RUnlock()
+	defer dbs.lock.RUnlock()
 	return dbs.isolateBySession
 }
 
@@ -220,27 +237,21 @@ func (dbs *dbSettings) EnableSessionIsolation() {
 	log.Print("per-session database = on")
 }
 
-func (dbs *dbSettings) GetDB(token dbToken) sqlite.Store {
+func (dbs *dbSettings) GetDB(token dbToken) (sessionDB, bool) {
 	dbs.lock.RLock()
 	defer dbs.lock.RUnlock()
-	return dbs.tokenToDB[token]
+	sdb, ok := dbs.tokenToDB[token]
+	return sdb, ok
 }
 
-func (dbs *dbSettings) SaveDB(token dbToken, db sqlite.Store) {
+func (dbs *dbSettings) SaveDB(token dbToken, sdb sessionDB) {
 	dbs.lock.Lock()
 	defer dbs.lock.Unlock()
-	dbs.tokenToDB[token] = db
+	dbs.tokenToDB[token] = sdb
 }
 
 func (s Server) getDB(r *http.Request) sqlite.Store {
-	if !sharedDBSettings.IsSessionIsolationEnabled() {
-		return s.store
-	}
-	c, err := r.Cookie(dbTokenCookieName)
-	if err != nil {
-		panic(err)
-	}
-	return sharedDBSettings.GetDB(dbToken(c.Value))
+	return storeForContext(r.Context(), s.store)
 }
 
 func (s Server) getAuthenticator(r *http.Request) Authenticator {
@@ -272,17 +283,70 @@ func mustParseWatchDate(s string) screenjournal.WatchDate {
 	return wd
 }
 
+type dbTokenContextKey struct{}
+
+type sessionStore struct {
+	defaultStore sqlite.Store
+}
+
+func (s sessionStore) storeFor(ctx context.Context) sqlite.Store {
+	return storeForContext(ctx, s.defaultStore)
+}
+
+func storeForContext(ctx context.Context, defaultStore sqlite.Store) sqlite.Store {
+	if !sharedDBSettings.IsSessionIsolationEnabled() {
+		return defaultStore
+	}
+	token, ok := ctx.Value(dbTokenContextKey{}).(dbToken)
+	if !ok {
+		panic("per-session database token not found in context")
+	}
+	store, ok := sharedDBSettings.GetDB(token)
+	if !ok {
+		panic("per-session database not found")
+	}
+	return store.store
+}
+
+func (s sessionStore) CreateSession(
+	ctx context.Context,
+	session simple_sessions.Session,
+) error {
+	return s.storeFor(ctx).CreateSession(ctx, session)
+}
+
+func (s sessionStore) ReadSession(
+	ctx context.Context,
+	id simple_sessions.ID,
+) (simple_sessions.Session, error) {
+	return s.storeFor(ctx).ReadSession(ctx, id)
+}
+
+func (s sessionStore) DeleteSession(
+	ctx context.Context,
+	id simple_sessions.ID,
+) error {
+	return s.storeFor(ctx).DeleteSession(ctx, id)
+}
+
 // assignSessionDB provisions a session-specific database if per-session
 // databases are enabled. If per-session databases are not enabled (the default)
 // this is a no-op.
 func assignSessionDB(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if sharedDBSettings.IsSessionIsolationEnabled() {
-			if _, err := r.Cookie(dbTokenCookieName); err != nil {
+			c, err := r.Cookie(dbTokenCookieName)
+			if err != nil {
 				token := dbToken(random.String(30, []rune("abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")))
 				log.Printf("provisioning a new private database with token %s", token)
 				createDBCookie(token, w)
-				sharedDBSettings.SaveDB(token, test_sqlite.New())
+				store := test_sqlite.New()
+				sharedDBSettings.SaveDB(token, sessionDB{store: store})
+				ctx := context.WithValue(r.Context(), dbTokenContextKey{}, token)
+				r = r.WithContext(ctx)
+			} else {
+				ctx := context.WithValue(r.Context(), dbTokenContextKey{}, dbToken(c.Value))
+				r = r.WithContext(ctx)
 			}
 		}
 		h.ServeHTTP(w, r)

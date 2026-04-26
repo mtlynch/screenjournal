@@ -75,6 +75,9 @@ func (s store) ReadSession(ctx context.Context, id simple_sessions.ID) (simple_s
 	if err != nil {
 		return simple_sessions.Session{}, fmt.Errorf("parse stored created at: %w", err)
 	}
+
+	// We don't filter out expired sessions at this layer because simpleauth is
+	// responsible for handling session expiration.
 	expiresAt, err := parseSessionTime(expiresAtRaw)
 	if err != nil {
 		return simple_sessions.Session{}, fmt.Errorf("parse stored expires at: %w", err)

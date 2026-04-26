@@ -14,7 +14,7 @@ import (
 )
 
 func (s Store) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, error) {
-	row := s.ctx.QueryRow(`
+	row := s.db.QueryRow(`
 	SELECT
 		id,
 		review_owner,
@@ -101,7 +101,7 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 	}
 	query += "		created_time DESC\n"
 
-	rows, err := s.ctx.Query(query, queryArgs...)
+	rows, err := s.db.Query(query, queryArgs...)
 	if err != nil {
 		return []screenjournal.Review{}, err
 	}
@@ -164,7 +164,7 @@ func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, err
 		tvShowSeason = &r.TvShowSeason
 	}
 
-	res, err := s.ctx.Exec(`
+	res, err := s.db.Exec(`
 	INSERT INTO
 		reviews
 	(
@@ -216,7 +216,7 @@ func (s Store) UpdateReview(r screenjournal.Review) error {
 
 	now := time.Now()
 
-	if _, err := s.ctx.Exec(`
+	if _, err := s.db.Exec(`
 	UPDATE reviews
 	SET
 		rating = :rating,
@@ -239,7 +239,7 @@ func (s Store) UpdateReview(r screenjournal.Review) error {
 func (s Store) DeleteReview(id screenjournal.ReviewID) error {
 	log.Printf("deleting review and commments for review ID %v", id)
 
-	tx, err := s.ctx.BeginTx(context.Background(), nil)
+	tx, err := s.db.BeginTx(context.Background(), nil)
 	if err != nil {
 		return err
 	}

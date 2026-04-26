@@ -100,7 +100,11 @@ func TestAuthPost(t *testing.T) {
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager([]mockSessionEntry{})
 
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, nil, dataStore, nilMetadataFinder, nilPasswordResetter)
+			s := handlers.New(handlers.ServerParams{
+				Authenticator:  authenticator,
+				SessionManager: &sessionManager,
+				Store:          dataStore,
+			})
 
 			req, err := http.NewRequest("POST", "/api/auth", strings.NewReader(tt.payload))
 			if err != nil {

@@ -18,9 +18,6 @@ type mockUserEntry struct {
 	password     screenjournal.Password
 }
 
-var nilMetadataFinder handlers.MetadataFinder
-var nilPasswordResetter handlers.PasswordResetter
-
 func TestAccountChangePasswordPut(t *testing.T) {
 	userEntries := []mockUserEntry{
 		{
@@ -97,7 +94,11 @@ func TestAccountChangePasswordPut(t *testing.T) {
 			}
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(mockSessionEntries)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, nil, dataStore, nilMetadataFinder, nilPasswordResetter)
+			s := handlers.New(handlers.ServerParams{
+				Authenticator:  authenticator,
+				SessionManager: &sessionManager,
+				Store:          dataStore,
+			})
 
 			req, err := http.NewRequest("PUT", "/account/password", strings.NewReader(tt.payload))
 			if err != nil {
@@ -208,7 +209,11 @@ func TestAccountNotificationsPut(t *testing.T) {
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
 
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, nil, dataStore, nilMetadataFinder, nilPasswordResetter)
+			s := handlers.New(handlers.ServerParams{
+				Authenticator:  authenticator,
+				SessionManager: &sessionManager,
+				Store:          dataStore,
+			})
 
 			req, err := http.NewRequest("PUT", "/account/notifications", strings.NewReader(tt.payload))
 			if err != nil {

@@ -71,7 +71,15 @@ func main() {
 		log.Fatalf("failed to create metadata finder: %v", err)
 	}
 
-	h := gorilla.LoggingHandler(os.Stdout, handlers.New(authenticator, announcer, sessionManager, db, store, metadataFinder, passwordResetter).Router())
+	h := gorilla.LoggingHandler(os.Stdout, handlers.New(handlers.ServerParams{
+		Authenticator:    authenticator,
+		Announcer:        announcer,
+		SessionManager:   sessionManager,
+		RawDB:            db,
+		Store:            store,
+		MetadataFinder:   metadataFinder,
+		PasswordResetter: passwordResetter,
+	}).Router())
 	if os.Getenv("SJ_BEHIND_PROXY") != "" {
 		h = gorilla.ProxyIPHeadersHandler(h)
 	}

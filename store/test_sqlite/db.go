@@ -1,26 +1,31 @@
 package test_sqlite
 
 import (
-	"fmt"
 	"log"
 	"os"
+	"testing"
 
-	"github.com/mtlynch/screenjournal/v2/random"
+	"github.com/ncruces/go-sqlite3/vfs/memdb"
+
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
-func New() sqlite.Store {
+func New(t testing.TB) sqlite.Store {
+	t.Helper()
+
 	// Suppress log output, as the migration logs are too noisy during tests.
 	defer quietLogs()()
 	const optimizeForLitestream = false
-	return sqlite.New(sqlite.MustOpen(ephemeralDbURI()), optimizeForLitestream)
-}
-
-func ephemeralDbURI() string {
-	name := random.String(
-		10,
-		[]rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"))
-	return fmt.Sprintf("file:%s?mode=memory&cache=shared", name)
+	// Use memdb instead of shared-cache in-memory DBs:
+	// https://github.com/ncruces/go-sqlite3/discussions/97#discussioncomment-9744524.
+	db := sqlite.MustOpen(memdb.TestDB(t))
+	t.Cleanup(func() {
+		t.Helper()
+		if err := db.Close(); err != nil {
+			t.Fatalf("failed to close db: %v", err)
+		}
+	})
+	return sqlite.New(db, optimizeForLitestream)
 }
 
 // quietLogs suppresses log output during a function execution.

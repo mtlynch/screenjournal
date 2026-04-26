@@ -72,7 +72,7 @@ func TestAccountChangePasswordPut(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
+			dataStore := test_sqlite.New(t)
 
 			mockSessionEntries := []mockSessionEntry{}
 
@@ -203,7 +203,7 @@ func TestAccountNotificationsPut(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			dataStore := test_sqlite.New()
+			dataStore := test_sqlite.New(t)
 
 			// Populate datastore with dummy users.
 			for _, s := range tt.sessions {

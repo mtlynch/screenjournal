@@ -207,7 +207,7 @@ func TestReactionsPost(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			_, dataStore := test_sqlite.New()
+			dataStore := test_sqlite.New()
 
 			insertMockUsers(t, dataStore, tt.users)
 			for _, movie := range tt.movies {
@@ -452,7 +452,7 @@ func TestReactionsDelete(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			_, dataStore := test_sqlite.New()
+			dataStore := test_sqlite.New()
 
 			insertMockUsers(t, dataStore, tt.users)
 			for _, movie := range tt.movies {

@@ -10,7 +10,7 @@ import (
 )
 
 func (s Store) ReadMovie(id screenjournal.MovieID) (screenjournal.Movie, error) {
-	row := s.db().QueryRowContext(s.ctx, `
+	row := s.db.QueryRow(`
 	SELECT
 		id,
 		tmdb_id,
@@ -27,7 +27,7 @@ func (s Store) ReadMovie(id screenjournal.MovieID) (screenjournal.Movie, error) 
 }
 
 func (s Store) ReadMovieByTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Movie, error) {
-	row := s.db().QueryRowContext(s.ctx, `
+	row := s.db.QueryRow(`
 	SELECT
 		id,
 		tmdb_id,
@@ -46,7 +46,7 @@ func (s Store) ReadMovieByTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Mov
 func (s Store) InsertMovie(m screenjournal.Movie) (screenjournal.MovieID, error) {
 	log.Printf("inserting new movie %s", m.Title)
 
-	res, err := s.db().ExecContext(s.ctx, `
+	res, err := s.db.Exec(`
 	INSERT INTO
 		movies
 	(
@@ -80,7 +80,7 @@ func (s Store) InsertMovie(m screenjournal.Movie) (screenjournal.MovieID, error)
 func (s Store) UpdateMovie(m screenjournal.Movie) error {
 	log.Printf("updating movie information for %s (id=%v)", m.Title, m.ID)
 
-	if _, err := s.db().ExecContext(s.ctx, `
+	if _, err := s.db.Exec(`
 	UPDATE movies
 	SET
 		title = :title,

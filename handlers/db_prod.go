@@ -17,7 +17,7 @@ func (s *Server) addDevRoutes() {
 }
 
 func (s Server) getDB(r *http.Request) sqlite.Store {
-	return s.store.WithContext(r.Context())
+	return s.store
 }
 
 func (s Server) getAuthenticator(_ *http.Request) Authenticator {

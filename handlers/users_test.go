@@ -146,7 +146,7 @@ func TestUsersPut(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			_, dataStore := test_sqlite.New()
+			dataStore := test_sqlite.New()
 
 			for _, user := range tt.users {
 				if err := dataStore.InsertUser(user); err != nil {

@@ -46,7 +46,7 @@ func TestResetPasswordGet(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			_, dataStore := test_sqlite.New()
+			dataStore := test_sqlite.New()
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager([]mockSessionEntry{})
 			s := handlers.New(handlers.ServerParams{
@@ -109,7 +109,7 @@ func TestResetPasswordPost(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			_, dataStore := test_sqlite.New()
+			dataStore := test_sqlite.New()
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager([]mockSessionEntry{})
 			s := handlers.New(handlers.ServerParams{

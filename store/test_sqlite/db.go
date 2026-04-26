@@ -1,7 +1,6 @@
 package test_sqlite
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -14,8 +13,9 @@ import (
 
 const optimizeForLitestream = false
 
-func New() (*sql.DB, sqlite.Store) {
-	return newDBAndStore()
+func New() sqlite.Store {
+	_, store := newDBAndStore()
+	return store
 }
 
 // NewDB returns an ephemeral SQLite database with all migrations applied.
@@ -40,7 +40,7 @@ func newDBAndStore() (*sql.DB, sqlite.Store) {
 	// of sharing the named one. Limiting to one connection ensures every
 	// caller uses the same underlying database.
 	db.SetMaxOpenConns(1)
-	store := sqlite.New(func(_ context.Context) *sql.DB { return db }, optimizeForLitestream)
+	store := sqlite.New(db, optimizeForLitestream)
 	return db, store
 }
 

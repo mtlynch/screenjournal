@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"log"
@@ -13,7 +14,7 @@ import (
 func (s Store) InsertPasswordResetEntry(request screenjournal.PasswordResetEntry) error {
 	log.Printf("inserting new password reset token for user %s", request.Username)
 
-	if _, err := s.db().ExecContext(s.ctx, `
+	if _, err := s.db.Exec(`
 	INSERT OR REPLACE INTO
 		password_reset_tokens
 	(
@@ -37,7 +38,7 @@ func (s Store) InsertPasswordResetEntry(request screenjournal.PasswordResetEntry
 func (s Store) ReadPasswordResetEntry(token screenjournal.PasswordResetToken) (screenjournal.PasswordResetEntry, error) {
 	var username string
 	var expiresAtRaw string
-	if err := s.db().QueryRowContext(s.ctx, `
+	if err := s.db.QueryRow(`
 		SELECT
 			username,
 			expires_at
@@ -63,7 +64,7 @@ func (s Store) ReadPasswordResetEntry(token screenjournal.PasswordResetToken) (s
 func (s Store) ReadLatestPasswordResetEntryForUser(username screenjournal.Username) (screenjournal.PasswordResetEntry, error) {
 	var tokenRaw string
 	var expiresAtRaw string
-	if err := s.db().QueryRowContext(s.ctx, `
+	if err := s.db.QueryRow(`
 		SELECT
 			token,
 			expires_at
@@ -96,7 +97,7 @@ func (s Store) UsePasswordResetEntry(
 	newPasswordHash screenjournal.PasswordHash,
 	now time.Time,
 ) error {
-	tx, err := s.db().BeginTx(s.ctx, nil)
+	tx, err := s.db.BeginTx(context.Background(), nil)
 	if err != nil {
 		return err
 	}

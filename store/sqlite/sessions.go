@@ -13,7 +13,7 @@ func (s Store) CreateSession(
 	ctx context.Context,
 	session simple_sessions.Session,
 ) error {
-	if _, err := s.dbFunc(ctx).ExecContext(ctx, `
+	if _, err := s.db.ExecContext(ctx, `
 		INSERT OR REPLACE INTO auth_sessions
 		(
 			session_id,
@@ -45,7 +45,7 @@ func (s Store) ReadSession(
 	var userIDRaw string
 	var createdAtRaw string
 	var expiresAtRaw string
-	if err := s.dbFunc(ctx).QueryRowContext(ctx, `
+	if err := s.db.QueryRowContext(ctx, `
 		SELECT
 			user_id,
 			created_at,
@@ -95,7 +95,7 @@ func (s Store) DeleteSession(
 	ctx context.Context,
 	id simple_sessions.ID,
 ) error {
-	if _, err := s.dbFunc(ctx).ExecContext(ctx, `
+	if _, err := s.db.ExecContext(ctx, `
 		DELETE FROM
 			auth_sessions
 		WHERE

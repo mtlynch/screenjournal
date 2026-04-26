@@ -198,7 +198,7 @@ func TestSearchGet(t *testing.T) {
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
-			_, dataStore := test_sqlite.New()
+			dataStore := test_sqlite.New()
 
 			insertMockUsers(t, dataStore, tt.users)
 

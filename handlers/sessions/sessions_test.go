@@ -13,12 +13,7 @@ import (
 )
 
 func TestManagerStoresSessionsInSQLite(t *testing.T) {
-	db, store := test_sqlite.New()
-	t.Cleanup(func() {
-		if err := db.Close(); err != nil {
-			t.Fatalf("failed to close db: %v", err)
-		}
-	})
+	store := test_sqlite.New()
 	manager := sessions.NewManager(store, false)
 	userID, err := simple_sessions.NewUserID("dummyuserID")
 	if err != nil {

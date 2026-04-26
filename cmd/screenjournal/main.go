@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-	"database/sql"
 	"flag"
 	"fmt"
 	"log"
@@ -35,7 +33,7 @@ func main() {
 
 	ensureDirExists(filepath.Dir(*dbPath))
 	db := sqlite.MustOpen(*dbPath)
-	store := sqlite.New(func(_ context.Context) *sql.DB { return db }, isLitestreamEnabled())
+	store := sqlite.New(db, isLitestreamEnabled())
 
 	authenticator := auth.New(store)
 

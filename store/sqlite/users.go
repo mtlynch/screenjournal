@@ -16,14 +16,14 @@ import (
 
 func (s Store) CountUsers() (uint, error) {
 	var c uint
-	if err := s.ctx.QueryRow(`SELECT COUNT(*)	AS user_count FROM users`).Scan(&c); err != nil {
+	if err := s.db.QueryRow(`SELECT COUNT(*)	AS user_count FROM users`).Scan(&c); err != nil {
 		return 0, err
 	}
 	return c, nil
 }
 
 func (s Store) ReadUsersPublicMeta() ([]screenjournal.UserPublicMeta, error) {
-	rows, err := s.ctx.Query(`
+	rows, err := s.db.Query(`
 	SELECT
     u.username,
     u.created_time,
@@ -75,7 +75,7 @@ func (s Store) ReadUsersPublicMeta() ([]screenjournal.UserPublicMeta, error) {
 }
 
 func (s Store) ReadUser(username screenjournal.Username) (screenjournal.User, error) {
-	row := s.ctx.QueryRow(`
+	row := s.db.QueryRow(`
 	SELECT
 		username,
 		is_admin,
@@ -97,7 +97,7 @@ func (s Store) ReadUser(username screenjournal.Username) (screenjournal.User, er
 }
 
 func (s Store) ReadUserByEmail(email screenjournal.Email) (screenjournal.User, error) {
-	row := s.ctx.QueryRow(`
+	row := s.db.QueryRow(`
 	SELECT
 		username,
 		is_admin,
@@ -139,7 +139,7 @@ func (s Store) InsertUser(user screenjournal.User) error {
 
 	now := time.Now()
 
-	tx, err := s.ctx.BeginTx(context.Background(), nil)
+	tx, err := s.db.BeginTx(context.Background(), nil)
 	if err != nil {
 		return err
 	}
@@ -205,7 +205,7 @@ func (s Store) InsertUser(user screenjournal.User) error {
 func (s Store) UpdateUserPassword(username screenjournal.Username, newPasswordHash screenjournal.PasswordHash) error {
 	log.Printf("updating password user %s", username.String())
 
-	if _, err := s.ctx.Exec(`
+	if _, err := s.db.Exec(`
 	UPDATE users
 	SET
 		password_hash = :password_hash

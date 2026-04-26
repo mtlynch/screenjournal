@@ -237,11 +237,12 @@ func TestAccountPasswordResetPut(t *testing.T) {
 
 			passwordResetter := passwordreset.NewNoEmail(dataStore, time.Now)
 
-			// Create handler with nil announcer and metadata finder.
-			var nilAnnouncer handlers.Announcer
-			var nilMetadataFinder handlers.MetadataFinder
-
-			s := handlers.New(authenticator, nilAnnouncer, sessionMgr, dataStore, nilMetadataFinder, passwordResetter)
+			s := handlers.New(handlers.ServerParams{
+				Authenticator:    authenticator,
+				SessionManager:   sessionMgr,
+				Store:            dataStore,
+				PasswordResetter: passwordResetter,
+			})
 
 			url := "/account/password-reset?username=" + tt.username.String() + "&token=" + tt.token.String()
 			req, err := http.NewRequest("PUT", url, strings.NewReader(tt.payload))

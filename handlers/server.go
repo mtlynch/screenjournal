@@ -43,6 +43,15 @@ type (
 		GetTvShow(id screenjournal.TmdbID) (screenjournal.TvShow, error)
 	}
 
+	ServerParams struct {
+		Authenticator    Authenticator
+		Announcer        Announcer
+		SessionManager   SessionManager
+		Store            Store
+		MetadataFinder   MetadataFinder
+		PasswordResetter PasswordResetter
+	}
+
 	Server struct {
 		router           *mux.Router
 		authenticator    Authenticator
@@ -61,15 +70,15 @@ func (s Server) Router() *mux.Router {
 
 // New creates a new server with all the state it needs to satisfy HTTP
 // requests.
-func New(authenticator Authenticator, announcer Announcer, sessionManager SessionManager, store Store, metadataFinder MetadataFinder, passwordResetter PasswordResetter) Server {
+func New(params ServerParams) Server {
 	s := Server{
 		router:           mux.NewRouter(),
-		authenticator:    authenticator,
-		announcer:        announcer,
-		sessionManager:   sessionManager,
-		store:            store,
-		metadataFinder:   metadataFinder,
-		passwordResetter: passwordResetter,
+		authenticator:    params.Authenticator,
+		announcer:        params.Announcer,
+		sessionManager:   params.SessionManager,
+		store:            params.Store,
+		metadataFinder:   params.MetadataFinder,
+		passwordResetter: params.PasswordResetter,
 	}
 
 	s.initDev()

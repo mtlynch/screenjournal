@@ -30,8 +30,6 @@ type contextKey struct {
 
 var contextKeySession = &contextKey{"session"}
 
-var nilAnnouncer handlers.Announcer
-
 var nilAuthenticator auth.Authenticator
 
 type mockAnnouncer struct {
@@ -414,7 +412,13 @@ func TestReviewsPost(t *testing.T) {
 
 			announcer := mockAnnouncer{}
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(nilAuthenticator, &announcer, &sessionManager, dataStore, NewMockMetadataFinder(tt.remoteMovieInfo, nil), nilPasswordResetter)
+			s := handlers.New(handlers.ServerParams{
+				Authenticator:  nilAuthenticator,
+				Announcer:      &announcer,
+				SessionManager: &sessionManager,
+				Store:          dataStore,
+				MetadataFinder: NewMockMetadataFinder(tt.remoteMovieInfo, nil),
+			})
 
 			req, err := http.NewRequest("POST", "/reviews", strings.NewReader(tt.payload))
 			if err != nil {
@@ -872,7 +876,12 @@ func TestReviewsPut(t *testing.T) {
 			}
 
 			sessionManager := newMockSessionManager(tt.sessions)
-			s := handlers.New(nilAuthenticator, nilAnnouncer, &sessionManager, dataStore, mockMetadataFinder{}, nilPasswordResetter)
+			s := handlers.New(handlers.ServerParams{
+				Authenticator:  nilAuthenticator,
+				SessionManager: &sessionManager,
+				Store:          dataStore,
+				MetadataFinder: mockMetadataFinder{},
+			})
 
 			req, err := http.NewRequest("PUT", tt.route, strings.NewReader(tt.payload))
 			if err != nil {

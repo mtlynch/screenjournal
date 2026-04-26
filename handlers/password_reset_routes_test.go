@@ -49,14 +49,12 @@ func TestResetPasswordGet(t *testing.T) {
 			dataStore := test_sqlite.New()
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager([]mockSessionEntry{})
-			s := handlers.New(
-				authenticator,
-				nilAnnouncer,
-				&sessionManager,
-				dataStore,
-				nilMetadataFinder,
-				tt.passwordResetter,
-			)
+			s := handlers.New(handlers.ServerParams{
+				Authenticator:    authenticator,
+				SessionManager:   &sessionManager,
+				Store:            dataStore,
+				PasswordResetter: tt.passwordResetter,
+			})
 
 			req := httptest.NewRequest(http.MethodGet, "/reset-password", nil)
 			rec := httptest.NewRecorder()
@@ -114,14 +112,12 @@ func TestResetPasswordPost(t *testing.T) {
 			dataStore := test_sqlite.New()
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager([]mockSessionEntry{})
-			s := handlers.New(
-				authenticator,
-				nilAnnouncer,
-				&sessionManager,
-				dataStore,
-				nilMetadataFinder,
-				tt.passwordResetter,
-			)
+			s := handlers.New(handlers.ServerParams{
+				Authenticator:    authenticator,
+				SessionManager:   &sessionManager,
+				Store:            dataStore,
+				PasswordResetter: tt.passwordResetter,
+			})
 
 			req := httptest.NewRequest(
 				http.MethodPost,

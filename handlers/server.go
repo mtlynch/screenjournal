@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"database/sql"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -50,7 +49,6 @@ type (
 		Authenticator    Authenticator
 		Announcer        Announcer
 		SessionManager   SessionManager
-		RawDB            *sql.DB
 		Store            sqlite.Store
 		MetadataFinder   MetadataFinder
 		PasswordResetter PasswordResetter
@@ -61,7 +59,6 @@ type (
 		authenticator    Authenticator
 		announcer        Announcer
 		sessionManager   SessionManager
-		rawDB            *sql.DB
 		store            sqlite.Store
 		metadataFinder   MetadataFinder
 		passwordResetter PasswordResetter
@@ -81,7 +78,6 @@ func New(params ServerParams) Server {
 		authenticator:    params.Authenticator,
 		announcer:        params.Announcer,
 		sessionManager:   params.SessionManager,
-		rawDB:            params.RawDB,
 		store:            params.Store,
 		metadataFinder:   params.MetadataFinder,
 		passwordResetter: params.PasswordResetter,

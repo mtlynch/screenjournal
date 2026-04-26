@@ -2,7 +2,6 @@ package sessions_test
 
 import (
 	"context"
-	"database/sql"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,9 +14,13 @@ import (
 )
 
 func TestManagerStoresSessionsInSQLite(t *testing.T) {
-	db := test_sqlite.NewDB(t)
-	store := sqlite.New(func(_ context.Context) *sql.DB { return db }, false)
-	manager := sessions.NewManager(store, false)
+	db, store := test_sqlite.New()
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Fatalf("failed to close db: %v", err)
+		}
+	})
+	manager := sessions.NewManager(func(_ context.Context) sqlite.Store { return store }, false)
 	userID, err := simple_sessions.NewUserID("dummyuserID")
 	if err != nil {
 		t.Fatalf("failed to create user ID: %v", err)

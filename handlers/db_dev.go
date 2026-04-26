@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"sync"
 
+	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
 	"github.com/gorilla/mux"
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
@@ -34,19 +35,18 @@ import (
 // etc.), eliminating the shared-DB/per-session-DB mismatch.
 func (s *Server) initDev() {
 	s.router.Use(assignSessionDB)
-	if s.rawDB != nil {
-		s.store = sqlite.New(func(ctx context.Context) *sql.DB {
+	if _, ok := s.sessionManager.(simple_sessions.Manager); ok {
+		s.sessionManager = sessions.NewManager(func(ctx context.Context) sqlite.Store {
 			if !sharedDBSettings.IsSessionIsolationEnabled() {
-				return s.rawDB
+				return s.store
 			}
 			if token, ok := ctx.Value(dbTokenContextKey{}).(dbToken); ok {
 				if sess := sharedDBSettings.GetDB(token); sess.db != nil {
-					return sess.db
+					return sess.store
 				}
 			}
-			return s.rawDB
+			return s.store
 		}, false)
-		s.sessionManager = sessions.NewManager(s.store, false)
 	}
 }
 
@@ -219,7 +219,8 @@ type (
 	dbToken string
 
 	sessionDB struct {
-		db *sql.DB
+		store sqlite.Store
+		db    *sql.DB
 	}
 
 	dbSettings struct {
@@ -259,7 +260,14 @@ func (dbs *dbSettings) SaveDB(token dbToken, sdb sessionDB) {
 }
 
 func (s Server) getDB(r *http.Request) sqlite.Store {
-	return s.store.WithContext(r.Context())
+	if !sharedDBSettings.IsSessionIsolationEnabled() {
+		return s.store.WithContext(r.Context())
+	}
+	token, ok := r.Context().Value(dbTokenContextKey{}).(dbToken)
+	if !ok {
+		panic("per-session database token not found in context")
+	}
+	return sharedDBSettings.GetDB(token).store.WithContext(r.Context())
 }
 
 func (s Server) getAuthenticator(r *http.Request) Authenticator {
@@ -304,8 +312,8 @@ func assignSessionDB(h http.Handler) http.Handler {
 				token := dbToken(random.String(30, []rune("abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")))
 				log.Printf("provisioning a new private database with token %s", token)
 				createDBCookie(token, w)
-				db, _ := test_sqlite.New()
-				sharedDBSettings.SaveDB(token, sessionDB{db: db})
+				db, store := test_sqlite.New()
+				sharedDBSettings.SaveDB(token, sessionDB{store: store, db: db})
 				ctx := context.WithValue(r.Context(), dbTokenContextKey{}, token)
 				r = r.WithContext(ctx)
 			} else {

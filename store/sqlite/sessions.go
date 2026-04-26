@@ -12,11 +12,20 @@ import (
 
 const sessionDatetimeFormat = "2006-01-02 15:04:05"
 
-func (s Store) CreateSession(
+type SessionStore struct {
+	storeFunc func(context.Context) Store
+}
+
+func NewSessionStore(storeFunc func(context.Context) Store) SessionStore {
+	return SessionStore{storeFunc: storeFunc}
+}
+
+func (s SessionStore) CreateSession(
 	ctx context.Context,
 	session simple_sessions.Session,
 ) error {
-	if _, err := s.dbFunc(ctx).ExecContext(ctx, `
+	store := s.storeFunc(ctx).WithContext(ctx)
+	if _, err := store.db().ExecContext(ctx, `
 		INSERT OR REPLACE INTO auth_sessions
 		(
 			session_id,
@@ -41,14 +50,15 @@ func (s Store) CreateSession(
 	return nil
 }
 
-func (s Store) ReadSession(
+func (s SessionStore) ReadSession(
 	ctx context.Context,
 	id simple_sessions.ID,
 ) (simple_sessions.Session, error) {
 	var userIDRaw string
 	var createdAtRaw string
 	var expiresAtRaw string
-	if err := s.dbFunc(ctx).QueryRowContext(ctx, `
+	store := s.storeFunc(ctx).WithContext(ctx)
+	if err := store.db().QueryRowContext(ctx, `
 		SELECT
 			user_id,
 			created_at,
@@ -94,11 +104,12 @@ func (s Store) ReadSession(
 	}, nil
 }
 
-func (s Store) DeleteSession(
+func (s SessionStore) DeleteSession(
 	ctx context.Context,
 	id simple_sessions.ID,
 ) error {
-	if _, err := s.dbFunc(ctx).ExecContext(ctx, `
+	store := s.storeFunc(ctx).WithContext(ctx)
+	if _, err := store.db().ExecContext(ctx, `
 		DELETE FROM
 			auth_sessions
 		WHERE

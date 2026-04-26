@@ -9,6 +9,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
+	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
@@ -136,6 +137,38 @@ func TestAuthPost(t *testing.T) {
 				t.Errorf("username=%+v, want=%+v", got, want)
 			}
 		})
+	}
+}
+
+func TestAuthenticatedViewReturnsInternalServerErrorWhenUserLookupFails(t *testing.T) {
+	db := test_sqlite.NewDB(t)
+	dataStore := sqlite.New(db, false)
+	if err := dataStore.InsertUser(userA); err != nil {
+		t.Fatalf("InsertUser err=%v, want=%v", err, nil)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("Close err=%v, want=%v", err, nil)
+	}
+
+	sessionManager := newMockSessionManager([]mockSessionEntry{
+		newMockSessionEntry("abc123", userA.Username),
+	})
+	s := handlers.New(handlers.ServerParams{
+		SessionManager: &sessionManager,
+		Store:          dataStore,
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/account/security", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  mockSessionTokenName,
+		Value: "abc123",
+	})
+
+	rec := httptest.NewRecorder()
+	s.Router().ServeHTTP(rec, req)
+
+	if got, want := rec.Code, http.StatusInternalServerError; got != want {
+		t.Fatalf("rec.Code=%d, want=%d", got, want)
 	}
 }
 

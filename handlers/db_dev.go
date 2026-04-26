@@ -251,18 +251,7 @@ func (dbs *dbSettings) SaveDB(token dbToken, sdb sessionDB) {
 }
 
 func (s Server) getDB(r *http.Request) sqlite.Store {
-	if !sharedDBSettings.IsSessionIsolationEnabled() {
-		return s.store
-	}
-	token, ok := r.Context().Value(dbTokenContextKey{}).(dbToken)
-	if !ok {
-		panic("per-session database token not found in context")
-	}
-	store, ok := sharedDBSettings.GetDB(token)
-	if !ok {
-		panic("per-session database not found")
-	}
-	return store.store
+	return storeForContext(r.Context(), s.store)
 }
 
 func (s Server) getAuthenticator(r *http.Request) Authenticator {
@@ -301,17 +290,22 @@ type sessionStore struct {
 }
 
 func (s sessionStore) storeFor(ctx context.Context) sqlite.Store {
+	return storeForContext(ctx, s.defaultStore)
+}
+
+func storeForContext(ctx context.Context, defaultStore sqlite.Store) sqlite.Store {
 	if !sharedDBSettings.IsSessionIsolationEnabled() {
-		return s.defaultStore
+		return defaultStore
 	}
 	token, ok := ctx.Value(dbTokenContextKey{}).(dbToken)
 	if !ok {
-		return s.defaultStore
+		panic("per-session database token not found in context")
 	}
-	if store, ok := sharedDBSettings.GetDB(token); ok {
-		return store.store
+	store, ok := sharedDBSettings.GetDB(token)
+	if !ok {
+		panic("per-session database not found")
 	}
-	return s.defaultStore
+	return store.store
 }
 
 func (s sessionStore) CreateSession(

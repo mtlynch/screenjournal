@@ -42,22 +42,15 @@ func (s Server) authPost() http.HandlerFunc {
 			return
 		}
 
-		user, err := s.getDB(r).ReadUser(username)
+		userID, err := userIDFromUsername(username)
 		if err != nil {
-			log.Printf("failed to read user data from database %s: %v", username, err)
-			http.Error(w, "Failed to read user information", http.StatusInternalServerError)
-			return
-		}
-
-		userID, err := userIDFromUsername(user.Username)
-		if err != nil {
-			log.Printf("failed to create user ID for user %s: %v", user.Username.String(), err)
+			log.Printf("failed to create user ID for user %s: %v", username.String(), err)
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
 		}
 
 		if err := s.sessionManager.LogIn(r.Context(), w, userID); err != nil {
-			log.Printf("failed to create session for user %s: %v", user.Username.String(), err)
+			log.Printf("failed to create session for user %s: %v", username.String(), err)
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
 		}
@@ -93,15 +86,17 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 		username := usernameFromUserID(userID)
 		user, err := s.getDB(r).ReadUser(username)
 		if err != nil {
-			if !errors.Is(err, store.ErrUserNotFound) {
-				log.Printf("failed to read session user: %v", err)
-			}
-			if err := s.sessionManager.LogOut(r.Context(), w); err != nil {
-				log.Printf("failed to end session for missing user: %v", err)
-				http.Error(w, "Failed to end session", http.StatusInternalServerError)
+			if errors.Is(err, store.ErrUserNotFound) {
+				if err := s.sessionManager.LogOut(r.Context(), w); err != nil {
+					log.Printf("failed to end session for missing user: %v", err)
+					http.Error(w, "Failed to end session", http.StatusInternalServerError)
+					return
+				}
+				next.ServeHTTP(w, r)
 				return
 			}
-			next.ServeHTTP(w, r)
+			log.Printf("failed to read session user: %v", err)
+			http.Error(w, "Failed to read user information", http.StatusInternalServerError)
 			return
 		}
 

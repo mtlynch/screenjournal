@@ -45,10 +45,39 @@ func TestManagerStoresSessionsInSQLite(t *testing.T) {
 	if got, want := loadErr, error(nil); got != want {
 		t.Fatalf("loadErr=%v, want=%v", got, want)
 	}
-	if got, want := loaded.String(), "mavis"; got != want {
+	if got, want := loaded.String(), userID.String(); got != want {
 		t.Errorf("loaded=%v, want=%v", got, want)
 	}
-	assertSessionStoredInSQLite(t, db, cookies[0].Value, userID.String())
+	var userIDRaw string
+	var createdAtRaw string
+	var expiresAtRaw string
+	if err := db.QueryRow(`
+		SELECT
+			user_id,
+			created_at,
+			expires_at
+		FROM
+			auth_sessions
+		WHERE
+			session_id = :session_id`,
+		sql.Named("session_id", cookies[0].Value)).
+		Scan(&userIDRaw, &createdAtRaw, &expiresAtRaw); err != nil {
+		t.Fatalf("failed to read stored session: %v", err)
+	}
+	if got, want := userIDRaw, userID.String(); got != want {
+		t.Errorf("userID=%s, want=%s", got, want)
+	}
+	createdAt, err := time.Parse("2006-01-02 15:04:05", createdAtRaw)
+	if err != nil {
+		t.Fatalf("createdAt=%q failed to parse: %v", createdAtRaw, err)
+	}
+	expiresAt, err := time.Parse("2006-01-02 15:04:05", expiresAtRaw)
+	if err != nil {
+		t.Fatalf("expiresAt=%q failed to parse: %v", expiresAtRaw, err)
+	}
+	if got, want := expiresAt.Sub(createdAt), 30*24*time.Hour; got != want {
+		t.Errorf("session lifetime=%v, want=%v", got, want)
+	}
 	endRec := httptest.NewRecorder()
 	var endErr error
 	manager.LoadUser(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -70,43 +99,4 @@ func requestWithCookie(cookie *http.Cookie) *http.Request {
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.AddCookie(cookie)
 	return req
-}
-
-func assertSessionStoredInSQLite(
-	t testing.TB,
-	db *sql.DB,
-	sessionID string,
-	userIDExpected string,
-) {
-	t.Helper()
-	var userIDRaw string
-	var createdAtRaw string
-	var expiresAtRaw string
-	if err := db.QueryRow(`
-		SELECT
-			user_id,
-			created_at,
-			expires_at
-		FROM
-			auth_sessions
-		WHERE
-			session_id = :session_id`,
-		sql.Named("session_id", sessionID)).
-		Scan(&userIDRaw, &createdAtRaw, &expiresAtRaw); err != nil {
-		t.Fatalf("failed to read stored session: %v", err)
-	}
-	if got, want := userIDRaw, userIDExpected; got != want {
-		t.Errorf("userID=%s, want=%s", got, want)
-	}
-	createdAt, err := time.Parse("2006-01-02 15:04:05", createdAtRaw)
-	if err != nil {
-		t.Fatalf("createdAt=%q failed to parse: %v", createdAtRaw, err)
-	}
-	expiresAt, err := time.Parse("2006-01-02 15:04:05", expiresAtRaw)
-	if err != nil {
-		t.Fatalf("expiresAt=%q failed to parse: %v", expiresAtRaw, err)
-	}
-	if got, want := expiresAt.Sub(createdAt), 30*24*time.Hour; got != want {
-		t.Errorf("session lifetime=%v, want=%v", got, want)
-	}
 }

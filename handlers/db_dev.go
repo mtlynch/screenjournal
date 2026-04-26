@@ -25,14 +25,14 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
-// initDev sets up dev-mode state before routes are created.
-// It adds the assignSessionDB middleware which must run BEFORE
-// populateAuthenticationContext to ensure the test database is
-// available when looking up user information.
+// initDev installs dev-only request plumbing before routes are registered.
+// It prepends assignSessionDB so per-session database selection happens before
+// populateAuthenticationContext looks up the authenticated user.
 //
-// It also replaces the session manager so that sessions are stored in
-// the same per-session database as application data (users, reviews,
-// etc.), eliminating the shared-DB/per-session-DB mismatch.
+// When the server is using the default simpleauth SQLite session manager,
+// initDev replaces it with a manager that resolves the backing store from the
+// request context. That keeps session reads and writes aligned with the
+// per-session application database used by e2e tests.
 func (s *Server) initDev() {
 	s.router.Use(assignSessionDB)
 	if _, ok := s.sessionManager.(simple_sessions.Manager); ok {

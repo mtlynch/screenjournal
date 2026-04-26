@@ -18,6 +18,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
+	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
@@ -197,13 +198,13 @@ type (
 
 	dbSettings struct {
 		isolateBySession bool
-		tokenToDB        map[dbToken]Store
+		tokenToDB        map[dbToken]sqlite.Store
 		lock             sync.RWMutex
 	}
 )
 
 var sharedDBSettings = dbSettings{
-	tokenToDB: map[dbToken]Store{},
+	tokenToDB: map[dbToken]sqlite.Store{},
 }
 
 func (dbs *dbSettings) IsSessionIsolationEnabled() bool {
@@ -219,19 +220,19 @@ func (dbs *dbSettings) EnableSessionIsolation() {
 	log.Print("per-session database = on")
 }
 
-func (dbs *dbSettings) GetDB(token dbToken) Store {
+func (dbs *dbSettings) GetDB(token dbToken) sqlite.Store {
 	dbs.lock.RLock()
 	defer dbs.lock.RUnlock()
 	return dbs.tokenToDB[token]
 }
 
-func (dbs *dbSettings) SaveDB(token dbToken, db Store) {
+func (dbs *dbSettings) SaveDB(token dbToken, db sqlite.Store) {
 	dbs.lock.Lock()
 	defer dbs.lock.Unlock()
 	dbs.tokenToDB[token] = db
 }
 
-func (s Server) getDB(r *http.Request) Store {
+func (s Server) getDB(r *http.Request) sqlite.Store {
 	if !sharedDBSettings.IsSessionIsolationEnabled() {
 		return s.store
 	}

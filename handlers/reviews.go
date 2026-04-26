@@ -8,6 +8,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store"
+	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
 type reviewPostRequest struct {
@@ -226,7 +227,7 @@ func parseReviewPutRequest(r *http.Request) (reviewPutRequest, error) {
 	return parsed, nil
 }
 
-func (s Server) moviefromTmdbID(db Store, tmdbID screenjournal.TmdbID) (screenjournal.Movie, error) {
+func (s Server) moviefromTmdbID(db sqlite.Store, tmdbID screenjournal.TmdbID) (screenjournal.Movie, error) {
 	movie, err := db.ReadMovieByTmdbID(tmdbID)
 	if err != nil && err != store.ErrMovieNotFound {
 		return screenjournal.Movie{}, err
@@ -247,7 +248,7 @@ func (s Server) moviefromTmdbID(db Store, tmdbID screenjournal.TmdbID) (screenjo
 	return movie, nil
 }
 
-func (s Server) tvShowfromTmdbID(db Store, tmdbID screenjournal.TmdbID) (screenjournal.TvShow, error) {
+func (s Server) tvShowfromTmdbID(db sqlite.Store, tmdbID screenjournal.TmdbID) (screenjournal.TvShow, error) {
 	tvShow, err := db.ReadTvShowByTmdbID(tmdbID)
 	if err != nil && err != store.ErrTvShowNotFound {
 		return screenjournal.TvShow{}, err
@@ -271,7 +272,7 @@ func (s Server) tvShowfromTmdbID(db Store, tmdbID screenjournal.TmdbID) (screenj
 	return tvShow, nil
 }
 
-func (s Server) updateTvShowDetailsInStore(db Store, tvShow screenjournal.TvShow) error {
+func (s Server) updateTvShowDetailsInStore(db sqlite.Store, tvShow screenjournal.TvShow) error {
 	tvShowUpdated, err := s.metadataFinder.GetTvShow(tvShow.TmdbID)
 	if err != nil {
 		return err

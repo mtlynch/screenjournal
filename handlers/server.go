@@ -9,6 +9,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
+	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
 type (
@@ -47,7 +48,7 @@ type (
 		Authenticator    Authenticator
 		Announcer        Announcer
 		SessionManager   SessionManager
-		Store            Store
+		Store            sqlite.Store
 		MetadataFinder   MetadataFinder
 		PasswordResetter PasswordResetter
 	}
@@ -57,7 +58,7 @@ type (
 		authenticator    Authenticator
 		announcer        Announcer
 		sessionManager   SessionManager
-		store            Store
+		store            sqlite.Store
 		metadataFinder   MetadataFinder
 		passwordResetter PasswordResetter
 	}

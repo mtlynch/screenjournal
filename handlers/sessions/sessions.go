@@ -15,9 +15,11 @@ const sessionLifetime = 30 * 24 * time.Hour
 //
 // The `storeFunc` parameter allows callers to choose the database at request
 // time from the context rather than binding the manager to a single store at
-// startup. We need this for e2e tests because the e2e tests rely on the session
-// manager having several SQLite databases at once (one for each parallel test)
-// that it needs to resolve on a per-request basis.
+// startup. Much of the app already resolves the database per request at its own
+// callsites, but the session manager is constructed once up front and performs
+// its own store operations later through simpleauth. This callback preserves
+// request-time database selection for e2e tests that isolate parallel sessions
+// into separate SQLite databases.
 func NewManager(storeFunc func(context.Context) sqlite.Store, requireTls bool) simple_sessions.Manager {
 	return simple_sessions.NewManager(simple_sessions.Config{
 		Store:      sqlite.NewSessionStore(storeFunc),

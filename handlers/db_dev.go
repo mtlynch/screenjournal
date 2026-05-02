@@ -209,7 +209,7 @@ var sharedDBSettings = dbSettings{
 
 func (dbs *dbSettings) IsSessionIsolationEnabled() bool {
 	dbs.lock.RLock()
-	dbs.lock.RUnlock()
+	defer dbs.lock.RUnlock()
 	return dbs.isolateBySession
 }
 

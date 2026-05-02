@@ -54,8 +54,8 @@ func TestManagerStoresSessionsInSQLite(t *testing.T) {
 
 	{
 		// Send a second request with the session cookie from the login response.
-		// This exercises the normal request path where LoadUser reads the cookie and
-		// loads the stored session before the handler runs.
+		// This exercises the normal request path where LoadUser reads the cookie
+		// and loads the stored session before the handler runs.
 		rec := httptest.NewRecorder()
 		loadUserHandler.ServeHTTP(rec, requestWithCookie(sessionCookie))
 		// Confirm that the authenticated request completed successfully.

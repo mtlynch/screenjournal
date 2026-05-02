@@ -13,9 +13,11 @@ import (
 	"net/url"
 	"sync"
 
+	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
 	"github.com/gorilla/mux"
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
+	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/random"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -26,8 +28,17 @@ import (
 // initDev installs dev-only request plumbing before routes are registered.
 // It prepends assignSessionDB so per-session database selection happens before
 // populateAuthenticationContext looks up the authenticated user.
+//
+// When the server is using the default simpleauth SQLite session manager,
+// initDev replaces it with a manager that resolves the backing store from the
+// request context. That keeps session reads and writes aligned with the
+// per-session application database used by e2e tests.
 func (s *Server) initDev() {
 	s.router.Use(assignSessionDB)
+	if _, ok := s.sessionManager.(simple_sessions.Manager); ok {
+		sessionStore := sessionStore{defaultStore: s.store}
+		s.sessionManager = sessions.NewManager(sessionStore, false)
+	}
 }
 
 // addDevRoutes adds debug routes that we only use during development or e2e
@@ -273,6 +284,18 @@ func mustParseWatchDate(s string) screenjournal.WatchDate {
 
 type dbTokenContextKey struct{}
 
+// sessionStore adapts session persistence to dev-mode per-session databases.
+// sqlite.Store already implements simpleauth's store interface, but the
+// session manager captures one store at startup. This wrapper uses the request
+// context to choose the same per-session DB that handlers use for app data.
+type sessionStore struct {
+	defaultStore sqlite.Store
+}
+
+func (s sessionStore) storeFor(ctx context.Context) sqlite.Store {
+	return storeForContext(ctx, s.defaultStore)
+}
+
 func storeForContext(ctx context.Context, defaultStore sqlite.Store) sqlite.Store {
 	if !sharedDBSettings.IsSessionIsolationEnabled() {
 		return defaultStore
@@ -282,6 +305,27 @@ func storeForContext(ctx context.Context, defaultStore sqlite.Store) sqlite.Stor
 		panic("per-session database token not found in context")
 	}
 	return sharedDBSettings.GetDB(token)
+}
+
+func (s sessionStore) CreateSession(
+	ctx context.Context,
+	session simple_sessions.Session,
+) error {
+	return s.storeFor(ctx).CreateSession(ctx, session)
+}
+
+func (s sessionStore) ReadSession(
+	ctx context.Context,
+	id simple_sessions.ID,
+) (simple_sessions.Session, error) {
+	return s.storeFor(ctx).ReadSession(ctx, id)
+}
+
+func (s sessionStore) DeleteSession(
+	ctx context.Context,
+	id simple_sessions.ID,
+) error {
+	return s.storeFor(ctx).DeleteSession(ctx, id)
 }
 
 // assignSessionDB provisions a session-specific database if per-session

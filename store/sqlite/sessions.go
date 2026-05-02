@@ -67,12 +67,15 @@ func (s Store) ReadSession(
 
 	userID, err := simple_sessions.NewUserID(userIDRaw)
 	if err != nil {
-		return simple_sessions.Session{}, fmt.Errorf("parse stored user ID: %w", err)
+		return simple_sessions.Session{}, fmt.Errorf(
+			"failed to parse stored user ID: %w",
+			err,
+		)
 	}
 	createdAt, err := parseDatetime(createdAtRaw)
 	if err != nil {
 		return simple_sessions.Session{}, fmt.Errorf(
-			"parse stored created at: %w",
+			"failed to parse stored session creation time: %w",
 			err,
 		)
 	}
@@ -80,7 +83,7 @@ func (s Store) ReadSession(
 	expiresAt, err := parseDatetime(expiresAtRaw)
 	if err != nil {
 		return simple_sessions.Session{}, fmt.Errorf(
-			"parse stored expires at: %w",
+			"failed to parse stored session expiration time: %w",
 			err,
 		)
 	}

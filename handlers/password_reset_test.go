@@ -1,14 +1,11 @@
 package handlers_test
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
-
-	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
@@ -16,38 +13,6 @@ import (
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
-
-// Simple mock session manager implementation for this test.
-type passwordResetMockSessionManager struct {
-	sessions map[string]mockSession
-}
-
-func (sm *passwordResetMockSessionManager) LogIn(ctx context.Context, w http.ResponseWriter, userID simple_sessions.UserID) error {
-	_ = ctx
-	token := "mock-session-token-12345"
-	sm.sessions[token] = mockSession{
-		Username: screenjournal.Username(userID.String()),
-	}
-	http.SetCookie(w, &http.Cookie{
-		Name:  "mock-session-token",
-		Value: token,
-	})
-	return nil
-}
-
-func (sm *passwordResetMockSessionManager) UserIDFromContext(ctx context.Context) (simple_sessions.UserID, error) {
-	_ = ctx
-	// Not used in this test.
-	return simple_sessions.UserID{}, nil
-}
-
-func (sm *passwordResetMockSessionManager) LogOut(context.Context, http.ResponseWriter) error {
-	return nil
-}
-
-func (sm *passwordResetMockSessionManager) LoadUser(next http.Handler) http.Handler {
-	return next // Simple passthrough for this test.
-}
 
 func TestAccountPasswordResetPut(t *testing.T) {
 	// Helper to create password hash inline.
@@ -196,16 +161,13 @@ func TestAccountPasswordResetPut(t *testing.T) {
 
 			authenticator := auth.New(dataStore)
 
-			// Create mock session manager for this test.
-			sessionMgr := &passwordResetMockSessionManager{
-				sessions: make(map[string]mockSession),
-			}
+			sessionManager := newMockSessionManager([]mockSessionEntry{})
 
 			passwordResetter := passwordreset.NewNoEmail(dataStore, time.Now)
 
 			s := handlers.New(handlers.ServerParams{
 				Authenticator:    authenticator,
-				SessionManager:   sessionMgr,
+				SessionManager:   &sessionManager,
 				Store:            dataStore,
 				PasswordResetter: passwordResetter,
 			})
@@ -227,20 +189,20 @@ func TestAccountPasswordResetPut(t *testing.T) {
 
 			if tt.expectedStatus != http.StatusOK {
 				// Verify no session was created on failure.
-				if got, want := len(sessionMgr.sessions), 0; got != want {
+				if got, want := len(sessionManager.sessions), 0; got != want {
 					t.Errorf("sessionCount=%d, want=%d", got, want)
 				}
 				return
 			}
 
 			// Verify that a session was created.
-			if got, want := len(sessionMgr.sessions), 1; got != want {
+			if got, want := len(sessionManager.sessions), 1; got != want {
 				t.Fatalf("sessionCount=%d, want=%d", got, want)
 			}
 
 			// Find the created session.
 			var createdSession mockSession
-			for _, session := range sessionMgr.sessions {
+			for _, session := range sessionManager.sessions {
 				createdSession = session
 				break
 			}

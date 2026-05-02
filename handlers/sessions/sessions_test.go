@@ -14,7 +14,8 @@ import (
 
 func TestManagerStoresSessionsInSQLite(t *testing.T) {
 	store := test_sqlite.New()
-	manager := sessions.NewManager(store, false)
+	requireTls := false
+	manager := sessions.NewManager(store, requireTls)
 	userID, err := simple_sessions.NewUserID("dummyuserID")
 	if err != nil {
 		t.Fatalf("failed to create user ID: %v", err)

@@ -80,7 +80,6 @@ func TestAccountPasswordResetPut(t *testing.T) {
 					Username:     screenjournal.Username("userA"),
 					PasswordHash: createPasswordHash("oldpass123"),
 					Email:        screenjournal.Email("userA@example.com"),
-					IsAdmin:      false,
 				},
 			},
 			existingTokens: []screenjournal.PasswordResetEntry{
@@ -95,30 +94,6 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			newPasswordInPayload: screenjournal.Password("newpass123"),
 		},
 		{
-			description: "admin user password reset creates session",
-			payload:     "password=newadminpass789",
-			username:    screenjournal.Username("userB"),
-			token:       screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef99"),
-			existingUsers: []screenjournal.User{
-				{
-					Username:     screenjournal.Username("userB"),
-					PasswordHash: createPasswordHash("userBpass456"),
-					Email:        screenjournal.Email("userB@example.com"),
-					IsAdmin:      true,
-				},
-			},
-			existingTokens: []screenjournal.PasswordResetEntry{
-				{
-					Username:  screenjournal.Username("userB"),
-					Token:     screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef99"),
-					ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // 7 days from now.
-				},
-			},
-			expectedStatus:       http.StatusOK,
-			expectSessionFor:     screenjournal.Username("userB"),
-			newPasswordInPayload: screenjournal.Password("newadminpass789"),
-		},
-		{
 			description: "expired token is rejected and no session created",
 			payload:     "password=newpass123",
 			username:    screenjournal.Username("userB"),
@@ -128,7 +103,6 @@ func TestAccountPasswordResetPut(t *testing.T) {
 					Username:     screenjournal.Username("userB"),
 					PasswordHash: createPasswordHash("userBpass456"),
 					Email:        screenjournal.Email("userB@example.com"),
-					IsAdmin:      true,
 				},
 			},
 			existingTokens: []screenjournal.PasswordResetEntry{
@@ -150,7 +124,6 @@ func TestAccountPasswordResetPut(t *testing.T) {
 					Username:     screenjournal.Username("userA"),
 					PasswordHash: createPasswordHash("oldpass123"),
 					Email:        screenjournal.Email("userA@example.com"),
-					IsAdmin:      false,
 				},
 			},
 			existingTokens: []screenjournal.PasswordResetEntry{},
@@ -166,7 +139,6 @@ func TestAccountPasswordResetPut(t *testing.T) {
 					Username:     screenjournal.Username("userA"),
 					PasswordHash: createPasswordHash("oldpass123"),
 					Email:        screenjournal.Email("userA@example.com"),
-					IsAdmin:      false,
 				},
 			},
 			existingTokens: []screenjournal.PasswordResetEntry{
@@ -188,13 +160,11 @@ func TestAccountPasswordResetPut(t *testing.T) {
 					Username:     screenjournal.Username("userA"),
 					PasswordHash: createPasswordHash("oldpass123"),
 					Email:        screenjournal.Email("userA@example.com"),
-					IsAdmin:      false,
 				},
 				{
 					Username:     screenjournal.Username("userB"),
 					PasswordHash: createPasswordHash("userBpass456"),
 					Email:        screenjournal.Email("userB@example.com"),
-					IsAdmin:      false,
 				},
 			},
 			existingTokens: []screenjournal.PasswordResetEntry{

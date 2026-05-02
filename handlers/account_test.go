@@ -136,7 +136,6 @@ func TestAccountNotificationsPut(t *testing.T) {
 		payload       string
 		sessionToken  string
 		sessions      []mockSessionEntry
-		users         []screenjournal.User
 		expectedPrefs screenjournal.NotificationPreferences
 		status        int
 	}{
@@ -151,9 +150,6 @@ func TestAccountNotificationsPut(t *testing.T) {
 						Username: screenjournal.Username("userA"),
 					},
 				},
-			},
-			users: []screenjournal.User{
-				newMockUser(screenjournal.Username("userA")),
 			},
 			expectedPrefs: screenjournal.NotificationPreferences{
 				NewReviews:     true,
@@ -173,9 +169,6 @@ func TestAccountNotificationsPut(t *testing.T) {
 					},
 				},
 			},
-			users: []screenjournal.User{
-				newMockUser(screenjournal.Username("userA")),
-			},
 			expectedPrefs: screenjournal.NotificationPreferences{
 				NewReviews:     false,
 				AllNewComments: true,
@@ -194,9 +187,6 @@ func TestAccountNotificationsPut(t *testing.T) {
 					},
 				},
 			},
-			users: []screenjournal.User{
-				newMockUser(screenjournal.Username("userA")),
-			},
 			expectedPrefs: screenjournal.NotificationPreferences{
 				NewReviews:     true,
 				AllNewComments: false,
@@ -208,14 +198,13 @@ func TestAccountNotificationsPut(t *testing.T) {
 			payload:      "new-reviews=on&all-comments=on",
 			sessionToken: "dummy-invalid-token",
 			sessions:     []mockSessionEntry{},
-			users:        []screenjournal.User{},
 			status:       http.StatusUnauthorized,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			insertMockUsers(t, dataStore, tt.users)
+			insertMockUsersForSessions(t, dataStore, tt.sessions)
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)

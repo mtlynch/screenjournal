@@ -60,7 +60,6 @@ func TestSearchGet(t *testing.T) {
 		url          string
 		sessionToken string
 		sessions     []mockSessionEntry
-		users        []screenjournal.User
 		status       int
 		response     string
 	}{
@@ -75,9 +74,6 @@ func TestSearchGet(t *testing.T) {
 						Username: screenjournal.Username("user123"),
 					},
 				},
-			},
-			users: []screenjournal.User{
-				newMockUser(screenjournal.Username("user123")),
 			},
 			status: http.StatusOK,
 			response: `
@@ -113,9 +109,6 @@ func TestSearchGet(t *testing.T) {
 					},
 				},
 			},
-			users: []screenjournal.User{
-				newMockUser(screenjournal.Username("user123")),
-			},
 			status: http.StatusOK,
 			response: `
 <ul class="py-0 my-0 list-unstyled border border-success">
@@ -150,9 +143,6 @@ func TestSearchGet(t *testing.T) {
 					},
 				},
 			},
-			users: []screenjournal.User{
-				newMockUser(screenjournal.Username("user123")),
-			},
 			status: http.StatusOK,
 			response: `
 <ul class="py-0 my-0 list-unstyled border border-success">
@@ -172,9 +162,6 @@ func TestSearchGet(t *testing.T) {
 					},
 				},
 			},
-			users: []screenjournal.User{
-				newMockUser(screenjournal.Username("user123")),
-			},
 			status:   http.StatusUnprocessableEntity,
 			response: "",
 		},
@@ -190,9 +177,6 @@ func TestSearchGet(t *testing.T) {
 					},
 				},
 			},
-			users: []screenjournal.User{
-				newMockUser(screenjournal.Username("user123")),
-			},
 			status:   http.StatusUnauthorized,
 			response: "You must log in to perform searches",
 		},
@@ -200,7 +184,7 @@ func TestSearchGet(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			insertMockUsers(t, dataStore, tt.users)
+			insertMockUsersForSessions(t, dataStore, tt.sessions)
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)

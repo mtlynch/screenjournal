@@ -20,11 +20,6 @@ type reactionsTestData struct {
 		userB mockSessionEntry
 		admin mockSessionEntry
 	}
-	users struct {
-		userA screenjournal.User
-		userB screenjournal.User
-		admin screenjournal.User
-	}
 	movies struct {
 		theWaterBoy screenjournal.Movie
 	}
@@ -38,9 +33,6 @@ func makeReactionsTestData() reactionsTestData {
 	td.sessions.userA = newMockSessionEntry("abc123", screenjournal.Username("userA"))
 	td.sessions.userB = newMockSessionEntry("def456", screenjournal.Username("userB"))
 	td.sessions.admin = newMockSessionEntry("admin789", screenjournal.Username("admin"))
-	td.users.userA = newMockUser(screenjournal.Username("userA"))
-	td.users.userB = newMockUser(screenjournal.Username("userB"))
-	td.users.admin = newMockAdminUser(screenjournal.Username("admin"))
 	td.movies.theWaterBoy = screenjournal.Movie{
 		ID:          screenjournal.MovieID(1),
 		Title:       screenjournal.MediaTitle("The Waterboy"),
@@ -64,7 +56,6 @@ func TestReactionsPost(t *testing.T) {
 		payload           string
 		sessionToken      string
 		sessions          []mockSessionEntry
-		users             []screenjournal.User
 		movies            []screenjournal.Movie
 		reviews           []screenjournal.Review
 		status            int
@@ -77,10 +68,6 @@ func TestReactionsPost(t *testing.T) {
 			sessions: []mockSessionEntry{
 				makeReactionsTestData().sessions.userA,
 				makeReactionsTestData().sessions.userB,
-			},
-			users: []screenjournal.User{
-				makeReactionsTestData().users.userA,
-				makeReactionsTestData().users.userB,
 			},
 			movies: []screenjournal.Movie{
 				makeReactionsTestData().movies.theWaterBoy,
@@ -108,10 +95,6 @@ func TestReactionsPost(t *testing.T) {
 				makeReactionsTestData().sessions.userA,
 				makeReactionsTestData().sessions.userB,
 			},
-			users: []screenjournal.User{
-				makeReactionsTestData().users.userA,
-				makeReactionsTestData().users.userB,
-			},
 			movies: []screenjournal.Movie{
 				makeReactionsTestData().movies.theWaterBoy,
 			},
@@ -138,10 +121,6 @@ func TestReactionsPost(t *testing.T) {
 				makeReactionsTestData().sessions.userA,
 				makeReactionsTestData().sessions.userB,
 			},
-			users: []screenjournal.User{
-				makeReactionsTestData().users.userA,
-				makeReactionsTestData().users.userB,
-			},
 			movies: []screenjournal.Movie{
 				makeReactionsTestData().movies.theWaterBoy,
 			},
@@ -158,10 +137,6 @@ func TestReactionsPost(t *testing.T) {
 				makeReactionsTestData().sessions.userA,
 				makeReactionsTestData().sessions.userB,
 			},
-			users: []screenjournal.User{
-				makeReactionsTestData().users.userA,
-				makeReactionsTestData().users.userB,
-			},
 			movies: []screenjournal.Movie{
 				makeReactionsTestData().movies.theWaterBoy,
 			},
@@ -177,10 +152,6 @@ func TestReactionsPost(t *testing.T) {
 			sessions: []mockSessionEntry{
 				makeReactionsTestData().sessions.userA,
 				makeReactionsTestData().sessions.userB,
-			},
-			users: []screenjournal.User{
-				makeReactionsTestData().users.userA,
-				makeReactionsTestData().users.userB,
 			},
 			movies: []screenjournal.Movie{
 				makeReactionsTestData().movies.theWaterBoy,
@@ -199,17 +170,13 @@ func TestReactionsPost(t *testing.T) {
 				makeReactionsTestData().sessions.userA,
 				makeReactionsTestData().sessions.userB,
 			},
-			users: []screenjournal.User{
-				makeReactionsTestData().users.userA,
-				makeReactionsTestData().users.userB,
-			},
 			status: http.StatusUnauthorized,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			insertMockUsers(t, dataStore, tt.users)
+			insertMockUsersForSessions(t, dataStore, tt.sessions)
 			for _, movie := range tt.movies {
 				if _, err := dataStore.InsertMovie(movie); err != nil {
 					t.Fatalf("failed to insert mock movie: %+v: %v", movie, err)
@@ -268,7 +235,6 @@ func TestReactionsDelete(t *testing.T) {
 		route             string
 		sessionToken      string
 		sessions          []mockSessionEntry
-		users             []screenjournal.User
 		movies            []screenjournal.Movie
 		reviews           []screenjournal.Review
 		reactions         []screenjournal.ReviewReaction
@@ -282,10 +248,6 @@ func TestReactionsDelete(t *testing.T) {
 			sessions: []mockSessionEntry{
 				makeReactionsTestData().sessions.userA,
 				makeReactionsTestData().sessions.userB,
-			},
-			users: []screenjournal.User{
-				makeReactionsTestData().users.userA,
-				makeReactionsTestData().users.userB,
 			},
 			movies: []screenjournal.Movie{
 				makeReactionsTestData().movies.theWaterBoy,
@@ -315,11 +277,6 @@ func TestReactionsDelete(t *testing.T) {
 				makeReactionsTestData().sessions.userB,
 				makeReactionsTestData().sessions.admin,
 			},
-			users: []screenjournal.User{
-				makeReactionsTestData().users.userA,
-				makeReactionsTestData().users.userB,
-				makeReactionsTestData().users.admin,
-			},
 			movies: []screenjournal.Movie{
 				makeReactionsTestData().movies.theWaterBoy,
 			},
@@ -347,10 +304,6 @@ func TestReactionsDelete(t *testing.T) {
 				makeReactionsTestData().sessions.userA,
 				makeReactionsTestData().sessions.userB,
 			},
-			users: []screenjournal.User{
-				makeReactionsTestData().users.userA,
-				makeReactionsTestData().users.userB,
-			},
 			movies: []screenjournal.Movie{
 				makeReactionsTestData().movies.theWaterBoy,
 			},
@@ -376,10 +329,6 @@ func TestReactionsDelete(t *testing.T) {
 			sessions: []mockSessionEntry{
 				makeReactionsTestData().sessions.userA,
 				makeReactionsTestData().sessions.userB,
-			},
-			users: []screenjournal.User{
-				makeReactionsTestData().users.userA,
-				makeReactionsTestData().users.userB,
 			},
 			movies: []screenjournal.Movie{
 				makeReactionsTestData().movies.theWaterBoy,
@@ -407,10 +356,6 @@ func TestReactionsDelete(t *testing.T) {
 				makeReactionsTestData().sessions.userA,
 				makeReactionsTestData().sessions.userB,
 			},
-			users: []screenjournal.User{
-				makeReactionsTestData().users.userA,
-				makeReactionsTestData().users.userB,
-			},
 			movies: []screenjournal.Movie{
 				makeReactionsTestData().movies.theWaterBoy,
 			},
@@ -427,10 +372,6 @@ func TestReactionsDelete(t *testing.T) {
 			sessions: []mockSessionEntry{
 				makeReactionsTestData().sessions.userA,
 				makeReactionsTestData().sessions.userB,
-			},
-			users: []screenjournal.User{
-				makeReactionsTestData().users.userA,
-				makeReactionsTestData().users.userB,
 			},
 			movies: []screenjournal.Movie{
 				makeReactionsTestData().movies.theWaterBoy,
@@ -454,7 +395,12 @@ func TestReactionsDelete(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			insertMockUsers(t, dataStore, tt.users)
+			insertMockUsersForSessions(
+				t,
+				dataStore,
+				tt.sessions,
+				screenjournal.Username("admin"),
+			)
 			for _, movie := range tt.movies {
 				if _, err := dataStore.InsertMovie(movie); err != nil {
 					t.Fatalf("failed to insert mock movie: %+v: %v", movie, err)

@@ -17,18 +17,12 @@ type invitesTestData struct {
 		adminUser   mockSessionEntry
 		regularUser mockSessionEntry
 	}
-	users struct {
-		adminUser   screenjournal.User
-		regularUser screenjournal.User
-	}
 }
 
 func makeInvitesTestData() invitesTestData {
 	td := invitesTestData{}
 	td.sessions.adminUser = newMockSessionEntry("admintok555", screenjournal.Username("admin"))
 	td.sessions.regularUser = newMockSessionEntry("abc123", screenjournal.Username("regularUser"))
-	td.users.adminUser = newMockAdminUser(screenjournal.Username("admin"))
-	td.users.regularUser = newMockUser(screenjournal.Username("regularUser"))
 	return td
 }
 
@@ -38,7 +32,6 @@ func TestInvitesPost(t *testing.T) {
 		payload         string
 		sessionToken    string
 		sessions        []mockSessionEntry
-		users           []screenjournal.User
 		status          int
 		expectedInvitee screenjournal.Invitee
 	}{
@@ -49,10 +42,6 @@ func TestInvitesPost(t *testing.T) {
 			sessions: []mockSessionEntry{
 				makeInvitesTestData().sessions.adminUser,
 				makeInvitesTestData().sessions.regularUser,
-			},
-			users: []screenjournal.User{
-				makeInvitesTestData().users.adminUser,
-				makeInvitesTestData().users.regularUser,
 			},
 			status:          http.StatusOK,
 			expectedInvitee: screenjournal.Invitee("Frank"),
@@ -65,10 +54,6 @@ func TestInvitesPost(t *testing.T) {
 				makeInvitesTestData().sessions.adminUser,
 				makeInvitesTestData().sessions.regularUser,
 			},
-			users: []screenjournal.User{
-				makeInvitesTestData().users.adminUser,
-				makeInvitesTestData().users.regularUser,
-			},
 			status: http.StatusBadRequest,
 		},
 		{
@@ -78,10 +63,6 @@ func TestInvitesPost(t *testing.T) {
 			sessions: []mockSessionEntry{
 				makeInvitesTestData().sessions.adminUser,
 				makeInvitesTestData().sessions.regularUser,
-			},
-			users: []screenjournal.User{
-				makeInvitesTestData().users.adminUser,
-				makeInvitesTestData().users.regularUser,
 			},
 			status: http.StatusUnauthorized,
 		},
@@ -93,17 +74,18 @@ func TestInvitesPost(t *testing.T) {
 				makeInvitesTestData().sessions.adminUser,
 				makeInvitesTestData().sessions.regularUser,
 			},
-			users: []screenjournal.User{
-				makeInvitesTestData().users.adminUser,
-				makeInvitesTestData().users.regularUser,
-			},
 			status: http.StatusUnauthorized,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			insertMockUsers(t, dataStore, tt.users)
+			insertMockUsersForSessions(
+				t,
+				dataStore,
+				tt.sessions,
+				screenjournal.Username("admin"),
+			)
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)

@@ -52,19 +52,6 @@ func makeCommentsTestData() commentsTestData {
 	return td
 }
 
-func insertMockUsersForSessions(
-	t *testing.T,
-	userStore mockUserStore,
-	sessions []mockSessionEntry,
-) {
-	t.Helper()
-	users := make([]screenjournal.User, 0, len(sessions))
-	for _, s := range sessions {
-		users = append(users, newMockUser(s.session.Username))
-	}
-	insertMockUsers(t, userStore, users)
-}
-
 func TestCommentsPost(t *testing.T) {
 	for _, tt := range []struct {
 		description      string

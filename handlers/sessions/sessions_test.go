@@ -30,7 +30,7 @@ func TestManagerStoresSessionsInSQLite(t *testing.T) {
 			writeBody("no session found")
 			return
 		}
-		writeBody("loaded user " + loadedUserID.String())
+		writeBody("loaded session for " + loadedUserID.String())
 	}))
 	userID, err := simple_sessions.NewUserID("dummyUserID")
 	if err != nil {
@@ -64,7 +64,7 @@ func TestManagerStoresSessionsInSQLite(t *testing.T) {
 		}
 		// Confirm that the response contains the original user ID, which shows that
 		// the manager loaded the stored session for this second request.
-		if got, want := rec.Body.String(), "loaded user dummyUserID"; got != want {
+		if got, want := rec.Body.String(), "loaded session for dummyUserID"; got != want {
 			t.Errorf("rec.Body=%q, want=%q", got, want)
 		}
 	}

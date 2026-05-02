@@ -55,7 +55,8 @@ func (s Store) ReadSession(
 		FROM
 			auth_sessions
 		WHERE
-			session_id = :session_id`,
+			session_id = :session_id AND
+			datetime(expires_at) > datetime('now')`,
 		sql.Named("session_id", id.String()),
 	).Scan(&userIDRaw, &createdAtRaw, &expiresAtRaw); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -76,8 +77,6 @@ func (s Store) ReadSession(
 		)
 	}
 
-	// We don't filter out expired sessions at this layer because simpleauth is
-	// responsible for handling session expiration.
 	expiresAt, err := parseDatetime(expiresAtRaw)
 	if err != nil {
 		return simple_sessions.Session{}, fmt.Errorf(

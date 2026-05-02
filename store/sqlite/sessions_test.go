@@ -62,7 +62,61 @@ func TestDeleteExpiredSessions(t *testing.T) {
 				t.Fatalf("session exists=%v, want=%v", got, want)
 			}
 			if !tt.sessionExists {
+				if err := store.CreateSession(ctx, session); err != nil {
+					t.Fatalf("CreateSession after cleanup err=%v, want=%v", err, nil)
+				}
 				return
+			}
+			if got, want := readSession, session; got != want {
+				t.Fatalf("session=%v, want=%v", got, want)
+			}
+		})
+	}
+}
+
+func TestReadSession(t *testing.T) {
+	ctx := context.Background()
+	createdAt := time.Date(2026, time.May, 2, 12, 0, 0, 0, time.UTC)
+
+	for _, tt := range []struct {
+		description     string
+		expiresAt       time.Time
+		sessionExpected bool
+	}{
+		{
+			description:     "reads a session that expires in the future",
+			expiresAt:       time.Date(2100, time.January, 1, 0, 0, 0, 0, time.UTC),
+			sessionExpected: true,
+		},
+		{
+			description:     "does not read a session that expired in the past",
+			expiresAt:       time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC),
+			sessionExpected: false,
+		},
+	} {
+		t.Run(tt.description, func(t *testing.T) {
+			store := test_sqlite.New()
+			username := "session-user"
+			session := simple_sessions.Session{
+				ID:        newSessionID(t, username),
+				UserID:    newUserID(t, username),
+				CreatedAt: createdAt,
+				ExpiresAt: tt.expiresAt,
+			}
+			insertUser(t, store, session.UserID.String())
+			if err := store.CreateSession(ctx, session); err != nil {
+				t.Fatalf("CreateSession err=%v, want=%v", err, nil)
+			}
+
+			readSession, err := store.ReadSession(ctx, session.ID)
+			if !tt.sessionExpected {
+				if got, want := err, simple_sessions.ErrNoSessionFound; !errors.Is(got, want) {
+					t.Fatalf("err=%v, want=%v", got, want)
+				}
+				return
+			}
+			if got, want := err, error(nil); got != want {
+				t.Fatalf("err=%v, want=%v", got, want)
 			}
 			if got, want := readSession, session; got != want {
 				t.Fatalf("session=%v, want=%v", got, want)

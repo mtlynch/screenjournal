@@ -14,7 +14,7 @@ func (s Store) CreateSession(
 	session simple_sessions.Session,
 ) error {
 	if _, err := s.db.ExecContext(ctx, `
-		INSERT OR REPLACE INTO auth_sessions
+		INSERT INTO auth_sessions
 		(
 			session_id,
 			user_id,

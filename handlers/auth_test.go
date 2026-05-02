@@ -146,10 +146,6 @@ func TestAuthenticatedViewReturnsInternalServerErrorWhenUserLookupFails(t *testi
 	if err := dataStore.InsertUser(userA); err != nil {
 		t.Fatalf("InsertUser err=%v, want=%v", err, nil)
 	}
-	if err := db.Close(); err != nil {
-		t.Fatalf("Close err=%v, want=%v", err, nil)
-	}
-
 	sessionManager := newMockSessionManager([]mockSessionEntry{
 		newMockSessionEntry("abc123", userA.Username),
 	})
@@ -157,6 +153,9 @@ func TestAuthenticatedViewReturnsInternalServerErrorWhenUserLookupFails(t *testi
 		SessionManager: &sessionManager,
 		Store:          dataStore,
 	})
+	if err := db.Close(); err != nil {
+		t.Fatalf("Close err=%v, want=%v", err, nil)
+	}
 
 	req := httptest.NewRequest(http.MethodGet, "/account/security", nil)
 	req.AddCookie(&http.Cookie{

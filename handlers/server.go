@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -73,6 +75,7 @@ func (s Server) Router() *mux.Router {
 // New creates a new server with all the state it needs to satisfy HTTP
 // requests.
 func New(params ServerParams) Server {
+
 	s := Server{
 		router:           mux.NewRouter(),
 		authenticator:    params.Authenticator,
@@ -85,5 +88,11 @@ func New(params ServerParams) Server {
 
 	s.initDev()
 	s.routes()
+
+	// Clean up old sessions once at server initialization.
+	if err := s.store.DeleteExpiredSessions(context.Background(), time.Now()); err != nil {
+		panic(fmt.Errorf("delete expired sessions: %w", err))
+	}
+
 	return s
 }

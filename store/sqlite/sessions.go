@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
+	"time"
 
 	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
 )
@@ -101,6 +103,21 @@ func (s Store) DeleteSession(
 		WHERE
 			session_id = :session_id`,
 		sql.Named("session_id", id.String()),
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s Store) DeleteExpiredSessions(ctx context.Context, now time.Time) error {
+	log.Printf("cleaning old sessions from store")
+
+	if _, err := s.db.ExecContext(ctx, `
+		DELETE FROM
+			auth_sessions
+		WHERE
+			datetime(expires_at) <= datetime(:now)`,
+		sql.Named("now", formatTime(now)),
 	); err != nil {
 		return err
 	}

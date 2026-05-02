@@ -45,18 +45,20 @@ func (a *mockAnnouncer) AnnounceNewComment(rc screenjournal.ReviewComment) {
 	a.announcedComments = append(a.announcedComments, rc)
 }
 
-type mockSessionEntry struct {
-	token   string
-	session mockSession
-}
+type (
+	mockSessionEntry struct {
+		token   string
+		session mockSession
+	}
 
-type mockSession struct {
-	Username screenjournal.Username
-}
+	mockSession struct {
+		Username screenjournal.Username
+	}
 
-type mockSessionManager struct {
-	sessions map[string]mockSession
-}
+	mockSessionManager struct {
+		sessions map[string]mockSession
+	}
+)
 
 const mockSessionTokenName = "mock-session-token"
 

@@ -9,12 +9,24 @@ import (
 	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
 
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
+	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
 func TestManagerStoresSessionsInSQLite(t *testing.T) {
 	store := test_sqlite.New()
 	requireTls := false
+	userID, err := simple_sessions.NewUserID("dummyUserID")
+	if err != nil {
+		panic("failed to create new user")
+	}
+	if err := store.InsertUser(screenjournal.User{
+		Username:     screenjournal.Username(userID.String()),
+		Email:        screenjournal.Email("dummy@example.com"),
+		PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+	}); err != nil {
+		panic("failed to add user to store")
+	}
 	manager := sessions.NewManager(store, requireTls)
 	// Create a handler that loads the session and writes the user ID in the
 	// response.
@@ -32,10 +44,6 @@ func TestManagerStoresSessionsInSQLite(t *testing.T) {
 		}
 		writeBody("loaded session for " + loadedUserID.String())
 	}))
-	userID, err := simple_sessions.NewUserID("dummyUserID")
-	if err != nil {
-		t.Fatalf("failed to create user ID: %v", err)
-	}
 
 	var sessionCookie *http.Cookie
 	{

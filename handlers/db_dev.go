@@ -233,11 +233,14 @@ func (dbs *dbSettings) EnableSessionIsolation() {
 	log.Print("per-session database = on")
 }
 
-func (dbs *dbSettings) GetDB(token dbToken) (sqlite.Store, bool) {
+func (dbs *dbSettings) GetDB(token dbToken) sqlite.Store {
 	dbs.lock.RLock()
 	defer dbs.lock.RUnlock()
 	db, ok := dbs.tokenToDB[token]
-	return db, ok
+	if !ok {
+		panic("per-session database not found")
+	}
+	return db
 }
 
 func (dbs *dbSettings) SaveDB(token dbToken, db sqlite.Store) {
@@ -297,11 +300,7 @@ func storeForContext(ctx context.Context, defaultStore sqlite.Store) sqlite.Stor
 	if !ok {
 		panic("per-session database token not found in context")
 	}
-	db, ok := sharedDBSettings.GetDB(token)
-	if !ok {
-		panic("per-session database not found")
-	}
-	return db
+	return sharedDBSettings.GetDB(token)
 }
 
 func (s sessionStore) CreateSession(

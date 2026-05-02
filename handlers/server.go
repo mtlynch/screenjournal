@@ -75,7 +75,6 @@ func (s Server) Router() *mux.Router {
 // New creates a new server with all the state it needs to satisfy HTTP
 // requests.
 func New(params ServerParams) Server {
-
 	s := Server{
 		router:           mux.NewRouter(),
 		authenticator:    params.Authenticator,

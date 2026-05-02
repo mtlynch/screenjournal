@@ -209,19 +209,15 @@ const dbTokenCookieName = "db-token"
 type (
 	dbToken string
 
-	sessionDB struct {
-		store sqlite.Store
-	}
-
 	dbSettings struct {
 		isolateBySession bool
-		tokenToDB        map[dbToken]sessionDB
+		tokenToDB        map[dbToken]sqlite.Store
 		lock             sync.RWMutex
 	}
 )
 
 var sharedDBSettings = dbSettings{
-	tokenToDB: map[dbToken]sessionDB{},
+	tokenToDB: map[dbToken]sqlite.Store{},
 }
 
 func (dbs *dbSettings) IsSessionIsolationEnabled() bool {
@@ -237,17 +233,17 @@ func (dbs *dbSettings) EnableSessionIsolation() {
 	log.Print("per-session database = on")
 }
 
-func (dbs *dbSettings) GetDB(token dbToken) (sessionDB, bool) {
+func (dbs *dbSettings) GetDB(token dbToken) (sqlite.Store, bool) {
 	dbs.lock.RLock()
 	defer dbs.lock.RUnlock()
-	sdb, ok := dbs.tokenToDB[token]
-	return sdb, ok
+	db, ok := dbs.tokenToDB[token]
+	return db, ok
 }
 
-func (dbs *dbSettings) SaveDB(token dbToken, sdb sessionDB) {
+func (dbs *dbSettings) SaveDB(token dbToken, db sqlite.Store) {
 	dbs.lock.Lock()
 	defer dbs.lock.Unlock()
-	dbs.tokenToDB[token] = sdb
+	dbs.tokenToDB[token] = db
 }
 
 func (s Server) getDB(r *http.Request) sqlite.Store {
@@ -301,11 +297,11 @@ func storeForContext(ctx context.Context, defaultStore sqlite.Store) sqlite.Stor
 	if !ok {
 		panic("per-session database token not found in context")
 	}
-	store, ok := sharedDBSettings.GetDB(token)
+	db, ok := sharedDBSettings.GetDB(token)
 	if !ok {
 		panic("per-session database not found")
 	}
-	return store.store
+	return db
 }
 
 func (s sessionStore) CreateSession(
@@ -340,8 +336,8 @@ func assignSessionDB(h http.Handler) http.Handler {
 				token := dbToken(random.String(30, []rune("abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")))
 				log.Printf("provisioning a new private database with token %s", token)
 				createDBCookie(token, w)
-				store := test_sqlite.New()
-				sharedDBSettings.SaveDB(token, sessionDB{store: store})
+				db := test_sqlite.New()
+				sharedDBSettings.SaveDB(token, db)
 				ctx := context.WithValue(r.Context(), dbTokenContextKey{}, token)
 				r = r.WithContext(ctx)
 			} else {

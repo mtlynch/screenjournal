@@ -63,6 +63,7 @@ func (s Server) authDelete() http.HandlerFunc {
 		if err := s.sessionManager.LogOut(r.Context(), w); err != nil {
 			log.Printf("failed to end session: %v", err)
 			http.Error(w, "Failed to end session", http.StatusInternalServerError)
+			return
 		}
 	}
 }

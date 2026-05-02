@@ -23,10 +23,6 @@ type commentsTestData struct {
 		userA mockSessionEntry
 		userB mockSessionEntry
 	}
-	users struct {
-		userA screenjournal.User
-		userB screenjournal.User
-	}
 	movies struct {
 		theWaterBoy screenjournal.Movie
 	}
@@ -39,8 +35,6 @@ func makeCommentsTestData() commentsTestData {
 	td := commentsTestData{}
 	td.sessions.userA = newMockSessionEntry("abc123", screenjournal.Username("userA"))
 	td.sessions.userB = newMockSessionEntry("def456", screenjournal.Username("userB"))
-	td.users.userA = newMockUser(screenjournal.Username("userA"))
-	td.users.userB = newMockUser(screenjournal.Username("userB"))
 	td.movies.theWaterBoy = screenjournal.Movie{
 		ID:          screenjournal.MovieID(1),
 		Title:       screenjournal.MediaTitle("The Waterboy"),
@@ -58,13 +52,25 @@ func makeCommentsTestData() commentsTestData {
 	return td
 }
 
+func insertMockUsersForSessions(
+	t *testing.T,
+	userStore mockUserStore,
+	sessions []mockSessionEntry,
+) {
+	t.Helper()
+	users := make([]screenjournal.User, 0, len(sessions))
+	for _, s := range sessions {
+		users = append(users, newMockUser(s.session.Username))
+	}
+	insertMockUsers(t, userStore, users)
+}
+
 func TestCommentsPost(t *testing.T) {
 	for _, tt := range []struct {
 		description      string
 		payload          string
 		sessionToken     string
 		sessions         []mockSessionEntry
-		users            []screenjournal.User
 		movies           []screenjournal.Movie
 		reviews          []screenjournal.Review
 		status           int
@@ -77,10 +83,6 @@ func TestCommentsPost(t *testing.T) {
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
-			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
 			},
 			movies: []screenjournal.Movie{
 				makeCommentsTestData().movies.theWaterBoy,
@@ -106,10 +108,6 @@ func TestCommentsPost(t *testing.T) {
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
 			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
-			},
 			movies: []screenjournal.Movie{
 				makeCommentsTestData().movies.theWaterBoy,
 			},
@@ -134,10 +132,6 @@ func TestCommentsPost(t *testing.T) {
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
 			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
-			},
 			movies: []screenjournal.Movie{
 				makeCommentsTestData().movies.theWaterBoy,
 			},
@@ -153,10 +147,6 @@ func TestCommentsPost(t *testing.T) {
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
-			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
 			},
 			movies: []screenjournal.Movie{
 				makeCommentsTestData().movies.theWaterBoy,
@@ -174,10 +164,6 @@ func TestCommentsPost(t *testing.T) {
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
 			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
-			},
 			movies: []screenjournal.Movie{
 				makeCommentsTestData().movies.theWaterBoy,
 			},
@@ -193,10 +179,6 @@ func TestCommentsPost(t *testing.T) {
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
-			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
 			},
 			movies: []screenjournal.Movie{
 				makeCommentsTestData().movies.theWaterBoy,
@@ -215,17 +197,13 @@ func TestCommentsPost(t *testing.T) {
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
 			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
-			},
 			status: http.StatusUnauthorized,
 		},
 	} {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			insertMockUsers(t, dataStore, tt.users)
+			insertMockUsersForSessions(t, dataStore, tt.sessions)
 			for _, movie := range tt.movies {
 				if _, err := dataStore.InsertMovie(movie); err != nil {
 					t.Fatalf("failed to insert mock movie: %+v: %v", movie, err)
@@ -297,7 +275,6 @@ func TestCommentsPut(t *testing.T) {
 		payload          string
 		sessionToken     string
 		sessions         []mockSessionEntry
-		users            []screenjournal.User
 		comments         []screenjournal.ReviewComment
 		status           int
 		expectedComments []screenjournal.ReviewComment
@@ -310,10 +287,6 @@ func TestCommentsPut(t *testing.T) {
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
-			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
 			},
 			comments: []screenjournal.ReviewComment{
 				{
@@ -342,10 +315,6 @@ func TestCommentsPut(t *testing.T) {
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
 			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
-			},
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
@@ -364,10 +333,6 @@ func TestCommentsPut(t *testing.T) {
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
-			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
 			},
 			comments: []screenjournal.ReviewComment{
 				{
@@ -388,10 +353,6 @@ func TestCommentsPut(t *testing.T) {
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
 			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
-			},
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
@@ -410,10 +371,6 @@ func TestCommentsPut(t *testing.T) {
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
-			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
 			},
 			comments: []screenjournal.ReviewComment{
 				{
@@ -434,10 +391,6 @@ func TestCommentsPut(t *testing.T) {
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
 			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
-			},
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
@@ -457,10 +410,6 @@ func TestCommentsPut(t *testing.T) {
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
 			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
-			},
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
@@ -475,7 +424,7 @@ func TestCommentsPut(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			insertMockUsers(t, dataStore, tt.users)
+			insertMockUsersForSessions(t, dataStore, tt.sessions)
 
 			movie := makeCommentsTestData().movies.theWaterBoy
 			if _, err := dataStore.InsertMovie(movie); err != nil {
@@ -539,7 +488,6 @@ func TestCommentsDelete(t *testing.T) {
 		route            string
 		sessionToken     string
 		sessions         []mockSessionEntry
-		users            []screenjournal.User
 		comments         []screenjournal.ReviewComment
 		status           int
 		expectedComments []screenjournal.ReviewComment
@@ -551,10 +499,6 @@ func TestCommentsDelete(t *testing.T) {
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
-			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
 			},
 			comments: []screenjournal.ReviewComment{
 				{
@@ -575,10 +519,6 @@ func TestCommentsDelete(t *testing.T) {
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
 			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
-			},
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
@@ -596,10 +536,6 @@ func TestCommentsDelete(t *testing.T) {
 			sessions: []mockSessionEntry{
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
-			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
 			},
 			comments: []screenjournal.ReviewComment{
 				{
@@ -619,10 +555,6 @@ func TestCommentsDelete(t *testing.T) {
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
 			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
-			},
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
@@ -641,10 +573,6 @@ func TestCommentsDelete(t *testing.T) {
 				makeCommentsTestData().sessions.userA,
 				makeCommentsTestData().sessions.userB,
 			},
-			users: []screenjournal.User{
-				makeCommentsTestData().users.userA,
-				makeCommentsTestData().users.userB,
-			},
 			comments: []screenjournal.ReviewComment{
 				{
 					ID:          screenjournal.CommentID(1),
@@ -659,7 +587,7 @@ func TestCommentsDelete(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			insertMockUsers(t, dataStore, tt.users)
+			insertMockUsersForSessions(t, dataStore, tt.sessions)
 			movie := makeCommentsTestData().movies.theWaterBoy
 			if _, err := dataStore.InsertMovie(movie); err != nil {
 				t.Fatalf("failed to insert mock movie: %+v: %v", movie, err)

@@ -16,7 +16,7 @@ func (s *Server) addDevRoutes() {
 	// no-op
 }
 
-func (s Server) getDB(r *http.Request) sqlite.Store {
+func (s Server) getDB(*http.Request) sqlite.Store {
 	return s.store
 }
 

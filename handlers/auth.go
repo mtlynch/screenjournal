@@ -16,14 +16,16 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store"
 )
 
-type contextKey struct {
-	name string
-}
+type (
+	contextKey struct {
+		name string
+	}
 
-type authenticatedSession struct {
-	Username screenjournal.Username
-	IsAdmin  bool
-}
+	authenticatedSession struct {
+		Username screenjournal.Username
+		IsAdmin  bool
+	}
+)
 
 var contextKeySession = &contextKey{"user"}
 

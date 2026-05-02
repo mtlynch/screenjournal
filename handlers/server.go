@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -90,7 +90,7 @@ func New(params ServerParams) Server {
 
 	// Clean up old sessions once at server initialization.
 	if err := s.store.DeleteExpiredSessions(context.Background(), time.Now()); err != nil {
-		panic(fmt.Errorf("delete expired sessions: %w", err))
+		log.Fatalf("delete expired sessions: %w", err)
 	}
 
 	return s

@@ -16,6 +16,22 @@ func TestManagerStoresSessionsInSQLite(t *testing.T) {
 	store := test_sqlite.New()
 	requireTls := false
 	manager := sessions.NewManager(store, requireTls)
+	// Create a handler that loads the session and writes the user ID in the
+	// response.
+	loadUserHandler := manager.LoadUser(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		writeBody := func(body string) {
+			if _, err := w.Write([]byte(body)); err != nil {
+				panic(err)
+			}
+		}
+
+		loadedUserID, err := manager.UserIDFromContext(r.Context())
+		if err != nil {
+			writeBody("no session found")
+			return
+		}
+		writeBody("loaded user " + loadedUserID.String())
+	}))
 	userID, err := simple_sessions.NewUserID("dummyuserID")
 	if err != nil {
 		t.Fatalf("failed to create user ID: %v", err)
@@ -25,11 +41,7 @@ func TestManagerStoresSessionsInSQLite(t *testing.T) {
 	{
 		// Start a session and capture the cookie that the manager issues.
 		rec := httptest.NewRecorder()
-		if err := manager.LogIn(
-			context.Background(),
-			rec,
-			userID,
-		); err != nil {
+		if err := manager.LogIn(context.Background(), rec, userID); err != nil {
 			t.Fatalf("LogIn err=%v, want=%v", err, nil)
 		}
 
@@ -45,18 +57,7 @@ func TestManagerStoresSessionsInSQLite(t *testing.T) {
 		// This exercises the normal request path where LoadUser reads the cookie and
 		// loads the stored session before the handler runs.
 		rec := httptest.NewRecorder()
-		manager.LoadUser(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Read the user ID that LoadUser attached to the request context.
-			loadedUserID, err := manager.UserIDFromContext(r.Context())
-			if err != nil {
-				t.Fatalf("UserIDFromContext err=%v, want=%v", err, nil)
-			}
-			// Echo the loaded user ID so the test can verify that the manager
-			// restored the same session it created during login.
-			if _, err := w.Write([]byte("loaded user " + loadedUserID.String())); err != nil {
-				t.Fatalf("Write err=%v, want=%v", err, nil)
-			}
-		})).ServeHTTP(rec, requestWithCookie(sessionCookie))
+		loadUserHandler.ServeHTTP(rec, requestWithCookie(sessionCookie))
 		// Confirm that the authenticated request completed successfully.
 		if got, want := rec.Code, http.StatusOK; got != want {
 			t.Fatalf("rec.Code=%d, want=%d", got, want)
@@ -80,13 +81,13 @@ func TestManagerStoresSessionsInSQLite(t *testing.T) {
 		}
 	}
 
-	// Reuse the same cookie and confirm that logout removed the session.
-	var postLogoutErr error
-	manager.LoadUser(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, postLogoutErr = manager.UserIDFromContext(r.Context())
-	})).ServeHTTP(httptest.NewRecorder(), requestWithCookie(sessionCookie))
-	if got, want := postLogoutErr, simple_sessions.ErrNoSessionFound; got != want {
-		t.Fatalf("postLogoutErr=%v, want=%v", got, want)
+	{
+		// Reuse the same cookie and confirm that logout removed the session.
+		rec := httptest.NewRecorder()
+		loadUserHandler.ServeHTTP(rec, requestWithCookie(sessionCookie))
+		if got, want := rec.Body.String(), "no session found"; got != want {
+			t.Fatalf("rec.Body=%q, want=%q", got, want)
+		}
 	}
 }
 

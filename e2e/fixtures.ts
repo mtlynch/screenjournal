@@ -33,7 +33,10 @@ async function getFreePort(): Promise<number> {
   });
 }
 
-async function waitForServer(baseURL: string, timeoutMs: number): Promise<void> {
+async function waitForServer(
+  baseURL: string,
+  timeoutMs: number
+): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   let lastError: unknown;
 
@@ -92,7 +95,10 @@ export const test = base.extend<
         await stopProcess(serverProcess);
 
         nextDatabaseID += 1;
-        const dbPath = join(tempDir, `worker-${workerInfo.workerIndex}-test-${nextDatabaseID}.sqlite3`);
+        const dbPath = join(
+          tempDir,
+          `worker-${workerInfo.workerIndex}-test-${nextDatabaseID}.sqlite3`
+        );
         const binaryPath = resolve(process.cwd(), "bin/screenjournal-dev");
         const stdoutChunks: Buffer[] = [];
         const stderrChunks: Buffer[] = [];

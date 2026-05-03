@@ -41,10 +41,7 @@ func main() {
 	if !useTls {
 		log.Printf("TLS has not been marked as required, so session cookies will not have Secure flag")
 	}
-	sessionManager, err := sessions.NewManager(db, useTls)
-	if err != nil {
-		log.Fatalf("failed to create session manager: %v", err)
-	}
+	sessionManager := sessions.NewManager(store, useTls)
 
 	var announcer handlers.Announcer
 	var passwordResetter handlers.PasswordResetter

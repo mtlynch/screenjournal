@@ -1,7 +1,6 @@
 package handlers_test
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -9,7 +8,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -23,19 +21,8 @@ type invitesTestData struct {
 
 func makeInvitesTestData() invitesTestData {
 	td := invitesTestData{}
-	td.sessions.adminUser = mockSessionEntry{
-		token: "admintok555",
-		session: sessions.Session{
-			Username: screenjournal.Username("admin"),
-			IsAdmin:  true,
-		},
-	}
-	td.sessions.regularUser = mockSessionEntry{
-		token: "abc123",
-		session: sessions.Session{
-			Username: screenjournal.Username("regularUser"),
-		},
-	}
+	td.sessions.adminUser = newMockSessionEntry("admintok555", screenjournal.Username("admin"))
+	td.sessions.regularUser = newMockSessionEntry("abc123", screenjournal.Username("regularUser"))
 	return td
 }
 
@@ -93,17 +80,12 @@ func TestInvitesPost(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			for _, s := range tt.sessions {
-				mockUser := screenjournal.User{
-					Username:     s.session.Username,
-					IsAdmin:      s.session.IsAdmin,
-					Email:        screenjournal.Email(fmt.Sprintf("%s@example.com", s.session.Username.String())),
-					PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
-				}
-				if err := dataStore.InsertUser(mockUser); err != nil {
-					t.Fatalf("failed to insert mock user: %+v: %v", mockUser, err)
-				}
-			}
+			insertMockUsersForSessions(
+				t,
+				dataStore,
+				tt.sessions,
+				screenjournal.Username("admin"),
+			)
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)

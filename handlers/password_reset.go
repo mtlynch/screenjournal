@@ -14,7 +14,7 @@ import (
 
 func (s Server) accountPasswordResetPut() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		passwordResetter := s.passwordResetterForRequest(r)
+		passwordResetter := s.passwordResetterForRequest()
 		if passwordResetter == nil {
 			http.Error(w, "Password resets are not available on this server", http.StatusServiceUnavailable)
 			return
@@ -60,17 +60,15 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 			return
 		}
 
-		// Read user data to get admin status for session creation.
-		user, err := s.store.ReadUser(username)
+		// Create a session to automatically log in the user.
+		userID, err := userIDFromUsername(username)
 		if err != nil {
-			log.Printf("failed to read user data for session creation %s: %v", username, err)
-			http.Error(w, "Failed to read user information", http.StatusInternalServerError)
+			log.Printf("failed to create user ID after password reset: %v", err)
+			http.Error(w, "Password updated but failed to log in", http.StatusInternalServerError)
 			return
 		}
-
-		// Create session to automatically log in the user.
-		if err := s.sessionManager.CreateSession(w, r.Context(), user.Username, user.IsAdmin); err != nil {
-			log.Printf("failed to create session for user %s after password reset: %v", user.Username.String(), err)
+		if err := s.sessionManager.LogIn(r.Context(), w, userID); err != nil {
+			log.Printf("failed to create session after password reset: %v", err)
 			http.Error(w, "Password updated but failed to log in", http.StatusInternalServerError)
 			return
 		}
@@ -90,7 +88,7 @@ func (s Server) resetPasswordGet() http.HandlerFunc {
 				append(baseTemplates, "templates/pages/reset-password.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		serverSupportsPasswordResets := s.passwordResetterForRequest(r) != nil
+		serverSupportsPasswordResets := s.passwordResetterForRequest() != nil
 		if err := t.Execute(w, struct {
 			commonProps
 			Submitted                    bool
@@ -113,7 +111,7 @@ func (s Server) resetPasswordPost() http.HandlerFunc {
 				append(baseTemplates, "templates/pages/reset-password.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		passwordResetter := s.passwordResetterForRequest(r)
+		passwordResetter := s.passwordResetterForRequest()
 		if passwordResetter == nil {
 			http.Error(w, "Password resets are not available on this server", http.StatusServiceUnavailable)
 			return
@@ -151,7 +149,7 @@ func (s Server) resetPasswordPost() http.HandlerFunc {
 	}
 }
 
-func (s Server) passwordResetterForRequest(r *http.Request) PasswordResetter {
+func (s Server) passwordResetterForRequest() PasswordResetter {
 	if s.passwordResetter == nil {
 		return nil
 	}

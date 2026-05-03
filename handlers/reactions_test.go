@@ -10,7 +10,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -31,25 +30,9 @@ type reactionsTestData struct {
 
 func makeReactionsTestData() reactionsTestData {
 	td := reactionsTestData{}
-	td.sessions.userA = mockSessionEntry{
-		token: "abc123",
-		session: sessions.Session{
-			Username: screenjournal.Username("userA"),
-		},
-	}
-	td.sessions.userB = mockSessionEntry{
-		token: "def456",
-		session: sessions.Session{
-			Username: screenjournal.Username("userB"),
-		},
-	}
-	td.sessions.admin = mockSessionEntry{
-		token: "admin789",
-		session: sessions.Session{
-			Username: screenjournal.Username("admin"),
-			IsAdmin:  true,
-		},
-	}
+	td.sessions.userA = newMockSessionEntry("abc123", screenjournal.Username("userA"))
+	td.sessions.userB = newMockSessionEntry("def456", screenjournal.Username("userB"))
+	td.sessions.admin = newMockSessionEntry("admin789", screenjournal.Username("admin"))
 	td.movies.theWaterBoy = screenjournal.Movie{
 		ID:          screenjournal.MovieID(1),
 		Title:       screenjournal.MediaTitle("The Waterboy"),
@@ -193,16 +176,7 @@ func TestReactionsPost(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			for _, s := range tt.sessions {
-				mockUser := screenjournal.User{
-					Username:     s.session.Username,
-					Email:        screenjournal.Email(s.session.Username.String() + "@example.com"),
-					PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
-				}
-				if err := dataStore.InsertUser(mockUser); err != nil {
-					t.Fatalf("failed to insert mock user: %+v: %v", mockUser, err)
-				}
-			}
+			insertMockUsersForSessions(t, dataStore, tt.sessions)
 			for _, movie := range tt.movies {
 				if _, err := dataStore.InsertMovie(movie); err != nil {
 					t.Fatalf("failed to insert mock movie: %+v: %v", movie, err)
@@ -421,16 +395,12 @@ func TestReactionsDelete(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			for _, s := range tt.sessions {
-				mockUser := screenjournal.User{
-					Username:     s.session.Username,
-					Email:        screenjournal.Email(s.session.Username + "@example.com"),
-					PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
-				}
-				if err := dataStore.InsertUser(mockUser); err != nil {
-					t.Fatalf("failed to create mock user %+v: %v", mockUser, err)
-				}
-			}
+			insertMockUsersForSessions(
+				t,
+				dataStore,
+				tt.sessions,
+				screenjournal.Username("admin"),
+			)
 			for _, movie := range tt.movies {
 				if _, err := dataStore.InsertMovie(movie); err != nil {
 					t.Fatalf("failed to insert mock movie: %+v: %v", movie, err)

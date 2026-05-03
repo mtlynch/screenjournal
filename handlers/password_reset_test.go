@@ -1,7 +1,6 @@
 package handlers_test
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -10,45 +9,10 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/passwordreset"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
-
-// Simple mock session manager implementation for this test.
-type passwordResetMockSessionManager struct {
-	sessions map[string]sessions.Session
-}
-
-func (sm *passwordResetMockSessionManager) CreateSession(w http.ResponseWriter, ctx context.Context, username screenjournal.Username, isAdmin bool) error {
-	token := "mock-session-token-12345"
-	sm.sessions[token] = sessions.Session{
-		Username: username,
-		IsAdmin:  isAdmin,
-	}
-	http.SetCookie(w, &http.Cookie{
-		Name:  "mock-session-token",
-		Value: token,
-	})
-	return nil
-}
-
-func (sm *passwordResetMockSessionManager) SessionFromContext(ctx context.Context) (sessions.Session, error) {
-	// Not used in this test.
-	return sessions.Session{}, nil
-}
-
-func (sm *passwordResetMockSessionManager) SessionFromToken(token string) (sessions.Session, error) {
-	// Not used in this test.
-	return sessions.Session{}, nil
-}
-
-func (sm *passwordResetMockSessionManager) EndSession(context.Context, http.ResponseWriter) {}
-
-func (sm *passwordResetMockSessionManager) WrapRequest(next http.Handler) http.Handler {
-	return next // Simple passthrough for this test.
-}
 
 func TestAccountPasswordResetPut(t *testing.T) {
 	// Helper to create password hash inline.
@@ -69,7 +33,6 @@ func TestAccountPasswordResetPut(t *testing.T) {
 		existingTokens       []screenjournal.PasswordResetEntry
 		expectedStatus       int
 		expectSessionFor     screenjournal.Username
-		expectSessionIsAdmin bool
 		newPasswordInPayload screenjournal.Password
 	}{
 		{
@@ -82,7 +45,6 @@ func TestAccountPasswordResetPut(t *testing.T) {
 					Username:     screenjournal.Username("userA"),
 					PasswordHash: createPasswordHash("oldpass123"),
 					Email:        screenjournal.Email("userA@example.com"),
-					IsAdmin:      false,
 				},
 			},
 			existingTokens: []screenjournal.PasswordResetEntry{
@@ -94,33 +56,7 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			},
 			expectedStatus:       http.StatusOK,
 			expectSessionFor:     screenjournal.Username("userA"),
-			expectSessionIsAdmin: false,
 			newPasswordInPayload: screenjournal.Password("newpass123"),
-		},
-		{
-			description: "admin user password reset creates admin session",
-			payload:     "password=newadminpass789",
-			username:    screenjournal.Username("userB"),
-			token:       screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef99"),
-			existingUsers: []screenjournal.User{
-				{
-					Username:     screenjournal.Username("userB"),
-					PasswordHash: createPasswordHash("userBpass456"),
-					Email:        screenjournal.Email("userB@example.com"),
-					IsAdmin:      true,
-				},
-			},
-			existingTokens: []screenjournal.PasswordResetEntry{
-				{
-					Username:  screenjournal.Username("userB"),
-					Token:     screenjournal.NewPasswordResetTokenFromString("ABCDEFGHJKLMNPQRSTUVWXYZabcdef99"),
-					ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // 7 days from now.
-				},
-			},
-			expectedStatus:       http.StatusOK,
-			expectSessionFor:     screenjournal.Username("userB"),
-			expectSessionIsAdmin: true,
-			newPasswordInPayload: screenjournal.Password("newadminpass789"),
 		},
 		{
 			description: "expired token is rejected and no session created",
@@ -132,7 +68,6 @@ func TestAccountPasswordResetPut(t *testing.T) {
 					Username:     screenjournal.Username("userB"),
 					PasswordHash: createPasswordHash("userBpass456"),
 					Email:        screenjournal.Email("userB@example.com"),
-					IsAdmin:      true,
 				},
 			},
 			existingTokens: []screenjournal.PasswordResetEntry{
@@ -154,7 +89,6 @@ func TestAccountPasswordResetPut(t *testing.T) {
 					Username:     screenjournal.Username("userA"),
 					PasswordHash: createPasswordHash("oldpass123"),
 					Email:        screenjournal.Email("userA@example.com"),
-					IsAdmin:      false,
 				},
 			},
 			existingTokens: []screenjournal.PasswordResetEntry{},
@@ -170,7 +104,6 @@ func TestAccountPasswordResetPut(t *testing.T) {
 					Username:     screenjournal.Username("userA"),
 					PasswordHash: createPasswordHash("oldpass123"),
 					Email:        screenjournal.Email("userA@example.com"),
-					IsAdmin:      false,
 				},
 			},
 			existingTokens: []screenjournal.PasswordResetEntry{
@@ -192,13 +125,11 @@ func TestAccountPasswordResetPut(t *testing.T) {
 					Username:     screenjournal.Username("userA"),
 					PasswordHash: createPasswordHash("oldpass123"),
 					Email:        screenjournal.Email("userA@example.com"),
-					IsAdmin:      false,
 				},
 				{
 					Username:     screenjournal.Username("userB"),
 					PasswordHash: createPasswordHash("userBpass456"),
 					Email:        screenjournal.Email("userB@example.com"),
-					IsAdmin:      false,
 				},
 			},
 			existingTokens: []screenjournal.PasswordResetEntry{
@@ -230,16 +161,13 @@ func TestAccountPasswordResetPut(t *testing.T) {
 
 			authenticator := auth.New(dataStore)
 
-			// Create mock session manager for this test.
-			sessionMgr := &passwordResetMockSessionManager{
-				sessions: make(map[string]sessions.Session),
-			}
+			sessionManager := newMockSessionManager([]mockSessionEntry{})
 
 			passwordResetter := passwordreset.NewNoEmail(dataStore, time.Now)
 
 			s := handlers.New(handlers.ServerParams{
 				Authenticator:    authenticator,
-				SessionManager:   sessionMgr,
+				SessionManager:   &sessionManager,
 				Store:            dataStore,
 				PasswordResetter: passwordResetter,
 			})
@@ -261,20 +189,20 @@ func TestAccountPasswordResetPut(t *testing.T) {
 
 			if tt.expectedStatus != http.StatusOK {
 				// Verify no session was created on failure.
-				if got, want := len(sessionMgr.sessions), 0; got != want {
+				if got, want := len(sessionManager.sessions), 0; got != want {
 					t.Errorf("sessionCount=%d, want=%d", got, want)
 				}
 				return
 			}
 
 			// Verify that a session was created.
-			if got, want := len(sessionMgr.sessions), 1; got != want {
+			if got, want := len(sessionManager.sessions), 1; got != want {
 				t.Fatalf("sessionCount=%d, want=%d", got, want)
 			}
 
 			// Find the created session.
-			var createdSession sessions.Session
-			for _, session := range sessionMgr.sessions {
+			var createdSession mockSession
+			for _, session := range sessionManager.sessions {
 				createdSession = session
 				break
 			}
@@ -282,11 +210,6 @@ func TestAccountPasswordResetPut(t *testing.T) {
 			// Verify the session is for the correct user.
 			if got, want := createdSession.Username, tt.expectSessionFor; !got.Equal(want) {
 				t.Errorf("sessionUsername=%+v, want=%+v", got, want)
-			}
-
-			// Verify the session has correct admin status.
-			if got, want := createdSession.IsAdmin, tt.expectSessionIsAdmin; got != want {
-				t.Errorf("sessionIsAdmin=%t, want=%t", got, want)
 			}
 
 			// Verify that the password was actually changed by attempting to

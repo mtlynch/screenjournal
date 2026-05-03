@@ -179,6 +179,7 @@ func (s Server) populateDummyData() http.HandlerFunc {
 		}
 	}
 }
+
 func mustParseReleaseDate(s string) screenjournal.ReleaseDate {
 	d, err := tmdb.ParseReleaseDate(s)
 	if err != nil {

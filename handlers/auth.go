@@ -38,7 +38,7 @@ func (s Server) authPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.getAuthenticator(r).Authenticate(username, password); err != nil {
+		if err := s.authenticator.Authenticate(username, password); err != nil {
 			log.Printf("auth failed for user %s: %v", username, err)
 			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 			return
@@ -87,7 +87,7 @@ func (s Server) populateAuthenticationContext(next http.Handler) http.Handler {
 		}
 
 		username := usernameFromUserID(userID)
-		user, err := s.getDB(r).ReadUser(username)
+		user, err := s.store.ReadUser(username)
 		if err != nil {
 			if errors.Is(err, store.ErrUserNotFound) {
 				if err := s.sessionManager.LogOut(r.Context(), w); err != nil {

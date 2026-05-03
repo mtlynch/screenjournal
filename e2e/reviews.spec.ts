@@ -1,5 +1,5 @@
-import { test, expect } from "@playwright/test";
-import { populateDummyData, readDbTokenCookie } from "./helpers/db";
+import { test, expect } from "./fixtures";
+import { populateDummyData } from "./helpers/db";
 import { loginAsUserA, loginAsUserB } from "./helpers/login";
 
 test.beforeEach(async ({ page }) => {
@@ -642,7 +642,11 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   );
 });
 
-test("editing another user's review fails", async ({ page, browser }) => {
+test("editing another user's review fails", async ({
+  page,
+  browser,
+  baseURL,
+}) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.getByPlaceholder("Search").pressSequentially("the english pati");
@@ -668,16 +672,11 @@ test("editing another user's review fails", async ({ page, browser }) => {
 
   // Switch to other user.
   const guestContext = await browser.newContext();
-
-  // Share database across users.
-  await guestContext.addCookies([
-    readDbTokenCookie(await page.context().cookies()),
-  ]);
   const guestPage = await guestContext.newPage();
-  await guestPage.goto("/");
+  await guestPage.goto(baseURL);
   await loginAsUserB(guestPage);
 
-  const response = await guestPage.goto("/reviews/5/edit");
+  const response = await guestPage.goto(`${baseURL}/reviews/5/edit`);
   await expect(response?.status()).toBe(403);
 
   await guestContext.close();

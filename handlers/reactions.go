@@ -54,7 +54,7 @@ func (s Server) reactionsPost() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.getDB(r).ReadReview(req.ReviewID)
+		review, err := s.store.ReadReview(req.ReviewID)
 		if err == store.ErrReviewNotFound {
 			http.Error(w, "Review not found", http.StatusNotFound)
 			return
@@ -70,7 +70,7 @@ func (s Server) reactionsPost() http.HandlerFunc {
 			Emoji:  req.Emoji,
 		}
 
-		rr.ID, err = s.getDB(r).InsertReaction(rr)
+		rr.ID, err = s.store.InsertReaction(rr)
 		if err != nil {
 			log.Printf("failed to save reaction: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to save reaction: %v", err), http.StatusInternalServerError)
@@ -78,7 +78,7 @@ func (s Server) reactionsPost() http.HandlerFunc {
 		}
 
 		// Reload all reactions for this review to render the updated section.
-		reactions, err := s.getDB(r).ReadReactions(req.ReviewID)
+		reactions, err := s.store.ReadReactions(req.ReviewID)
 		if err != nil {
 			log.Printf("failed to read reactions: %v", err)
 			http.Error(w, "Failed to read reactions", http.StatusInternalServerError)
@@ -119,7 +119,7 @@ func (s Server) reactionsDelete() http.HandlerFunc {
 			return
 		}
 
-		rr, err := s.getDB(r).ReadReaction(rid)
+		rr, err := s.store.ReadReaction(rid)
 		if err == store.ErrReactionNotFound {
 			http.Error(w, "Reaction not found", http.StatusNotFound)
 			return
@@ -135,7 +135,7 @@ func (s Server) reactionsDelete() http.HandlerFunc {
 			return
 		}
 
-		if err := s.getDB(r).DeleteReaction(rid); err != nil {
+		if err := s.store.DeleteReaction(rid); err != nil {
 			log.Printf("failed to delete reaction id=%v: %v", rid, err)
 			http.Error(w, "Failed to delete reaction", http.StatusInternalServerError)
 			return

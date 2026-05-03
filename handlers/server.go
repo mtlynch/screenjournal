@@ -85,7 +85,6 @@ func New(params ServerParams) Server {
 		passwordResetter: params.PasswordResetter,
 	}
 
-	s.initDev()
 	s.routes()
 
 	// Clean up old sessions once at server initialization.

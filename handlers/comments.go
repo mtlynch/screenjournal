@@ -59,7 +59,7 @@ func (s Server) commentsEditGet() http.HandlerFunc {
 		var pCommentID *screenjournal.CommentID
 		var pCommentText *screenjournal.CommentText
 		if id, err := commentIDFromQueryParams(r); err == nil {
-			rc, err := s.getDB(r).ReadComment(id)
+			rc, err := s.store.ReadComment(id)
 			if err == store.ErrCommentNotFound {
 				http.Error(w, "Comment not found", http.StatusNotFound)
 				return
@@ -108,7 +108,7 @@ func (s Server) commentsGet() http.HandlerFunc {
 			return
 		}
 
-		rc, err := s.getDB(r).ReadComment(id)
+		rc, err := s.store.ReadComment(id)
 		if err == store.ErrCommentNotFound {
 			http.Error(w, "Comment not found", http.StatusNotFound)
 			return
@@ -143,7 +143,7 @@ func (s Server) commentsPost() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.getDB(r).ReadReview(req.ReviewID)
+		review, err := s.store.ReadReview(req.ReviewID)
 		if err == store.ErrReviewNotFound {
 			http.Error(w, "Review not found", http.StatusNotFound)
 			return
@@ -159,7 +159,7 @@ func (s Server) commentsPost() http.HandlerFunc {
 			CommentText: req.CommentText,
 		}
 
-		rc.ID, err = s.getDB(r).InsertComment(rc)
+		rc.ID, err = s.store.InsertComment(rc)
 		if err != nil {
 			log.Printf("failed to save comment: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to save comment: %v", err), http.StatusInternalServerError)
@@ -197,7 +197,7 @@ func (s Server) commentsPut() http.HandlerFunc {
 			return
 		}
 
-		rc, err := s.getDB(r).ReadComment(req.CommentID)
+		rc, err := s.store.ReadComment(req.CommentID)
 		if err == store.ErrCommentNotFound {
 			http.Error(w, "Comment not found", http.StatusNotFound)
 			return
@@ -213,7 +213,7 @@ func (s Server) commentsPut() http.HandlerFunc {
 		}
 
 		rc.CommentText = req.CommentText
-		if err := s.getDB(r).UpdateComment(rc); err != nil {
+		if err := s.store.UpdateComment(rc); err != nil {
 			log.Printf("failed to update comment: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to update comment: %v", err), http.StatusInternalServerError)
 			return
@@ -241,7 +241,7 @@ func (s Server) commentsDelete() http.HandlerFunc {
 			return
 		}
 
-		rc, err := s.getDB(r).ReadComment(cid)
+		rc, err := s.store.ReadComment(cid)
 		if err == store.ErrCommentNotFound {
 			http.Error(w, "Comment not found", http.StatusNotFound)
 			return
@@ -256,7 +256,7 @@ func (s Server) commentsDelete() http.HandlerFunc {
 			return
 		}
 
-		if err := s.getDB(r).DeleteComment(cid); err != nil {
+		if err := s.store.DeleteComment(cid); err != nil {
 			log.Printf("failed to delete comment id=%v: %v", cid, err)
 			http.Error(w, "Failed to delete comment: %v", http.StatusInternalServerError)
 			return

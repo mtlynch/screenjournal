@@ -14,7 +14,7 @@ import (
 
 func (s Server) accountPasswordResetPut() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		passwordResetter := s.passwordResetterForRequest(r)
+		passwordResetter := s.passwordResetterForRequest()
 		if passwordResetter == nil {
 			http.Error(w, "Password resets are not available on this server", http.StatusServiceUnavailable)
 			return
@@ -88,7 +88,7 @@ func (s Server) resetPasswordGet() http.HandlerFunc {
 				append(baseTemplates, "templates/pages/reset-password.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		serverSupportsPasswordResets := s.passwordResetterForRequest(r) != nil
+		serverSupportsPasswordResets := s.passwordResetterForRequest() != nil
 		if err := t.Execute(w, struct {
 			commonProps
 			Submitted                    bool
@@ -111,7 +111,7 @@ func (s Server) resetPasswordPost() http.HandlerFunc {
 				append(baseTemplates, "templates/pages/reset-password.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		passwordResetter := s.passwordResetterForRequest(r)
+		passwordResetter := s.passwordResetterForRequest()
 		if passwordResetter == nil {
 			http.Error(w, "Password resets are not available on this server", http.StatusServiceUnavailable)
 			return
@@ -149,14 +149,14 @@ func (s Server) resetPasswordPost() http.HandlerFunc {
 	}
 }
 
-func (s Server) passwordResetterForRequest(r *http.Request) PasswordResetter {
+func (s Server) passwordResetterForRequest() PasswordResetter {
 	if s.passwordResetter == nil {
 		return nil
 	}
 
 	resetter := s.passwordResetter
 	if typedResetter, ok := resetter.(passwordreset.Resetter); ok {
-		return typedResetter.WithStore(s.getDB(r))
+		return typedResetter.WithStore(s.store)
 	}
 
 	return resetter

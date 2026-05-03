@@ -13,6 +13,15 @@ if [[ "$1" = "--skip-build" ]]; then
 fi
 readonly REBUILD
 
+WORKERS_FLAG='--workers=18'
+for arg in "$@"; do
+  if [[ "${arg}" == '--workers' || "${arg}" == --workers=* ]]; then
+    WORKERS_FLAG=''
+    break
+  fi
+done
+readonly WORKERS_FLAG
+
 # Exit on unset variable.
 set -u
 
@@ -25,4 +34,4 @@ if [[ "${REBUILD}" == "true" ]]; then
   ./dev-scripts/build-backend dev
 fi
 
-npx playwright test "$@"
+npx playwright test ${WORKERS_FLAG:+"${WORKERS_FLAG}"} "$@"

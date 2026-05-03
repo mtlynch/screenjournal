@@ -250,7 +250,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 
 		var invite screenjournal.SignupInvitation
 		if !inviteCode.Empty() {
-			invite, err = s.getDB(r).ReadSignupInvitation(inviteCode)
+			invite, err = s.store.ReadSignupInvitation(inviteCode)
 			if err != nil {
 				log.Printf("invalid invite code: %v", err)
 				http.Error(w, "Invalid invite code", http.StatusUnauthorized)
@@ -258,7 +258,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 			}
 		}
 
-		uc, err := s.getDB(r).CountUsers()
+		uc, err := s.store.CountUsers()
 		if err != nil {
 			log.Printf("failed to count users: %v", err)
 			http.Error(w, "Failed to load signup template", http.StatusInternalServerError)
@@ -345,7 +345,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			queryOptions = append(queryOptions, store.SortReviews(sort))
 		}
 
-		reviews, err := s.getDB(r).ReadReviews(queryOptions...)
+		reviews, err := s.store.ReadReviews(queryOptions...)
 		if err != nil {
 			log.Printf("failed to read reviews: %v", err)
 			http.Error(w, "Failed to read reviews", http.StatusInternalServerError)
@@ -392,7 +392,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			return
 		}
 
-		movie, err := s.getDB(r).ReadMovie(mid)
+		movie, err := s.store.ReadMovie(mid)
 		if err == store.ErrMovieNotFound {
 			http.Error(w, "Invalid movie ID", http.StatusNotFound)
 			return
@@ -402,7 +402,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			return
 		}
 
-		reviews, err := s.getDB(r).ReadReviews(store.FilterReviewsByMovieID(mid))
+		reviews, err := s.store.ReadReviews(store.FilterReviewsByMovieID(mid))
 		if err != nil {
 			log.Printf("failed to read movie reviews: %v", err)
 			http.Error(w, "Failed to retrieve reviews", http.StatusInternalServerError)
@@ -413,7 +413,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 		isAdminUser := isAdmin(r.Context())
 
 		for i, review := range reviews {
-			cc, err := s.getDB(r).ReadComments(review.ID)
+			cc, err := s.store.ReadComments(review.ID)
 			if err != nil {
 				log.Printf("failed to read reviews comments: %v", err)
 				http.Error(w, "Failed to retrieve comments", http.StatusInternalServerError)
@@ -421,7 +421,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			}
 			reviews[i].Comments = cc
 
-			rr, err := s.getDB(r).ReadReactions(review.ID)
+			rr, err := s.store.ReadReactions(review.ID)
 			if err != nil {
 				log.Printf("failed to read reviews reactions: %v", err)
 				http.Error(w, "Failed to retrieve reactions", http.StatusInternalServerError)
@@ -491,7 +491,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			return
 		}
 
-		tvShow, err := s.getDB(r).ReadTvShow(tvID)
+		tvShow, err := s.store.ReadTvShow(tvID)
 		if err == store.ErrTvShowNotFound {
 			http.Error(w, "Invalid TV show ID", http.StatusNotFound)
 			return
@@ -501,7 +501,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			return
 		}
 
-		reviews, err := s.getDB(r).ReadReviews(store.FilterReviewsByTvShowID(tvID), store.FilterReviewsByTvShowSeason(seasonNumber))
+		reviews, err := s.store.ReadReviews(store.FilterReviewsByTvShowID(tvID), store.FilterReviewsByTvShowSeason(seasonNumber))
 		if err != nil {
 			log.Printf("failed to read TV show reviews: %v", err)
 			http.Error(w, "Failed to retrieve TV show reviews", http.StatusInternalServerError)
@@ -512,7 +512,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 		isAdminUser := isAdmin(r.Context())
 
 		for i, review := range reviews {
-			cc, err := s.getDB(r).ReadComments(review.ID)
+			cc, err := s.store.ReadComments(review.ID)
 			if err != nil {
 				log.Printf("failed to read reviews comments: %v", err)
 				http.Error(w, "Failed to retrieve comments", http.StatusInternalServerError)
@@ -520,7 +520,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			}
 			reviews[i].Comments = cc
 
-			rr, err := s.getDB(r).ReadReactions(review.ID)
+			rr, err := s.store.ReadReactions(review.ID)
 			if err != nil {
 				log.Printf("failed to read reviews reactions: %v", err)
 				http.Error(w, "Failed to retrieve reactions", http.StatusInternalServerError)
@@ -587,7 +587,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.getDB(r).ReadReview(id)
+		review, err := s.store.ReadReview(id)
 		if err == store.ErrReviewNotFound {
 			http.Error(w, "Invalid review ID", http.StatusNotFound)
 			return
@@ -829,7 +829,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 func (s Server) getMovie(r *http.Request, movieID *screenjournal.MovieID, tmdbID *screenjournal.TmdbID) (screenjournal.Movie, error) {
 	// Try to get the movie information from the database.
 	if movieID != nil {
-		m, err := s.getDB(r).ReadMovie(*movieID)
+		m, err := s.store.ReadMovie(*movieID)
 		if err != nil {
 			return screenjournal.Movie{}, err
 		}
@@ -848,7 +848,7 @@ func (s Server) getMovie(r *http.Request, movieID *screenjournal.MovieID, tmdbID
 func (s Server) getTvShow(r *http.Request, tvShowID *screenjournal.TvShowID, tmdbID *screenjournal.TmdbID) (screenjournal.TvShow, error) {
 	// Try to get the TV show information from the database.
 	if tvShowID != nil {
-		t, err := s.getDB(r).ReadTvShow(*tvShowID)
+		t, err := s.store.ReadTvShow(*tvShowID)
 		if err != nil {
 			return screenjournal.TvShow{}, err
 		}
@@ -872,7 +872,7 @@ func (s Server) invitesGet() http.HandlerFunc {
 				"templates/pages/invites.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		invites, err := s.getDB(r).ReadSignupInvitations()
+		invites, err := s.store.ReadSignupInvitations()
 		if err != nil {
 			log.Printf("failed to read signup invitations: %v", err)
 			http.Error(w, "Failed to read signup invitations", http.StatusInternalServerError)
@@ -911,7 +911,7 @@ func (s Server) accountPasswordResetGet() http.HandlerFunc {
 		}
 
 		// Verify token exists and hasn't expired.
-		passwordResetEntry, err := s.getDB(r).ReadPasswordResetEntry(token)
+		passwordResetEntry, err := s.store.ReadPasswordResetEntry(token)
 		if err != nil {
 			http.Error(w, "Invalid or expired password reset token", http.StatusUnauthorized)
 			return
@@ -976,7 +976,7 @@ func (s Server) accountNotificationsGet() http.HandlerFunc {
 			append(baseTemplates, "templates/pages/account-notifications.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		prefs, err := s.getDB(r).ReadNotificationPreferences(mustGetUsernameFromContext(r.Context()))
+		prefs, err := s.store.ReadNotificationPreferences(mustGetUsernameFromContext(r.Context()))
 		if err != nil {
 			log.Printf("failed to read notification preferences: %v", err)
 			http.Error(w, fmt.Sprintf("failed to read notification preferences: %v", err), http.StatusInternalServerError)
@@ -1025,7 +1025,7 @@ func (s Server) usersGet() http.HandlerFunc {
 				append(baseTemplates, "templates/pages/users.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		users, err := s.getDB(r).ReadUsersPublicMeta()
+		users, err := s.store.ReadUsersPublicMeta()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

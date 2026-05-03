@@ -46,7 +46,7 @@ func (s Server) activityGet() http.HandlerFunc {
 				append(baseTemplates, "templates/pages/activity.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		reviews, err := s.getDB(r).ReadReviews()
+		reviews, err := s.store.ReadReviews()
 		if err != nil {
 			log.Printf("failed to read reviews: %v", err)
 			http.Error(w, "Failed to load activity", http.StatusInternalServerError)
@@ -54,7 +54,7 @@ func (s Server) activityGet() http.HandlerFunc {
 		}
 
 		for i, review := range reviews {
-			rr, err := s.getDB(r).ReadReactions(review.ID)
+			rr, err := s.store.ReadReactions(review.ID)
 			if err != nil {
 				log.Printf("failed to read reactions for review %s: %v", review.ID, err)
 				http.Error(w, "Failed to load activity", http.StatusInternalServerError)

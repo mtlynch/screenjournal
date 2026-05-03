@@ -82,7 +82,6 @@ func New(params ServerParams) Server {
 		passwordResetter: params.PasswordResetter,
 	}
 
-	s.initDev()
 	s.routes()
 	return s
 }

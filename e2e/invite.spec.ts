@@ -1,6 +1,6 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import { loginAsAdmin } from "./helpers/login";
-import { populateDummyData, readDbTokenCookie } from "./helpers/db";
+import { populateDummyData } from "./helpers/db";
 
 test.beforeEach(async ({ page }) => {
   await populateDummyData(page);
@@ -10,6 +10,7 @@ test.beforeEach(async ({ page }) => {
 test("signing up with a valid invite code succeeds", async ({
   page,
   browser,
+  baseURL,
 }) => {
   await page.getByRole("menuitem", { name: "Admin" }).click();
   await page.getByRole("menuitem", { name: "Invites" }).click();
@@ -26,13 +27,8 @@ test("signing up with a valid invite code succeeds", async ({
 
   const guestContext = await browser.newContext();
 
-  // Share database across users.
-  await guestContext.addCookies([
-    readDbTokenCookie(await page.context().cookies()),
-  ]);
-
   const guestPage = await guestContext.newPage();
-  await guestPage.goto(inviteLink);
+  await guestPage.goto(`${baseURL}${inviteLink}`);
 
   await expect(guestPage.locator(".alert-info")).toHaveText(
     "Welcome, Billy! We've been expecting you."
@@ -44,13 +40,14 @@ test("signing up with a valid invite code succeeds", async ({
   await guestPage.getByLabel("Confirm Password").fill("billypass");
   await guestPage.locator("form input[type='submit']").click();
 
-  await expect(guestPage).toHaveURL("/reviews");
+  await expect(guestPage).toHaveURL(`${baseURL}/reviews`);
   await guestContext.close();
 });
 
 test("signing up with an invalid invite code fails", async ({
   page,
   browser,
+  baseURL,
 }) => {
   await page.getByRole("menuitem", { name: "Admin" }).click();
   await page.getByRole("menuitem", { name: "Invites" }).click();
@@ -64,13 +61,8 @@ test("signing up with an invalid invite code fails", async ({
 
   const guestContext = await browser.newContext();
 
-  // Share database across users.
-  await guestContext.addCookies([
-    readDbTokenCookie(await page.context().cookies()),
-  ]);
-
   const guestPage = await guestContext.newPage();
-  const response = await guestPage.goto("/sign-up?invite=222333");
+  const response = await guestPage.goto(`${baseURL}/sign-up?invite=222333`);
   await expect(response?.status()).toBe(401);
 
   await guestContext.close();

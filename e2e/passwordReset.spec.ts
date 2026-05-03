@@ -1,5 +1,6 @@
-import { test, expect, Page } from "@playwright/test";
-import { populateDummyData, readDbTokenCookie } from "./helpers/db";
+import { test, expect } from "./fixtures";
+import type { Page } from "@playwright/test";
+import { populateDummyData } from "./helpers/db";
 import { loginAsUser } from "./helpers/login";
 
 test.beforeEach(async ({ page }) => {
@@ -22,6 +23,7 @@ async function resetFormIsAvailable(page: Page): Promise<boolean> {
 test("user can reset password via forgot-password flow", async ({
   page,
   browser,
+  baseURL,
 }) => {
   if (!(await resetFormIsAvailable(page))) {
     return;
@@ -35,14 +37,8 @@ test("user can reset password via forgot-password flow", async ({
   await expect(page.getByText("Request successful!")).toBeVisible();
 
   // Retrieve the token from the debug endpoint.
-  const dbCookie = readDbTokenCookie(await page.context().cookies());
   const apiResponse = await page.request.get(
-    "/api/debug/password-reset-token/userA",
-    {
-      headers: {
-        Cookie: `${dbCookie.name}=${dbCookie.value}`,
-      },
-    }
+    "/api/debug/password-reset-token/userA"
   );
   expect(apiResponse.status()).toBe(200);
   const { token } = await apiResponse.json();
@@ -52,11 +48,10 @@ test("user can reset password via forgot-password flow", async ({
 
   // Switch to a fresh user context.
   const userContext = await browser.newContext();
-  await userContext.addCookies([dbCookie]);
   const userPage = await userContext.newPage();
 
-  await userPage.goto(resetLink);
-  await expect(userPage).toHaveURL(resetLink);
+  await userPage.goto(`${baseURL}${resetLink}`);
+  await expect(userPage).toHaveURL(`${baseURL}${resetLink}`);
 
   await userPage.route(
     /\/account\/password-reset\?username=userA&token=.*/,
@@ -88,12 +83,12 @@ test("user can reset password via forgot-password flow", async ({
   await expect(userPage.locator("#password-form")).toBeHidden();
 
   // User should be redirected to reviews after password reset.
-  await expect(userPage).toHaveURL("/reviews");
+  await expect(userPage).toHaveURL(`${baseURL}/reviews`);
 
   // Verify logged in as the correct user.
   await userPage.getByRole("menuitem", { name: "Account" }).click();
   await userPage.getByRole("menuitem", { name: "My ratings" }).click();
-  await expect(userPage).toHaveURL("/reviews/by/userA");
+  await expect(userPage).toHaveURL(`${baseURL}/reviews/by/userA`);
 
   await userContext.close();
 
@@ -114,21 +109,18 @@ test("reset shows same success message for unknown email", async ({ page }) => {
 });
 
 test("incorrect password reset token is rejected", async ({
-  page,
   browser,
+  baseURL,
 }) => {
   const bogusToken = "ABCDEFGHJKLMNPQRSTUVWXYZabcdef23";
   const resetLink = `/account/password-reset?username=userA&token=${bogusToken}`;
 
   // Switch to a fresh user context.
   const userContext = await browser.newContext();
-  await userContext.addCookies([
-    readDbTokenCookie(await page.context().cookies()),
-  ]);
   const userPage = await userContext.newPage();
 
   // Navigate to the reset page with a bogus token.
-  const response = await userPage.goto(resetLink);
+  const response = await userPage.goto(`${baseURL}${resetLink}`);
   expect(response?.status()).toBe(401);
 
   await userContext.close();

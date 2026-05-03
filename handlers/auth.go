@@ -28,13 +28,13 @@ func (s Server) authPost() http.HandlerFunc {
 			return
 		}
 
-		if err := s.getAuthenticator(r).Authenticate(username, password); err != nil {
+		if err := s.authenticator.Authenticate(username, password); err != nil {
 			log.Printf("auth failed for user %s: %v", username, err)
 			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 			return
 		}
 
-		user, err := s.getDB(r).ReadUser(username)
+		user, err := s.store.ReadUser(username)
 		if err != nil {
 			log.Printf("failed to read user data from database %s: %v", username, err)
 			http.Error(w, "Failed to read user information", http.StatusInternalServerError)

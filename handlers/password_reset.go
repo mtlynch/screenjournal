@@ -61,7 +61,7 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 		}
 
 		// Read user data to get admin status for session creation.
-		user, err := s.getDB(r).ReadUser(username)
+		user, err := s.store.ReadUser(username)
 		if err != nil {
 			log.Printf("failed to read user data for session creation %s: %v", username, err)
 			http.Error(w, "Failed to read user information", http.StatusInternalServerError)
@@ -158,7 +158,7 @@ func (s Server) passwordResetterForRequest(r *http.Request) PasswordResetter {
 
 	resetter := s.passwordResetter
 	if typedResetter, ok := resetter.(passwordreset.Resetter); ok {
-		return typedResetter.WithStore(s.getDB(r))
+		return typedResetter.WithStore(s.store)
 	}
 
 	return resetter

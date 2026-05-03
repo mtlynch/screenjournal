@@ -138,22 +138,22 @@ func (s Server) populateDummyData() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		for _, u := range users {
-			if err := s.getDB(r).InsertUser(u); err != nil {
+			if err := s.store.InsertUser(u); err != nil {
 				panic(err)
 			}
 		}
 		for _, movie := range movies {
-			if _, err := s.getDB(r).InsertMovie(movie); err != nil {
+			if _, err := s.store.InsertMovie(movie); err != nil {
 				panic(err)
 			}
 		}
 		for _, tvShow := range tvShows {
-			if _, err := s.getDB(r).InsertTvShow(tvShow); err != nil {
+			if _, err := s.store.InsertTvShow(tvShow); err != nil {
 				panic(err)
 			}
 		}
 		for _, review := range reviews {
-			reviewID, err := s.getDB(r).InsertReview(review)
+			reviewID, err := s.store.InsertReview(review)
 			if err != nil {
 				panic(err)
 			}
@@ -161,7 +161,7 @@ func (s Server) populateDummyData() http.HandlerFunc {
 
 			for _, c := range review.Comments {
 				c.Review = review
-				if _, err := s.getDB(r).InsertComment(c); err != nil {
+				if _, err := s.store.InsertComment(c); err != nil {
 					panic(err)
 				}
 			}
@@ -172,7 +172,7 @@ func (s Server) populateDummyData() http.HandlerFunc {
 					Owner:  screenjournal.Username("dummyadmin"),
 					Emoji:  screenjournal.NewReactionEmoji("🥞"),
 				}
-				if _, err := s.getDB(r).InsertReaction(reaction); err != nil {
+				if _, err := s.store.InsertReaction(reaction); err != nil {
 					panic(err)
 				}
 			}
@@ -212,7 +212,7 @@ func (s Server) debugPasswordResetTokenGet() http.HandlerFunc {
 			return
 		}
 
-		entry, err := s.getDB(r).ReadLatestPasswordResetEntryForUser(username)
+		entry, err := s.store.ReadLatestPasswordResetEntryForUser(username)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				http.Error(w, "No password reset token found for user", http.StatusNotFound)

@@ -26,20 +26,20 @@ func (s Server) accountChangePasswordPut() http.HandlerFunc {
 		}
 
 		username := mustGetUsernameFromContext(r.Context())
-		if err := s.getAuthenticator(r).Authenticate(username, parsed.OldPassword); err != nil {
+		if err := s.authenticator.Authenticate(username, parsed.OldPassword); err != nil {
 			log.Printf("password change failed for user %s: %v", username, err)
 			http.Error(w, "Failed to change password: current password is incorrect", http.StatusUnauthorized)
 			return
 		}
 
-		user, err := s.getDB(r).ReadUser(username)
+		user, err := s.store.ReadUser(username)
 		if err != nil {
 			log.Printf("failed to read user information for %v: %v", username, err)
 			http.Error(w, "Failed to change password: couldn't read user information", http.StatusInternalServerError)
 			return
 		}
 
-		if err := s.getDB(r).UpdateUserPassword(user.Username, parsed.NewPasswordHash); err != nil {
+		if err := s.store.UpdateUserPassword(user.Username, parsed.NewPasswordHash); err != nil {
 			log.Printf("failed to update password for %v: %v", username, err)
 			http.Error(w, "Failed to change password: couldn't save new password", http.StatusInternalServerError)
 			return
@@ -97,7 +97,7 @@ func (s Server) accountNotificationsPut() http.HandlerFunc {
 		}
 
 		username := mustGetUsernameFromContext(r.Context())
-		if err = s.getDB(r).UpdateNotificationPreferences(username, screenjournal.NotificationPreferences{
+		if err = s.store.UpdateNotificationPreferences(username, screenjournal.NotificationPreferences{
 			NewReviews:     req.NewReviews,
 			AllNewComments: req.AllComments,
 		}); err != nil {

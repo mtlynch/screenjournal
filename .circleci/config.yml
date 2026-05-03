@@ -108,7 +108,7 @@ jobs:
           command: npm install
       - run:
           name: Run e2e tests
-          command: ./dev-scripts/run-e2e-tests --skip-build --workers=6
+          command: ./dev-scripts/run-e2e-tests --skip-build --workers=8
       - store_artifacts:
           path: playwright-report
   package_release:

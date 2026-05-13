@@ -667,6 +667,7 @@ func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
 		if err != nil {
 			log.Printf("invalid TMDB ID: %v", err)
 			http.Error(w, "Invalid TMDB ID", http.StatusBadRequest)
+			return
 		}
 
 		// Even if the show is in the local datastore, get the latest metadata from
@@ -739,27 +740,29 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 
 		var tvShowID *screenjournal.TvShowID
 		tvid, err := tvShowIDFromQueryParams(r)
-		if err == ErrTvShowIDNotProvided {
+		switch err {
+		case ErrTvShowIDNotProvided:
 			// It's okay for the TV show ID to be absent, as it's optional.
-		} else if err != nil {
+		case nil:
+			tvShowID = &tvid
+			mediaType = screenjournal.MediaTypeTvShow
+		default:
 			log.Printf("invalid TV show ID: %v", err)
 			http.Error(w, "Invalid TV show ID", http.StatusBadRequest)
 			return
-		} else {
-			tvShowID = &tvid
-			mediaType = screenjournal.MediaTypeTvShow
 		}
 
 		var tmdbID *screenjournal.TmdbID
 		tid, err := tmdbIDFromQueryParams(r)
-		if err == ErrTmdbIDNotProvided {
+		switch err {
+		case ErrTmdbIDNotProvided:
 			// It's okay for the TMDB ID to be absent, as it's optional.
-		} else if err != nil {
+		case nil:
+			tmdbID = &tid
+		default:
 			log.Printf("invalid TMDB ID: %v", err)
 			http.Error(w, "Invalid TMDB ID", http.StatusBadRequest)
 			return
-		} else {
-			tmdbID = &tid
 		}
 
 		// If we can't infer the media type from other query params, check for an
@@ -1069,19 +1072,21 @@ func ratingToStars(rating screenjournal.Rating) []string {
 func relativeWatchDate(t screenjournal.WatchDate) string {
 	daysAgo := int(time.Since(t.Time()).Hours() / 24)
 	weeksAgo := int(daysAgo / 7)
-	if daysAgo < 1 {
+	switch {
+	case daysAgo < 1:
 		return "today"
-	} else if daysAgo == 1 {
+	case daysAgo == 1:
 		return "yesterday"
-	} else if daysAgo <= 14 {
+	case daysAgo <= 14:
 		return fmt.Sprintf("%d days ago", daysAgo)
-	} else if weeksAgo < 8 {
+	case weeksAgo < 8:
 		return fmt.Sprintf("%d weeks ago", weeksAgo)
 	}
 	monthsAgo := int(daysAgo / 30)
-	if monthsAgo == 1 {
+	switch {
+	case monthsAgo == 1:
 		return "1 month ago"
-	} else if monthsAgo <= 23 {
+	case monthsAgo <= 23:
 		return fmt.Sprintf("%d months ago", monthsAgo)
 	}
 
@@ -1114,18 +1119,20 @@ func relativeCommentDate(t time.Time) string {
 
 	daysAgo := int(time.Since(t).Hours() / 24)
 	weeksAgo := int(daysAgo / 7)
-	if daysAgo == 1 {
+	switch {
+	case daysAgo == 1:
 		return "yesterday"
-	} else if daysAgo <= 14 {
+	case daysAgo <= 14:
 		return fmt.Sprintf("%d days ago", daysAgo)
-	} else if weeksAgo < 8 {
+	case weeksAgo < 8:
 		return fmt.Sprintf("%d weeks ago", weeksAgo)
 	}
 
 	monthsAgo := int(daysAgo / 30)
-	if monthsAgo == 1 {
+	switch {
+	case monthsAgo == 1:
 		return "1 month ago"
-	} else if monthsAgo <= 23 {
+	case monthsAgo <= 23:
 		return fmt.Sprintf("%d months ago", monthsAgo)
 	}
 

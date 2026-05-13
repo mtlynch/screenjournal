@@ -16,7 +16,7 @@ import (
 
 func TestDeleteExpiredSessions(t *testing.T) {
 	ctx := context.Background()
-	now := time.Date(2026, time.May, 2, 12, 0, 0, 0, time.UTC)
+	now := time.Date(2100, time.May, 2, 12, 0, 0, 0, time.UTC)
 
 	for _, tt := range []struct {
 		description   string

@@ -36,16 +36,18 @@ func (s Server) searchGet() http.HandlerFunc {
 		}
 
 		var searchFn func(screenjournal.SearchQuery) ([]metadata.SearchResult, error)
-		if req.MediaType == screenjournal.MediaTypeMovie {
+		switch req.MediaType {
+		case screenjournal.MediaTypeMovie:
 			searchFn = s.metadataFinder.SearchMovies
-		} else if req.MediaType == screenjournal.MediaTypeTvShow {
+		case screenjournal.MediaTypeTvShow:
 			searchFn = s.metadataFinder.SearchTvShows
-		} else {
+		default:
 			log.Fatalf("unexpected media type: %v", req.MediaType)
 		}
 		res, err := searchFn(req.Query)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to query metadata: %v", err), http.StatusInternalServerError)
+			return
 		}
 
 		const limit = 7 // Arbitrary limit to show 7 results max

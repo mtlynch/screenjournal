@@ -53,8 +53,10 @@ func (s Server) usersPut() http.HandlerFunc {
 		if err := s.store.InsertUser(user); err != nil {
 			if err == store.ErrEmailAssociatedWithAnotherAccount {
 				http.Error(w, "Failed to add new user", http.StatusConflict)
+				return
 			} else if err == store.ErrUsernameNotAvailable {
 				http.Error(w, "Username is not avilable", http.StatusConflict)
+				return
 			}
 			log.Printf("failed to add new user: %v", err)
 			http.Error(w, "Failed to add new user", http.StatusInternalServerError)

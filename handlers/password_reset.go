@@ -89,17 +89,14 @@ func (s Server) resetPasswordGet() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		serverSupportsPasswordResets := s.passwordResetterForRequest() != nil
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Submitted                    bool
 			ServerSupportsPasswordResets bool
 		}{
 			commonProps:                  makeCommonProps(r.Context()),
 			ServerSupportsPasswordResets: serverSupportsPasswordResets,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -120,7 +117,7 @@ func (s Server) resetPasswordPost() http.HandlerFunc {
 		// Always render the same success page regardless of account lookup
 		// outcome.
 		renderSuccess := func() {
-			if err := pageTemplate.Execute(w, struct {
+			renderTemplate(w, pageTemplate, "base.html", struct {
 				commonProps
 				Submitted                    bool
 				ServerSupportsPasswordResets bool
@@ -128,9 +125,7 @@ func (s Server) resetPasswordPost() http.HandlerFunc {
 				commonProps:                  makeCommonProps(r.Context()),
 				Submitted:                    true,
 				ServerSupportsPasswordResets: true,
-			}); err != nil {
-				log.Printf("failed to render reset password success page: %v", err)
-			}
+			})
 		}
 
 		emailAddr, err := parse.Email(r.FormValue("email"))

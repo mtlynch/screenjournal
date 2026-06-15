@@ -65,15 +65,11 @@ func (s Server) searchGet() http.HandlerFunc {
 			})
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "search-results.html", struct {
 			Results []searchMatch
 		}{
 			Results: matches,
-		}); err != nil {
-			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("failed to render search results template: %v", err)
-			return
-		}
+		})
 	}
 }
 

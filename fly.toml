@@ -1,8 +1,7 @@
 app = "screenjournal"
 
 kill_signal = "SIGINT"
-kill_timeout = 5
-processes = []
+kill_timeout = 30
 
 [build.args]
   TZ = "America/New_York"
@@ -15,33 +14,30 @@ processes = []
   SJ_BASE_URL = "https://thescreenjournal.com"
   LITESTREAM_BUCKET="screenjournal-litestream"
   LITESTREAM_ENDPOINT="s3.us-west-002.backblazeb2.com"
+  TZ = "America/New_York"
 
-[experimental]
-  allowed_public_ports = []
-  auto_rollback = true
+[deploy]
+  strategy = "rolling"
+  max_unavailable = 1
 
-[[services]]
-  http_checks = []
+[http_service]
   internal_port = 8080
-  processes = ["app"]
-  protocol = "tcp"
-  script_checks = []
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = false
+  min_machines_running = 0
 
-  [services.concurrency]
+  [http_service.concurrency]
+    type = "requests"
     hard_limit = 25
     soft_limit = 20
-    type = "connections"
 
-  [[services.ports]]
-    handlers = ["http"]
-    port = 80
+[[http_service.checks]]
+  grace_period = "5s"
+  interval = "30s"
+  method = "GET"
+  timeout = "5s"
+  path = "/about"
 
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = 443
-
-  [[services.tcp_checks]]
-    grace_period = "1s"
-    interval = "15s"
-    restart_limit = 0
-    timeout = "2s"
+  [http_service.checks.headers]
+    X-Forwarded-Proto = "https"

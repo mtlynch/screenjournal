@@ -44,6 +44,45 @@ fi
 
 go vet ./...
 
+go_package_dirs=()
+while IFS= read -r go_package_dir; do
+  go_package_dirs+=("${go_package_dir}")
+done < <(go list -f '{{.Dir}}' ./...)
+readonly go_package_dirs
+
+# Install gci if it's missing or at the wrong version.
+GCI_PATH="$(go env GOPATH)/bin/gci"
+readonly GCI_PATH
+readonly GCI_VERSION="v0.14.0"
+if [[ -f "${GCI_PATH}" ]]; then
+  gci_version_output="$("${GCI_PATH}" --version)"
+fi
+if [[ "${gci_version_output:-}" != "gci version ${GCI_VERSION#v}" ]]; then
+  go install "github.com/daixiang0/gci@${GCI_VERSION}"
+fi
+gci_sections=(
+  "--section=standard"
+  "--section=default"
+  "--section=localmodule"
+)
+readonly gci_sections
+gci_output="$(
+  "${GCI_PATH}" list \
+    --skip-generated \
+    --skip-vendor \
+    "${gci_sections[@]}" \
+    "${go_package_dirs[@]}"
+)"
+if [[ -n "${gci_output}" ]]; then
+  printf 'Go imports are not gci-formatted:\n%s\n' "${gci_output}" >&2
+  "${GCI_PATH}" diff \
+    --skip-generated \
+    --skip-vendor \
+    "${gci_sections[@]}" \
+    "${go_package_dirs[@]}"
+  exit 1
+fi
+
 # Install go-critic if it's not present.
 GOCRITIC_PATH="$(go env GOPATH)/bin/go-critic"
 readonly GOCRITIC_PATH

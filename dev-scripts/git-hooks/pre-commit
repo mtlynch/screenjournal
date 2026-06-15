@@ -11,5 +11,6 @@ set -u
 
 ./dev-scripts/run-go-tests --quick
 ./dev-scripts/check-go-formatting
+./dev-scripts/check-go-test-packages
 ./dev-scripts/lint-sql
 ./dev-scripts/check-frontend

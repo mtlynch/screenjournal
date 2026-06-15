@@ -19,6 +19,9 @@
     # 0.11.0 release
     shellcheck-nixpkgs.url = "github:NixOS/nixpkgs/1d4c88323ac36805d09657d13a5273aea1b34f0c";
 
+    # 0.14.0 release
+    gci-nixpkgs.url = "github:NixOS/nixpkgs/29916453413845e54a65b8a1cf996842300cd299";
+
     # 3.5.0 release
     sqlfluff-nixpkgs.url = "github:NixOS/nixpkgs/8b6600824693a9c706ef09bd86711ca393703466";
 
@@ -39,6 +42,7 @@
     sqlite-nixpkgs,
     nodejs-nixpkgs,
     shellcheck-nixpkgs,
+    gci-nixpkgs,
     sqlfluff-nixpkgs,
     playwright-nixpkgs,
     flyctl-nixpkgs,
@@ -53,6 +57,7 @@
       nodejs = nodepkgs.nodejs_24;
       pnpm = nodepkgs.pnpm_10.override {inherit nodejs;};
       shellcheck = shellcheck-nixpkgs.legacyPackages.${system}.shellcheck;
+      gci = gci-nixpkgs.legacyPackages.${system}.gci;
       sqlfluff = sqlfluff-nixpkgs.legacyPackages.${system}.sqlfluff;
       playwright = playwright-nixpkgs.legacyPackages.${system}.playwright-driver.browsers;
       flyctl = flyctl-nixpkgs.legacyPackages.${system}.flyctl;
@@ -161,6 +166,7 @@
             go-tools
             errcheck
             go-critic
+            gci
           ];
           setup = ''
             # Use pre-fetched Go modules in vendor format to avoid network access.
@@ -174,6 +180,7 @@
             ln -sf ${go-critic}/bin/gocritic "$GO_BIN_DIR/go-critic"
             ln -sf ${go-tools}/bin/staticcheck "$GO_BIN_DIR/staticcheck"
             ln -sf ${errcheck}/bin/errcheck "$GO_BIN_DIR/errcheck"
+            ln -sf ${gci}/bin/gci "$GO_BIN_DIR/gci"
           '';
         };
 
@@ -198,6 +205,16 @@
           name = "check-go-formatting";
           command = "./dev-scripts/check-go-formatting";
           extraInputs = [go];
+        };
+
+        check-go-test-packages = mkBuildStep {
+          name = "check-go-test-packages";
+          command = "./dev-scripts/check-go-test-packages";
+          extraInputs = [git gopkg.gawk];
+          setup = ''
+            git init -q
+            git add -A
+          '';
         };
 
         check-trailing-newline = mkBuildStep {
@@ -292,6 +309,7 @@
           pnpm
           shellcheck
           sqlfluff
+          gci
           playwright
           flyctl
           litestream

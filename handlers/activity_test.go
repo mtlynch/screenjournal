@@ -1,101 +1,221 @@
-package handlers
+package handlers_test
 
 import (
+	"database/sql"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
+	"github.com/mtlynch/screenjournal/v2/store/sqlite"
+	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
 
-func TestBuildActivityGroupsOrdersItemsAndGroupsByDate(t *testing.T) {
-	loc := time.UTC
-	reviewTime := time.Date(2025, 1, 1, 10, 0, 0, 0, loc)
-	commentTime := time.Date(2025, 1, 1, 11, 0, 0, 0, loc)
-	reactionTime := time.Date(2025, 1, 1, 12, 0, 0, 0, loc)
+func TestActivityPageOrdersItemsAndGroupsByDate(t *testing.T) {
+	db := test_sqlite.NewDB(t)
+	dataStore := sqlite.New(db, false)
+	insertMockUsers(t, dataStore, []screenjournal.User{
+		{
+			Username:     screenjournal.Username("mike"),
+			Email:        screenjournal.Email("mike@example.com"),
+			PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+		},
+		{
+			Username:     screenjournal.Username("jamie"),
+			Email:        screenjournal.Email("jamie@example.com"),
+			PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+		},
+		{
+			Username:     screenjournal.Username("joe"),
+			Email:        screenjournal.Email("joe@example.com"),
+			PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+		},
+	})
 
-	review := screenjournal.Review{
-		ID:      screenjournal.ReviewID(12),
+	movieID, err := dataStore.InsertMovie(screenjournal.Movie{
+		Title:  screenjournal.MediaTitle("Poker Face"),
+		ImdbID: screenjournal.ImdbID("tt1234567"),
+	})
+	if err != nil {
+		t.Fatalf("failed to insert movie: %v", err)
+	}
+	reviewID, err := dataStore.InsertReview(screenjournal.Review{
 		Owner:   screenjournal.Username("mike"),
 		Rating:  screenjournal.NewRating(7),
-		Movie:   screenjournal.Movie{ID: screenjournal.MovieID(3), Title: screenjournal.MediaTitle("Poker Face")},
-		Created: reviewTime,
-		Comments: []screenjournal.ReviewComment{
-			{
-				ID:      screenjournal.CommentID(44),
-				Owner:   screenjournal.Username("jamie"),
-				Created: commentTime,
+		Movie:   screenjournal.Movie{ID: movieID, Title: screenjournal.MediaTitle("Poker Face")},
+		Watched: screenjournal.WatchDate(time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC)),
+	})
+	if err != nil {
+		t.Fatalf("failed to insert review: %v", err)
+	}
+	setReviewCreatedTime(t, db, reviewID, time.Date(2025, 1, 1, 10, 0, 0, 0, time.UTC))
+	review := screenjournal.Review{
+		ID:    reviewID,
+		Owner: screenjournal.Username("mike"),
+		Movie: screenjournal.Movie{ID: movieID, Title: screenjournal.MediaTitle("Poker Face")},
+	}
+	commentID, err := dataStore.InsertComment(screenjournal.ReviewComment{
+		Review:      review,
+		Owner:       screenjournal.Username("jamie"),
+		CommentText: screenjournal.CommentText("Nice review."),
+	})
+	if err != nil {
+		t.Fatalf("failed to insert comment: %v", err)
+	}
+	setCommentCreatedTime(t, db, commentID, time.Date(2025, 1, 1, 11, 0, 0, 0, time.UTC))
+	reactionID, err := dataStore.InsertReaction(screenjournal.ReviewReaction{
+		Review: review,
+		Owner:  screenjournal.Username("joe"),
+		Emoji:  screenjournal.NewReactionEmoji("🥞"),
+	})
+	if err != nil {
+		t.Fatalf("failed to insert reaction: %v", err)
+	}
+	setReactionCreatedTime(t, db, reactionID, time.Date(2025, 1, 1, 12, 0, 0, 0, time.UTC))
+
+	sessionManager := newMockSessionManager([]mockSessionEntry{
+		{
+			token: "session-token",
+			session: mockSession{
+				Username: screenjournal.Username("mike"),
 			},
 		},
-		Reactions: []screenjournal.ReviewReaction{
-			{
-				ID:      screenjournal.ReactionID(55),
-				Owner:   screenjournal.Username("joe"),
-				Emoji:   screenjournal.NewReactionEmoji("🥞"),
-				Created: reactionTime,
-			},
-		},
-	}
+	})
+	server := handlers.New(handlers.ServerParams{
+		SessionManager: &sessionManager,
+		Store:          dataStore,
+	})
+	req := httptest.NewRequest(http.MethodGet, "/activity", nil)
+	req.AddCookie(&http.Cookie{Name: mockSessionTokenName, Value: "session-token"})
+	rec := httptest.NewRecorder()
 
-	groups := buildActivityGroups([]screenjournal.Review{review})
-	if got, want := len(groups), 1; got != want {
-		t.Fatalf("expected 1 group, got %d", got)
-	}
-	if got, want := groups[0].DateLabel, "Jan 1, 2025"; got != want {
-		t.Fatalf("unexpected date label: got %q want %q", got, want)
-	}
+	server.Router().ServeHTTP(rec, req)
 
-	if got, want := len(groups[0].Items), 3; got != want {
-		t.Fatalf("expected 3 activity items, got %d", got)
+	if got, want := rec.Code, http.StatusOK; got != want {
+		t.Fatalf("status=%d, want=%d", got, want)
 	}
-
-	if groups[0].Items[0].Kind != activityKindReaction {
-		t.Errorf("expected first item to be reaction, got %s", groups[0].Items[0].Kind)
+	body := rec.Body.String()
+	if got, want := body, "Jan 1, 2025"; !strings.Contains(got, want) {
+		t.Fatalf("body does not contain %q", want)
 	}
-	if groups[0].Items[1].Kind != activityKindComment {
-		t.Errorf("expected second item to be comment, got %s", groups[0].Items[1].Kind)
+	reactionIndex := strings.Index(body, "reacted to")
+	commentIndex := strings.Index(body, "replied to")
+	reviewIndex := strings.Index(body, "reviewed")
+	if reactionIndex == -1 || commentIndex == -1 || reviewIndex == -1 {
+		t.Fatalf("body missing activity entries: %s", body)
 	}
-	if groups[0].Items[2].Kind != activityKindReview {
-		t.Errorf("expected third item to be review, got %s", groups[0].Items[2].Kind)
-	}
-
-	if got, want := groups[0].Items[2].Rating, screenjournal.NewRating(7); !got.Equal(want) {
-		t.Errorf("unexpected rating: got %v want %v", got, want)
+	if !(reactionIndex < commentIndex && commentIndex < reviewIndex) {
+		t.Errorf(
+			"activity order reaction=%d, comment=%d, review=%d; want reaction before comment before review",
+			reactionIndex,
+			commentIndex,
+			reviewIndex,
+		)
 	}
 }
 
-func TestBuildActivityGroupsUsesTvShowSeasonLinks(t *testing.T) {
-	loc := time.UTC
-	commentTime := time.Date(2025, 1, 2, 9, 0, 0, 0, loc)
-	reviewTime := time.Date(2025, 1, 1, 9, 0, 0, 0, loc)
+func TestActivityPageUsesTvShowSeasonLinks(t *testing.T) {
+	db := test_sqlite.NewDB(t)
+	dataStore := sqlite.New(db, false)
+	insertMockUsers(t, dataStore, []screenjournal.User{
+		{
+			Username:     screenjournal.Username("dave"),
+			Email:        screenjournal.Email("dave@example.com"),
+			PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+		},
+		{
+			Username:     screenjournal.Username("jamie"),
+			Email:        screenjournal.Email("jamie@example.com"),
+			PasswordHash: screenjournal.PasswordHash("dummy-password-hash"),
+		},
+	})
 
-	review := screenjournal.Review{
-		ID:           screenjournal.ReviewID(7),
+	tvShowID, err := dataStore.InsertTvShow(screenjournal.TvShow{
+		Title:  screenjournal.MediaTitle("Batman Forever"),
+		ImdbID: screenjournal.ImdbID("tt2345678"),
+	})
+	if err != nil {
+		t.Fatalf("failed to insert TV show: %v", err)
+	}
+	reviewID, err := dataStore.InsertReview(screenjournal.Review{
 		Owner:        screenjournal.Username("dave"),
 		Rating:       screenjournal.NewRating(5),
-		TvShow:       screenjournal.TvShow{ID: screenjournal.TvShowID(21), Title: screenjournal.MediaTitle("Batman Forever")},
+		TvShow:       screenjournal.TvShow{ID: tvShowID, Title: screenjournal.MediaTitle("Batman Forever")},
 		TvShowSeason: screenjournal.TvShowSeason(2),
-		Created:      reviewTime,
-		Comments: []screenjournal.ReviewComment{
-			{
-				ID:      screenjournal.CommentID(99),
-				Owner:   screenjournal.Username("jamie"),
-				Created: commentTime,
+		Watched:      screenjournal.WatchDate(time.Date(2025, 1, 1, 9, 0, 0, 0, time.UTC)),
+	})
+	if err != nil {
+		t.Fatalf("failed to insert review: %v", err)
+	}
+	review := screenjournal.Review{
+		ID:           reviewID,
+		Owner:        screenjournal.Username("dave"),
+		TvShow:       screenjournal.TvShow{ID: tvShowID, Title: screenjournal.MediaTitle("Batman Forever")},
+		TvShowSeason: screenjournal.TvShowSeason(2),
+	}
+	commentID, err := dataStore.InsertComment(screenjournal.ReviewComment{
+		Review:      review,
+		Owner:       screenjournal.Username("jamie"),
+		CommentText: screenjournal.CommentText("Nice review."),
+	})
+	if err != nil {
+		t.Fatalf("failed to insert comment: %v", err)
+	}
+
+	sessionManager := newMockSessionManager([]mockSessionEntry{
+		{
+			token: "session-token",
+			session: mockSession{
+				Username: screenjournal.Username("dave"),
 			},
 		},
-	}
+	})
+	server := handlers.New(handlers.ServerParams{
+		SessionManager: &sessionManager,
+		Store:          dataStore,
+	})
+	req := httptest.NewRequest(http.MethodGet, "/activity", nil)
+	req.AddCookie(&http.Cookie{Name: mockSessionTokenName, Value: "session-token"})
+	rec := httptest.NewRecorder()
 
-	groups := buildActivityGroups([]screenjournal.Review{review})
-	if got, want := len(groups), 2; got != want {
-		t.Fatalf("expected 2 groups, got %d", got)
-	}
+	server.Router().ServeHTTP(rec, req)
 
-	commentItem := groups[0].Items[0]
-	if got, want := commentItem.TargetURL, "/tv-shows/21?season=2#comment99"; got != want {
-		t.Errorf("unexpected comment target url: got %q want %q", got, want)
+	if got, want := rec.Code, http.StatusOK; got != want {
+		t.Fatalf("status=%d, want=%d", got, want)
 	}
+	body := rec.Body.String()
+	if got, want := body, "/tv-shows/"+tvShowID.String()+"?season=2#comment"+commentID.String(); !strings.Contains(got, want) {
+		t.Errorf("body does not contain %q", want)
+	}
+	if got, want := body, "/tv-shows/"+tvShowID.String()+"?season=2#review"+reviewID.String(); !strings.Contains(got, want) {
+		t.Errorf("body does not contain %q", want)
+	}
+}
 
-	reviewItem := groups[1].Items[0]
-	if got, want := reviewItem.TargetURL, "/tv-shows/21?season=2#review7"; got != want {
-		t.Errorf("unexpected review target url: got %q want %q", got, want)
+func setReviewCreatedTime(t *testing.T, db *sql.DB, id screenjournal.ReviewID, created time.Time) {
+	t.Helper()
+	setCreatedTime(t, db, "reviews", id.String(), created)
+}
+
+func setCommentCreatedTime(t *testing.T, db *sql.DB, id screenjournal.CommentID, created time.Time) {
+	t.Helper()
+	setCreatedTime(t, db, "review_comments", id.String(), created)
+}
+
+func setReactionCreatedTime(t *testing.T, db *sql.DB, id screenjournal.ReactionID, created time.Time) {
+	t.Helper()
+	setCreatedTime(t, db, "review_reactions", id.String(), created)
+}
+
+func setCreatedTime(t *testing.T, db *sql.DB, table string, id string, created time.Time) {
+	t.Helper()
+	if _, err := db.Exec(
+		"UPDATE "+table+" SET created_time = :created_time WHERE id = :id",
+		sql.Named("created_time", created.Format(time.RFC3339)),
+		sql.Named("id", id)); err != nil {
+		t.Fatalf("failed to set created time: %v", err)
 	}
 }

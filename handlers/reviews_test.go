@@ -11,9 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-test/deep"
-
 	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
+	"github.com/go-test/deep"
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"

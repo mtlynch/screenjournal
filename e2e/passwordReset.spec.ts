@@ -15,7 +15,7 @@ async function resetFormIsAvailable(page: Page): Promise<boolean> {
   }
 
   await expect(page.getByRole("alert")).toContainText(
-    "Password resets are not available on this server."
+    "Password resets are not available on this server.",
   );
   return false;
 }
@@ -38,7 +38,7 @@ test("user can reset password via forgot-password flow", async ({
 
   // Retrieve the token from the debug endpoint.
   const apiResponse = await page.request.get(
-    "/api/debug/password-reset-token/userA"
+    "/api/debug/password-reset-token/userA",
   );
   expect(apiResponse.status()).toBe(200);
   const { token } = await apiResponse.json();
@@ -60,7 +60,7 @@ test("user can reset password via forgot-password flow", async ({
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
       await route.continue();
-    }
+    },
   );
 
   // Reset password.

@@ -9,5 +9,5 @@ set -x
 # Exit on unset variable.
 set -u
 
-./node_modules/.bin/prettier --check .
-./node_modules/.bin/eslint ./**/*.js
+pnpm exec prettier --check .
+pnpm exec eslint ./**/*.js

@@ -69,7 +69,8 @@ func main() {
 		log.Fatalf("failed to create metadata finder: %v", err)
 	}
 
-	h := gorilla.LoggingHandler(os.Stdout, handlers.New(handlers.ServerParams{
+	// CrossOriginProtection rejects non-safe cross-origin requests to prevent CSRF.
+	h := http.NewCrossOriginProtection().Handler(handlers.New(handlers.ServerParams{
 		Authenticator:    authenticator,
 		Announcer:        announcer,
 		SessionManager:   sessionManager,
@@ -80,6 +81,7 @@ func main() {
 	if os.Getenv("SJ_BEHIND_PROXY") != "" {
 		h = gorilla.ProxyIPHeadersHandler(h)
 	}
+	h = gorilla.LoggingHandler(os.Stdout, h)
 	http.Handle("/", h)
 
 	port := os.Getenv("PORT")

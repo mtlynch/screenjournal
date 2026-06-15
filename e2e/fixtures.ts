@@ -35,7 +35,7 @@ async function getFreePort(): Promise<number> {
 
 async function waitForServer(
   baseURL: string,
-  timeoutMs: number
+  timeoutMs: number,
 ): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   let lastError: unknown;
@@ -97,7 +97,7 @@ export const test = base.extend<
         nextDatabaseID += 1;
         const dbPath = join(
           tempDir,
-          `worker-${workerInfo.workerIndex}-test-${nextDatabaseID}.sqlite3`
+          `worker-${workerInfo.workerIndex}-test-${nextDatabaseID}.sqlite3`,
         );
         const binaryPath = resolve(process.cwd(), "bin/screenjournal-dev");
         const stdoutChunks: Buffer[] = [];
@@ -126,7 +126,7 @@ export const test = base.extend<
           await stopProcess(serverProcess);
           serverProcess = null;
           throw new Error(
-            `${String(err)}\nstdout:\n${stdout}\nstderr:\n${stderr}`
+            `${String(err)}\nstdout:\n${stdout}\nstderr:\n${stderr}`,
           );
         }
 
@@ -134,7 +134,7 @@ export const test = base.extend<
           const stdout = processOutput(stdoutChunks);
           const stderr = processOutput(stderrChunks);
           throw new Error(
-            `screenjournal-dev exited before test startup (code=${serverProcess.exitCode})\nstdout:\n${stdout}\nstderr:\n${stderr}`
+            `screenjournal-dev exited before test startup (code=${serverProcess.exitCode})\nstdout:\n${stdout}\nstderr:\n${stderr}`,
           );
         }
       };

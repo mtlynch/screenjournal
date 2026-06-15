@@ -52,7 +52,7 @@
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
       const inviteCode = new URLSearchParams(window.location.search).get(
-        "invite"
+        "invite",
       );
       errorContainer.classList.add("invisible");
       disableRegisterForm();

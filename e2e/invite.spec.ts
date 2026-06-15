@@ -31,7 +31,7 @@ test("signing up with a valid invite code succeeds", async ({
   await guestPage.goto(`${baseURL}${inviteLink}`);
 
   await expect(guestPage.locator(".alert-info")).toHaveText(
-    "Welcome, Billy! We've been expecting you."
+    "Welcome, Billy! We've been expecting you.",
   );
   await expect(guestPage.getByLabel("Username")).toHaveValue("billy");
   await guestPage.getByLabel("Username").fill("billy123");

@@ -2,6 +2,27 @@
   About ScreenJournal
 {{ end }}
 
+{{ define "script-tags" }}
+  <script nonce="{{ .CspNonce }}">
+    document.addEventListener("DOMContentLoaded", function () {
+      const timeEl = document.getElementById("version-time-local");
+      if (!timeEl) {
+        return;
+      }
+
+      const date = new Date(timeEl.getAttribute("datetime"));
+      timeEl.textContent = date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZoneName: "short",
+      });
+    });
+  </script>
+{{ end }}
+
 {{ define "content" }}
   <p>
     ScreenJournal is a way to share and discuss movie recommendations with your
@@ -35,4 +56,29 @@
     ScreenJournal is developed by
     <a href="https://mtlynch.io">Michael Lynch</a>.
   </p>
+
+  {{ if or .Revision .VersionTime }}
+    <table class="table">
+      <tbody>
+        {{ if .Revision }}
+          <tr>
+            <th scope="row">Revision</th>
+            <td>
+              <code title="{{ .FullRevision }}">{{ .Revision }}</code>
+            </td>
+          </tr>
+        {{ end }}
+        {{ if .VersionTime }}
+          <tr>
+            <th scope="row">Version last modified at</th>
+            <td>
+              <time id="version-time-local" datetime="{{ .VersionTime }}"
+                >{{ .VersionTime }}</time
+              >
+            </td>
+          </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  {{ end }}
 {{ end }}

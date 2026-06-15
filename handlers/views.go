@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mtlynch/screenjournal/v2/build"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/markdown"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -196,10 +197,22 @@ func (s Server) aboutGet() http.HandlerFunc {
 				templatesFS,
 				append(baseTemplates, "templates/pages/about.html")...))
 	return func(w http.ResponseWriter, r *http.Request) {
+		versionTime := build.Time()
+		versionTimeFormatted := ""
+		if !versionTime.IsZero() {
+			versionTimeFormatted = versionTime.UTC().Format(time.RFC3339)
+		}
+
 		renderTemplate(w, t, "base.html", struct {
 			commonProps
+			FullRevision string
+			Revision     string
+			VersionTime  string
 		}{
-			commonProps: makeCommonProps(r.Context()),
+			commonProps:  makeCommonProps(r.Context()),
+			FullRevision: build.FullRevision(),
+			Revision:     build.Revision(),
+			VersionTime:  versionTimeFormatted,
 		})
 	}
 }

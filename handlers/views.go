@@ -181,14 +181,11 @@ func (s Server) indexGet() http.HandlerFunc {
 			return
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps(r.Context()),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -199,14 +196,11 @@ func (s Server) aboutGet() http.HandlerFunc {
 				templatesFS,
 				append(baseTemplates, "templates/pages/about.html")...))
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps(r.Context()),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -217,14 +211,11 @@ func (s Server) logInGet() http.HandlerFunc {
 				templatesFS,
 				append(baseTemplates, "templates/pages/login.html")...))
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps(r.Context()),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -279,7 +270,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 			suggestedUsername = nonSuggestedCharsPattern.ReplaceAllString(strings.ToLower(firstPart), "")
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Invitee           screenjournal.Invitee
 			SuggestedUsername string
@@ -287,10 +278,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 			commonProps:       makeCommonProps(r.Context()),
 			Invitee:           invite.Invitee,
 			SuggestedUsername: suggestedUsername,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -357,7 +345,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			title = fmt.Sprintf("%s's %s", collectionOwner, title)
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Title            string
 			Reviews          []screenjournal.Review
@@ -371,10 +359,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			SortOrder:        sortOrder,
 			CollectionOwner:  collectionOwner,
 			UserCanAddReview: collectionOwner == nil || collectionOwner.Equal(mustGetUsernameFromContext(r.Context())),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -444,7 +429,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			TmdbID       screenjournal.TmdbID
 			ReleaseDate  screenjournal.ReleaseDate
 		}
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Media           mediaStub
 			Reviews         []reviewViewModel
@@ -463,10 +448,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			},
 			Reviews:         reviewsForTemplate,
 			AvailableEmojis: screenjournal.AllowedReactionEmojis(),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -544,7 +526,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			ReleaseDate  screenjournal.ReleaseDate
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Media           mediaStub
 			Reviews         []reviewViewModel
@@ -564,11 +546,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			},
 			Reviews:         reviewsForTemplate,
 			AvailableEmojis: screenjournal.AllowedReactionEmojis(),
-		}); err != nil {
-			log.Printf("failed to render template: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -610,7 +588,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			return
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			RatingOptions []ratingOption
 			Review        screenjournal.Review
@@ -622,11 +600,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			Review:        review,
 			MediaType:     mediaType,
 			Today:         time.Now(),
-		}); err != nil {
-			log.Printf("failed to execute template: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -641,14 +615,11 @@ func (s Server) reviewsNewTitleSearchGet() http.HandlerFunc {
 					"templates/pages/reviews-new.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps(r.Context()),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -691,7 +662,7 @@ func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
 			seasonOptions[i] = i + 1
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			TmdbID        screenjournal.TmdbID
 			TvShowTitle   screenjournal.MediaTitle
@@ -703,10 +674,7 @@ func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
 			TvShowTitle:   tvShow.Title,
 			ReleaseYear:   tvShow.AirDate.Year(),
 			SeasonOptions: seasonOptions,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -804,7 +772,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			tvShowSeason = season
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			RatingOptions []ratingOption
 			Review        screenjournal.Review
@@ -821,11 +789,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			},
 			MediaType: mediaType,
 			Today:     time.Now(),
-		}); err != nil {
-			log.Printf("failed to execute template: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -881,16 +845,13 @@ func (s Server) invitesGet() http.HandlerFunc {
 			http.Error(w, "Failed to read signup invitations", http.StatusInternalServerError)
 			return
 		}
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Invites []screenjournal.SignupInvitation
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			Invites:     invites,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -931,7 +892,7 @@ func (s Server) accountPasswordResetGet() http.HandlerFunc {
 			return
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Token         string
 			FormTargetURL string
@@ -941,10 +902,7 @@ func (s Server) accountPasswordResetGet() http.HandlerFunc {
 			Token:         token.String(),
 			FormTargetURL: fmt.Sprintf("/account/password-reset?username=%s&token=%s", username, token),
 			CancelURL:     "/login",
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -955,7 +913,7 @@ func (s Server) accountChangePasswordGet() http.HandlerFunc {
 			append(baseTemplates, "templates/pages/account-change-password.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Token         string
 			FormTargetURL string
@@ -965,10 +923,7 @@ func (s Server) accountChangePasswordGet() http.HandlerFunc {
 			Token:         "",
 			FormTargetURL: "/account/password",
 			CancelURL:     "/account/security",
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -986,7 +941,7 @@ func (s Server) accountNotificationsGet() http.HandlerFunc {
 			return
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			ReceivesReviewNotices     bool
 			ReceivesAllCommentNotices bool
@@ -994,10 +949,7 @@ func (s Server) accountNotificationsGet() http.HandlerFunc {
 			commonProps:               makeCommonProps(r.Context()),
 			ReceivesReviewNotices:     prefs.NewReviews,
 			ReceivesAllCommentNotices: prefs.AllNewComments,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -1008,14 +960,11 @@ func (s Server) accountSecurityGet() http.HandlerFunc {
 			append(baseTemplates, "templates/pages/account-security.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps(r.Context()),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -1034,16 +983,13 @@ func (s Server) usersGet() http.HandlerFunc {
 			return
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Users []screenjournal.UserPublicMeta
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			Users:       users,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 

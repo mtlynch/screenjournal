@@ -421,9 +421,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
 
   await expect(page).toHaveURL("/reviews/new/write?tmdbId=38&mediaType=movie");
   await expect(
-    page.getByRole("heading", {
-      name: "Eternal Sunshine of the Spotless Mind",
-    })
+    page.getByRole("heading", { name: "Eternal Sunshine of the Spotless Mind" })
   ).toBeVisible();
 
   await page.getByLabel("When did you watch?").fill("2022-10-29");
@@ -477,9 +475,7 @@ test("HTML tags in reviews are stripped from review excerpt", async ({
 
   await expect(page).toHaveURL("/reviews/new/write?tmdbId=38&mediaType=movie");
   await expect(
-    page.getByRole("heading", {
-      name: "Eternal Sunshine of the Spotless Mind",
-    })
+    page.getByRole("heading", { name: "Eternal Sunshine of the Spotless Mind" })
   ).toBeVisible();
 
   await page.getByLabel("Rating").selectOption({ label: "5.0" });

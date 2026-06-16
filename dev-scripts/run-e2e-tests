@@ -34,4 +34,4 @@ if [[ "${REBUILD}" == "true" ]]; then
   ./dev-scripts/build-backend dev
 fi
 
-npx playwright test ${WORKERS_FLAG:+"${WORKERS_FLAG}"} "$@"
+pnpm exec playwright test ${WORKERS_FLAG:+"${WORKERS_FLAG}"} "$@"

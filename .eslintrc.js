@@ -21,5 +21,7 @@ module.exports = {
   ignorePatterns: [
     "playwright-report/*",
     "handlers/static/third-party/**/*.js",
+    "reference/*",
+    "result/",
   ],
 };

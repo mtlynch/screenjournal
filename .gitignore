@@ -13,6 +13,7 @@
 
 bin/
 node_modules/
+.pnpm-store/
 
 # Vim temporary files
 *.sw?

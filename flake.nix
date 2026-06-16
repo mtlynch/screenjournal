@@ -13,8 +13,11 @@
     # 3.44.2 release
     sqlite-nixpkgs.url = "github:NixOS/nixpkgs/5ad9903c16126a7d949101687af0aa589b1d7d3d";
 
-    # 20.6.1 release
-    nodejs-nixpkgs.url = "github:NixOS/nixpkgs/78058d810644f5ed276804ce7ea9e82d92bee293";
+    # 24.15.0 release
+    nodejs-nixpkgs.url = "github:NixOS/nixpkgs/9eac87a12312b8f60dd52e1c6e1a265f6fc7f5fc";
+
+    # 11.5.3 release
+    pnpm-nixpkgs.url = "github:NixOS/nixpkgs/9eac87a12312b8f60dd52e1c6e1a265f6fc7f5fc";
 
     # 0.10.0 release
     shellcheck-nixpkgs.url = "github:NixOS/nixpkgs/4ae2e647537bcdbb82265469442713d066675275";
@@ -38,6 +41,7 @@
     go-nixpkgs,
     sqlite-nixpkgs,
     nodejs-nixpkgs,
+    pnpm-nixpkgs,
     shellcheck-nixpkgs,
     sqlfluff-nixpkgs,
     playwright-nixpkgs,
@@ -48,7 +52,8 @@
       gopkg = go-nixpkgs.legacyPackages.${system};
       go = gopkg.go_1_26;
       sqlite = sqlite-nixpkgs.legacyPackages.${system}.sqlite;
-      nodejs = nodejs-nixpkgs.legacyPackages.${system}.nodejs_20;
+      nodejs = nodejs-nixpkgs.legacyPackages.${system}.nodejs_24;
+      pnpm = pnpm-nixpkgs.legacyPackages.${system}.pnpm;
       shellcheck = shellcheck-nixpkgs.legacyPackages.${system}.shellcheck;
       sqlfluff = sqlfluff-nixpkgs.legacyPackages.${system}.sqlfluff;
       playwright = playwright-nixpkgs.legacyPackages.${system}.playwright-driver.browsers;
@@ -67,6 +72,7 @@
           go
           sqlite
           nodejs
+          pnpm
           shellcheck
           sqlfluff
           playwright
@@ -86,12 +92,23 @@
           export PLAYWRIGHT_BROWSERS_PATH=${playwright}
           export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
 
+          # Auto-install pnpm packages if needed.
+          if [ -f package.json ]; then
+            if [ ! -d node_modules ] || \
+                [ package.json -nt node_modules ] || \
+                [ pnpm-lock.yaml -nt node_modules ]; then
+              echo "Installing pnpm packages..."
+              CI=true pnpm install --frozen-lockfile
+              touch node_modules
+            fi
+          fi
+
           echo "shellcheck" "$(shellcheck --version | grep '^version:')"
           sqlfluff --version
           fly version | cut -d ' ' -f 1-3
           echo "litestream" "$(litestream version)"
           echo "node" "$(node --version)"
-          echo "npm" "$(npm --version)"
+          echo "pnpm" "$(pnpm --version)"
           echo "sqlite" "$(sqlite3 --version | cut -d ' ' -f 1-2)"
           go version
         '';

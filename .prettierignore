@@ -1,5 +1,7 @@
 playwright-report/
+reference/
 handlers/static/third-party
 .coverage.html
 .direnv/
 e2e-results/
+.pnpm-store/

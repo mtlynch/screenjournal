@@ -34,15 +34,11 @@ func (s Server) commentsAddGet() http.HandlerFunc {
 			return
 		}
 
-		if err := t.ExecuteTemplate(w, "add-comment-button", struct {
+		renderTemplate(w, t, "add-comment-button", struct {
 			ID screenjournal.ReviewID
 		}{
 			ID: reviewID,
-		}); err != nil {
-			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("failed to render add comment button: %v", err)
-			return
-		}
+		})
 	}
 }
 
@@ -81,7 +77,7 @@ func (s Server) commentsEditGet() http.HandlerFunc {
 			commentText = *pCommentText
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "comments-edit.html", struct {
 			ReviewID    screenjournal.ReviewID
 			CommentID   screenjournal.CommentID
 			CommentText screenjournal.CommentText
@@ -89,11 +85,7 @@ func (s Server) commentsEditGet() http.HandlerFunc {
 			ReviewID:    reviewID,
 			CommentID:   commentID,
 			CommentText: commentText,
-		}); err != nil {
-			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("failed to render edit comment template: %v", err)
-			return
-		}
+		})
 	}
 }
 
@@ -118,17 +110,13 @@ func (s Server) commentsGet() http.HandlerFunc {
 			return
 		}
 
-		if err := t.ExecuteTemplate(w, "comment", struct {
+		renderTemplate(w, t, "comment", struct {
 			Comment          screenjournal.ReviewComment
 			LoggedInUsername screenjournal.Username
 		}{
 			Comment:          rc,
 			LoggedInUsername: mustGetUsernameFromContext(r.Context()),
-		}); err != nil {
-			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("failed to render comment: %v", err)
-			return
-		}
+		})
 	}
 }
 
@@ -169,15 +157,13 @@ func (s Server) commentsPost() http.HandlerFunc {
 		// the correct creation time.
 		rc.Created = time.Now()
 
-		if err := t.ExecuteTemplate(w, "comment", struct {
+		if !renderTemplate(w, t, "comment", struct {
 			Comment          screenjournal.ReviewComment
 			LoggedInUsername screenjournal.Username
 		}{
 			Comment:          rc,
 			LoggedInUsername: mustGetUsernameFromContext(r.Context()),
-		}); err != nil {
-			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("failed to render comment: %v", err)
+		}) {
 			return
 		}
 
@@ -219,17 +205,13 @@ func (s Server) commentsPut() http.HandlerFunc {
 			return
 		}
 
-		if err := t.ExecuteTemplate(w, "comment", struct {
+		renderTemplate(w, t, "comment", struct {
 			Comment          screenjournal.ReviewComment
 			LoggedInUsername screenjournal.Username
 		}{
 			Comment:          rc,
 			LoggedInUsername: mustGetUsernameFromContext(r.Context()),
-		}); err != nil {
-			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("failed to render comment: %v", err)
-			return
-		}
+		})
 	}
 }
 

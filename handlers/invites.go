@@ -33,17 +33,13 @@ func (s Server) invitesPost() http.HandlerFunc {
 			return
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "invite-row.html", struct {
 			Invitee    screenjournal.Invitee
 			InviteCode screenjournal.InviteCode
 		}{
 			Invitee:    invitation.Invitee,
 			InviteCode: invitation.InviteCode,
-		}); err != nil {
-			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("failed to render invite row template: %v", err)
-			return
-		}
+		})
 	}
 
 }

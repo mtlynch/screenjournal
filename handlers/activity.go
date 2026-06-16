@@ -63,16 +63,13 @@ func (s Server) activityGet() http.HandlerFunc {
 			reviews[i].Reactions = rr
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Groups []activityGroup
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			Groups:      buildActivityGroups(reviews),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 

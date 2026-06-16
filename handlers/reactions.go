@@ -91,7 +91,7 @@ func (s Server) reactionsPost() http.HandlerFunc {
 		// Convert reactions to template format.
 		reactionsForTemplate := convertReactionsForTemplate(reactions, loggedInUsername, isAdminUser)
 
-		if err := t.ExecuteTemplate(w, "reactions-section", struct {
+		renderTemplate(w, t, "reactions-section", struct {
 			ReviewID         screenjournal.ReviewID
 			Reactions        []reactionForTemplate
 			UserHasReacted   bool
@@ -103,11 +103,7 @@ func (s Server) reactionsPost() http.HandlerFunc {
 			UserHasReacted:   true,
 			AvailableEmojis:  screenjournal.AllowedReactionEmojis(),
 			LoggedInUsername: loggedInUsername,
-		}); err != nil {
-			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("failed to render reactions section: %v", err)
-			return
-		}
+		})
 	}
 }
 

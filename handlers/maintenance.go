@@ -12,7 +12,7 @@ func (s Server) repopulateMoviesGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("repopulating movies metadata")
 
-		rr, err := s.getDB(r).ReadReviews()
+		rr, err := s.store.ReadReviews()
 		if err != nil {
 			log.Printf("failed to read reviews: %v", err)
 			http.Error(w, fmt.Sprintf("failed to read reviews: %v", err), http.StatusInternalServerError)
@@ -37,7 +37,7 @@ func (s Server) repopulateMoviesGet() http.HandlerFunc {
 			// Update movie with latest metadata.
 			movie.ID = rev.Movie.ID
 
-			if err := s.getDB(r).UpdateMovie(movie); err != nil {
+			if err := s.store.UpdateMovie(movie); err != nil {
 				log.Printf("failed to update metadata for %s (tmdb ID=%v): %v", rev.Movie.Title, rev.Movie.TmdbID, err)
 				http.Error(w, fmt.Sprintf("Failed to save updated movie metadata: %v", err), http.StatusInternalServerError)
 				return
@@ -53,7 +53,7 @@ func (s Server) repopulateTvShowsGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("repopulating movies metadata")
 
-		rr, err := s.getDB(r).ReadReviews()
+		rr, err := s.store.ReadReviews()
 		if err != nil {
 			log.Printf("failed to read reviews: %v", err)
 			http.Error(w, fmt.Sprintf("failed to read reviews: %v", err), http.StatusInternalServerError)
@@ -78,7 +78,7 @@ func (s Server) repopulateTvShowsGet() http.HandlerFunc {
 
 			// Update movie with latest metadata.
 			tvShow.ID = rev.TvShow.ID
-			if err := s.getDB(r).UpdateTvShow(tvShow); err != nil {
+			if err := s.store.UpdateTvShow(tvShow); err != nil {
 				log.Printf("failed to update metadata for %s (tmdb ID=%v): %v", rev.TvShow.Title, rev.TvShow.TmdbID, err)
 				http.Error(w, fmt.Sprintf("Failed to save updated TV show metadata: %v", err), http.StatusInternalServerError)
 				return

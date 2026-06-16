@@ -68,3 +68,19 @@ blockquote {
 .alert:empty {
   display: none;
 }
+
+.activity-item {
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  background-color: #fafffb;
+  padding: 0.5rem;
+}
+
+@media screen and (min-width: 768px) {
+  .activity-item {
+    border: 0;
+    border-radius: 0;
+    background-color: transparent;
+    padding: 0;
+  }
+}

@@ -1,5 +1,5 @@
-import { test, expect } from "@playwright/test";
-import { populateDummyData, readDbTokenCookie } from "./helpers/db";
+import { test, expect } from "./fixtures";
+import { populateDummyData } from "./helpers/db";
 import { loginAsUserA, loginAsUserB } from "./helpers/login";
 
 test.beforeEach(async ({ page }) => {
@@ -140,7 +140,7 @@ test("adds a new movie rating and fills in only required fields", async ({
   await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.getByPlaceholder("Search").pressSequentially("slow lear");
-  await page.getByText("Slow Learners (2015)").click();
+  await page.getByText("Slow Learners (2015)", { exact: true }).click();
 
   await expect(page).toHaveURL(
     "/reviews/new/write?tmdbId=333287&mediaType=movie"
@@ -186,7 +186,7 @@ test("adds a new movie rating but hides spoilers", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.getByPlaceholder("Search").pressSequentially("the sixth se");
-  await page.getByText("The Sixth Sense (1999)").click();
+  await page.getByText("The Sixth Sense (1999)", { exact: true }).click();
 
   await expect(page).toHaveURL("/reviews/new/write?tmdbId=745&mediaType=movie");
   await expect(
@@ -234,7 +234,7 @@ test("adds a new TV show rating and fills in only required fields", async ({
   await page.getByLabel("TV show").click();
 
   await page.getByPlaceholder("Search").pressSequentially("30 r");
-  await page.getByText("30 Rock (2006)").click();
+  await page.getByText("30 Rock (2006)", { exact: true }).click();
 
   await expect(page).toHaveURL("/reviews/new/tv/pick-season?tmdbId=4608");
   await page.getByLabel("Season").selectOption({ label: "5" });
@@ -321,7 +321,9 @@ test("adds a new movie rating that's too long to display in a card", async ({
   await page
     .getByPlaceholder("Search")
     .pressSequentially("Weird: The Al Yankovic Story");
-  await page.getByText("Weird: The Al Yankovic Story (2022)").click();
+  await page
+    .getByText("Weird: The Al Yankovic Story (2022)", { exact: true })
+    .click();
 
   await expect(page).toHaveURL(
     "/reviews/new/write?tmdbId=928344&mediaType=movie"
@@ -413,7 +415,9 @@ test("adds a new rating and fills all fields", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.getByPlaceholder("Search").pressSequentially("eternal sunshine");
-  await page.getByText("Eternal Sunshine of the Spotless Mind (2004)").click();
+  await page
+    .getByText("Eternal Sunshine of the Spotless Mind (2004)", { exact: true })
+    .click();
 
   await expect(page).toHaveURL("/reviews/new/write?tmdbId=38&mediaType=movie");
   await expect(
@@ -465,7 +469,9 @@ test("HTML tags in reviews are stripped from review excerpt", async ({
   await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.getByPlaceholder("Search").pressSequentially("eternal sunshine");
-  await page.getByText("Eternal Sunshine of the Spotless Mind (2004)").click();
+  await page
+    .getByText("Eternal Sunshine of the Spotless Mind (2004)", { exact: true })
+    .click();
 
   await expect(page).toHaveURL("/reviews/new/write?tmdbId=38&mediaType=movie");
   await expect(
@@ -502,7 +508,9 @@ test("adds a new movie rating and edits the details", async ({ page }) => {
   await page
     .getByPlaceholder("Search")
     .pressSequentially("something about mary");
-  await page.getByText("There's Something About Mary (1998)").click();
+  await page
+    .getByText("There's Something About Mary (1998)", { exact: true })
+    .click();
 
   await expect(page).toHaveURL("/reviews/new/write?tmdbId=544&mediaType=movie");
   await expect(
@@ -580,7 +588,7 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.getByPlaceholder("Search").pressSequentially("the english pati");
-  await page.getByText("The English Patient (1996)").click();
+  await page.getByText("The English Patient (1996)", { exact: true }).click();
 
   await expect(page).toHaveURL("/reviews/new/write?tmdbId=409&mediaType=movie");
   await expect(
@@ -634,11 +642,15 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
   );
 });
 
-test("editing another user's review fails", async ({ page, browser }) => {
+test("editing another user's review fails", async ({
+  page,
+  browser,
+  baseURL,
+}) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.getByPlaceholder("Search").pressSequentially("the english pati");
-  await page.getByText("The English Patient (1996)").click();
+  await page.getByText("The English Patient (1996)", { exact: true }).click();
 
   await expect(page).toHaveURL("/reviews/new/write?tmdbId=409&mediaType=movie");
   await expect(
@@ -660,16 +672,11 @@ test("editing another user's review fails", async ({ page, browser }) => {
 
   // Switch to other user.
   const guestContext = await browser.newContext();
-
-  // Share database across users.
-  await guestContext.addCookies([
-    readDbTokenCookie(await page.context().cookies()),
-  ]);
   const guestPage = await guestContext.newPage();
-  await guestPage.goto("/");
+  await guestPage.goto(baseURL);
   await loginAsUserB(guestPage);
 
-  const response = await guestPage.goto("/reviews/5/edit");
+  const response = await guestPage.goto(`${baseURL}/reviews/5/edit`);
   await expect(response?.status()).toBe(403);
 
   await guestContext.close();
@@ -907,7 +914,7 @@ test("adds a new movie rating without a numeric rating", async ({ page }) => {
   await page.getByRole("button", { name: "Add Rating" }).click();
 
   await page.getByPlaceholder("Search").pressSequentially("the godfather");
-  await page.getByText("The Godfather (1972)").click();
+  await page.getByText("The Godfather (1972)", { exact: true }).click();
 
   await expect(page).toHaveURL("/reviews/new/write?tmdbId=238&mediaType=movie");
   await expect(

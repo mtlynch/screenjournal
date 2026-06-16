@@ -1,37 +1,23 @@
 #!/usr/bin/env bash
 
-# Exit build script on first failure.
+# Exit on first failing command.
 set -e
 
 # Exit on unset variable.
 set -u
 
-SJ_ARGS="$*"
-readonly SJ_ARGS
+# Fail when piped commands fail.
+set -o pipefail
 
-# Parse the -db flag to screenjournal since we need to know it before passing it
-# along.
-while [ "$#" -gt 0 ]; do
-  case "$1" in
-    -db) DB_PATH="$2"; shift 2;;
-    -db=*) DB_PATH="${1#*=}"; shift 1;;
-    *) shift 1;;
-  esac
-done
-readonly DB_PATH
-# We need to export DB_PATH because litestream.yml references it.
-export DB_PATH
+APP_ARGS="$*"
+readonly APP_ARGS
 
 is_litestream_enabled() {
-  set +ux
-
   local IS_ENABLED='false'
 
-  if [[ -n "${LITESTREAM_BUCKET}" ]]; then
+  if [[ -n "${LITESTREAM_BUCKET:-}" ]]; then
     IS_ENABLED='true';
   fi
-
-  set -ux
 
   echo "${IS_ENABLED}"
 }
@@ -42,24 +28,25 @@ readonly IS_LITESTREAM_ENABLED
 # Echo commands to stdout.
 set -x
 
-SJ_LAUNCH_CMD="/app/screenjournal ${SJ_ARGS}"
+APP_LAUNCH_CMD="/app/screenjournal -db ${DB_PATH} ${APP_ARGS}"
 
 if [[ "${IS_LITESTREAM_ENABLED}" == 'true' ]]; then
   /app/litestream version
   echo "LITESTREAM_BUCKET=${LITESTREAM_BUCKET}"
-  echo "LITESTREAM_ENDPOINT=${LITESTREAM_ENDPOINT}"
+  echo "LITESTREAM_ENDPOINT=${LITESTREAM_ENDPOINT:-}"
 
   if [[ -f "$DB_PATH" ]]; then
     echo "Existing database is $(stat -c %s "${DB_PATH}") bytes"
   else
     echo "No existing database found"
     # Restore database from remote storage.
+    mkdir -p "$(dirname "${DB_PATH}")"
     /app/litestream restore -if-replica-exists "${DB_PATH}"
   fi
 
   # Let Litestream start screenjournal as a child process
-  /app/litestream replicate -exec "$SJ_LAUNCH_CMD"
+  /app/litestream replicate -exec "$APP_LAUNCH_CMD"
 else
   echo "Starting without litestream"
-  eval "${SJ_LAUNCH_CMD}"
+  eval "${APP_LAUNCH_CMD}"
 fi

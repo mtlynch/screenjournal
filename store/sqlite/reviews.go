@@ -14,7 +14,7 @@ import (
 )
 
 func (s Store) ReadReview(id screenjournal.ReviewID) (screenjournal.Review, error) {
-	row := s.ctx.QueryRow(`
+	row := s.db.QueryRow(`
 	SELECT
 		id,
 		review_owner,
@@ -107,10 +107,15 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 	}
 	query += "		created_time DESC\n"
 
-	rows, err := s.ctx.Query(query, queryArgs...)
+	rows, err := s.db.Query(query, queryArgs...)
 	if err != nil {
 		return []screenjournal.Review{}, err
 	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("failed to close review rows: %v", err)
+		}
+	}()
 
 	reviews := []screenjournal.Review{}
 	for rows.Next() {
@@ -119,6 +124,9 @@ func (s Store) ReadReviews(opts ...store.ReadReviewsOption) ([]screenjournal.Rev
 			return []screenjournal.Review{}, err
 		}
 		reviews = append(reviews, review)
+	}
+	if err := rows.Err(); err != nil {
+		return []screenjournal.Review{}, err
 	}
 
 	// Populate the fields once the first SQL query is complete.
@@ -162,7 +170,7 @@ func (s Store) InsertReview(r screenjournal.Review) (screenjournal.ReviewID, err
 		tvShowSeason = &r.TvShowSeason
 	}
 
-	res, err := s.ctx.Exec(`
+	res, err := s.db.Exec(`
 	INSERT INTO
 		reviews
 	(
@@ -216,7 +224,7 @@ func (s Store) UpdateReview(r screenjournal.Review) error {
 
 	now := time.Now()
 
-	if _, err := s.ctx.Exec(`
+	if _, err := s.db.Exec(`
 	UPDATE reviews
 	SET
 		is_draft = :is_draft,
@@ -241,7 +249,7 @@ func (s Store) UpdateReview(r screenjournal.Review) error {
 func (s Store) DeleteReview(id screenjournal.ReviewID) error {
 	log.Printf("deleting review and commments for review ID %v", id)
 
-	tx, err := s.ctx.BeginTx(context.Background(), nil)
+	tx, err := s.db.BeginTx(context.Background(), nil)
 	if err != nil {
 		return err
 	}

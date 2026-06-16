@@ -8,7 +8,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -18,8 +17,6 @@ type mockUserEntry struct {
 	username     screenjournal.Username
 	password     screenjournal.Password
 }
-
-var nilMetadataFinder handlers.MetadataFinder
 
 func TestAccountChangePasswordPut(t *testing.T) {
 	userEntries := []mockUserEntry{
@@ -90,14 +87,18 @@ func TestAccountChangePasswordPut(t *testing.T) {
 				}
 				mockSessionEntries = append(mockSessionEntries, mockSessionEntry{
 					token: entry.sessionToken,
-					session: sessions.Session{
+					session: mockSession{
 						Username: entry.username,
 					},
 				})
 			}
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(mockSessionEntries)
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
+			s := handlers.New(handlers.ServerParams{
+				Authenticator:  authenticator,
+				SessionManager: &sessionManager,
+				Store:          dataStore,
+			})
 
 			req, err := http.NewRequest("PUT", "/account/password", strings.NewReader(tt.payload))
 			if err != nil {
@@ -145,7 +146,7 @@ func TestAccountNotificationsPut(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
+					session: mockSession{
 						Username: screenjournal.Username("userA"),
 					},
 				},
@@ -163,7 +164,7 @@ func TestAccountNotificationsPut(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
+					session: mockSession{
 						Username: screenjournal.Username("userA"),
 					},
 				},
@@ -181,7 +182,7 @@ func TestAccountNotificationsPut(t *testing.T) {
 			sessions: []mockSessionEntry{
 				{
 					token: "abc123",
-					session: sessions.Session{
+					session: mockSession{
 						Username: screenjournal.Username("userA"),
 					},
 				},
@@ -203,23 +204,16 @@ func TestAccountNotificationsPut(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			dataStore := test_sqlite.New()
 
-			// Populate datastore with dummy users.
-			for _, s := range tt.sessions {
-				mockUser := screenjournal.User{
-					Username:     s.session.Username,
-					IsAdmin:      s.session.IsAdmin,
-					Email:        screenjournal.Email(s.session.Username + "@example.com"),
-					PasswordHash: screenjournal.PasswordHash("dummy-pw-hash"),
-				}
-				if err := dataStore.InsertUser(mockUser); err != nil {
-					t.Fatalf("failed to insert mock user %+v: %v", mockUser, err)
-				}
-			}
+			insertMockUsersForSessions(t, dataStore, tt.sessions)
 
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager(tt.sessions)
 
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
+			s := handlers.New(handlers.ServerParams{
+				Authenticator:  authenticator,
+				SessionManager: &sessionManager,
+				Store:          dataStore,
+			})
 
 			req, err := http.NewRequest("PUT", "/account/notifications", strings.NewReader(tt.payload))
 			if err != nil {

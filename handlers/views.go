@@ -129,11 +129,11 @@ var ratingOptions = []ratingOption{
 }
 
 var moviePageFns = template.FuncMap{
-	"dict": func(values ...interface{}) map[string]interface{} {
+	"dict": func(values ...any) map[string]any {
 		if len(values)%2 != 0 {
 			panic("dict must have an even number of arguments")
 		}
-		dict := make(map[string]interface{}, len(values)/2)
+		dict := make(map[string]any, len(values)/2)
 		for i := 0; i < len(values); i += 2 {
 			k, ok := values[i].(string)
 			if !ok {
@@ -182,14 +182,11 @@ func (s Server) indexGet() http.HandlerFunc {
 			return
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps(r.Context()),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -200,14 +197,11 @@ func (s Server) aboutGet() http.HandlerFunc {
 				templatesFS,
 				append(baseTemplates, "templates/pages/about.html")...))
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps(r.Context()),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -218,14 +212,11 @@ func (s Server) logInGet() http.HandlerFunc {
 				templatesFS,
 				append(baseTemplates, "templates/pages/login.html")...))
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps(r.Context()),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -251,7 +242,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 
 		var invite screenjournal.SignupInvitation
 		if !inviteCode.Empty() {
-			invite, err = s.getDB(r).ReadSignupInvitation(inviteCode)
+			invite, err = s.store.ReadSignupInvitation(inviteCode)
 			if err != nil {
 				log.Printf("invalid invite code: %v", err)
 				http.Error(w, "Invalid invite code", http.StatusUnauthorized)
@@ -259,7 +250,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 			}
 		}
 
-		uc, err := s.getDB(r).CountUsers()
+		uc, err := s.store.CountUsers()
 		if err != nil {
 			log.Printf("failed to count users: %v", err)
 			http.Error(w, "Failed to load signup template", http.StatusInternalServerError)
@@ -280,7 +271,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 			suggestedUsername = nonSuggestedCharsPattern.ReplaceAllString(strings.ToLower(firstPart), "")
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Invitee           screenjournal.Invitee
 			SuggestedUsername string
@@ -288,10 +279,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 			commonProps:       makeCommonProps(r.Context()),
 			Invitee:           invite.Invitee,
 			SuggestedUsername: suggestedUsername,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -347,7 +335,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			queryOptions = append(queryOptions, store.SortReviews(sort))
 		}
 
-		reviews, err := s.getDB(r).ReadReviews(queryOptions...)
+		reviews, err := s.store.ReadReviews(queryOptions...)
 		if err != nil {
 			log.Printf("failed to read reviews: %v", err)
 			http.Error(w, "Failed to read reviews", http.StatusInternalServerError)
@@ -359,7 +347,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			title = fmt.Sprintf("%s's %s", collectionOwner, title)
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Title            string
 			Reviews          []screenjournal.Review
@@ -373,10 +361,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			SortOrder:        sortOrder,
 			CollectionOwner:  collectionOwner,
 			UserCanAddReview: collectionOwner == nil || collectionOwner.Equal(mustGetUsernameFromContext(r.Context())),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -402,7 +387,7 @@ func (s Server) reviewsDraftsGet() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		loggedInUsername := mustGetUsernameFromContext(r.Context())
-		drafts, err := s.getDB(r).ReadReviews(
+		drafts, err := s.store.ReadReviews(
 			store.FilterReviewsByUsername(loggedInUsername),
 			store.FilterReviewsByDraftStatus(true),
 		)
@@ -439,7 +424,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			return
 		}
 
-		movie, err := s.getDB(r).ReadMovie(mid)
+		movie, err := s.store.ReadMovie(mid)
 		if err == store.ErrMovieNotFound {
 			http.Error(w, "Invalid movie ID", http.StatusNotFound)
 			return
@@ -449,7 +434,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			return
 		}
 
-		reviews, err := s.getDB(r).ReadReviews(
+		reviews, err := s.store.ReadReviews(
 			store.FilterReviewsByMovieID(mid),
 			store.FilterReviewsByDraftStatus(false),
 		)
@@ -463,7 +448,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 		isAdminUser := isAdmin(r.Context())
 
 		for i, review := range reviews {
-			cc, err := s.getDB(r).ReadComments(review.ID)
+			cc, err := s.store.ReadComments(review.ID)
 			if err != nil {
 				log.Printf("failed to read reviews comments: %v", err)
 				http.Error(w, "Failed to retrieve comments", http.StatusInternalServerError)
@@ -471,7 +456,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			}
 			reviews[i].Comments = cc
 
-			rr, err := s.getDB(r).ReadReactions(review.ID)
+			rr, err := s.store.ReadReactions(review.ID)
 			if err != nil {
 				log.Printf("failed to read reviews reactions: %v", err)
 				http.Error(w, "Failed to retrieve reactions", http.StatusInternalServerError)
@@ -494,7 +479,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			TmdbID       screenjournal.TmdbID
 			ReleaseDate  screenjournal.ReleaseDate
 		}
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Media           mediaStub
 			Reviews         []reviewViewModel
@@ -513,10 +498,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			},
 			Reviews:         reviewsForTemplate,
 			AvailableEmojis: screenjournal.AllowedReactionEmojis(),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -541,7 +523,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			return
 		}
 
-		tvShow, err := s.getDB(r).ReadTvShow(tvID)
+		tvShow, err := s.store.ReadTvShow(tvID)
 		if err == store.ErrTvShowNotFound {
 			http.Error(w, "Invalid TV show ID", http.StatusNotFound)
 			return
@@ -551,7 +533,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			return
 		}
 
-		reviews, err := s.getDB(r).ReadReviews(
+		reviews, err := s.store.ReadReviews(
 			store.FilterReviewsByTvShowID(tvID),
 			store.FilterReviewsByTvShowSeason(seasonNumber),
 			store.FilterReviewsByDraftStatus(false),
@@ -566,7 +548,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 		isAdminUser := isAdmin(r.Context())
 
 		for i, review := range reviews {
-			cc, err := s.getDB(r).ReadComments(review.ID)
+			cc, err := s.store.ReadComments(review.ID)
 			if err != nil {
 				log.Printf("failed to read reviews comments: %v", err)
 				http.Error(w, "Failed to retrieve comments", http.StatusInternalServerError)
@@ -574,7 +556,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			}
 			reviews[i].Comments = cc
 
-			rr, err := s.getDB(r).ReadReactions(review.ID)
+			rr, err := s.store.ReadReactions(review.ID)
 			if err != nil {
 				log.Printf("failed to read reviews reactions: %v", err)
 				http.Error(w, "Failed to retrieve reactions", http.StatusInternalServerError)
@@ -598,7 +580,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			ReleaseDate  screenjournal.ReleaseDate
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Media           mediaStub
 			Reviews         []reviewViewModel
@@ -618,11 +600,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			},
 			Reviews:         reviewsForTemplate,
 			AvailableEmojis: screenjournal.AllowedReactionEmojis(),
-		}); err != nil {
-			log.Printf("failed to render template: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -641,7 +619,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.getDB(r).ReadReview(id)
+		review, err := s.store.ReadReview(id)
 		if err == store.ErrReviewNotFound {
 			http.Error(w, "Invalid review ID", http.StatusNotFound)
 			return
@@ -664,7 +642,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			return
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			RatingOptions []ratingOption
 			Review        screenjournal.Review
@@ -676,11 +654,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			Review:        review,
 			MediaType:     mediaType,
 			Today:         time.Now(),
-		}); err != nil {
-			log.Printf("failed to execute template: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -695,14 +669,11 @@ func (s Server) reviewsNewTitleSearchGet() http.HandlerFunc {
 					"templates/pages/reviews-new.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps(r.Context()),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -721,6 +692,7 @@ func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
 		if err != nil {
 			log.Printf("invalid TMDB ID: %v", err)
 			http.Error(w, "Invalid TMDB ID", http.StatusBadRequest)
+			return
 		}
 
 		// Even if the show is in the local datastore, get the latest metadata from
@@ -744,7 +716,7 @@ func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
 			seasonOptions[i] = i + 1
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			TmdbID        screenjournal.TmdbID
 			TvShowTitle   screenjournal.MediaTitle
@@ -756,10 +728,7 @@ func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
 			TvShowTitle:   tvShow.Title,
 			ReleaseYear:   tvShow.AirDate.Year(),
 			SeasonOptions: seasonOptions,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -793,27 +762,29 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 
 		var tvShowID *screenjournal.TvShowID
 		tvid, err := tvShowIDFromQueryParams(r)
-		if err == ErrTvShowIDNotProvided {
+		switch err {
+		case ErrTvShowIDNotProvided:
 			// It's okay for the TV show ID to be absent, as it's optional.
-		} else if err != nil {
+		case nil:
+			tvShowID = &tvid
+			mediaType = screenjournal.MediaTypeTvShow
+		default:
 			log.Printf("invalid TV show ID: %v", err)
 			http.Error(w, "Invalid TV show ID", http.StatusBadRequest)
 			return
-		} else {
-			tvShowID = &tvid
-			mediaType = screenjournal.MediaTypeTvShow
 		}
 
 		var tmdbID *screenjournal.TmdbID
 		tid, err := tmdbIDFromQueryParams(r)
-		if err == ErrTmdbIDNotProvided {
+		switch err {
+		case ErrTmdbIDNotProvided:
 			// It's okay for the TMDB ID to be absent, as it's optional.
-		} else if err != nil {
+		case nil:
+			tmdbID = &tid
+		default:
 			log.Printf("invalid TMDB ID: %v", err)
 			http.Error(w, "Invalid TMDB ID", http.StatusBadRequest)
 			return
-		} else {
-			tmdbID = &tid
 		}
 
 		// If we can't infer the media type from other query params, check for an
@@ -838,7 +809,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			}
 			movie = m
 			if movie.ID.IsZero() && tmdbID != nil {
-				if existingMovie, err := s.getDB(r).ReadMovieByTmdbID(*tmdbID); err == nil {
+				if existingMovie, err := s.store.ReadMovieByTmdbID(*tmdbID); err == nil {
 					movie = existingMovie
 				}
 			}
@@ -851,7 +822,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			}
 			tvShow = t
 			if tvShow.ID.IsZero() && tmdbID != nil {
-				if existingShow, err := s.getDB(r).ReadTvShowByTmdbID(*tmdbID); err == nil {
+				if existingShow, err := s.store.ReadTvShowByTmdbID(*tmdbID); err == nil {
 					tvShow = existingShow
 				}
 			}
@@ -884,7 +855,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			}
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			RatingOptions []ratingOption
 			Review        screenjournal.Review
@@ -901,18 +872,14 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			},
 			MediaType: mediaType,
 			Today:     time.Now(),
-		}); err != nil {
-			log.Printf("failed to execute template: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
 func (s Server) getMovie(r *http.Request, movieID *screenjournal.MovieID, tmdbID *screenjournal.TmdbID) (screenjournal.Movie, error) {
 	// Try to get the movie information from the database.
 	if movieID != nil {
-		m, err := s.getDB(r).ReadMovie(*movieID)
+		m, err := s.store.ReadMovie(*movieID)
 		if err != nil {
 			return screenjournal.Movie{}, err
 		}
@@ -931,7 +898,7 @@ func (s Server) getMovie(r *http.Request, movieID *screenjournal.MovieID, tmdbID
 func (s Server) getTvShow(r *http.Request, tvShowID *screenjournal.TvShowID, tmdbID *screenjournal.TmdbID) (screenjournal.TvShow, error) {
 	// Try to get the TV show information from the database.
 	if tvShowID != nil {
-		t, err := s.getDB(r).ReadTvShow(*tvShowID)
+		t, err := s.store.ReadTvShow(*tvShowID)
 		if err != nil {
 			return screenjournal.TvShow{}, err
 		}
@@ -955,79 +922,19 @@ func (s Server) invitesGet() http.HandlerFunc {
 				"templates/pages/invites.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		invites, err := s.getDB(r).ReadSignupInvitations()
+		invites, err := s.store.ReadSignupInvitations()
 		if err != nil {
 			log.Printf("failed to read signup invitations: %v", err)
 			http.Error(w, "Failed to read signup invitations", http.StatusInternalServerError)
 			return
 		}
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Invites []screenjournal.SignupInvitation
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			Invites:     invites,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	}
-}
-
-func (s Server) passwordResetAdminGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").
-			Funcs(template.FuncMap{
-				"formatTime": func(t time.Time) string {
-					return t.Format("Jan 2, 2006 3:04 PM")
-				},
-			}).
-			ParseFS(
-				templatesFS,
-				append(baseTemplates, "templates/pages/admin-reset-password.html", "templates/fragments/password-reset-row.html")...))
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		allUsers, err := s.getDB(r).ReadUsersPublicMeta()
-		if err != nil {
-			log.Printf("failed to read users: %v", err)
-			http.Error(w, "Failed to load users", http.StatusInternalServerError)
-			return
-		}
-
-		// Filter the current user from the list.
-		currentUsername := mustGetUsernameFromContext(r.Context())
-		var users []screenjournal.UserPublicMeta
-		for _, user := range allUsers {
-			if !user.Username.Equal(currentUsername) {
-				users = append(users, user)
-			}
-		}
-
-		// Clean up expired tokens before displaying.
-		if err := s.getDB(r).DeleteExpiredPasswordResetEntries(); err != nil {
-			log.Printf("failed to clean up expired password reset tokens: %v", err)
-		}
-
-		passwordResetEntries, err := s.getDB(r).ReadPasswordResetEntries()
-		if err != nil {
-			log.Printf("failed to read password reset requests: %v", err)
-			http.Error(w, "Failed to load password reset requests", http.StatusInternalServerError)
-			return
-		}
-
-		if err := t.Execute(w, struct {
-			commonProps
-			passwordResetAdminGetRequest
-		}{
-			commonProps: makeCommonProps(r.Context()),
-			passwordResetAdminGetRequest: passwordResetAdminGetRequest{
-				Users:                users,
-				PasswordResetEntries: passwordResetEntries,
-			},
-		}); err != nil {
-			log.Printf("failed to render admin reset password template: %v", err)
-			http.Error(w, "Failed to render page", http.StatusInternalServerError)
-		}
+		})
 	}
 }
 
@@ -1038,7 +945,12 @@ func (s Server) accountPasswordResetGet() http.HandlerFunc {
 			append(baseTemplates, "templates/pages/account-change-password.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		// If a token is provided, validate it before rendering the page.
+		username, err := parse.Username(r.URL.Query().Get("username"))
+		if err != nil {
+			http.Error(w, "Invalid username", http.StatusBadRequest)
+			return
+		}
+
 		token, err := parse.PasswordResetToken(r.URL.Query().Get("token"))
 		if err != nil {
 			http.Error(w, "Invalid password reset token", http.StatusUnauthorized)
@@ -1046,22 +958,24 @@ func (s Server) accountPasswordResetGet() http.HandlerFunc {
 		}
 
 		// Verify token exists and hasn't expired.
-		passwordResetEntry, err := s.getDB(r).ReadPasswordResetEntry(token)
+		passwordResetEntry, err := s.store.ReadPasswordResetEntry(token)
 		if err != nil {
 			http.Error(w, "Invalid or expired password reset token", http.StatusUnauthorized)
 			return
 		}
 
+		// Verify the token was generated for this user.
+		if !passwordResetEntry.Username.Equal(username) {
+			http.Error(w, "Invalid or expired password reset token", http.StatusUnauthorized)
+			return
+		}
+
 		if passwordResetEntry.IsExpired() {
-			// Clean up expired token.
-			if err := s.getDB(r).DeletePasswordResetEntry(token); err != nil {
-				log.Printf("failed to delete expired password reset token %s: %v", token, err)
-			}
 			http.Error(w, "Password reset token has expired", http.StatusUnauthorized)
 			return
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Token         string
 			FormTargetURL string
@@ -1069,12 +983,9 @@ func (s Server) accountPasswordResetGet() http.HandlerFunc {
 		}{
 			commonProps:   makeCommonProps(r.Context()),
 			Token:         token.String(),
-			FormTargetURL: fmt.Sprintf("/account/password-reset?token=%s", token),
+			FormTargetURL: fmt.Sprintf("/account/password-reset?username=%s&token=%s", username, token),
 			CancelURL:     "/login",
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -1085,7 +996,7 @@ func (s Server) accountChangePasswordGet() http.HandlerFunc {
 			append(baseTemplates, "templates/pages/account-change-password.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Token         string
 			FormTargetURL string
@@ -1095,10 +1006,7 @@ func (s Server) accountChangePasswordGet() http.HandlerFunc {
 			Token:         "",
 			FormTargetURL: "/account/password",
 			CancelURL:     "/account/security",
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -1109,14 +1017,14 @@ func (s Server) accountNotificationsGet() http.HandlerFunc {
 			append(baseTemplates, "templates/pages/account-notifications.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		prefs, err := s.getDB(r).ReadNotificationPreferences(mustGetUsernameFromContext(r.Context()))
+		prefs, err := s.store.ReadNotificationPreferences(mustGetUsernameFromContext(r.Context()))
 		if err != nil {
 			log.Printf("failed to read notification preferences: %v", err)
 			http.Error(w, fmt.Sprintf("failed to read notification preferences: %v", err), http.StatusInternalServerError)
 			return
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			ReceivesReviewNotices     bool
 			ReceivesAllCommentNotices bool
@@ -1124,10 +1032,7 @@ func (s Server) accountNotificationsGet() http.HandlerFunc {
 			commonProps:               makeCommonProps(r.Context()),
 			ReceivesReviewNotices:     prefs.NewReviews,
 			ReceivesAllCommentNotices: prefs.AllNewComments,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -1138,14 +1043,11 @@ func (s Server) accountSecurityGet() http.HandlerFunc {
 			append(baseTemplates, "templates/pages/account-security.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps(r.Context()),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -1158,22 +1060,19 @@ func (s Server) usersGet() http.HandlerFunc {
 				append(baseTemplates, "templates/pages/users.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		users, err := s.getDB(r).ReadUsersPublicMeta()
+		users, err := s.store.ReadUsersPublicMeta()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Users []screenjournal.UserPublicMeta
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			Users:       users,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -1193,7 +1092,7 @@ func ratingToStars(rating screenjournal.Rating) []string {
 	}
 	// Add empty stars.
 	emptyStars := (parse.MaxRating / 2) - (ratingVal / 2) - ratingVal%2
-	for i := uint8(0); i < emptyStars; i++ {
+	for range emptyStars {
 		stars = append(stars, "fa-regular fa-star")
 	}
 	return stars
@@ -1202,19 +1101,21 @@ func ratingToStars(rating screenjournal.Rating) []string {
 func relativeWatchDate(t screenjournal.WatchDate) string {
 	daysAgo := int(time.Since(t.Time()).Hours() / 24)
 	weeksAgo := int(daysAgo / 7)
-	if daysAgo < 1 {
+	switch {
+	case daysAgo < 1:
 		return "today"
-	} else if daysAgo == 1 {
+	case daysAgo == 1:
 		return "yesterday"
-	} else if daysAgo <= 14 {
+	case daysAgo <= 14:
 		return fmt.Sprintf("%d days ago", daysAgo)
-	} else if weeksAgo < 8 {
+	case weeksAgo < 8:
 		return fmt.Sprintf("%d weeks ago", weeksAgo)
 	}
 	monthsAgo := int(daysAgo / 30)
-	if monthsAgo == 1 {
+	switch {
+	case monthsAgo == 1:
 		return "1 month ago"
-	} else if monthsAgo <= 23 {
+	case monthsAgo <= 23:
 		return fmt.Sprintf("%d months ago", monthsAgo)
 	}
 
@@ -1247,18 +1148,20 @@ func relativeCommentDate(t time.Time) string {
 
 	daysAgo := int(time.Since(t).Hours() / 24)
 	weeksAgo := int(daysAgo / 7)
-	if daysAgo == 1 {
+	switch {
+	case daysAgo == 1:
 		return "yesterday"
-	} else if daysAgo <= 14 {
+	case daysAgo <= 14:
 		return fmt.Sprintf("%d days ago", daysAgo)
-	} else if weeksAgo < 8 {
+	case weeksAgo < 8:
 		return fmt.Sprintf("%d weeks ago", weeksAgo)
 	}
 
 	monthsAgo := int(daysAgo / 30)
-	if monthsAgo == 1 {
+	switch {
+	case monthsAgo == 1:
 		return "1 month ago"
-	} else if monthsAgo <= 23 {
+	case monthsAgo <= 23:
 		return fmt.Sprintf("%d months ago", monthsAgo)
 	}
 

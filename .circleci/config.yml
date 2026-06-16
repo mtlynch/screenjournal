@@ -5,7 +5,7 @@ executors:
       - image: cimg/base:stable
   go:
     docker:
-      - image: cimg/go:1.25.4
+      - image: cimg/go:1.26.1
 jobs:
   check_whitespace:
     executor: go
@@ -31,12 +31,14 @@ jobs:
           command: ./dev-scripts/check-bash
   check_frontend:
     docker:
-      - image: cimg/node:20.6.1
+      - image: cimg/node:24.15.0
     steps:
       - checkout
       - run:
-          name: Download npm packages
-          command: npm install
+          name: Download pnpm packages
+          command: |
+            sudo npm install --global pnpm@11.5.3
+            pnpm install --frozen-lockfile
       - run:
           name: Run frontend checks
           command: ./dev-scripts/check-frontend
@@ -96,7 +98,7 @@ jobs:
           command: ./dev-scripts/lint-sql
   e2e:
     docker:
-      - image: mcr.microsoft.com/playwright:v1.40.0-focal
+      - image: mcr.microsoft.com/playwright:v1.57.0
     environment:
       NODE_ENV: development
     steps:
@@ -105,10 +107,12 @@ jobs:
           at: ./
       - run:
           name: Install dependencies
-          command: npm install
+          command: |
+            npm install --global pnpm@11.5.3
+            pnpm install --frozen-lockfile
       - run:
           name: Run e2e tests
-          command: ./dev-scripts/run-e2e-tests --skip-build
+          command: ./dev-scripts/run-e2e-tests --skip-build --workers=8
       - store_artifacts:
           path: playwright-report
   package_release:

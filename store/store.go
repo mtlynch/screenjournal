@@ -32,29 +32,31 @@ var (
 	ErrUserNotFound                      = errors.New("could not find user")
 	ErrUsernameNotAvailable              = errors.New("username is not available")
 	ErrEmailAssociatedWithAnotherAccount = errors.New("email address is associated with another account")
+	ErrInvalidPasswordResetToken         = errors.New("could not find password reset token")
+	ErrExpiredPasswordResetToken         = errors.New("password reset token has expired")
 )
 
 func FilterReviewsByUsername(u screenjournal.Username) func(*ReadReviewsParams) {
 	return func(p *ReadReviewsParams) {
-		p.Filters.Username = &u
+		p.Filters.Username = new(u)
 	}
 }
 
 func FilterReviewsByMovieID(id screenjournal.MovieID) func(*ReadReviewsParams) {
 	return func(p *ReadReviewsParams) {
-		p.Filters.MovieID = &id
+		p.Filters.MovieID = new(id)
 	}
 }
 
 func FilterReviewsByTvShowID(id screenjournal.TvShowID) func(*ReadReviewsParams) {
 	return func(p *ReadReviewsParams) {
-		p.Filters.TvShowID = &id
+		p.Filters.TvShowID = new(id)
 	}
 }
 
 func FilterReviewsByTvShowSeason(season screenjournal.TvShowSeason) func(*ReadReviewsParams) {
 	return func(p *ReadReviewsParams) {
-		p.Filters.TvShowSeason = &season
+		p.Filters.TvShowSeason = new(season)
 	}
 }
 
@@ -66,6 +68,6 @@ func FilterReviewsByDraftStatus(isDraft bool) func(*ReadReviewsParams) {
 
 func SortReviews(order screenjournal.SortOrder) func(*ReadReviewsParams) {
 	return func(p *ReadReviewsParams) {
-		p.Order = &order
+		p.Order = new(order)
 	}
 }

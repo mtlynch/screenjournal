@@ -36,7 +36,7 @@ func (s Server) reviewsDraftsPost() http.HandlerFunc {
 		}
 
 		if req.MediaType == screenjournal.MediaTypeMovie {
-			review.Movie, err = s.moviefromTmdbID(s.getDB(r), req.TmdbID)
+			review.Movie, err = s.moviefromTmdbID(s.store, req.TmdbID)
 			if err == store.ErrMovieNotFound {
 				http.Error(w, fmt.Sprintf("Could not find movie with TMDB ID: %v", req.TmdbID), http.StatusNotFound)
 				return
@@ -46,7 +46,7 @@ func (s Server) reviewsDraftsPost() http.HandlerFunc {
 				return
 			}
 		} else if req.MediaType == screenjournal.MediaTypeTvShow {
-			review.TvShow, err = s.tvShowfromTmdbID(s.getDB(r), req.TmdbID)
+			review.TvShow, err = s.tvShowfromTmdbID(s.store, req.TmdbID)
 			if err == store.ErrTvShowNotFound {
 				http.Error(w, fmt.Sprintf("Could not find tv show with TMDB ID: %v", req.TmdbID), http.StatusNotFound)
 				return
@@ -66,14 +66,14 @@ func (s Server) reviewsDraftsPost() http.HandlerFunc {
 		statusCode := http.StatusCreated
 		if existingDraft != nil {
 			review.ID = existingDraft.ID
-			if err := s.getDB(r).UpdateReview(review); err != nil {
+			if err := s.store.UpdateReview(review); err != nil {
 				log.Printf("failed to update draft: %v", err)
 				http.Error(w, fmt.Sprintf("Failed to save draft: %v", err), http.StatusInternalServerError)
 				return
 			}
 			statusCode = http.StatusOK
 		} else {
-			review.ID, err = s.getDB(r).InsertReview(review)
+			review.ID, err = s.store.InsertReview(review)
 			if err != nil {
 				log.Printf("failed to save draft: %v", err)
 				http.Error(w, fmt.Sprintf("Failed to save draft: %v", err), http.StatusInternalServerError)
@@ -106,7 +106,7 @@ func (s Server) findExistingDraft(r *http.Request, owner screenjournal.Username,
 		queryOptions = append(queryOptions, store.FilterReviewsByTvShowSeason(draft.TvShowSeason))
 	}
 
-	drafts, err := s.getDB(r).ReadReviews(queryOptions...)
+	drafts, err := s.store.ReadReviews(queryOptions...)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func (s Server) reviewsDraftsPut() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.getDB(r).ReadReview(id)
+		review, err := s.store.ReadReview(id)
 		if err == store.ErrReviewNotFound {
 			http.Error(w, "Draft not found", http.StatusNotFound)
 			return
@@ -161,7 +161,7 @@ func (s Server) reviewsDraftsPut() http.HandlerFunc {
 		review.Blurb = parsedRequest.Blurb
 		review.Watched = parsedRequest.Watched
 
-		if err := s.getDB(r).UpdateReview(review); err != nil {
+		if err := s.store.UpdateReview(review); err != nil {
 			log.Printf("failed to update draft: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to update draft: %v", err), http.StatusInternalServerError)
 			return

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import { populateDummyData } from "./helpers/db";
 import { loginAsUser, loginAsUserA } from "./helpers/login";
 

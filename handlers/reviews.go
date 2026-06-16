@@ -8,6 +8,7 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store"
+	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
 type reviewPostRequest struct {
@@ -37,7 +38,7 @@ func (s Server) reviewsPost() http.HandlerFunc {
 		}
 
 		if req.DraftID != nil {
-			review, err := s.getDB(r).ReadReview(*req.DraftID)
+			review, err := s.store.ReadReview(*req.DraftID)
 			if err == store.ErrReviewNotFound {
 				http.Error(w, "Draft not found", http.StatusNotFound)
 				return
@@ -62,7 +63,7 @@ func (s Server) reviewsPost() http.HandlerFunc {
 			review.Watched = req.WatchDate
 			review.IsDraft = false
 
-			if err := s.getDB(r).UpdateReview(review); err != nil {
+			if err := s.store.UpdateReview(review); err != nil {
 				log.Printf("failed to publish draft: %v", err)
 				http.Error(w, fmt.Sprintf("Failed to save review: %v", err), http.StatusInternalServerError)
 				return
@@ -89,7 +90,7 @@ func (s Server) reviewsPost() http.HandlerFunc {
 		}
 
 		if req.MediaType == screenjournal.MediaTypeMovie {
-			review.Movie, err = s.moviefromTmdbID(s.getDB(r), req.TmdbID)
+			review.Movie, err = s.moviefromTmdbID(s.store, req.TmdbID)
 			if err == store.ErrMovieNotFound {
 				http.Error(w, fmt.Sprintf("Could not find movie with TMDB ID: %v", req.TmdbID), http.StatusNotFound)
 				return
@@ -99,7 +100,7 @@ func (s Server) reviewsPost() http.HandlerFunc {
 				return
 			}
 		} else if req.MediaType == screenjournal.MediaTypeTvShow {
-			review.TvShow, err = s.tvShowfromTmdbID(s.getDB(r), req.TmdbID)
+			review.TvShow, err = s.tvShowfromTmdbID(s.store, req.TmdbID)
 			if err == store.ErrTvShowNotFound {
 				http.Error(w, fmt.Sprintf("Could not find tv show with TMDB ID: %v", req.TmdbID), http.StatusNotFound)
 				return
@@ -110,7 +111,7 @@ func (s Server) reviewsPost() http.HandlerFunc {
 			}
 		}
 
-		review.ID, err = s.getDB(r).InsertReview(review)
+		review.ID, err = s.store.InsertReview(review)
 		if err != nil {
 			log.Printf("failed to save review: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to save review: %v", err), http.StatusInternalServerError)
@@ -136,7 +137,7 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.getDB(r).ReadReview(id)
+		review, err := s.store.ReadReview(id)
 		if err == store.ErrReviewNotFound {
 			http.Error(w, "Review not found", http.StatusNotFound)
 			return
@@ -169,7 +170,7 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			review.IsDraft = false
 		}
 
-		if err := s.getDB(r).UpdateReview(review); err != nil {
+		if err := s.store.UpdateReview(review); err != nil {
 			log.Printf("failed to update review: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to update review: %v", err), http.StatusInternalServerError)
 			return
@@ -197,7 +198,7 @@ func (s Server) reviewsDelete() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.getDB(r).ReadReview(id)
+		review, err := s.store.ReadReview(id)
 		if err == store.ErrReviewNotFound {
 			http.Error(w, "Review not found", http.StatusNotFound)
 			return
@@ -212,7 +213,7 @@ func (s Server) reviewsDelete() http.HandlerFunc {
 			return
 		}
 
-		if err := s.getDB(r).DeleteReview(id); err != nil {
+		if err := s.store.DeleteReview(id); err != nil {
 			log.Printf("failed to delete review: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to delete review: %v", err), http.StatusInternalServerError)
 			return
@@ -294,7 +295,7 @@ func parseReviewPutRequest(r *http.Request) (reviewPutRequest, error) {
 	return parsed, nil
 }
 
-func (s Server) moviefromTmdbID(db Store, tmdbID screenjournal.TmdbID) (screenjournal.Movie, error) {
+func (s Server) moviefromTmdbID(db sqlite.Store, tmdbID screenjournal.TmdbID) (screenjournal.Movie, error) {
 	movie, err := db.ReadMovieByTmdbID(tmdbID)
 	if err != nil && err != store.ErrMovieNotFound {
 		return screenjournal.Movie{}, err
@@ -315,7 +316,7 @@ func (s Server) moviefromTmdbID(db Store, tmdbID screenjournal.TmdbID) (screenjo
 	return movie, nil
 }
 
-func (s Server) tvShowfromTmdbID(db Store, tmdbID screenjournal.TmdbID) (screenjournal.TvShow, error) {
+func (s Server) tvShowfromTmdbID(db sqlite.Store, tmdbID screenjournal.TmdbID) (screenjournal.TvShow, error) {
 	tvShow, err := db.ReadTvShowByTmdbID(tmdbID)
 	if err != nil && err != store.ErrTvShowNotFound {
 		return screenjournal.TvShow{}, err
@@ -339,7 +340,7 @@ func (s Server) tvShowfromTmdbID(db Store, tmdbID screenjournal.TmdbID) (screenj
 	return tvShow, nil
 }
 
-func (s Server) updateTvShowDetailsInStore(db Store, tvShow screenjournal.TvShow) error {
+func (s Server) updateTvShowDetailsInStore(db sqlite.Store, tvShow screenjournal.TvShow) error {
 	tvShowUpdated, err := s.metadataFinder.GetTvShow(tvShow.TmdbID)
 	if err != nil {
 		return err

@@ -27,23 +27,19 @@ func (s Server) invitesPost() http.HandlerFunc {
 			Invitee:    req.Invitee,
 			InviteCode: screenjournal.NewInviteCode(),
 		}
-		if err := s.getDB(r).InsertSignupInvitation(invitation); err != nil {
+		if err := s.store.InsertSignupInvitation(invitation); err != nil {
 			log.Printf("failed to add new signup invite %+v: %v", invitation, err)
 			http.Error(w, "Failed to store new signup invite", http.StatusInternalServerError)
 			return
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "invite-row.html", struct {
 			Invitee    screenjournal.Invitee
 			InviteCode screenjournal.InviteCode
 		}{
 			Invitee:    invitation.Invitee,
 			InviteCode: invitation.InviteCode,
-		}); err != nil {
-			http.Error(w, "Failed to render template", http.StatusInternalServerError)
-			log.Printf("failed to render invite row template: %v", err)
-			return
-		}
+		})
 	}
 
 }

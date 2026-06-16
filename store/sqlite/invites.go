@@ -13,7 +13,7 @@ func (s Store) InsertSignupInvitation(invite screenjournal.SignupInvitation) err
 
 	now := time.Now()
 
-	if _, err := s.ctx.Exec(`
+	if _, err := s.db.Exec(`
 	INSERT INTO
 		invites
 	(
@@ -36,7 +36,7 @@ func (s Store) InsertSignupInvitation(invite screenjournal.SignupInvitation) err
 
 func (s Store) ReadSignupInvitation(code screenjournal.InviteCode) (screenjournal.SignupInvitation, error) {
 	var invitee string
-	if err := s.ctx.QueryRow(`
+	if err := s.db.QueryRow(`
 		SELECT
 			invitee
 		FROM
@@ -53,7 +53,7 @@ func (s Store) ReadSignupInvitation(code screenjournal.InviteCode) (screenjourna
 }
 
 func (s Store) ReadSignupInvitations() ([]screenjournal.SignupInvitation, error) {
-	rows, err := s.ctx.Query(`
+	rows, err := s.db.Query(`
 		SELECT
 			invitee,
 			code
@@ -64,6 +64,11 @@ func (s Store) ReadSignupInvitations() ([]screenjournal.SignupInvitation, error)
 	if err != nil {
 		return []screenjournal.SignupInvitation{}, err
 	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("failed to close invite rows: %v", err)
+		}
+	}()
 
 	invites := []screenjournal.SignupInvitation{}
 	for rows.Next() {
@@ -78,13 +83,16 @@ func (s Store) ReadSignupInvitations() ([]screenjournal.SignupInvitation, error)
 			InviteCode: screenjournal.InviteCode(inviteCodeRaw),
 		})
 	}
+	if err := rows.Err(); err != nil {
+		return []screenjournal.SignupInvitation{}, err
+	}
 
 	return invites, nil
 }
 
 func (s Store) DeleteSignupInvitation(code screenjournal.InviteCode) error {
 	log.Printf("deleting signup code: %s", code)
-	_, err := s.ctx.Exec(`DELETE FROM invites WHERE code = :code`, sql.Named("code", code.String()))
+	_, err := s.db.Exec(`DELETE FROM invites WHERE code = :code`, sql.Named("code", code.String()))
 	if err != nil {
 		return err
 	}

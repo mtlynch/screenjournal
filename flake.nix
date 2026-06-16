@@ -4,14 +4,20 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
 
-    # 1.25.4 release
-    go-nixpkgs.url = "github:NixOS/nixpkgs/ee09932cedcef15aaf476f9343d1dea2cb77e261";
+    # Use https://www.nixhub.io/ to find the exact nixpkgs reference for exact
+    # package versions.
+
+    # 1.26.1 release
+    go-nixpkgs.url = "github:NixOS/nixpkgs/e607cb5360ff1234862ac9f8839522becb853bb9";
 
     # 3.44.2 release
     sqlite-nixpkgs.url = "github:NixOS/nixpkgs/5ad9903c16126a7d949101687af0aa589b1d7d3d";
 
-    # 20.6.1 release
-    nodejs-nixpkgs.url = "github:NixOS/nixpkgs/78058d810644f5ed276804ce7ea9e82d92bee293";
+    # 24.15.0 release
+    nodejs-nixpkgs.url = "github:NixOS/nixpkgs/9eac87a12312b8f60dd52e1c6e1a265f6fc7f5fc";
+
+    # 11.5.3 release
+    pnpm-nixpkgs.url = "github:NixOS/nixpkgs/9eac87a12312b8f60dd52e1c6e1a265f6fc7f5fc";
 
     # 0.10.0 release
     shellcheck-nixpkgs.url = "github:NixOS/nixpkgs/4ae2e647537bcdbb82265469442713d066675275";
@@ -19,8 +25,8 @@
     # 3.3.0 release
     sqlfluff-nixpkgs.url = "github:NixOS/nixpkgs/bf689c40d035239a489de5997a4da5352434632e";
 
-    # 1.40.0
-    playwright-nixpkgs.url = "github:NixOS/nixpkgs/f5c27c6136db4d76c30e533c20517df6864c46ee";
+    # 1.57.0
+    playwright-nixpkgs.url = "github:NixOS/nixpkgs/5f02c91314c8ba4afe83b256b023756412218535";
 
     # 0.1.131 release
     flyctl-nixpkgs.url = "github:NixOS/nixpkgs/09dc04054ba2ff1f861357d0e7e76d021b273cd7";
@@ -35,6 +41,7 @@
     go-nixpkgs,
     sqlite-nixpkgs,
     nodejs-nixpkgs,
+    pnpm-nixpkgs,
     shellcheck-nixpkgs,
     sqlfluff-nixpkgs,
     playwright-nixpkgs,
@@ -43,9 +50,10 @@
   } @ inputs:
     flake-utils.lib.eachDefaultSystem (system: let
       gopkg = go-nixpkgs.legacyPackages.${system};
-      go = gopkg.go;
+      go = gopkg.go_1_26;
       sqlite = sqlite-nixpkgs.legacyPackages.${system}.sqlite;
-      nodejs = nodejs-nixpkgs.legacyPackages.${system}.nodejs_20;
+      nodejs = nodejs-nixpkgs.legacyPackages.${system}.nodejs_24;
+      pnpm = pnpm-nixpkgs.legacyPackages.${system}.pnpm;
       shellcheck = shellcheck-nixpkgs.legacyPackages.${system}.shellcheck;
       sqlfluff = sqlfluff-nixpkgs.legacyPackages.${system}.sqlfluff;
       playwright = playwright-nixpkgs.legacyPackages.${system}.playwright-driver.browsers;
@@ -64,6 +72,7 @@
           go
           sqlite
           nodejs
+          pnpm
           shellcheck
           sqlfluff
           playwright
@@ -76,15 +85,30 @@
           PROJECT_NAME="$(basename "$PWD")"
           export GOPATH="$HOME/.local/share/go-workspaces/$PROJECT_NAME"
 
+          # Override GOROOT set by Go tools (built with older Go) to match our
+          # Go version.
+          export GOROOT='${go}/share/go'
+
           export PLAYWRIGHT_BROWSERS_PATH=${playwright}
           export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+
+          # Auto-install pnpm packages if needed.
+          if [ -f package.json ]; then
+            if [ ! -d node_modules ] || \
+                [ package.json -nt node_modules ] || \
+                [ pnpm-lock.yaml -nt node_modules ]; then
+              echo "Installing pnpm packages..."
+              CI=true pnpm install --frozen-lockfile
+              touch node_modules
+            fi
+          fi
 
           echo "shellcheck" "$(shellcheck --version | grep '^version:')"
           sqlfluff --version
           fly version | cut -d ' ' -f 1-3
           echo "litestream" "$(litestream version)"
           echo "node" "$(node --version)"
-          echo "npm" "$(npm --version)"
+          echo "pnpm" "$(pnpm --version)"
           echo "sqlite" "$(sqlite3 --version | cut -d ' ' -f 1-2)"
           go version
         '';

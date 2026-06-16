@@ -44,24 +44,30 @@ fi
 
 go vet ./...
 
+# Install go-critic if it's not present.
+GOCRITIC_PATH="$(go env GOPATH)/bin/go-critic"
+readonly GOCRITIC_PATH
+readonly GOCRITIC_VERSION="v0.14.3"
+if [[ ! -f "${GOCRITIC_PATH}" ]]; then
+    go install "github.com/go-critic/go-critic/cmd/go-critic@${GOCRITIC_VERSION}"
+fi
+"${GOCRITIC_PATH}" check ./...
+"${GOCRITIC_PATH}" check -enable=returnAfterHttpError ./...
+
 # Install staticcheck if it's not present.
 STATICCHECK_PATH="$(go env GOPATH)/bin/staticcheck"
 readonly STATICCHECK_PATH
 readonly STATICCHECK_VERSION="v0.6.1"
 if [[ ! -f "${STATICCHECK_PATH}" ]]; then
-    go install \
-      -ldflags=-linkmode=external \
-      "honnef.co/go/tools/cmd/staticcheck@${STATICCHECK_VERSION}"
+    go install "honnef.co/go/tools/cmd/staticcheck@${STATICCHECK_VERSION}"
 fi
 "${STATICCHECK_PATH}" ./...
 
 # Install errcheck if it's not present.
 ERRCHECK_PATH="$(go env GOPATH)/bin/errcheck"
 readonly ERRCHECK_PATH
-readonly ERRCHECK_VERSION="v1.9.0"
+readonly ERRCHECK_VERSION="v1.10.0"
 if [[ ! -f "${ERRCHECK_PATH}" ]]; then
-    go install \
-      -ldflags=-linkmode=external \
-      "github.com/kisielk/errcheck@${ERRCHECK_VERSION}"
+    go install "github.com/kisielk/errcheck@${ERRCHECK_VERSION}"
 fi
 "${ERRCHECK_PATH}" -ignoretests ./...

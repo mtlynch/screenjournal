@@ -15,7 +15,7 @@ func (s Store) ReadComments(rid screenjournal.ReviewID) ([]screenjournal.ReviewC
 		return []screenjournal.ReviewComment{}, err
 	}
 
-	rows, err := s.ctx.Query(`
+	rows, err := s.db.Query(`
 	SELECT
 		id,
 		review_id,
@@ -33,6 +33,11 @@ func (s Store) ReadComments(rid screenjournal.ReviewID) ([]screenjournal.ReviewC
 	if err != nil {
 		return []screenjournal.ReviewComment{}, err
 	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("failed to close comment rows: %v", err)
+		}
+	}()
 
 	comments := []screenjournal.ReviewComment{}
 	for rows.Next() {
@@ -45,12 +50,15 @@ func (s Store) ReadComments(rid screenjournal.ReviewID) ([]screenjournal.ReviewC
 
 		comments = append(comments, rc)
 	}
+	if err := rows.Err(); err != nil {
+		return []screenjournal.ReviewComment{}, err
+	}
 
 	return comments, nil
 }
 
 func (s Store) ReadComment(cid screenjournal.CommentID) (screenjournal.ReviewComment, error) {
-	row := s.ctx.QueryRow(`
+	row := s.db.QueryRow(`
 	SELECT
 		id,
 		review_id,
@@ -72,7 +80,7 @@ func (s Store) InsertComment(rc screenjournal.ReviewComment) (screenjournal.Comm
 
 	now := time.Now()
 
-	res, err := s.ctx.Exec(`
+	res, err := s.db.Exec(`
 	INSERT INTO
 		review_comments
 	(
@@ -106,7 +114,7 @@ func (s Store) InsertComment(rc screenjournal.ReviewComment) (screenjournal.Comm
 func (s Store) UpdateComment(rc screenjournal.ReviewComment) error {
 	log.Printf("updating comment %v from %v", rc.ID, rc.Owner)
 
-	_, err := s.ctx.Exec(`
+	_, err := s.db.Exec(`
 		UPDATE review_comments
 		SET
 			comment_text = :comment_text,
@@ -126,7 +134,7 @@ func (s Store) UpdateComment(rc screenjournal.ReviewComment) error {
 
 func (s Store) DeleteComment(cid screenjournal.CommentID) error {
 	log.Printf("deleting comment ID=%v", cid)
-	_, err := s.ctx.Exec(`DELETE FROM review_comments WHERE id = :id`, sql.Named("id", cid.String()))
+	_, err := s.db.Exec(`DELETE FROM review_comments WHERE id = :id`, sql.Named("id", cid.String()))
 	if err != nil {
 		return err
 	}

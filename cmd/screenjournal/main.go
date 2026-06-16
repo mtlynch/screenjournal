@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	gorilla "github.com/mtlynch/gorilla-handlers"
 
@@ -18,6 +19,8 @@ import (
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
+	"github.com/mtlynch/screenjournal/v2/passwordreset"
+	passwordreset_email "github.com/mtlynch/screenjournal/v2/passwordreset/email"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
@@ -29,7 +32,8 @@ func main() {
 	flag.Parse()
 
 	ensureDirExists(filepath.Dir(*dbPath))
-	store := sqlite.New(*dbPath, isLitestreamEnabled())
+	db := sqlite.MustOpen(*dbPath)
+	store := sqlite.New(db, isLitestreamEnabled())
 
 	authenticator := auth.New(store)
 
@@ -37,12 +41,10 @@ func main() {
 	if !useTls {
 		log.Printf("TLS has not been marked as required, so session cookies will not have Secure flag")
 	}
-	sessionManager, err := sessions.NewManager(*dbPath, useTls)
-	if err != nil {
-		log.Fatalf("failed to create session manager: %v", err)
-	}
+	sessionManager := sessions.NewManager(store, useTls)
 
 	var announcer handlers.Announcer
+	var passwordResetter handlers.PasswordResetter
 	if isSmtpEnabled() {
 		smtpHost := requireEnv("SJ_SMTP_HOST")
 		smtpPort, err := strconv.Atoi(requireEnv("SJ_SMTP_PORT"))
@@ -54,7 +56,9 @@ func main() {
 		if err != nil {
 			log.Fatalf("failed to create mail sender: %v", err)
 		}
-		announcer = email_announce.New(requireEnv("SJ_BASE_URL"), mailSender, store)
+		baseURL := requireEnv("SJ_BASE_URL")
+		announcer = email_announce.New(baseURL, mailSender, store)
+		passwordResetter = passwordreset.New(store, passwordreset_email.New(baseURL, mailSender), time.Now)
 	} else {
 		log.Printf("SMTP not configured. Transactional emails are disabled")
 		announcer = quiet.New()
@@ -65,7 +69,14 @@ func main() {
 		log.Fatalf("failed to create metadata finder: %v", err)
 	}
 
-	h := gorilla.LoggingHandler(os.Stdout, handlers.New(authenticator, announcer, sessionManager, store, metadataFinder).Router())
+	h := gorilla.LoggingHandler(os.Stdout, handlers.New(handlers.ServerParams{
+		Authenticator:    authenticator,
+		Announcer:        announcer,
+		SessionManager:   sessionManager,
+		Store:            store,
+		MetadataFinder:   metadataFinder,
+		PasswordResetter: passwordResetter,
+	}).Router())
 	if os.Getenv("SJ_BEHIND_PROXY") != "" {
 		h = gorilla.ProxyIPHeadersHandler(h)
 	}
@@ -77,7 +88,14 @@ func main() {
 	}
 	log.Printf("listening on %s", port)
 
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+	server := &http.Server{
+		Addr:              fmt.Sprintf(":%s", port),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+	log.Fatal(server.ListenAndServe())
 }
 
 func requireEnv(key string) string {

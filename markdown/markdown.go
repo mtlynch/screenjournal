@@ -73,11 +73,18 @@ func RenderEmail(body screenjournal.EmailBodyMarkdown) string {
 }
 
 func trimSpacesFromEachLine(s string) string {
-	lines := strings.Split(s, "\n")
-	for i, line := range lines {
-		lines[i] = strings.TrimSpace(line)
+	var b strings.Builder
+	b.Grow(len(s))
+
+	firstLine := true
+	for line := range strings.SplitSeq(s, "\n") {
+		if !firstLine {
+			b.WriteByte('\n')
+		}
+		b.WriteString(strings.TrimSpace(line))
+		firstLine = false
 	}
-	return strings.Join(lines, "\n")
+	return b.String()
 }
 
 func splitSpoilers(s string) (string, string, bool) {

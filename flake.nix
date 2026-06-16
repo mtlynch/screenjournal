@@ -84,10 +84,6 @@
           # Ignore user Go settings so Nix's pinned toolchain is authoritative.
           export GOENV='off'
           export GOTOOLCHAIN='local'
-          unset GOCACHE
-          unset GOMODCACHE
-          unset GOPATH
-          unset GOROOT
 
           # Isolate `go install`ed binaries per checkout, while sharing Go's
           # default, content-addressed module cache across projects.

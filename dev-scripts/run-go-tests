@@ -45,7 +45,7 @@ fi
 go vet ./...
 
 # Install go-critic if it's not present.
-GOCRITIC_PATH="$(go env GOBIN)/go-critic"
+GOCRITIC_PATH="$(go env GOPATH)/bin/go-critic"
 readonly GOCRITIC_PATH
 readonly GOCRITIC_VERSION="v0.14.3"
 if [[ ! -f "${GOCRITIC_PATH}" ]]; then
@@ -55,7 +55,7 @@ fi
 "${GOCRITIC_PATH}" check -enable=returnAfterHttpError ./...
 
 # Install staticcheck if it's not present.
-STATICCHECK_PATH="$(go env GOBIN)/staticcheck"
+STATICCHECK_PATH="$(go env GOPATH)/bin/staticcheck"
 readonly STATICCHECK_PATH
 readonly STATICCHECK_VERSION="v0.6.1"
 if [[ ! -f "${STATICCHECK_PATH}" ]]; then
@@ -64,7 +64,7 @@ fi
 "${STATICCHECK_PATH}" ./...
 
 # Install errcheck if it's not present.
-ERRCHECK_PATH="$(go env GOBIN)/errcheck"
+ERRCHECK_PATH="$(go env GOPATH)/bin/errcheck"
 readonly ERRCHECK_PATH
 readonly ERRCHECK_VERSION="v1.10.0"
 if [[ ! -f "${ERRCHECK_PATH}" ]]; then

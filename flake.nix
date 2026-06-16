@@ -13,11 +13,11 @@
     # 3.44.2 release
     sqlite-nixpkgs.url = "github:NixOS/nixpkgs/5ad9903c16126a7d949101687af0aa589b1d7d3d";
 
-    # 20.6.1 release
-    nodejs-nixpkgs.url = "github:NixOS/nixpkgs/78058d810644f5ed276804ce7ea9e82d92bee293";
+    # 24.15.0 release
+    nodejs-nixpkgs.url = "github:NixOS/nixpkgs/9eac87a12312b8f60dd52e1c6e1a265f6fc7f5fc";
 
-    # 10.25.0 release
-    pnpm-nixpkgs.url = "github:NixOS/nixpkgs/677fbe97984e7af3175b6c121f3c39ee5c8d62c9";
+    # 11.5.3 release
+    pnpm-nixpkgs.url = "github:NixOS/nixpkgs/9eac87a12312b8f60dd52e1c6e1a265f6fc7f5fc";
 
     # 0.10.0 release
     shellcheck-nixpkgs.url = "github:NixOS/nixpkgs/4ae2e647537bcdbb82265469442713d066675275";
@@ -52,7 +52,7 @@
       gopkg = go-nixpkgs.legacyPackages.${system};
       go = gopkg.go_1_26;
       sqlite = sqlite-nixpkgs.legacyPackages.${system}.sqlite;
-      nodejs = nodejs-nixpkgs.legacyPackages.${system}.nodejs_20;
+      nodejs = nodejs-nixpkgs.legacyPackages.${system}.nodejs_24;
       pnpm = pnpm-nixpkgs.legacyPackages.${system}.pnpm;
       shellcheck = shellcheck-nixpkgs.legacyPackages.${system}.shellcheck;
       sqlfluff = sqlfluff-nixpkgs.legacyPackages.${system}.sqlfluff;
@@ -98,7 +98,7 @@
                 [ package.json -nt node_modules ] || \
                 [ pnpm-lock.yaml -nt node_modules ]; then
               echo "Installing pnpm packages..."
-              pnpm install --frozen-lockfile
+              CI=true pnpm install --frozen-lockfile
               touch node_modules
             fi
           fi

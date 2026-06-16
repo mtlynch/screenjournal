@@ -69,6 +69,6 @@ test("user can't change their password if their original is incorrect", async ({
   await expect(page).toHaveURL("/account/change-password");
 
   await expect(
-    page.getByText("Failed to change password: current password is incorrect"),
+    page.getByText("Failed to change password: current password is incorrect")
   ).toBeVisible();
 });

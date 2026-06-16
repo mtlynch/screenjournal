@@ -27,7 +27,7 @@ test("adds an emoji reaction to a review and deletes it", async ({ page }) => {
   const reactionDiv = reviewDiv.getByText(/👍\s+userA/);
   await expect(reactionDiv).toBeVisible();
   await expect(
-    reactionDiv.locator("..").getByTestId("relative-time"),
+    reactionDiv.locator("..").getByTestId("relative-time")
   ).toHaveText("just now");
 
   // Emoji picker should be hidden (emoji buttons no longer visible).
@@ -86,7 +86,7 @@ test("user cannot delete another user's reaction", async ({
   const userBReactionDiv = userBReviewDiv.getByText(/🤔\s+userA/);
   await expect(userBReactionDiv).toBeVisible();
   await expect(
-    userBReactionDiv.locator("..").getByTitle("Delete reaction"),
+    userBReactionDiv.locator("..").getByTitle("Delete reaction")
   ).not.toBeVisible();
 
   await userBContext.close();
@@ -130,7 +130,7 @@ test("admin can delete another user's reaction", async ({
   });
   const adminReactionDiv = adminReviewDiv.getByText(/😯\s+userA/);
   await expect(
-    adminReactionDiv.locator("..").getByTitle("Delete reaction"),
+    adminReactionDiv.locator("..").getByTitle("Delete reaction")
   ).toBeVisible();
 
   // Admin deletes userA's reaction.

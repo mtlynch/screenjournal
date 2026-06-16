@@ -7,5 +7,6 @@
         "parser": "go-template"
       }
     }
-  ]
+  ],
+  "goTemplateBracketSpacing": true
 }

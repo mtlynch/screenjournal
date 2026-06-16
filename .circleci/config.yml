@@ -35,8 +35,10 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Download npm packages
-          command: npm install
+          name: Download pnpm packages
+          command: |
+            npm install --global pnpm@10.25.0
+            pnpm install --frozen-lockfile
       - run:
           name: Run frontend checks
           command: ./dev-scripts/check-frontend
@@ -105,7 +107,9 @@ jobs:
           at: ./
       - run:
           name: Install dependencies
-          command: npm install
+          command: |
+            npm install --global pnpm@10.25.0
+            pnpm install --frozen-lockfile
       - run:
           name: Run e2e tests
           command: ./dev-scripts/run-e2e-tests --skip-build --workers=8

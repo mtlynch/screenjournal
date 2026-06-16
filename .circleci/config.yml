@@ -37,7 +37,7 @@ jobs:
       - run:
           name: Download pnpm packages
           command: |
-            npm install --global pnpm@11.5.3
+            sudo npm install --global pnpm@11.5.3
             pnpm install --frozen-lockfile
       - run:
           name: Run frontend checks

@@ -35,7 +35,7 @@
               </h5>
               <p class="card-text text-muted">
                 Last saved
-                {{ relativeDraftDate .Modified }}
+                {{ relativeCommentDate .Modified }}
               </p>
               {{ with .Blurb | elideBlurb }}
                 <p class="card-text">

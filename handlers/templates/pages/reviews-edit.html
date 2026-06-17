@@ -81,7 +81,7 @@
     const draftIdInput = document.getElementById("draft-id");
     const draftStatusEl = document.getElementById("draft-status");
     const draftSpinnerEl = document.getElementById("draft-spinner");
-    const autosaveEnabled = form?.dataset.autosave?.trim() === "true";
+    const autosaveEnabled = form?.dataset.autosave === "true";
     let hasSavedDraft = false;
     let fadeTimeout;
     let autosaveTimeout;
@@ -219,6 +219,22 @@
       };
       form.addEventListener("input", handleAutoSaveEvent);
       form.addEventListener("change", handleAutoSaveEvent);
+
+      // When autosave has already created a draft, publish by updating that
+      // draft (PUT /reviews/{id}?publish=true) instead of POSTing a brand-new
+      // review, which would orphan the draft.
+      form.addEventListener("htmx:configRequest", (evt) => {
+        const draftId = draftIdInput?.value?.trim();
+        if (
+          draftId &&
+          evt.detail.verb.toLowerCase() === "post" &&
+          evt.detail.path === "/reviews"
+        ) {
+          evt.detail.verb = "put";
+          evt.detail.path = `/reviews/${draftId}`;
+          evt.detail.parameters["publish"] = "true";
+        }
+      });
     }
     if (autosaveEnabled) {
       if (draftStatusEl?.dataset.hadSavedDraft === "true") {
@@ -275,11 +291,7 @@
       hx-target="body"
       hx-push-url="true"
       hx-disabled-elt="input, select, textarea, .btn"
-      data-autosave="{{ if $enableAutosave }}
-        true
-      {{ else }}
-        false
-      {{ end }}"
+      data-autosave="{{ if $enableAutosave }}true{{ else }}false{{ end }}"
     >
       <input
         type="hidden"
@@ -389,9 +401,9 @@
       </div>
 
       {{ if $isEditing }}
-        {{ if $isDraft }}
-          <div class="d-flex justify-content-between flex-row-reverse">
-            <div class="d-flex">
+        <div class="d-flex justify-content-between flex-row-reverse">
+          <div class="d-flex">
+            {{ if $isDraft }}
               <div class="btn-group me-2" role="group">
                 <button class="btn btn-primary" name="publish" value="true">
                   <i class="fa-solid fa-floppy-disk"></i>
@@ -413,47 +425,30 @@
                   </li>
                 </ul>
               </div>
-              <a
-                class="btn btn-outline-secondary"
-                role="button"
-                href="/reviews/drafts"
-                >Cancel</a
-              >
-            </div>
-            <div class="d-flex">
-              <a
-                class="btn btn-danger"
-                role="button"
-                hx-delete="/reviews/{{ .Review.ID }}"
-                hx-confirm="Delete this review?"
-              >
-                <i class="fa fa-trash me-2"></i>Delete
-              </a>
-            </div>
-          </div>
-        {{ else }}
-          <div class="d-flex justify-content-between flex-row-reverse">
-            <div class="d-flex">
+            {{ else }}
               <button class="btn btn-primary me-2" value="Save">
                 <i class="fa-solid fa-floppy-disk"></i>
                 Save
               </button>
-              <a class="btn btn-outline-secondary" role="button" href="/reviews"
-                >Cancel</a
-              >
-            </div>
-            <div class="d-flex">
-              <a
-                class="btn btn-danger"
-                role="button"
-                hx-delete="/reviews/{{ .Review.ID }}"
-                hx-confirm="Delete this review?"
-              >
-                <i class="fa fa-trash me-2"></i>Delete
-              </a>
-            </div>
+            {{ end }}
+            <a
+              class="btn btn-outline-secondary"
+              role="button"
+              href="{{ if $isDraft }}/reviews/drafts{{ else }}/reviews{{ end }}"
+              >Cancel</a
+            >
           </div>
-        {{ end }}
+          <div class="d-flex">
+            <a
+              class="btn btn-danger"
+              role="button"
+              hx-delete="/reviews/{{ .Review.ID }}"
+              hx-confirm="Delete this review?"
+            >
+              <i class="fa fa-trash me-2"></i>Delete
+            </a>
+          </div>
+        </div>
       {{ else }}
         <div class="mb-3">
           <div class="d-flex justify-content-end">

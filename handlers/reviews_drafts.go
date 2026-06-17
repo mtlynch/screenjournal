@@ -16,45 +16,17 @@ type reviewDraftResponse struct {
 
 func (s Server) reviewsDraftsPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req, err := parseReviewPostRequest(r)
+		req, err := parseReviewPostRequest(r, false)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			return
 		}
-		saveDraftIntent := r.PostFormValue("save-draft") == "true" ||
-			r.PostFormValue("save-draft") == "1"
+		saveDraftIntent := formBool(r, "save-draft")
 
 		loggedInUsername := mustGetUsernameFromContext(r.Context())
-		review := screenjournal.Review{
-			Owner:        loggedInUsername,
-			TvShowSeason: req.TvShowSeason,
-			Rating:       req.Rating,
-			Watched:      req.WatchDate,
-			Blurb:        req.Blurb,
-			IsDraft:      true,
-			Comments:     []screenjournal.ReviewComment{},
-		}
-
-		if req.MediaType == screenjournal.MediaTypeMovie {
-			review.Movie, err = s.moviefromTmdbID(s.store, req.TmdbID)
-			if err == store.ErrMovieNotFound {
-				http.Error(w, fmt.Sprintf("Could not find movie with TMDB ID: %v", req.TmdbID), http.StatusNotFound)
-				return
-			} else if err != nil {
-				log.Printf("failed to get local media ID for movie with TMDB ID %v: %v", req.TmdbID, err)
-				http.Error(w, fmt.Sprintf("Failed to look up movie with TMDB ID: %v: %v", req.TmdbID, err), http.StatusInternalServerError)
-				return
-			}
-		} else if req.MediaType == screenjournal.MediaTypeTvShow {
-			review.TvShow, err = s.tvShowfromTmdbID(s.store, req.TmdbID)
-			if err == store.ErrTvShowNotFound {
-				http.Error(w, fmt.Sprintf("Could not find tv show with TMDB ID: %v", req.TmdbID), http.StatusNotFound)
-				return
-			} else if err != nil {
-				log.Printf("failed to get local media ID for TV show with TMDB ID %v: %v", req.TmdbID, err)
-				http.Error(w, fmt.Sprintf("Failed to look up TV show with TMDB ID: %v: %v", req.TmdbID, err), http.StatusInternalServerError)
-				return
-			}
+		review, ok := s.reviewFromPostRequest(w, req, loggedInUsername, true)
+		if !ok {
+			return
 		}
 
 		existingDraft, err := s.findExistingDraft(r, loggedInUsername, review)
@@ -113,14 +85,11 @@ func (s Server) findExistingDraft(r *http.Request, owner screenjournal.Username,
 	if len(drafts) == 0 {
 		return nil, nil
 	}
-
-	latest := drafts[0]
-	for _, candidate := range drafts[1:] {
-		if candidate.Modified.After(latest.Modified) {
-			latest = candidate
-		}
-	}
-	return &latest, nil
+	// A partial unique index (see migration 015) guarantees at most one draft
+	// per (owner, media, season), so the first match is the only match. This
+	// dedup is load-bearing: it's what keeps the editor's autosave from creating
+	// duplicate drafts when its initial "create" requests race.
+	return &drafts[0], nil
 }
 
 func (s Server) reviewsDraftsPut() http.HandlerFunc {
@@ -131,18 +100,8 @@ func (s Server) reviewsDraftsPut() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.store.ReadReview(id)
-		if err == store.ErrReviewNotFound {
-			http.Error(w, "Draft not found", http.StatusNotFound)
-			return
-		} else if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to read draft: %v", err), http.StatusInternalServerError)
-			return
-		}
-
-		loggedInUsername := mustGetUsernameFromContext(r.Context())
-		if !review.Owner.Equal(loggedInUsername) {
-			http.Error(w, "You can't edit another user's draft", http.StatusForbidden)
+		review, ok := s.loadOwnedReview(w, r, id)
+		if !ok {
 			return
 		}
 
@@ -151,7 +110,7 @@ func (s Server) reviewsDraftsPut() http.HandlerFunc {
 			return
 		}
 
-		parsedRequest, err := parseReviewPutRequest(r)
+		parsedRequest, err := parseReviewPutRequest(r, false)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			return

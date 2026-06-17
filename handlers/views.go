@@ -164,7 +164,6 @@ var reviewPageFns = template.FuncMap{
 	"formatDate": func(t time.Time) string {
 		return t.Format(time.DateOnly)
 	},
-	"relativeDraftDate": relativeDraftDate,
 }
 
 func (s Server) indexGet() http.HandlerFunc {
@@ -374,8 +373,8 @@ func (s Server) reviewsDraftsGet() http.HandlerFunc {
 			}
 			return plaintext
 		},
-		"posterPathToURL":   posterPathToURL,
-		"relativeDraftDate": relativeDraftDate,
+		"posterPathToURL":     posterPathToURL,
+		"relativeCommentDate": relativeCommentDate,
 	}
 
 	t := template.Must(
@@ -1127,15 +1126,20 @@ func formatWatchDate(t screenjournal.WatchDate) string {
 	return t.Time().Format(time.DateOnly)
 }
 
+// relativeCommentDate renders a coarse, human-friendly age for a timestamp
+// (e.g. "just now", "an hour ago", "3 weeks ago"). It's used wherever we show
+// when something was last touched, such as comments and draft reviews.
 func relativeCommentDate(t time.Time) string {
-	minutesAgo := int(time.Since(t).Minutes())
+	elapsed := time.Since(t)
+
+	minutesAgo := int(elapsed.Minutes())
 	if minutesAgo < 1 {
 		return "just now"
 	}
 	if minutesAgo == 1 {
 		return "a minute ago"
 	}
-	hoursAgo := int(time.Since(t).Hours())
+	hoursAgo := int(elapsed.Hours())
 	if hoursAgo < 1 {
 		return fmt.Sprintf("%d minutes ago", minutesAgo)
 	}
@@ -1146,7 +1150,7 @@ func relativeCommentDate(t time.Time) string {
 		return fmt.Sprintf("%d hours ago", hoursAgo)
 	}
 
-	daysAgo := int(time.Since(t).Hours() / 24)
+	daysAgo := int(elapsed.Hours() / 24)
 	weeksAgo := int(daysAgo / 7)
 	switch {
 	case daysAgo == 1:
@@ -1167,38 +1171,6 @@ func relativeCommentDate(t time.Time) string {
 
 	yearsAgo := int(math.Round(float64(daysAgo) / 365.0))
 	return fmt.Sprintf("%d years ago", yearsAgo)
-}
-
-func relativeDraftDate(t time.Time) string {
-	secondsAgo := int(time.Since(t).Seconds())
-	if secondsAgo < 60 {
-		if secondsAgo <= 1 {
-			return "1 second ago"
-		}
-		return fmt.Sprintf("%d seconds ago", secondsAgo)
-	}
-
-	minutesAgo := int(time.Since(t).Minutes())
-	if minutesAgo == 1 {
-		return "1 minute ago"
-	}
-	if minutesAgo < 60 {
-		return fmt.Sprintf("%d minutes ago", minutesAgo)
-	}
-
-	hoursAgo := int(time.Since(t).Hours())
-	if hoursAgo == 1 {
-		return "1 hour ago"
-	}
-	if hoursAgo < 24 {
-		return fmt.Sprintf("%d hours ago", hoursAgo)
-	}
-
-	daysAgo := int(time.Since(t).Hours() / 24)
-	if daysAgo == 1 {
-		return "1 day ago"
-	}
-	return fmt.Sprintf("%d days ago", daysAgo)
 }
 
 func formatIso8601Datetime(t time.Time) string {

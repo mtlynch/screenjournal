@@ -1176,7 +1176,7 @@ func TestReviewsDraftsPut(t *testing.T) {
 	}
 }
 
-func TestReviewsPostPublishesDraft(t *testing.T) {
+func TestReviewsPutPublishesDraft(t *testing.T) {
 	dataStore := test_sqlite.New()
 
 	mockUser := screenjournal.User{
@@ -1228,11 +1228,10 @@ func TestReviewsPostPublishesDraft(t *testing.T) {
 	})
 
 	payload := fmt.Sprintf(
-		"draft-id=%d&media-type=movie&tmdb-id=38&rating=5&watch-date=2022-10-30&blurb=%s",
-		draftID,
+		"publish=true&rating=5&watch-date=2022-10-30&blurb=%s",
 		url.QueryEscape("Final thoughts"),
 	)
-	req, err := http.NewRequest("POST", "/reviews", strings.NewReader(payload))
+	req, err := http.NewRequest("PUT", fmt.Sprintf("/reviews/%d", draftID), strings.NewReader(payload))
 	if err != nil {
 		t.Fatal(err)
 	}

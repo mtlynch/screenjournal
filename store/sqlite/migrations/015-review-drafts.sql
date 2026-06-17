@@ -7,9 +7,9 @@ ADD COLUMN is_draft INTEGER NOT NULL DEFAULT 0;
 -- (tv_show_id/tv_show_season NULL) slip through.
 CREATE UNIQUE INDEX reviews_unique_draft_per_media
 ON reviews (
-  review_owner,
-  COALESCE(movie_id, -1),
-  COALESCE(tv_show_id, -1),
-  COALESCE(tv_show_season, -1)
+    review_owner,
+    COALESCE(movie_id, -1),
+    COALESCE(tv_show_id, -1),
+    COALESCE(tv_show_season, -1)
 )
 WHERE is_draft = 1;

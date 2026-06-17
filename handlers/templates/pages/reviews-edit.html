@@ -291,7 +291,11 @@
       hx-target="body"
       hx-push-url="true"
       hx-disabled-elt="input, select, textarea, .btn"
-      data-autosave="{{ if $enableAutosave }}true{{ else }}false{{ end }}"
+      data-autosave="{{ if $enableAutosave }}
+        true
+      {{ else }}
+        false
+      {{ end }}"
     >
       <input
         type="hidden"
@@ -434,7 +438,11 @@
             <a
               class="btn btn-outline-secondary"
               role="button"
-              href="{{ if $isDraft }}/reviews/drafts{{ else }}/reviews{{ end }}"
+              href="{{ if $isDraft }}
+                /reviews/drafts
+              {{ else }}
+                /reviews
+              {{ end }}"
               >Cancel</a
             >
           </div>

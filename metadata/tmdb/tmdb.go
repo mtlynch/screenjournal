@@ -8,6 +8,9 @@ import (
 	"time"
 )
 
+// DefaultBaseURL is the base URL of the production TMDB API.
+const DefaultBaseURL = "https://api.themoviedb.org/3"
+
 // Response types for TMDB API.
 
 type MovieResponse struct {
@@ -71,11 +74,11 @@ type apiClient struct {
 	baseURL    string
 }
 
-func newAPIClient(apiKey string) *apiClient {
+func newAPIClient(baseURL, apiKey string) *apiClient {
 	return &apiClient{
 		apiKey:     apiKey,
 		httpClient: &http.Client{Timeout: 10 * time.Second},
-		baseURL:    "https://api.themoviedb.org/3",
+		baseURL:    baseURL,
 	}
 }
 
@@ -140,8 +143,8 @@ type Finder struct {
 	tmdbAPI tmdbAPI
 }
 
-func New(apiKey string) (Finder, error) {
-	return NewWithAPI(newAPIClient(apiKey)), nil
+func New(baseURL, apiKey string) (Finder, error) {
+	return NewWithAPI(newAPIClient(baseURL, apiKey)), nil
 }
 
 func NewWithAPI(api tmdbAPI) Finder {

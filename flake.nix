@@ -63,7 +63,7 @@
         fontDirectories = [nodepkgs.dejavu_fonts];
       };
 
-      goVendorHash = "sha256-4I/5uWpHrOnICE32g8ssvLGS5F1TPKzXVUjUCrYgiUE=";
+      goVendorHash = "sha256-J7KOCiad1xcAbKU6nz4HOYn1xcnjuCpocXFIhkeN23w=";
 
       pnpmDepsHash = "sha256-4KVX/YzoLYxu3Cr7hYAaL8LovuEvWyzT7srHhLIpfbU=";
 
@@ -149,7 +149,6 @@
             export PLAYWRIGHT_BROWSERS_PATH=${playwright}
             export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
             export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-            export SJ_TMDB_API=dummy
 
             # Configure fonts for headless browser rendering.
             export FONTCONFIG_FILE=${fontsConf}

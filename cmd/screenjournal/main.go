@@ -18,7 +18,6 @@ import (
 	"github.com/mtlynch/screenjournal/v2/email/smtp"
 	"github.com/mtlynch/screenjournal/v2/handlers"
 	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
-	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"
 	"github.com/mtlynch/screenjournal/v2/passwordreset"
 	passwordreset_email "github.com/mtlynch/screenjournal/v2/passwordreset/email"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
@@ -64,7 +63,7 @@ func main() {
 		announcer = quiet.New()
 	}
 
-	metadataFinder, err := tmdb.New(requireEnv("SJ_TMDB_API"))
+	metadataFinder, err := newMetadataFinder()
 	if err != nil {
 		log.Fatalf("failed to create metadata finder: %v", err)
 	}

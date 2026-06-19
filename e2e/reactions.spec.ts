@@ -1,5 +1,5 @@
-import { test, expect } from "@playwright/test";
-import { populateDummyData, readDbTokenCookie } from "./helpers/db.js";
+import { test, expect } from "./fixtures";
+import { populateDummyData } from "./helpers/db.js";
 import { loginAsUserA, loginAsUserB, loginAsAdmin } from "./helpers/login.js";
 
 test.beforeEach(async ({ page }) => {
@@ -50,6 +50,7 @@ test("adds an emoji reaction to a review and deletes it", async ({ page }) => {
 test("user cannot delete another user's reaction", async ({
   page,
   browser,
+  baseURL,
 }) => {
   // UserA adds a reaction.
   await loginAsUserA(page);
@@ -69,11 +70,8 @@ test("user cannot delete another user's reaction", async ({
 
   // Switch to userB.
   const userBContext = await browser.newContext();
-  await userBContext.addCookies([
-    readDbTokenCookie(await page.context().cookies()),
-  ]);
   const userBPage = await userBContext.newPage();
-  await userBPage.goto("/");
+  await userBPage.goto(baseURL);
   await loginAsUserB(userBPage);
 
   await userBPage
@@ -94,7 +92,11 @@ test("user cannot delete another user's reaction", async ({
   await userBContext.close();
 });
 
-test("admin can delete another user's reaction", async ({ page, browser }) => {
+test("admin can delete another user's reaction", async ({
+  page,
+  browser,
+  baseURL,
+}) => {
   // UserA adds a reaction.
   await loginAsUserA(page);
   await page
@@ -113,11 +115,8 @@ test("admin can delete another user's reaction", async ({ page, browser }) => {
 
   // Switch to admin user.
   const adminContext = await browser.newContext();
-  await adminContext.addCookies([
-    readDbTokenCookie(await page.context().cookies()),
-  ]);
   const adminPage = await adminContext.newPage();
-  adminPage.goto("/");
+  await adminPage.goto(baseURL);
   await loginAsAdmin(adminPage);
 
   await adminPage
@@ -146,6 +145,7 @@ test("admin can delete another user's reaction", async ({ page, browser }) => {
 test("reactions are displayed in chronological order", async ({
   page,
   browser,
+  baseURL,
 }) => {
   // UserA adds first reaction.
   await loginAsUserA(page);
@@ -164,11 +164,8 @@ test("reactions are displayed in chronological order", async ({
 
   // UserB adds second reaction.
   const userBContext = await browser.newContext();
-  await userBContext.addCookies([
-    readDbTokenCookie(await page.context().cookies()),
-  ]);
   const userBPage = await userBContext.newPage();
-  await userBPage.goto("/");
+  await userBPage.goto(baseURL);
   await loginAsUserB(userBPage);
   await userBPage
     .getByRole("heading", { name: "The Waterboy" })

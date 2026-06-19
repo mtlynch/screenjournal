@@ -8,7 +8,6 @@ import (
 
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers"
-	"github.com/mtlynch/screenjournal/v2/handlers/sessions"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/test_sqlite"
 )
@@ -101,7 +100,11 @@ func TestAuthPost(t *testing.T) {
 			authenticator := auth.New(dataStore)
 			sessionManager := newMockSessionManager([]mockSessionEntry{})
 
-			s := handlers.New(authenticator, nilAnnouncer, &sessionManager, dataStore, nilMetadataFinder)
+			s := handlers.New(handlers.ServerParams{
+				Authenticator:  authenticator,
+				SessionManager: &sessionManager,
+				Store:          dataStore,
+			})
 
 			req, err := http.NewRequest("POST", "/api/auth", strings.NewReader(tt.payload))
 			if err != nil {
@@ -121,7 +124,7 @@ func TestAuthPost(t *testing.T) {
 				return
 			}
 
-			sessionsCreated := []sessions.Session{}
+			sessionsCreated := []mockSession{}
 			for _, session := range sessionManager.sessions {
 				sessionsCreated = append(sessionsCreated, session)
 			}

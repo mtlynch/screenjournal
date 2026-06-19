@@ -28,7 +28,7 @@ func (s Server) usersPut() http.HandlerFunc {
 			return
 		}
 
-		c, err := s.getDB(r).CountUsers()
+		c, err := s.store.CountUsers()
 		if err != nil {
 			log.Printf("failed to query user count: %v", err)
 			http.Error(w, "Failed to query user count", http.StatusInternalServerError)
@@ -43,32 +43,41 @@ func (s Server) usersPut() http.HandlerFunc {
 		}
 
 		if c >= 1 {
-			if _, err := s.getDB(r).ReadSignupInvitation(req.InviteCode); err != nil {
+			if _, err := s.store.ReadSignupInvitation(req.InviteCode); err != nil {
 				log.Printf("invalid invite code: %v", err)
 				http.Error(w, "Invalid invite code", http.StatusForbidden)
 				return
 			}
 		}
 
-		if err := s.getDB(r).InsertUser(user); err != nil {
+		if err := s.store.InsertUser(user); err != nil {
 			if err == store.ErrEmailAssociatedWithAnotherAccount {
 				http.Error(w, "Failed to add new user", http.StatusConflict)
+				return
 			} else if err == store.ErrUsernameNotAvailable {
 				http.Error(w, "Username is not avilable", http.StatusConflict)
+				return
 			}
 			log.Printf("failed to add new user: %v", err)
 			http.Error(w, "Failed to add new user", http.StatusInternalServerError)
 			return
 		}
 
-		if err := s.sessionManager.CreateSession(w, r.Context(), user.Username, user.IsAdmin); err != nil {
+		userID, err := userIDFromUsername(user.Username)
+		if err != nil {
+			log.Printf("failed to create user ID for new user %+v: %v", user, err)
+			http.Error(w, "Failed to create session", http.StatusInternalServerError)
+			return
+		}
+
+		if err := s.sessionManager.LogIn(r.Context(), w, userID); err != nil {
 			log.Printf("failed to create session for new user %+v: %v", user, err)
 			http.Error(w, "Failed to create session", http.StatusInternalServerError)
 			return
 		}
 
 		if !req.InviteCode.Empty() {
-			if err := s.getDB(r).DeleteSignupInvitation(req.InviteCode); err != nil {
+			if err := s.store.DeleteSignupInvitation(req.InviteCode); err != nil {
 				log.Printf("failed to delete used signup invitation code: %v", err)
 			}
 		}

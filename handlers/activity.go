@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"sort"
+	"slices"
 	"time"
 
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
@@ -46,7 +46,7 @@ func (s Server) activityGet() http.HandlerFunc {
 				append(baseTemplates, "templates/pages/activity.html")...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		reviews, err := s.getDB(r).ReadReviews()
+		reviews, err := s.store.ReadReviews()
 		if err != nil {
 			log.Printf("failed to read reviews: %v", err)
 			http.Error(w, "Failed to load activity", http.StatusInternalServerError)
@@ -54,7 +54,7 @@ func (s Server) activityGet() http.HandlerFunc {
 		}
 
 		for i, review := range reviews {
-			rr, err := s.getDB(r).ReadReactions(review.ID)
+			rr, err := s.store.ReadReactions(review.ID)
 			if err != nil {
 				log.Printf("failed to read reactions for review %s: %v", review.ID, err)
 				http.Error(w, "Failed to load activity", http.StatusInternalServerError)
@@ -63,16 +63,13 @@ func (s Server) activityGet() http.HandlerFunc {
 			reviews[i].Reactions = rr
 		}
 
-		if err := t.Execute(w, struct {
+		renderTemplate(w, t, "base.html", struct {
 			commonProps
 			Groups []activityGroup
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			Groups:      buildActivityGroups(reviews),
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
@@ -119,8 +116,8 @@ func buildActivityGroups(reviews []screenjournal.Review) []activityGroup {
 		}
 	}
 
-	sort.Slice(items, func(i, j int) bool {
-		return items[i].Created.After(items[j].Created)
+	slices.SortFunc(items, func(a, b activityItem) int {
+		return b.Created.Compare(a.Created)
 	})
 
 	groups := []activityGroup{}

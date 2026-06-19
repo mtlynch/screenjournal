@@ -10,7 +10,7 @@ import (
 )
 
 func (s Store) ReadTvShow(id screenjournal.TvShowID) (screenjournal.TvShow, error) {
-	row := s.ctx.QueryRow(`
+	row := s.db.QueryRow(`
 	SELECT
 		id,
 		tmdb_id,
@@ -27,7 +27,7 @@ func (s Store) ReadTvShow(id screenjournal.TvShowID) (screenjournal.TvShow, erro
 }
 
 func (s Store) ReadTvShowByTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.TvShow, error) {
-	row := s.ctx.QueryRow(`
+	row := s.db.QueryRow(`
 	SELECT
 		id,
 		tmdb_id,
@@ -46,7 +46,7 @@ func (s Store) ReadTvShowByTmdbID(tmdbID screenjournal.TmdbID) (screenjournal.Tv
 func (s Store) InsertTvShow(t screenjournal.TvShow) (screenjournal.TvShowID, error) {
 	log.Printf("inserting new TV show %s", t.Title)
 
-	res, err := s.ctx.Exec(`
+	res, err := s.db.Exec(`
 	INSERT INTO
 		tv_shows
 	(
@@ -80,7 +80,7 @@ func (s Store) InsertTvShow(t screenjournal.TvShow) (screenjournal.TvShowID, err
 func (s Store) UpdateTvShow(t screenjournal.TvShow) error {
 	log.Printf("updating TV show %s", t.Title)
 
-	_, err := s.ctx.Exec(`
+	_, err := s.db.Exec(`
 	UPDATE
 		tv_shows
 	SET

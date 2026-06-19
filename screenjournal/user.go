@@ -38,6 +38,10 @@ func (u Username) String() string {
 	return string(u)
 }
 
+func (u Username) Empty() bool {
+	return u.String() == ""
+}
+
 func (u Username) Equal(o Username) bool {
 	return u.String() == o.String()
 }

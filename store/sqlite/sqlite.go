@@ -17,11 +17,11 @@ const (
 
 type (
 	Store struct {
-		ctx *sql.DB
+		db *sql.DB
 	}
 
 	rowScanner interface {
-		Scan(...interface{}) error
+		Scan(...any) error
 	}
 )
 
@@ -34,15 +34,16 @@ func MustOpen(path string) *sql.DB {
 	return ctx
 }
 
-func New(ctx *sql.DB, optimizeForLitestream bool) Store {
-	if _, err := ctx.Exec(`
+func New(db *sql.DB, optimizeForLitestream bool) Store {
+	if _, err := db.Exec(`
 		PRAGMA temp_store = FILE;
 		PRAGMA journal_mode = WAL;
+		PRAGMA foreign_keys = ON;
 		`); err != nil {
 		log.Fatalf("failed to set pragmas: %v", err)
 	}
 
-	store := Store{ctx: ctx}
+	store := Store{db: db}
 	if optimizeForLitestream {
 		store.optimizeForLitestream()
 	}

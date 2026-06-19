@@ -90,7 +90,7 @@ func (r Rating) String() string {
 }
 
 func NewRating(val uint8) Rating {
-	return Rating{Value: &val}
+	return Rating{Value: new(val)}
 }
 
 func (r Rating) IsNil() bool {

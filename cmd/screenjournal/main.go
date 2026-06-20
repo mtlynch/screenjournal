@@ -64,7 +64,11 @@ func main() {
 		announcer = quiet.New()
 	}
 
-	metadataFinder, err := tmdb.New(requireEnv("SJ_TMDB_API"))
+	tmdbBaseURL := os.Getenv("SJ_TMDB_API_BASE_URL")
+	if tmdbBaseURL == "" {
+		tmdbBaseURL = tmdb.DefaultBaseURL
+	}
+	metadataFinder, err := tmdb.New(tmdbBaseURL, requireEnv("SJ_TMDB_API"))
 	if err != nil {
 		log.Fatalf("failed to create metadata finder: %v", err)
 	}

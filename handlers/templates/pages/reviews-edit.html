@@ -291,11 +291,11 @@
       hx-target="body"
       hx-push-url="true"
       hx-disabled-elt="input, select, textarea, .btn"
-      data-autosave="{{ if $enableAutosave }}
+      data-autosave="{{ if $enableAutosave -}}
         true
-      {{ else }}
+      {{- else -}}
         false
-      {{ end }}"
+      {{- end }}"
     >
       <input
         type="hidden"

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import { populateDummyData } from "./helpers/db";
 import { loginAsUserA } from "./helpers/login";
 
@@ -13,14 +13,13 @@ test("auto-saves a draft and lets the user resume", async ({ page }) => {
   await page.getByPlaceholder("Search").pressSequentially("slow lear");
   await page.getByText("Slow Learners (2015)").click();
 
-  await page.getByLabel("When did you watch?").fill("2024-10-10");
-
   const draftResponse = page.waitForResponse(
     (response) =>
       response.url().includes("/reviews/drafts") &&
-      response.request().method() === "POST" &&
-      response.status() === 201
+      ["POST", "PUT"].includes(response.request().method()) &&
+      response.ok()
   );
+  await page.getByLabel("When did you watch?").fill("2024-10-10");
   await page.getByLabel("Other thoughts?").fill("Draft thoughts");
   await draftResponse;
 
@@ -49,14 +48,13 @@ test("redirects to an existing draft when starting the same review", async ({
   await page.getByPlaceholder("Search").pressSequentially("slow lear");
   await page.getByText("Slow Learners (2015)").click();
 
-  await page.getByLabel("When did you watch?").fill("2024-10-10");
-
   const draftResponse = page.waitForResponse(
     (response) =>
       response.url().includes("/reviews/drafts") &&
-      response.request().method() === "POST" &&
-      response.status() === 201
+      ["POST", "PUT"].includes(response.request().method()) &&
+      response.ok()
   );
+  await page.getByLabel("When did you watch?").fill("2024-10-10");
   await page.getByLabel("Other thoughts?").fill("Second draft");
   await draftResponse;
 

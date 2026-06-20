@@ -13,8 +13,11 @@
     # 3.44.2 release
     sqlite-nixpkgs.url = "github:NixOS/nixpkgs/5ad9903c16126a7d949101687af0aa589b1d7d3d";
 
-    # 24.11.1 release, including pnpm 10.25.0.
-    nodejs-nixpkgs.url = "github:NixOS/nixpkgs/af84f9d270d404c17699522fab95bbf928a2d92f";
+    # 24.15.0 release
+    nodejs-nixpkgs.url = "github:NixOS/nixpkgs/9eac87a12312b8f60dd52e1c6e1a265f6fc7f5fc";
+
+    # 10.25.0 release
+    pnpm-nixpkgs.url = "github:NixOS/nixpkgs/af84f9d270d404c17699522fab95bbf928a2d92f";
 
     # 0.10.0 release
     shellcheck-nixpkgs.url = "github:NixOS/nixpkgs/4ae2e647537bcdbb82265469442713d066675275";
@@ -38,6 +41,7 @@
     go-nixpkgs,
     sqlite-nixpkgs,
     nodejs-nixpkgs,
+    pnpm-nixpkgs,
     shellcheck-nixpkgs,
     sqlfluff-nixpkgs,
     playwright-nixpkgs,
@@ -51,7 +55,7 @@
       sqlite = sqlite-nixpkgs.legacyPackages.${system}.sqlite;
       nodepkgs = nodejs-nixpkgs.legacyPackages.${system};
       nodejs = nodepkgs.nodejs_24;
-      pnpm = nodepkgs.pnpm_10.override {inherit nodejs;};
+      pnpm = pnpm-nixpkgs.legacyPackages.${system}.pnpm_10.override {inherit nodejs;};
       shellcheck = shellcheck-nixpkgs.legacyPackages.${system}.shellcheck;
       sqlfluff = sqlfluff-nixpkgs.legacyPackages.${system}.sqlfluff;
       playwright = playwright-nixpkgs.legacyPackages.${system}.playwright-driver.browsers;
@@ -181,13 +185,14 @@
         ];
 
         shellHook = ''
-          # Avoid sharing GOPATH with other projects.
-          PROJECT_NAME="$(basename "$PWD")"
-          export GOPATH="$HOME/.local/share/go-workspaces/$PROJECT_NAME"
+          # Ignore user Go settings so Nix's pinned toolchain is authoritative.
+          export GOENV='off'
+          export GOTOOLCHAIN='local'
 
-          # Override GOROOT set by Go tools (built with older Go) to match our
-          # Go version.
-          export GOROOT='${go}/share/go'
+          # Isolate `go install`ed binaries per checkout, while sharing Go's
+          # default, content-addressed module cache across projects.
+          export GOBIN="$PWD/bin/.go"
+          export PATH="$GOBIN:$PATH"
 
           export PLAYWRIGHT_BROWSERS_PATH=${playwright}
           export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true

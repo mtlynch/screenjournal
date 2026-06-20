@@ -16,8 +16,8 @@
     # 24.15.0 release
     nodejs-nixpkgs.url = "github:NixOS/nixpkgs/9eac87a12312b8f60dd52e1c6e1a265f6fc7f5fc";
 
-    # 11.5.3 release
-    pnpm-nixpkgs.url = "github:NixOS/nixpkgs/9eac87a12312b8f60dd52e1c6e1a265f6fc7f5fc";
+    # 10.25.0 release
+    pnpm-nixpkgs.url = "github:NixOS/nixpkgs/af84f9d270d404c17699522fab95bbf928a2d92f";
 
     # 0.10.0 release
     shellcheck-nixpkgs.url = "github:NixOS/nixpkgs/4ae2e647537bcdbb82265469442713d066675275";
@@ -53,7 +53,7 @@
       go = gopkg.go_1_26;
       sqlite = sqlite-nixpkgs.legacyPackages.${system}.sqlite;
       nodejs = nodejs-nixpkgs.legacyPackages.${system}.nodejs_24;
-      pnpm = pnpm-nixpkgs.legacyPackages.${system}.pnpm;
+      pnpm = pnpm-nixpkgs.legacyPackages.${system}.pnpm_10.override {inherit nodejs;};
       shellcheck = shellcheck-nixpkgs.legacyPackages.${system}.shellcheck;
       sqlfluff = sqlfluff-nixpkgs.legacyPackages.${system}.sqlfluff;
       playwright = playwright-nixpkgs.legacyPackages.${system}.playwright-driver.browsers;

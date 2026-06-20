@@ -6,6 +6,15 @@ import { spawn, type ChildProcess } from "node:child_process";
 
 import { test as base, expect } from "@playwright/test";
 
+import { startTmdbMock } from "./helpers/tmdbMock";
+
+// 1x1 transparent PNG used to stub TMDB poster images so the browser never
+// reaches out to image.tmdb.org during tests.
+const STUB_POSTER_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMBAQDJ/pLvAAAAAElFTkSuQmCC",
+  "base64"
+);
+
 type WorkerServer = {
   baseURL: string;
   restart: () => Promise<void>;
@@ -78,6 +87,7 @@ async function stopProcess(process: ChildProcess | null): Promise<void> {
 export const test = base.extend<
   {
     resetServer: void;
+    stubPosters: void;
   },
   {
     workerServer: WorkerServer;
@@ -88,6 +98,7 @@ export const test = base.extend<
       const tempDir = await mkdtemp(join(tmpdir(), "screenjournal-e2e-"));
       const port = await getFreePort();
       const baseURL = `http://127.0.0.1:${port}`;
+      const tmdbMock = await startTmdbMock();
       let serverProcess: ChildProcess | null = null;
       let nextDatabaseID = 0;
 
@@ -107,6 +118,8 @@ export const test = base.extend<
           env: {
             ...process.env,
             PORT: String(port),
+            SJ_TMDB_API: "dummy-api-key",
+            SJ_TMDB_API_BASE_URL: tmdbMock.baseURL,
           },
           stdio: ["ignore", "pipe", "pipe"],
         });
@@ -145,6 +158,7 @@ export const test = base.extend<
         restart,
       });
       await stopProcess(serverProcess);
+      await tmdbMock.close();
       await rm(tempDir, { recursive: true, force: true });
     },
     { scope: "worker" },
@@ -155,6 +169,19 @@ export const test = base.extend<
   resetServer: [
     async ({ workerServer }, use) => {
       await workerServer.restart();
+      await use();
+    },
+    { auto: true },
+  ],
+  stubPosters: [
+    async ({ page }, use) => {
+      await page.route("**image.tmdb.org**", (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: "image/png",
+          body: STUB_POSTER_PNG,
+        })
+      );
       await use();
     },
     { auto: true },

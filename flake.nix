@@ -81,13 +81,14 @@
         ];
 
         shellHook = ''
-          # Avoid sharing GOPATH with other projects.
-          PROJECT_NAME="$(basename "$PWD")"
-          export GOPATH="$HOME/.local/share/go-workspaces/$PROJECT_NAME"
+          # Ignore user Go settings so Nix's pinned toolchain is authoritative.
+          export GOENV='off'
+          export GOTOOLCHAIN='local'
 
-          # Override GOROOT set by Go tools (built with older Go) to match our
-          # Go version.
-          export GOROOT='${go}/share/go'
+          # Isolate `go install`ed binaries per checkout, while sharing Go's
+          # default, content-addressed module cache across projects.
+          export GOBIN="$PWD/bin/.go"
+          export PATH="$GOBIN:$PATH"
 
           export PLAYWRIGHT_BROWSERS_PATH=${playwright}
           export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true

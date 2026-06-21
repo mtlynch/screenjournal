@@ -47,7 +47,8 @@ go vet ./...
 # Set GOBIN when Go would otherwise install binaries under GOPATH/bin. We need
 # this to work under both Nix and CircleCI.
 if [[ -z "$(go env GOBIN)" ]]; then
-  export GOBIN="$(go env GOPATH)/bin"
+  GOBIN="$(go env GOPATH)/bin"
+  export GOBIN
 fi
 
 # Install go-critic if it's not present.

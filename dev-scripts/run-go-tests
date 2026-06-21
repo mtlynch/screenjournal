@@ -44,15 +44,13 @@ fi
 
 go vet ./...
 
-# Workaround for compatibility with Nix and CircleCI environments.
-GO_BIN_DIR="$(go env GOBIN)"
-if [[ -z "${GO_BIN_DIR}" ]]; then
-  GO_BIN_DIR="$(go env GOPATH)/bin"
+# Set GOBIN when Go would otherwise install binaries under GOPATH/bin.
+if [[ -z "$(go env GOBIN)" ]]; then
+  export GOBIN="$(go env GOPATH)/bin"
 fi
-readonly GO_BIN_DIR
 
 # Install go-critic if it's not present.
-GOCRITIC_PATH="${GO_BIN_DIR}/go-critic"
+GOCRITIC_PATH="$(go env GOBIN)/go-critic"
 readonly GOCRITIC_PATH
 readonly GOCRITIC_VERSION="v0.14.3"
 if [[ ! -f "${GOCRITIC_PATH}" ]]; then
@@ -62,7 +60,7 @@ fi
 "${GOCRITIC_PATH}" check -enable=returnAfterHttpError ./...
 
 # Install staticcheck if it's not present.
-STATICCHECK_PATH="${GO_BIN_DIR}/staticcheck"
+STATICCHECK_PATH="$(go env GOBIN)/staticcheck"
 readonly STATICCHECK_PATH
 readonly STATICCHECK_VERSION="v0.6.1"
 if [[ ! -f "${STATICCHECK_PATH}" ]]; then
@@ -71,7 +69,7 @@ fi
 "${STATICCHECK_PATH}" ./...
 
 # Install errcheck if it's not present.
-ERRCHECK_PATH="${GO_BIN_DIR}/errcheck"
+ERRCHECK_PATH="$(go env GOBIN)/errcheck"
 readonly ERRCHECK_PATH
 readonly ERRCHECK_VERSION="v1.10.0"
 if [[ ! -f "${ERRCHECK_PATH}" ]]; then

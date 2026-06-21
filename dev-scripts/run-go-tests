@@ -44,6 +44,7 @@ fi
 
 go vet ./...
 
+# Workaround for compatibility with Nix and CircleCI environments.
 GO_BIN_DIR="$(go env GOBIN)"
 if [[ -z "${GO_BIN_DIR}" ]]; then
   GO_BIN_DIR="$(go env GOPATH)/bin"

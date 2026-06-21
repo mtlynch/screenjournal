@@ -44,8 +44,15 @@ fi
 
 go vet ./...
 
+# Set GOBIN when Go would otherwise install binaries under GOPATH/bin. We need
+# this to work under both Nix and CircleCI.
+if [[ -z "$(go env GOBIN)" ]]; then
+  GOBIN="$(go env GOPATH)/bin"
+  export GOBIN
+fi
+
 # Install go-critic if it's not present.
-GOCRITIC_PATH="$(go env GOPATH)/bin/go-critic"
+GOCRITIC_PATH="$(go env GOBIN)/go-critic"
 readonly GOCRITIC_PATH
 readonly GOCRITIC_VERSION="v0.14.3"
 if [[ ! -f "${GOCRITIC_PATH}" ]]; then
@@ -55,7 +62,7 @@ fi
 "${GOCRITIC_PATH}" check -enable=returnAfterHttpError ./...
 
 # Install staticcheck if it's not present.
-STATICCHECK_PATH="$(go env GOPATH)/bin/staticcheck"
+STATICCHECK_PATH="$(go env GOBIN)/staticcheck"
 readonly STATICCHECK_PATH
 readonly STATICCHECK_VERSION="v0.6.1"
 if [[ ! -f "${STATICCHECK_PATH}" ]]; then
@@ -64,7 +71,7 @@ fi
 "${STATICCHECK_PATH}" ./...
 
 # Install errcheck if it's not present.
-ERRCHECK_PATH="$(go env GOPATH)/bin/errcheck"
+ERRCHECK_PATH="$(go env GOBIN)/errcheck"
 readonly ERRCHECK_PATH
 readonly ERRCHECK_VERSION="v1.10.0"
 if [[ ! -f "${ERRCHECK_PATH}" ]]; then

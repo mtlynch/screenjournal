@@ -12,8 +12,8 @@ kill_timeout = 30
   SJ_SMTP_HOST = "in.smtp.sendamatic.net"
   SJ_SMTP_PORT = "587"
   SJ_BASE_URL = "https://thescreenjournal.com"
-  LITESTREAM_BUCKET="screenjournal-litestream"
-  LITESTREAM_ENDPOINT="s3.us-west-002.backblazeb2.com"
+  LITESTREAM_BUCKET = "screenjournal-litestream"
+  LITESTREAM_ENDPOINT = "s3.us-west-002.backblazeb2.com"
   TZ = "America/New_York"
 
 [deploy]
@@ -23,9 +23,10 @@ kill_timeout = 30
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = "off"
+  auto_stop_machines = false
   auto_start_machines = false
   min_machines_running = 0
+  processes = ["app"]
 
   [http_service.concurrency]
     type = "requests"

@@ -153,7 +153,7 @@ test("adds a new movie rating and fills in only required fields", async ({
 
   await page.getByLabel("Rating").selectOption({ label: "1.0" });
 
-  await page.locator("form input[type='submit']").click();
+  await page.getByRole("button", { name: "Publish" }).click();
 
   await expect(page).toHaveURL("/movies/3");
 
@@ -204,7 +204,7 @@ Haley Joel Osment is going places!
 
 I can't believe Bruce Willis was a ghost the whole time!`);
 
-  await page.locator("form input[type='submit']").click();
+  await page.getByRole("button", { name: "Publish" }).click();
 
   await expect(page).toHaveURL("/movies/3");
 
@@ -248,7 +248,7 @@ test("adds a new TV show rating and fills in only required fields", async ({
 
   await page.getByLabel("Rating").selectOption({ label: "4.5" });
 
-  await page.locator("form input[type='submit']").click();
+  await page.getByRole("button", { name: "Publish" }).click();
 
   await expect(page).toHaveURL("/tv-shows/2?season=5");
 
@@ -308,7 +308,7 @@ test("views a TV show with an existing review and adds a new review", async ({
   await page.getByLabel("Rating").selectOption({ label: "5.0" });
   await page.getByLabel("Other thoughts?").fill("I liked it, too!");
 
-  await page.locator("form input[type='submit']").click();
+  await page.getByRole("button", { name: "Publish" }).click();
 
   await expect(page).toHaveURL("/tv-shows/1?season=2");
 });
@@ -345,7 +345,7 @@ Daniel Radcliffe is **fantastic**, and it's a great film role for Rainn Wilson. 
 
 You'll like it if you enjoy things like _Children's Hospital_, _Comedy Bang Bang_, or _Popstar_.`);
 
-  await page.locator("form input[type='submit']").click();
+  await page.getByRole("button", { name: "Publish" }).click();
 
   await expect(page).toHaveURL("/movies/3");
 
@@ -430,7 +430,7 @@ test("adds a new rating and fills all fields", async ({ page }) => {
 
   await page.getByLabel("Other thoughts?").fill("My favorite movie!");
 
-  await page.locator("form input[type='submit']").click();
+  await page.getByRole("button", { name: "Publish" }).click();
 
   await expect(page).toHaveURL("/movies/3");
 
@@ -486,7 +486,7 @@ test("HTML tags in reviews are stripped from review excerpt", async ({
     .getByLabel("Other thoughts?")
     .fill("This is the <b>best</b> movie ever!");
 
-  await page.locator("form input[type='submit']").click();
+  await page.getByRole("button", { name: "Publish" }).click();
 
   await expect(page).toHaveURL("/movies/3");
 
@@ -523,7 +523,7 @@ test("adds a new movie rating and edits the details", async ({ page }) => {
 
   await page.getByLabel("Other thoughts?").fill("My favorite movie!");
 
-  await page.locator("form input[type='submit']").click();
+  await page.getByRole("button", { name: "Publish" }).click();
 
   await expect(page).toHaveURL("/movies/3");
 
@@ -601,7 +601,7 @@ test("adds a new rating and cancels the edit", async ({ page }) => {
     .getByLabel("Other thoughts?")
     .fill("What an English patient he was!");
 
-  await page.locator("form input[type='submit']").click();
+  await page.getByRole("button", { name: "Publish" }).click();
 
   await expect(page).toHaveURL("/movies/3");
 
@@ -663,7 +663,7 @@ test("editing another user's review fails", async ({
     .getByLabel("Other thoughts?")
     .fill("What an English patient he was!");
 
-  await page.locator("form input[type='submit']").click();
+  await page.getByRole("button", { name: "Publish" }).click();
 
   await expect(page).toHaveURL("/movies/3");
 
@@ -706,7 +706,7 @@ test("views a movie with an existing review and adds a new review", async ({
   await page.getByLabel("Rating").selectOption({ label: "5.0" });
   await page.getByLabel("Other thoughts?").fill("Relevant as ever");
 
-  await page.locator("form input[type='submit']").click();
+  await page.getByRole("button", { name: "Publish" }).click();
 
   await expect(page).toHaveURL("/movies/1");
 });
@@ -929,7 +929,7 @@ test("adds a new movie rating without a numeric rating", async ({ page }) => {
     .getByLabel("Other thoughts?")
     .fill("A classic, but I don't want to give it a numeric rating.");
 
-  await page.locator("form input[type='submit']").click();
+  await page.getByRole("button", { name: "Publish" }).click();
 
   await expect(page).toHaveURL("/movies/3");
 

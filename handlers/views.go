@@ -326,6 +326,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			collectionOwner = &username
 			queryOptions = append(queryOptions, store.FilterReviewsByUsername(username))
 		}
+		queryOptions = append(queryOptions, store.FilterReviewsByDraftStatus(false))
 
 		var sortOrder = screenjournal.ByWatchDate
 		if sort, err := sortOrderFromQueryParams(r); err == nil {
@@ -363,6 +364,51 @@ func (s Server) reviewsGet() http.HandlerFunc {
 	}
 }
 
+func (s Server) reviewsDraftsGet() http.HandlerFunc {
+	fns := template.FuncMap{
+		"elideBlurb": func(b screenjournal.Blurb) string {
+			plaintext := markdown.RenderBlurbAsPlaintext(b)
+			if len(plaintext) > 200 {
+				return plaintext[:200] + "..."
+			}
+			return plaintext
+		},
+		"posterPathToURL":     posterPathToURL,
+		"relativeCommentDate": relativeCommentDate,
+	}
+
+	t := template.Must(
+		template.New("base.html").
+			Funcs(fns).
+			ParseFS(
+				templatesFS,
+				append(baseTemplates, "templates/pages/reviews-drafts.html")...))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		loggedInUsername := mustGetUsernameFromContext(r.Context())
+		drafts, err := s.store.ReadReviews(
+			store.FilterReviewsByUsername(loggedInUsername),
+			store.FilterReviewsByDraftStatus(true),
+		)
+		if err != nil {
+			log.Printf("failed to read drafts: %v", err)
+			http.Error(w, "Failed to read drafts", http.StatusInternalServerError)
+			return
+		}
+
+		if err := t.Execute(w, struct {
+			commonProps
+			Drafts []screenjournal.Review
+		}{
+			commonProps: makeCommonProps(r.Context()),
+			Drafts:      drafts,
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
 func (s Server) moviesReadGet() http.HandlerFunc {
 	t := template.Must(
 		template.New("base.html").
@@ -387,7 +433,10 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			return
 		}
 
-		reviews, err := s.store.ReadReviews(store.FilterReviewsByMovieID(mid))
+		reviews, err := s.store.ReadReviews(
+			store.FilterReviewsByMovieID(mid),
+			store.FilterReviewsByDraftStatus(false),
+		)
 		if err != nil {
 			log.Printf("failed to read movie reviews: %v", err)
 			http.Error(w, "Failed to retrieve reviews", http.StatusInternalServerError)
@@ -483,7 +532,11 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			return
 		}
 
-		reviews, err := s.store.ReadReviews(store.FilterReviewsByTvShowID(tvID), store.FilterReviewsByTvShowSeason(seasonNumber))
+		reviews, err := s.store.ReadReviews(
+			store.FilterReviewsByTvShowID(tvID),
+			store.FilterReviewsByTvShowSeason(seasonNumber),
+			store.FilterReviewsByDraftStatus(false),
+		)
 		if err != nil {
 			log.Printf("failed to read TV show reviews: %v", err)
 			http.Error(w, "Failed to retrieve TV show reviews", http.StatusInternalServerError)
@@ -754,6 +807,11 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 				return
 			}
 			movie = m
+			if movie.ID.IsZero() && tmdbID != nil {
+				if existingMovie, err := s.store.ReadMovieByTmdbID(*tmdbID); err == nil {
+					movie = existingMovie
+				}
+			}
 		} else if mediaType == screenjournal.MediaTypeTvShow {
 			t, err := s.getTvShow(r, tvShowID, tmdbID)
 			if err != nil {
@@ -762,6 +820,11 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 				return
 			}
 			tvShow = t
+			if tvShow.ID.IsZero() && tmdbID != nil {
+				if existingShow, err := s.store.ReadTvShowByTmdbID(*tmdbID); err == nil {
+					tvShow = existingShow
+				}
+			}
 
 			season, err := tvShowSeasonFromQueryParams(r)
 			if err != nil {
@@ -770,6 +833,25 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 				return
 			}
 			tvShowSeason = season
+		}
+
+		loggedInUsername := mustGetUsernameFromContext(r.Context())
+		draftCandidate := screenjournal.Review{
+			Owner:        loggedInUsername,
+			Movie:        movie,
+			TvShow:       tvShow,
+			TvShowSeason: tvShowSeason,
+		}
+		if (mediaType == screenjournal.MediaTypeMovie && !movie.ID.IsZero()) ||
+			(mediaType == screenjournal.MediaTypeTvShow && !tvShow.ID.IsZero()) {
+			if existingDraft, err := s.findExistingDraft(r, loggedInUsername, draftCandidate); err != nil {
+				log.Printf("failed to check draft: %v", err)
+				http.Error(w, "Failed to load review", http.StatusInternalServerError)
+				return
+			} else if existingDraft != nil {
+				http.Redirect(w, r, fmt.Sprintf("/reviews/%d/edit", existingDraft.ID.UInt64()), http.StatusSeeOther)
+				return
+			}
 		}
 
 		renderTemplate(w, t, "base.html", struct {
@@ -1044,15 +1126,20 @@ func formatWatchDate(t screenjournal.WatchDate) string {
 	return t.Time().Format(time.DateOnly)
 }
 
+// relativeCommentDate renders a coarse, human-friendly age for a timestamp
+// (e.g. "just now", "an hour ago", "3 weeks ago"). It's used wherever we show
+// when something was last touched, such as comments and draft reviews.
 func relativeCommentDate(t time.Time) string {
-	minutesAgo := int(time.Since(t).Minutes())
+	elapsed := time.Since(t)
+
+	minutesAgo := int(elapsed.Minutes())
 	if minutesAgo < 1 {
 		return "just now"
 	}
 	if minutesAgo == 1 {
 		return "a minute ago"
 	}
-	hoursAgo := int(time.Since(t).Hours())
+	hoursAgo := int(elapsed.Hours())
 	if hoursAgo < 1 {
 		return fmt.Sprintf("%d minutes ago", minutesAgo)
 	}
@@ -1063,7 +1150,7 @@ func relativeCommentDate(t time.Time) string {
 		return fmt.Sprintf("%d hours ago", hoursAgo)
 	}
 
-	daysAgo := int(time.Since(t).Hours() / 24)
+	daysAgo := int(elapsed.Hours() / 24)
 	weeksAgo := int(daysAgo / 7)
 	switch {
 	case daysAgo == 1:

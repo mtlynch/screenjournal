@@ -12,6 +12,7 @@ type (
 		MovieID      *screenjournal.MovieID
 		TvShowID     *screenjournal.TvShowID
 		TvShowSeason *screenjournal.TvShowSeason
+		IsDraft      *bool
 	}
 
 	ReadReviewsParams struct {
@@ -56,6 +57,12 @@ func FilterReviewsByTvShowID(id screenjournal.TvShowID) func(*ReadReviewsParams)
 func FilterReviewsByTvShowSeason(season screenjournal.TvShowSeason) func(*ReadReviewsParams) {
 	return func(p *ReadReviewsParams) {
 		p.Filters.TvShowSeason = new(season)
+	}
+}
+
+func FilterReviewsByDraftStatus(isDraft bool) func(*ReadReviewsParams) {
+	return func(p *ReadReviewsParams) {
+		p.Filters.IsDraft = &isDraft
 	}
 }
 

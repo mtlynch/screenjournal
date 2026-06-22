@@ -24,7 +24,6 @@ type reviewPutRequest struct {
 	Rating  screenjournal.Rating
 	Blurb   screenjournal.Blurb
 	Watched screenjournal.WatchDate
-	Publish bool
 }
 
 func (s Server) reviewsPost() http.HandlerFunc {
@@ -77,13 +76,7 @@ func (s Server) reviewsPut() http.HandlerFunc {
 		review.Blurb = parsedRequest.Blurb
 		review.Watched = parsedRequest.Watched
 		wasDraft := review.IsDraft
-		if parsedRequest.Publish {
-			if !review.IsDraft {
-				http.Error(w, "Review already published", http.StatusBadRequest)
-				return
-			}
-			review.IsDraft = false
-		}
+		review.IsDraft = false
 
 		if err := s.store.UpdateReview(review); err != nil {
 			log.Printf("failed to update review: %v", err)
@@ -194,8 +187,6 @@ func parseReviewPutRequest(r *http.Request, requireWatchDate bool) (reviewPutReq
 	if parsed.Blurb, err = parse.Blurb(r.PostFormValue("blurb")); err != nil {
 		return reviewPutRequest{}, err
 	}
-
-	parsed.Publish = formBool(r, "publish")
 
 	return parsed, nil
 }

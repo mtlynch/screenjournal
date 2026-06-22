@@ -221,8 +221,8 @@
       form.addEventListener("change", handleAutoSaveEvent);
 
       // When autosave has already created a draft, publish by updating that
-      // draft (PUT /reviews/{id}?publish=true) instead of POSTing a brand-new
-      // review, which would orphan the draft.
+      // draft instead of POSTing a brand-new review, which would orphan the
+      // draft.
       form.addEventListener("htmx:configRequest", (evt) => {
         const draftId = draftIdInput?.value?.trim();
         if (
@@ -232,7 +232,6 @@
         ) {
           evt.detail.verb = "put";
           evt.detail.path = `/reviews/${draftId}`;
-          evt.detail.parameters["publish"] = "true";
         }
       });
     }
@@ -409,7 +408,7 @@
           <div class="d-flex">
             {{ if $isDraft }}
               <div class="btn-group me-2" role="group">
-                <button class="btn btn-primary" name="publish" value="true">
+                <button class="btn btn-primary">
                   <i class="fa-solid fa-floppy-disk"></i>
                   Publish
                 </button>

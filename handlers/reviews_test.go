@@ -1228,7 +1228,7 @@ func TestReviewsPutPublishesDraft(t *testing.T) {
 	})
 
 	payload := fmt.Sprintf(
-		"publish=true&rating=5&watch-date=2022-10-30&blurb=%s",
+		"rating=5&watch-date=2022-10-30&blurb=%s",
 		url.QueryEscape("Final thoughts"),
 	)
 	req, err := http.NewRequest("PUT", fmt.Sprintf("/reviews/%d", draftID), strings.NewReader(payload))

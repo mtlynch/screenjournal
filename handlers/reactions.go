@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"time"
@@ -44,9 +43,7 @@ func convertReactionsForTemplate(reactions []screenjournal.ReviewReaction, logge
 }
 
 func (s Server) reactionsPost() http.HandlerFunc {
-	t := template.Must(template.New("reviews-for-single-media-entry.html").
-		Funcs(moviePageFns).
-		ParseFS(templatesFS, "templates/pages/reviews-for-single-media-entry.html"))
+	t := s.html.mustParseWithFuncs(moviePageFns, "pages/reviews-for-single-media-entry.html")
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := parseReactionPostRequest(r)
 		if err != nil {
@@ -91,7 +88,7 @@ func (s Server) reactionsPost() http.HandlerFunc {
 		// Convert reactions to template format.
 		reactionsForTemplate := convertReactionsForTemplate(reactions, loggedInUsername, isAdminUser)
 
-		renderTemplate(w, t, "reactions-section", struct {
+		s.html.render(w, t, "reactions-section", struct {
 			ReviewID         screenjournal.ReviewID
 			Reactions        []reactionForTemplate
 			UserHasReacted   bool

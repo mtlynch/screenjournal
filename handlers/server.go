@@ -10,6 +10,7 @@ import (
 
 	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
 
+	"github.com/mtlynch/screenjournal/v2/assets"
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
@@ -64,6 +65,7 @@ type (
 		store            sqlite.Store
 		metadataFinder   MetadataFinder
 		passwordResetter PasswordResetter
+		html             *htmlRenderer
 	}
 )
 
@@ -83,6 +85,12 @@ func New(params ServerParams) Server {
 		store:            params.Store,
 		metadataFinder:   params.MetadataFinder,
 		passwordResetter: params.PasswordResetter,
+		html: newHTMLRenderer(
+			assets.HTMLFiles,
+			"layouts/base.html",
+			"partials/footer.html",
+			"partials/navbar.html",
+		),
 	}
 
 	s.routes()

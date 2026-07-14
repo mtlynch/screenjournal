@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"time"
@@ -24,9 +23,7 @@ type commentPutRequest struct {
 }
 
 func (s Server) commentsAddGet() http.HandlerFunc {
-	t := template.Must(template.New("reviews-for-single-media-entry.html").
-		Funcs(moviePageFns).
-		ParseFS(templatesFS, "templates/pages/reviews-for-single-media-entry.html"))
+	t := s.html.mustParseWithFuncs(moviePageFns, "pages/reviews-for-single-media-entry.html")
 	return func(w http.ResponseWriter, r *http.Request) {
 		reviewID, err := reviewIDFromQueryParams(r)
 		if err != nil {
@@ -34,7 +31,7 @@ func (s Server) commentsAddGet() http.HandlerFunc {
 			return
 		}
 
-		renderTemplate(w, t, "add-comment-button", struct {
+		s.html.render(w, t, "add-comment-button", struct {
 			ID screenjournal.ReviewID
 		}{
 			ID: reviewID,
@@ -43,7 +40,7 @@ func (s Server) commentsAddGet() http.HandlerFunc {
 }
 
 func (s Server) commentsEditGet() http.HandlerFunc {
-	t := template.Must(template.ParseFS(templatesFS, "templates/fragments/comments-edit.html"))
+	t := s.html.mustParse("fragments/comments-edit.html")
 	return func(w http.ResponseWriter, r *http.Request) {
 		reviewID, err := reviewIDFromQueryParams(r)
 		if err != nil {
@@ -77,7 +74,7 @@ func (s Server) commentsEditGet() http.HandlerFunc {
 			commentText = *pCommentText
 		}
 
-		renderTemplate(w, t, "comments-edit.html", struct {
+		s.html.render(w, t, "comments-edit.html", struct {
 			ReviewID    screenjournal.ReviewID
 			CommentID   screenjournal.CommentID
 			CommentText screenjournal.CommentText
@@ -90,9 +87,7 @@ func (s Server) commentsEditGet() http.HandlerFunc {
 }
 
 func (s Server) commentsGet() http.HandlerFunc {
-	t := template.Must(template.New("reviews-for-single-media-entry.html").
-		Funcs(moviePageFns).
-		ParseFS(templatesFS, "templates/pages/reviews-for-single-media-entry.html"))
+	t := s.html.mustParseWithFuncs(moviePageFns, "pages/reviews-for-single-media-entry.html")
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := commentIDFromRequestPath(r)
 		if err != nil {
@@ -110,7 +105,7 @@ func (s Server) commentsGet() http.HandlerFunc {
 			return
 		}
 
-		renderTemplate(w, t, "comment", struct {
+		s.html.render(w, t, "comment", struct {
 			Comment          screenjournal.ReviewComment
 			LoggedInUsername screenjournal.Username
 		}{
@@ -121,9 +116,7 @@ func (s Server) commentsGet() http.HandlerFunc {
 }
 
 func (s Server) commentsPost() http.HandlerFunc {
-	t := template.Must(template.New("reviews-for-single-media-entry.html").
-		Funcs(moviePageFns).
-		ParseFS(templatesFS, "templates/pages/reviews-for-single-media-entry.html"))
+	t := s.html.mustParseWithFuncs(moviePageFns, "pages/reviews-for-single-media-entry.html")
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := parseCommentPostRequest(r)
 		if err != nil {
@@ -157,7 +150,7 @@ func (s Server) commentsPost() http.HandlerFunc {
 		// the correct creation time.
 		rc.Created = time.Now()
 
-		if !renderTemplate(w, t, "comment", struct {
+		if !s.html.render(w, t, "comment", struct {
 			Comment          screenjournal.ReviewComment
 			LoggedInUsername screenjournal.Username
 		}{
@@ -172,9 +165,7 @@ func (s Server) commentsPost() http.HandlerFunc {
 }
 
 func (s Server) commentsPut() http.HandlerFunc {
-	t := template.Must(template.New("reviews-for-single-media-entry.html").
-		Funcs(moviePageFns).
-		ParseFS(templatesFS, "templates/pages/reviews-for-single-media-entry.html"))
+	t := s.html.mustParseWithFuncs(moviePageFns, "pages/reviews-for-single-media-entry.html")
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := parseCommentPutRequest(r)
 		if err != nil {
@@ -205,7 +196,7 @@ func (s Server) commentsPut() http.HandlerFunc {
 			return
 		}
 
-		renderTemplate(w, t, "comment", struct {
+		s.html.render(w, t, "comment", struct {
 			Comment          screenjournal.ReviewComment
 			LoggedInUsername screenjournal.Username
 		}{

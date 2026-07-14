@@ -36,14 +36,9 @@ type activityGroup struct {
 }
 
 func (s Server) activityGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").
-			Funcs(template.FuncMap{
-				"ratingToStars": ratingToStars,
-			}).
-			ParseFS(
-				templatesFS,
-				append(baseTemplates, "templates/pages/activity.html")...))
+	t := s.html.mustParseWithFuncs(template.FuncMap{
+		"ratingToStars": ratingToStars,
+	}, "pages/activity.html")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		reviews, err := s.store.ReadReviews()
@@ -63,7 +58,7 @@ func (s Server) activityGet() http.HandlerFunc {
 			reviews[i].Reactions = rr
 		}
 
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 			Groups []activityGroup
 		}{

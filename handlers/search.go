@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 
@@ -26,7 +25,7 @@ type (
 )
 
 func (s Server) searchGet() http.HandlerFunc {
-	t := template.Must(template.ParseFS(templatesFS, "templates/fragments/search-results.html"))
+	t := s.html.mustParse("fragments/search-results.html")
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := parseSearchGetRequest(r)
 		if err != nil {
@@ -65,7 +64,7 @@ func (s Server) searchGet() http.HandlerFunc {
 			})
 		}
 
-		renderTemplate(w, t, "search-results.html", struct {
+		s.html.render(w, t, "search-results.html", struct {
 			Results []searchMatch
 		}{
 			Results: matches,

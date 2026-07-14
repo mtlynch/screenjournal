@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"embed"
 	"errors"
 	"fmt"
 	"html/template"
@@ -69,15 +68,6 @@ func makeReviewViewModels(
 		vms[i] = makeReviewViewModel(r, loggedInUsername, isAdminUser)
 	}
 	return vms
-}
-
-//go:embed templates
-var templatesFS embed.FS
-
-var baseTemplates = []string{
-	"templates/layouts/base.html",
-	"templates/partials/footer.html",
-	"templates/partials/navbar.html",
 }
 
 type ratingOption struct {
@@ -167,11 +157,7 @@ var reviewPageFns = template.FuncMap{
 }
 
 func (s Server) indexGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").
-			ParseFS(
-				templatesFS,
-				append(baseTemplates, "templates/pages/index.html")...))
+	t := s.html.mustParse("pages/index.html")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Redirect logged in users to the reviews index instead of the landing
@@ -181,7 +167,7 @@ func (s Server) indexGet() http.HandlerFunc {
 			return
 		}
 
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps(r.Context()),
@@ -190,13 +176,9 @@ func (s Server) indexGet() http.HandlerFunc {
 }
 
 func (s Server) aboutGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").
-			ParseFS(
-				templatesFS,
-				append(baseTemplates, "templates/pages/about.html")...))
+	t := s.html.mustParse("pages/about.html")
 	return func(w http.ResponseWriter, r *http.Request) {
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps(r.Context()),
@@ -205,13 +187,9 @@ func (s Server) aboutGet() http.HandlerFunc {
 }
 
 func (s Server) logInGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").
-			ParseFS(
-				templatesFS,
-				append(baseTemplates, "templates/pages/login.html")...))
+	t := s.html.mustParse("pages/login.html")
 	return func(w http.ResponseWriter, r *http.Request) {
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps(r.Context()),
@@ -220,16 +198,8 @@ func (s Server) logInGet() http.HandlerFunc {
 }
 
 func (s Server) signUpGet() http.HandlerFunc {
-	noInviteTemplate := template.Must(
-		template.New("base.html").
-			ParseFS(
-				templatesFS,
-				append(baseTemplates, "templates/pages/sign-up.html")...))
-	byInviteTemplate := template.Must(
-		template.New("base.html").
-			ParseFS(
-				templatesFS,
-				append(baseTemplates, "templates/pages/sign-up-by-invitation.html")...))
+	noInviteTemplate := s.html.mustParse("pages/sign-up.html")
+	byInviteTemplate := s.html.mustParse("pages/sign-up-by-invitation.html")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		inviteCode, err := inviteCodeFromQueryParams(r)
@@ -270,7 +240,7 @@ func (s Server) signUpGet() http.HandlerFunc {
 			suggestedUsername = nonSuggestedCharsPattern.ReplaceAllString(strings.ToLower(firstPart), "")
 		}
 
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 			Invitee           screenjournal.Invitee
 			SuggestedUsername string
@@ -312,12 +282,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 		},
 	}
 
-	t := template.Must(
-		template.New("base.html").
-			Funcs(fns).
-			ParseFS(
-				templatesFS,
-				append(baseTemplates, "templates/pages/reviews-index.html")...))
+	t := s.html.mustParseWithFuncs(fns, "pages/reviews-index.html")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var collectionOwner *screenjournal.Username
@@ -346,7 +311,7 @@ func (s Server) reviewsGet() http.HandlerFunc {
 			title = fmt.Sprintf("%s's %s", collectionOwner, title)
 		}
 
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 			Title            string
 			Reviews          []screenjournal.Review
@@ -377,12 +342,7 @@ func (s Server) reviewsDraftsGet() http.HandlerFunc {
 		"relativeCommentDate": relativeCommentDate,
 	}
 
-	t := template.Must(
-		template.New("base.html").
-			Funcs(fns).
-			ParseFS(
-				templatesFS,
-				append(baseTemplates, "templates/pages/reviews-drafts.html")...))
+	t := s.html.mustParseWithFuncs(fns, "pages/reviews-drafts.html")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		loggedInUsername := mustGetUsernameFromContext(r.Context())
@@ -396,26 +356,18 @@ func (s Server) reviewsDraftsGet() http.HandlerFunc {
 			return
 		}
 
-		if err := t.Execute(w, struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 			Drafts []screenjournal.Review
 		}{
 			commonProps: makeCommonProps(r.Context()),
 			Drafts:      drafts,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		})
 	}
 }
 
 func (s Server) moviesReadGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").
-			Funcs(moviePageFns).
-			ParseFS(
-				templatesFS,
-				append(baseTemplates, "templates/pages/reviews-for-single-media-entry.html")...))
+	t := s.html.mustParseWithFuncs(moviePageFns, "pages/reviews-for-single-media-entry.html")
 	return func(w http.ResponseWriter, r *http.Request) {
 		mid, err := movieIDFromRequestPath(r)
 		if err != nil {
@@ -478,7 +430,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 			TmdbID       screenjournal.TmdbID
 			ReleaseDate  screenjournal.ReleaseDate
 		}
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 			Media           mediaStub
 			Reviews         []reviewViewModel
@@ -502,12 +454,7 @@ func (s Server) moviesReadGet() http.HandlerFunc {
 }
 
 func (s Server) tvShowsReadGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").
-			Funcs(moviePageFns).
-			ParseFS(
-				templatesFS,
-				append(baseTemplates, "templates/pages/reviews-for-single-media-entry.html")...))
+	t := s.html.mustParseWithFuncs(moviePageFns, "pages/reviews-for-single-media-entry.html")
 	return func(w http.ResponseWriter, r *http.Request) {
 		tvID, err := tvShowIDFromRequestPath(r)
 		if err != nil {
@@ -579,7 +526,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 			ReleaseDate  screenjournal.ReleaseDate
 		}
 
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 			Media           mediaStub
 			Reviews         []reviewViewModel
@@ -604,12 +551,7 @@ func (s Server) tvShowsReadGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsEditGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").
-			Funcs(reviewPageFns).
-			ParseFS(
-				templatesFS,
-				append(baseTemplates, "templates/pages/reviews-edit.html")...))
+	t := s.html.mustParseWithFuncs(reviewPageFns, "pages/reviews-edit.html")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		id, err := reviewIDFromRequestPath(r)
@@ -641,7 +583,7 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 			return
 		}
 
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 			RatingOptions []ratingOption
 			Review        screenjournal.Review
@@ -658,17 +600,10 @@ func (s Server) reviewsEditGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsNewTitleSearchGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").
-			Funcs(reviewPageFns).
-			ParseFS(
-				templatesFS,
-				append(
-					baseTemplates,
-					"templates/pages/reviews-new.html")...))
+	t := s.html.mustParseWithFuncs(reviewPageFns, "pages/reviews-new.html")
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps(r.Context()),
@@ -677,14 +612,7 @@ func (s Server) reviewsNewTitleSearchGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").
-			Funcs(reviewPageFns).
-			ParseFS(
-				templatesFS,
-				append(
-					baseTemplates,
-					"templates/pages/reviews-tv-pick-season.html")...))
+	t := s.html.mustParseWithFuncs(reviewPageFns, "pages/reviews-tv-pick-season.html")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		tmdbID, err := tmdbIDFromQueryParams(r)
@@ -715,7 +643,7 @@ func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
 			seasonOptions[i] = i + 1
 		}
 
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 			TmdbID        screenjournal.TmdbID
 			TvShowTitle   screenjournal.MediaTitle
@@ -732,14 +660,7 @@ func (s Server) reviewsNewPickSeasonGet() http.HandlerFunc {
 }
 
 func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").
-			Funcs(reviewPageFns).
-			ParseFS(
-				templatesFS,
-				append(
-					baseTemplates,
-					"templates/pages/reviews-edit.html")...))
+	t := s.html.mustParseWithFuncs(reviewPageFns, "pages/reviews-edit.html")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var mediaType screenjournal.MediaType
@@ -854,7 +775,7 @@ func (s Server) reviewsNewWriteReviewGet() http.HandlerFunc {
 			}
 		}
 
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 			RatingOptions []ratingOption
 			Review        screenjournal.Review
@@ -912,13 +833,7 @@ func (s Server) getTvShow(r *http.Request, tvShowID *screenjournal.TvShowID, tmd
 }
 
 func (s Server) invitesGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").ParseFS(
-			templatesFS,
-			append(
-				baseTemplates,
-				"templates/fragments/invite-row.html",
-				"templates/pages/invites.html")...))
+	t := s.html.mustParse("fragments/invite-row.html", "pages/invites.html")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		invites, err := s.store.ReadSignupInvitations()
@@ -927,7 +842,7 @@ func (s Server) invitesGet() http.HandlerFunc {
 			http.Error(w, "Failed to read signup invitations", http.StatusInternalServerError)
 			return
 		}
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 			Invites []screenjournal.SignupInvitation
 		}{
@@ -938,10 +853,7 @@ func (s Server) invitesGet() http.HandlerFunc {
 }
 
 func (s Server) accountPasswordResetGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").ParseFS(
-			templatesFS,
-			append(baseTemplates, "templates/pages/account-change-password.html")...))
+	t := s.html.mustParse("pages/account-change-password.html")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		username, err := parse.Username(r.URL.Query().Get("username"))
@@ -974,7 +886,7 @@ func (s Server) accountPasswordResetGet() http.HandlerFunc {
 			return
 		}
 
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 			Token         string
 			FormTargetURL string
@@ -989,13 +901,10 @@ func (s Server) accountPasswordResetGet() http.HandlerFunc {
 }
 
 func (s Server) accountChangePasswordGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").ParseFS(
-			templatesFS,
-			append(baseTemplates, "templates/pages/account-change-password.html")...))
+	t := s.html.mustParse("pages/account-change-password.html")
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 			Token         string
 			FormTargetURL string
@@ -1010,10 +919,7 @@ func (s Server) accountChangePasswordGet() http.HandlerFunc {
 }
 
 func (s Server) accountNotificationsGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").ParseFS(
-			templatesFS,
-			append(baseTemplates, "templates/pages/account-notifications.html")...))
+	t := s.html.mustParse("pages/account-notifications.html")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		prefs, err := s.store.ReadNotificationPreferences(mustGetUsernameFromContext(r.Context()))
@@ -1023,7 +929,7 @@ func (s Server) accountNotificationsGet() http.HandlerFunc {
 			return
 		}
 
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 			ReceivesReviewNotices     bool
 			ReceivesAllCommentNotices bool
@@ -1036,13 +942,10 @@ func (s Server) accountNotificationsGet() http.HandlerFunc {
 }
 
 func (s Server) accountSecurityGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").ParseFS(
-			templatesFS,
-			append(baseTemplates, "templates/pages/account-security.html")...))
+	t := s.html.mustParse("pages/account-security.html")
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 		}{
 			commonProps: makeCommonProps(r.Context()),
@@ -1051,12 +954,7 @@ func (s Server) accountSecurityGet() http.HandlerFunc {
 }
 
 func (s Server) usersGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").
-			Funcs(reviewPageFns).
-			ParseFS(
-				templatesFS,
-				append(baseTemplates, "templates/pages/users.html")...))
+	t := s.html.mustParseWithFuncs(reviewPageFns, "pages/users.html")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		users, err := s.store.ReadUsersPublicMeta()
@@ -1065,7 +963,7 @@ func (s Server) usersGet() http.HandlerFunc {
 			return
 		}
 
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 			Users []screenjournal.UserPublicMeta
 		}{

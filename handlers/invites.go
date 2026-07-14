@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 
@@ -14,7 +13,7 @@ type invitesPostRequest struct {
 }
 
 func (s Server) invitesPost() http.HandlerFunc {
-	t := template.Must(template.ParseFS(templatesFS, "templates/fragments/invite-row.html"))
+	t := s.html.mustParse("fragments/invite-row.html")
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := parseInvitesPostRequest(r)
 		if err != nil {
@@ -33,7 +32,7 @@ func (s Server) invitesPost() http.HandlerFunc {
 			return
 		}
 
-		renderTemplate(w, t, "invite-row.html", struct {
+		s.html.render(w, t, "invite-row.html", struct {
 			Invitee    screenjournal.Invitee
 			InviteCode screenjournal.InviteCode
 		}{

@@ -3,7 +3,6 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 
@@ -81,15 +80,11 @@ func (s Server) accountPasswordResetPut() http.HandlerFunc {
 }
 
 func (s Server) resetPasswordGet() http.HandlerFunc {
-	t := template.Must(
-		template.New("base.html").
-			ParseFS(
-				templatesFS,
-				append(baseTemplates, "templates/pages/reset-password.html")...))
+	t := s.html.mustParse("pages/reset-password.html")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		serverSupportsPasswordResets := s.passwordResetterForRequest() != nil
-		renderTemplate(w, t, "base.html", struct {
+		s.html.render(w, t, "base.html", struct {
 			commonProps
 			Submitted                    bool
 			ServerSupportsPasswordResets bool
@@ -101,11 +96,7 @@ func (s Server) resetPasswordGet() http.HandlerFunc {
 }
 
 func (s Server) resetPasswordPost() http.HandlerFunc {
-	pageTemplate := template.Must(
-		template.New("base.html").
-			ParseFS(
-				templatesFS,
-				append(baseTemplates, "templates/pages/reset-password.html")...))
+	pageTemplate := s.html.mustParse("pages/reset-password.html")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		passwordResetter := s.passwordResetterForRequest()
@@ -117,7 +108,7 @@ func (s Server) resetPasswordPost() http.HandlerFunc {
 		// Always render the same success page regardless of account lookup
 		// outcome.
 		renderSuccess := func() {
-			renderTemplate(w, pageTemplate, "base.html", struct {
+			s.html.render(w, pageTemplate, "base.html", struct {
 				commonProps
 				Submitted                    bool
 				ServerSupportsPasswordResets bool

@@ -4,6 +4,51 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <!--
+      Keep htmx requests limited to this origin so hx-* attributes can't be
+      used to send data to another site.
+
+      Disable script tags and eval in swapped content because this app renders
+      htmx responses server-side and doesn't need response-provided script
+      execution.
+
+      Disable htmx's history cache because storing full pages in localStorage
+      can create stale-page bugs and leaks content into long-lived browser
+      storage.
+
+      Make history restores normal requests, not HX-Request requests, so any
+      future route that returns fragments for htmx can still return a complete
+      page during back-button restoration.
+
+      Disable htmx's injected indicator CSS because the app owns those styles
+      in screenjournal.css and CSP should not need to permit htmx inline styles.
+
+      Keep a default htmx timeout so stalled requests fail instead of leaving
+      controls disabled indefinitely.
+
+      Keep 204 responses swappable because delete endpoints rely on empty 204
+      responses to clear the target element. Keep 422 responses swappable and
+      non-error because forms use that status for validation feedback.
+    -->
+    <meta
+      name="htmx-config"
+      content='{
+        "selfRequestsOnly": true,
+        "allowScriptTags": false,
+        "allowEval": false,
+        "historyCacheSize": 0,
+        "historyRestoreAsHxRequest": false,
+        "includeIndicatorStyles": false,
+        "timeout": 5000,
+        "responseTargetUnsetsError": false,
+        "responseHandling": [
+          {"code": "204", "swap": true},
+          {"code": "422", "swap": true, "error": false},
+          {"code": "[23]..", "swap": true},
+          {"code": "[45]..", "swap": false, "error": true}
+        ]
+      }'
+    />
     <title>{{ block "title" . }}ScreenJournal{{ end }}</title>
     {{ block "style-tags" . }}{{ end }}
     <link
@@ -34,7 +79,6 @@
     <script src="/third-party/htmx@2.0.4/htmx.min.js"></script>
     <script src="/third-party/htmx-ext-response-targets@2.0.0/response-targets.js"></script>
     <script src="/js/htmx-ext/clear-before-send.js"></script>
-    <script src="/js/htmx-settings.js" type="module"></script>
   </head>
 
   <body>

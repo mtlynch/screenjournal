@@ -27,18 +27,16 @@ htmx.config.timeout = 5000;
 // Don't let response-targets override isError.
 htmx.config.responseTargetUnsetsError = false;
 
-// Module scripts run after the document is parsed, so document.body exists.
-document.body.addEventListener("htmx:beforeSwap", function (evt) {
-  if (evt.detail.xhr.status === 204) {
-    evt.detail.shouldSwap = true;
-  }
-  if (evt.detail.xhr.status === 422) {
-    // allow 422 responses to swap as we are using this as a signal that
-    // a form was submitted with bad data and want to rerender with the
-    // errors
-    //
-    // set isError to false to avoid error logging in console
-    evt.detail.shouldSwap = true;
-    evt.detail.isError = false;
-  }
-});
+htmx.config.responseHandling = [
+  // Empty 204 responses from delete endpoints should clear their target.
+  { code: "204", swap: true },
+
+  // Validation errors should swap normally without console error noise.
+  { code: "422", swap: true, error: false },
+
+  // Successful non-empty responses should swap normally.
+  { code: "[23]..", swap: true },
+
+  // Let response-targets route error responses to hx-target-error elements.
+  { code: "[45]..", swap: false, error: true },
+];

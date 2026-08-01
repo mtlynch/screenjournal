@@ -54,7 +54,7 @@ fi
 # Install go-critic if it's not present.
 GOCRITIC_PATH="$(go env GOBIN)/go-critic"
 readonly GOCRITIC_PATH
-readonly GOCRITIC_VERSION="v0.14.3"
+readonly GOCRITIC_VERSION="v0.14.4"
 if [[ ! -f "${GOCRITIC_PATH}" ]]; then
     go install "github.com/go-critic/go-critic/cmd/go-critic@${GOCRITIC_VERSION}"
 fi

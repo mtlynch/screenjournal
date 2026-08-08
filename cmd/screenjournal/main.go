@@ -32,8 +32,8 @@ func main() {
 	flag.Parse()
 
 	ensureDirExists(filepath.Dir(*dbPath))
-	db := sqlite.MustOpen(*dbPath)
-	store := sqlite.New(db, isLitestreamEnabled())
+	db := sqlite.MustOpen(*dbPath, isLitestreamEnabled())
+	store := sqlite.New(db)
 
 	authenticator := auth.New(store)
 

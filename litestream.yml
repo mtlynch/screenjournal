@@ -12,3 +12,6 @@ dbs:
         snapshot-interval: 24h
         validation-interval: 72h
         sync-interval: 10m
+# Give the final sync room to persist recent writes before Fly terminates the
+# machine. fly.toml's kill_timeout must remain above this value.
+shutdown-sync-timeout: 60s

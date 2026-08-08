@@ -23,7 +23,7 @@ func TestStaticFilesUseCacheControlAndETag(t *testing.T) {
 	if got, want := responseRecorder.Code, http.StatusOK; got != want {
 		t.Fatalf("status=%d, want=%d", got, want)
 	}
-	if got, want := responseRecorder.Header().Get("Cache-Control"), "public, max-age=1800"; got != want {
+	if got, want := responseRecorder.Header().Get("Cache-Control"), expectedStaticCacheControl; got != want {
 		t.Errorf("Cache-Control=%q, want=%q", got, want)
 	}
 	if got := responseRecorder.Header().Get("ETag"); got == "" {
@@ -64,7 +64,7 @@ func TestStaticFilesReturnNotModifiedForMatchingETag(t *testing.T) {
 	if got, want := secondResponseRecorder.Code, http.StatusNotModified; got != want {
 		t.Fatalf("status=%d, want=%d", got, want)
 	}
-	if got, want := secondResponseRecorder.Header().Get("Cache-Control"), "public, max-age=1800"; got != want {
+	if got, want := secondResponseRecorder.Header().Get("Cache-Control"), expectedStaticCacheControl; got != want {
 		t.Errorf("Cache-Control=%q, want=%q", got, want)
 	}
 	if got, want := secondResponseRecorder.Header().Get("ETag"), cachedETag; got != want {

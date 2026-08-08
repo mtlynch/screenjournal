@@ -46,7 +46,7 @@ func (n noDirFS) Open(name string) (fs.File, error) {
 func cachingFileServer(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		etag := staticAssetETag(r.URL.Path)
-		w.Header().Set("Cache-Control", "public, max-age=1800")
+		w.Header().Set("Cache-Control", staticCacheControl())
 		w.Header().Set("ETag", etag)
 		if requestHasMatchingETag(r, etag) {
 			w.WriteHeader(http.StatusNotModified)

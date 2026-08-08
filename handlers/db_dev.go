@@ -12,6 +12,7 @@ import (
 	"net/url"
 
 	"github.com/gorilla/mux"
+
 	"github.com/mtlynch/screenjournal/v2/auth"
 	"github.com/mtlynch/screenjournal/v2/handlers/parse"
 	"github.com/mtlynch/screenjournal/v2/metadata/tmdb"

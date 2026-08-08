@@ -98,7 +98,7 @@ jobs:
           command: ./dev-scripts/lint-sql
   e2e:
     docker:
-      - image: mcr.microsoft.com/playwright:v1.57.0
+      - image: mcr.microsoft.com/playwright:v1.58.2
     environment:
       NODE_ENV: development
     steps:

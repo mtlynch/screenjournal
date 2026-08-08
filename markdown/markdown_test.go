@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/kylelemons/godebug/diff"
+
 	"github.com/mtlynch/screenjournal/v2/markdown"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"
 )

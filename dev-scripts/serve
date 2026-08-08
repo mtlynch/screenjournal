@@ -14,8 +14,14 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 readonly SCRIPT_DIR
 cd "${SCRIPT_DIR}/.."
 
+# Go installs tools in GOPATH/bin when GOBIN is unset.
+if [[ -z "$(go env GOBIN)" ]]; then
+  GOBIN="$(go env GOPATH)/bin"
+  export GOBIN
+fi
+
 # Install modd if it's not present.
-MODD_PATH="$(go env GOPATH)/bin/modd"
+MODD_PATH="$(go env GOBIN)/modd"
 readonly MODD_PATH
 readonly MODD_VERSION="v0.0.0-20211215124449-6083f9d1c171"
 if [[ ! -f "${MODD_PATH}" ]]; then

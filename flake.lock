@@ -34,6 +34,22 @@
         "type": "github"
       }
     },
+    "gci-nixpkgs": {
+      "locked": {
+        "lastModified": 1779508470,
+        "narHash": "sha256-Ap9KJX+5xHIn3bPIpfNgT6MEXdAECECwo4/rmlQD74M=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "29916453413845e54a65b8a1cf996842300cd299",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "29916453413845e54a65b8a1cf996842300cd299",
+        "type": "github"
+      }
+    },
     "go-nixpkgs": {
       "locked": {
         "lastModified": 1773110118,
@@ -66,6 +82,27 @@
         "type": "github"
       }
     },
+    "nix-index-database": {
+      "inputs": {
+        "nixpkgs": [
+          "stapelberg-nix",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1776829403,
+        "narHash": "sha256-oHVcvP2Ahhj1KUsEzp+2BQF55/r5VSa3QxdPdwE1p00=",
+        "owner": "nix-community",
+        "repo": "nix-index-database",
+        "rev": "c43246d4e9e506178b69baed075d797ec2d873e2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "nix-index-database",
+        "type": "github"
+      }
+    },
     "nodejs-nixpkgs": {
       "locked": {
         "lastModified": 1781454065,
@@ -84,17 +121,17 @@
     },
     "playwright-nixpkgs": {
       "locked": {
-        "lastModified": 1767966113,
-        "narHash": "sha256-mSTsvXa4WveSRJexsmCbm9dY17B1fKp7NLpJxllpQw4=",
+        "lastModified": 1773604855,
+        "narHash": "sha256-2QpQ0bRQU3Qqz1w3Am6ceExvtmVOWnlTxSf7mWfE3F8=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "5f02c91314c8ba4afe83b256b023756412218535",
+        "rev": "9cded172058da9dfa6b3227d46ff30ea2023698a",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "5f02c91314c8ba4afe83b256b023756412218535",
+        "rev": "9cded172058da9dfa6b3227d46ff30ea2023698a",
         "type": "github"
       }
     },
@@ -118,6 +155,7 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "flyctl-nixpkgs": "flyctl-nixpkgs",
+        "gci-nixpkgs": "gci-nixpkgs",
         "go-nixpkgs": "go-nixpkgs",
         "litestream-nixpkgs": "litestream-nixpkgs",
         "nodejs-nixpkgs": "nodejs-nixpkgs",
@@ -125,7 +163,8 @@
         "pnpm-nixpkgs": "pnpm-nixpkgs",
         "shellcheck-nixpkgs": "shellcheck-nixpkgs",
         "sqlfluff-nixpkgs": "sqlfluff-nixpkgs",
-        "sqlite-nixpkgs": "sqlite-nixpkgs"
+        "sqlite-nixpkgs": "sqlite-nixpkgs",
+        "stapelberg-nix": "stapelberg-nix"
       }
     },
     "shellcheck-nixpkgs": {
@@ -173,6 +212,27 @@
         "owner": "NixOS",
         "repo": "nixpkgs",
         "rev": "5ad9903c16126a7d949101687af0aa589b1d7d3d",
+        "type": "github"
+      }
+    },
+    "stapelberg-nix": {
+      "inputs": {
+        "nix-index-database": "nix-index-database",
+        "nixpkgs": [
+          "go-nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1784468930,
+        "narHash": "sha256-5yXFCq5BHDZk/9IMogyZbamnF4NVbljO/MMV3nKTeIA=",
+        "owner": "stapelberg",
+        "repo": "nix",
+        "rev": "7bd30a73dbd044d86687c84bb33d013cf30889f2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "stapelberg",
+        "repo": "nix",
         "type": "github"
       }
     },

@@ -10,4 +10,5 @@ set -x
 set -u
 
 pnpm exec prettier --check .
-pnpm exec eslint ./**/*.js
+mapfile -t frontend_files < <(git ls-files -- '*.js' 'handlers/templates/**/*.html')
+pnpm exec eslint --no-warn-ignored "${frontend_files[@]}"

@@ -4,6 +4,7 @@ ARG TARGETPLATFORM
 
 COPY ./announce /app/announce
 COPY ./auth /app/auth
+COPY ./build /app/build
 COPY ./cmd /app/cmd
 COPY ./dev-scripts/build-backend /app/dev-scripts/build-backend
 COPY ./email /app/email

@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-test/deep"
 	"github.com/kylelemons/godebug/diff"
+
 	email_announce "github.com/mtlynch/screenjournal/v2/announce/email"
 	"github.com/mtlynch/screenjournal/v2/email"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"

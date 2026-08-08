@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strconv"
+	"syscall"
 	"time"
 
 	gorilla "github.com/mtlynch/gorilla-handlers"
@@ -24,6 +28,10 @@ import (
 	"github.com/mtlynch/screenjournal/v2/store/sqlite"
 )
 
+// shutdownTimeout bounds in-flight work so Litestream has time for its final
+// sync before Fly terminates the machine.
+const shutdownTimeout = 15 * time.Second
+
 func main() {
 	log.Print("starting screenjournal server")
 
@@ -32,8 +40,8 @@ func main() {
 	flag.Parse()
 
 	ensureDirExists(filepath.Dir(*dbPath))
-	db := sqlite.MustOpen(*dbPath)
-	store := sqlite.New(db, isLitestreamEnabled())
+	db := sqlite.MustOpen(*dbPath, isLitestreamEnabled())
+	store := sqlite.New(db)
 
 	authenticator := auth.New(store)
 
@@ -84,8 +92,6 @@ func main() {
 	if os.Getenv("SJ_BEHIND_PROXY") != "" {
 		h = gorilla.ProxyIPHeadersHandler(h)
 	}
-	http.Handle("/", h)
-
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "4003"
@@ -94,12 +100,48 @@ func main() {
 
 	server := &http.Server{
 		Addr:              fmt.Sprintf(":%s", port),
+		Handler:           h,
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      15 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}
-	log.Fatal(server.ListenAndServe())
+	shutdownCtx, stopShutdownSignals := signal.NotifyContext(
+		context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stopShutdownSignals()
+
+	serveErr := make(chan error, 1)
+	go func() {
+		serveErr <- server.ListenAndServe()
+	}()
+
+	select {
+	case err := <-serveErr:
+		if !errors.Is(err, http.ErrServerClosed) {
+			log.Printf("failed to serve: %v", err)
+			panic(err)
+		}
+	case <-shutdownCtx.Done():
+		shutdown(server, store)
+	}
+}
+
+// shutdown drains requests and closes SQLite before Litestream's final sync.
+// It logs shutdown errors and returns successfully because a nonzero exit code
+// prevents Litestream from running its final database sync.
+func shutdown(server *http.Server, store sqlite.Store) {
+	log.Print("shutdown signal received, draining in-flight requests")
+
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+		log.Printf("failed to drain in-flight requests: %v", err)
+	}
+	if err := store.Close(); err != nil {
+		log.Printf("failed to close database: %v", err)
+	}
+
+	log.Print("shutdown complete")
 }
 
 func requireEnv(key string) string {

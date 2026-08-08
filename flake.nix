@@ -25,8 +25,8 @@
     # 3.3.0 release
     sqlfluff-nixpkgs.url = "github:NixOS/nixpkgs/bf689c40d035239a489de5997a4da5352434632e";
 
-    # 1.57.0
-    playwright-nixpkgs.url = "github:NixOS/nixpkgs/5f02c91314c8ba4afe83b256b023756412218535";
+    # 1.58.2
+    playwright-nixpkgs.url = "github:NixOS/nixpkgs/9cded172058da9dfa6b3227d46ff30ea2023698a";
 
     # 0.4.59 release
     flyctl-nixpkgs.url = "github:NixOS/nixpkgs/5a722a7155bfc9fbe657f28d26b71860d95324bc";

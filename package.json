@@ -15,7 +15,8 @@
   "devDependencies": {
     "@playwright/test": "1.57.0",
     "@types/node": "24.1.0",
-    "eslint": "8.26.0",
+    "eslint": "9.39.2",
+    "eslint-plugin-html": "8.1.4",
     "eslint-plugin-playwright": "0.11.2",
     "isomorphic-fetch": "3.0.0",
     "prettier": "2.7.1",

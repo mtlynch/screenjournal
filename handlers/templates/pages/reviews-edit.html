@@ -37,7 +37,7 @@
     }
     const alertEl = document.querySelector(".alert");
 
-    document.querySelector("form").addEventListener("input", function (evt) {
+    document.querySelector("form").addEventListener("input", function () {
       alertEl.hidden = true;
     });
 
@@ -53,7 +53,7 @@
 
       document
         .getElementById("formatting-help-icon")
-        .addEventListener("click", function (evt) {
+        .addEventListener("click", function () {
           document.getElementById("formatting-help").classList.toggle("d-none");
         });
     });

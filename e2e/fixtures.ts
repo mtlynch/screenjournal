@@ -1,8 +1,13 @@
+// Playwright fixtures that manage the app server and its SQLite database.
+//
+// Isolation model: every test gets its own database, server process, and port,
+// so tests never share state and can run fully in parallel.
+
+import { spawn, type ChildProcess } from "node:child_process";
 import { mkdtemp, rm } from "node:fs/promises";
+import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { createServer } from "node:net";
-import { spawn, type ChildProcess } from "node:child_process";
 
 import { test as base, expect } from "@playwright/test";
 
@@ -15,9 +20,9 @@ const STUB_POSTER_PNG = Buffer.from(
   "base64"
 );
 
-type WorkerServer = {
+type AppServer = {
   baseURL: string;
-  restart: () => Promise<void>;
+  process: ChildProcess;
 };
 
 async function getFreePort(): Promise<number> {
@@ -51,6 +56,8 @@ async function waitForServer(
 
   while (Date.now() < deadline) {
     try {
+      // Any HTTP status proves the server is up, so don't follow redirects,
+      // as a redirect to a broken location would misread readiness as failure.
       const response = await fetch(baseURL, { redirect: "manual" });
       if (response.status > 0) {
         return;
@@ -68,8 +75,8 @@ function processOutput(chunks: Buffer[]): string {
   return Buffer.concat(chunks).toString("utf8");
 }
 
-async function stopProcess(process: ChildProcess | null): Promise<void> {
-  if (process === null || process.exitCode !== null) {
+async function stopServer(process: ChildProcess): Promise<void> {
+  if (process.exitCode !== null) {
     return;
   }
 
@@ -84,95 +91,78 @@ async function stopProcess(process: ChildProcess | null): Promise<void> {
   });
 }
 
-export const test = base.extend<
-  {
-    resetServer: void;
-    stubPosters: void;
-  },
-  {
-    workerServer: WorkerServer;
+// Spawns bin/screenjournal-dev against the given database and TMDB mock, then
+// waits until it responds over HTTP. On startup failure, stops the process and
+// throws with its captured stdout/stderr.
+async function startServer(
+  port: number,
+  dbPath: string,
+  tmdbBaseURL: string
+): Promise<AppServer> {
+  const baseURL = `http://127.0.0.1:${port}`;
+  const binaryPath = resolve(process.cwd(), "bin/screenjournal-dev");
+  const stdoutChunks: Buffer[] = [];
+  const stderrChunks: Buffer[] = [];
+  const serverProcess = spawn(binaryPath, ["--db", dbPath], {
+    env: {
+      ...process.env,
+      PORT: String(port),
+      SJ_TMDB_API: "dummy-api-key",
+      SJ_TMDB_API_BASE_URL: tmdbBaseURL,
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  serverProcess.stdout?.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
+  serverProcess.stderr?.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
+  try {
+    await waitForServer(`${baseURL}/about`, 15_000);
+  } catch (err) {
+    await stopServer(serverProcess);
+    throw new Error(
+      `${String(err)}\nstdout:\n${processOutput(
+        stdoutChunks
+      )}\nstderr:\n${processOutput(stderrChunks)}`
+    );
   }
->({
-  workerServer: [
-    async ({}, use, workerInfo) => {
+  // Catch a server that answered the health check but died right after.
+  if (serverProcess.exitCode !== null) {
+    throw new Error(
+      `screenjournal-dev exited before test startup (code=${
+        serverProcess.exitCode
+      })\nstdout:\n${processOutput(stdoutChunks)}\nstderr:\n${processOutput(
+        stderrChunks
+      )}`
+    );
+  }
+  return { baseURL, process: serverProcess };
+}
+
+export const test = base.extend<{
+  server: AppServer;
+  stubPosters: void;
+}>({
+  server: [
+    async ({}, use) => {
       const tempDir = await mkdtemp(join(tmpdir(), "screenjournal-e2e-"));
       const port = await getFreePort();
-      const baseURL = `http://127.0.0.1:${port}`;
+      const dbPath = join(tempDir, "e2e-test.sqlite3");
       const tmdbMock = await startTmdbMock();
-      let serverProcess: ChildProcess | null = null;
-      let nextDatabaseID = 0;
+      const server = await startServer(port, dbPath, tmdbMock.baseURL);
 
-      const restart = async (): Promise<void> => {
-        await stopProcess(serverProcess);
+      // The test body runs during this call.
+      await use(server);
 
-        nextDatabaseID += 1;
-        const dbPath = join(
-          tempDir,
-          `worker-${workerInfo.workerIndex}-test-${nextDatabaseID}.sqlite3`
-        );
-        const binaryPath = resolve(process.cwd(), "bin/screenjournal-dev");
-        const stdoutChunks: Buffer[] = [];
-        const stderrChunks: Buffer[] = [];
-
-        serverProcess = spawn(binaryPath, ["--db", dbPath], {
-          env: {
-            ...process.env,
-            PORT: String(port),
-            SJ_TMDB_API: "dummy-api-key",
-            SJ_TMDB_API_BASE_URL: tmdbMock.baseURL,
-          },
-          stdio: ["ignore", "pipe", "pipe"],
-        });
-
-        serverProcess.stdout?.on("data", (chunk: Buffer) => {
-          stdoutChunks.push(chunk);
-        });
-        serverProcess.stderr?.on("data", (chunk: Buffer) => {
-          stderrChunks.push(chunk);
-        });
-
-        try {
-          await waitForServer(baseURL, 15_000);
-        } catch (err) {
-          const stdout = processOutput(stdoutChunks);
-          const stderr = processOutput(stderrChunks);
-          await stopProcess(serverProcess);
-          serverProcess = null;
-          throw new Error(
-            `${String(err)}\nstdout:\n${stdout}\nstderr:\n${stderr}`
-          );
-        }
-
-        if (serverProcess.exitCode !== null) {
-          const stdout = processOutput(stdoutChunks);
-          const stderr = processOutput(stderrChunks);
-          throw new Error(
-            `screenjournal-dev exited before test startup (code=${serverProcess.exitCode})\nstdout:\n${stdout}\nstderr:\n${stderr}`
-          );
-        }
-      };
-
-      await restart();
-      await use({
-        baseURL,
-        restart,
-      });
-      await stopProcess(serverProcess);
+      await stopServer(server.process);
       await tmdbMock.close();
       await rm(tempDir, { recursive: true, force: true });
     },
-    { scope: "worker" },
-  ],
-  baseURL: async ({ workerServer }, use) => {
-    await use(workerServer.baseURL);
-  },
-  resetServer: [
-    async ({ workerServer }, use) => {
-      await workerServer.restart();
-      await use();
-    },
+    // auto makes the fixture run for every test, even tests that never
+    // reference it directly.
     { auto: true },
   ],
+  // Point Playwright's built-in baseURL option at this test's server so that
+  // page.goto("/") and friends hit the right port.
+  baseURL: async ({ server }, use) => await use(server.baseURL),
   stubPosters: [
     async ({ page }, use) => {
       await page.route("**image.tmdb.org**", (route) =>

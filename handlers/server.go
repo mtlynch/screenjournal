@@ -6,9 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
-
 	simple_sessions "codeberg.org/mtlynch/simpleauth/v3/sessions"
+	"github.com/gorilla/mux"
 
 	"github.com/mtlynch/screenjournal/v2/metadata"
 	"github.com/mtlynch/screenjournal/v2/screenjournal"

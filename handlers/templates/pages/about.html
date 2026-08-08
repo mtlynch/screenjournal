@@ -3,6 +3,7 @@
 {{ end }}
 
 {{ define "content" }}
+  <h1>About ScreenJournal</h1>
   <p>
     ScreenJournal is a way to share and discuss movie recommendations with your
     friends.
@@ -35,4 +36,25 @@
     ScreenJournal is developed by
     <a href="https://mtlynch.io">Michael Lynch</a>.
   </p>
+
+  {{ if or .Revision .VersionTime }}
+    <table class="table">
+      <tbody>
+        {{ if .Revision }}
+          <tr>
+            <th scope="row">Revision</th>
+            <td><code title="{{ .FullRevision }}">{{ .Revision }}</code></td>
+          </tr>
+        {{ end }}
+        {{ if .VersionTime }}
+          <tr>
+            <th scope="row">Version last modified at</th>
+            <td>
+              <time datetime="{{ .VersionTime }}">{{ .VersionTime }}</time>
+            </td>
+          </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  {{ end }}
 {{ end }}

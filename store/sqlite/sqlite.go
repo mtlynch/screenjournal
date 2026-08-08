@@ -27,6 +27,10 @@ type (
 	}
 )
 
+func (s Store) Close() error {
+	return s.db.Close()
+}
+
 func MustOpen(path string, optimizeForLitestream bool) *sql.DB {
 	log.Printf("reading DB from %s", path)
 	ctx, err := driver.Open(path, newConnInitializer(optimizeForLitestream))

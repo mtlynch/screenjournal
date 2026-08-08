@@ -1,7 +1,9 @@
 app = "screenjournal"
 
 kill_signal = "SIGINT"
-kill_timeout = 30
+# Budget: 15s draining in-flight requests + 60s for Litestream's final sync,
+# plus slack. Must stay above shutdown-sync-timeout in litestream.yml.
+kill_timeout = 90
 
 [build.args]
   TZ = "America/New_York"

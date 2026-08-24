@@ -28,42 +28,16 @@ type reviewPutRequest struct {
 
 func (s Server) reviewsPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req, err := parseReviewPostRequest(r)
+		req, err := parseReviewPostRequest(r, true)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			log.Printf("couldn't parse review POST request: %v", err)
 			return
 		}
 
-		review := screenjournal.Review{
-			Owner:        mustGetUsernameFromContext(r.Context()),
-			TvShowSeason: req.TvShowSeason,
-			Rating:       req.Rating,
-			Watched:      req.WatchDate,
-			Blurb:        req.Blurb,
-			Comments:     []screenjournal.ReviewComment{},
-		}
-
-		if req.MediaType == screenjournal.MediaTypeMovie {
-			review.Movie, err = s.moviefromTmdbID(s.store, req.TmdbID)
-			if err == store.ErrMovieNotFound {
-				http.Error(w, fmt.Sprintf("Could not find movie with TMDB ID: %v", req.TmdbID), http.StatusNotFound)
-				return
-			} else if err != nil {
-				log.Printf("failed to get local media ID for movie with TMDB ID %v: %v", req.TmdbID, err)
-				http.Error(w, fmt.Sprintf("Failed to look up movie with TMDB ID: %v: %v", req.TmdbID, err), http.StatusInternalServerError)
-				return
-			}
-		} else if req.MediaType == screenjournal.MediaTypeTvShow {
-			review.TvShow, err = s.tvShowfromTmdbID(s.store, req.TmdbID)
-			if err == store.ErrTvShowNotFound {
-				http.Error(w, fmt.Sprintf("Could not find tv show with TMDB ID: %v", req.TmdbID), http.StatusNotFound)
-				return
-			} else if err != nil {
-				log.Printf("failed to get local media ID for TV show with TMDB ID %v: %v", req.TmdbID, err)
-				http.Error(w, fmt.Sprintf("Failed to look up TV show with TMDB ID: %v: %v", req.TmdbID, err), http.StatusInternalServerError)
-				return
-			}
+		review, ok := s.reviewFromPostRequest(w, req, mustGetUsernameFromContext(r.Context()), false)
+		if !ok {
+			return
 		}
 
 		review.ID, err = s.store.InsertReview(review)
@@ -75,12 +49,7 @@ func (s Server) reviewsPost() http.HandlerFunc {
 
 		s.announcer.AnnounceNewReview(review)
 
-		if review.MediaType() == screenjournal.MediaTypeMovie {
-			http.Redirect(w, r, fmt.Sprintf("/movies/%d#review%d", review.Movie.ID.Int64(), review.ID.UInt64()), http.StatusSeeOther)
-		} else {
-			http.Redirect(w, r, fmt.Sprintf("/tv-shows/%d?season=%d#review%d", review.TvShow.ID.Int64(), review.TvShowSeason.UInt8(), review.ID.UInt64()), http.StatusSeeOther)
-		}
-
+		http.Redirect(w, r, publishedReviewRoute(review), http.StatusSeeOther)
 	}
 }
 
@@ -92,22 +61,12 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
-		review, err := s.store.ReadReview(id)
-		if err == store.ErrReviewNotFound {
-			http.Error(w, "Review not found", http.StatusNotFound)
-			return
-		} else if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to read review: %v", err), http.StatusInternalServerError)
+		review, ok := s.loadOwnedReview(w, r, id)
+		if !ok {
 			return
 		}
 
-		loggedInUsername := mustGetUsernameFromContext(r.Context())
-		if !review.Owner.Equal(loggedInUsername) {
-			http.Error(w, "You can't edit another user's review", http.StatusForbidden)
-			return
-		}
-
-		parsedRequest, err := parseReviewPutRequest(r)
+		parsedRequest, err := parseReviewPutRequest(r, true)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Invalid request: %v", err), http.StatusBadRequest)
 			return
@@ -116,6 +75,8 @@ func (s Server) reviewsPut() http.HandlerFunc {
 		review.Rating = parsedRequest.Rating
 		review.Blurb = parsedRequest.Blurb
 		review.Watched = parsedRequest.Watched
+		wasDraft := review.IsDraft
+		review.IsDraft = false
 
 		if err := s.store.UpdateReview(review); err != nil {
 			log.Printf("failed to update review: %v", err)
@@ -123,13 +84,11 @@ func (s Server) reviewsPut() http.HandlerFunc {
 			return
 		}
 
-		var newRoute string
-		if review.MediaType() == screenjournal.MediaTypeMovie {
-			newRoute = fmt.Sprintf("/movies/%d", review.Movie.ID.Int64())
-		} else {
-			newRoute = fmt.Sprintf("/tv-shows/%d?season=%d", review.TvShow.ID.Int64(), review.TvShowSeason.UInt8())
+		if wasDraft && !review.IsDraft {
+			s.announcer.AnnounceNewReview(review)
 		}
-		http.Redirect(w, r, newRoute, http.StatusSeeOther)
+
+		http.Redirect(w, r, publishedReviewRoute(review), http.StatusSeeOther)
 	}
 }
 
@@ -166,7 +125,10 @@ func (s Server) reviewsDelete() http.HandlerFunc {
 	}
 }
 
-func parseReviewPostRequest(r *http.Request) (reviewPostRequest, error) {
+// parseReviewPostRequest parses the fields shared by published reviews and
+// drafts. When requireWatchDate is false (drafts), an empty watch date is
+// allowed so that incomplete drafts can still be saved.
+func parseReviewPostRequest(r *http.Request, requireWatchDate bool) (reviewPostRequest, error) {
 	if err := r.ParseForm(); err != nil {
 		log.Printf("failed to decode review POST request: %v", err)
 		return reviewPostRequest{}, err
@@ -193,7 +155,7 @@ func parseReviewPostRequest(r *http.Request) (reviewPostRequest, error) {
 		return reviewPostRequest{}, err
 	}
 
-	if parsed.WatchDate, err = parse.WatchDate(r.PostFormValue("watch-date")); err != nil {
+	if parsed.WatchDate, err = parseWatchDate(r, requireWatchDate); err != nil {
 		return reviewPostRequest{}, err
 	}
 
@@ -204,7 +166,9 @@ func parseReviewPostRequest(r *http.Request) (reviewPostRequest, error) {
 	return parsed, nil
 }
 
-func parseReviewPutRequest(r *http.Request) (reviewPutRequest, error) {
+// parseReviewPutRequest parses an update to an existing review or draft. When
+// requireWatchDate is false (drafts), an empty watch date is allowed.
+func parseReviewPutRequest(r *http.Request, requireWatchDate bool) (reviewPutRequest, error) {
 	if err := r.ParseForm(); err != nil {
 		log.Printf("failed to decode review PUT request: %v", err)
 		return reviewPutRequest{}, err
@@ -216,7 +180,7 @@ func parseReviewPutRequest(r *http.Request) (reviewPutRequest, error) {
 		return reviewPutRequest{}, err
 	}
 
-	if parsed.Watched, err = parse.WatchDate(r.PostFormValue("watch-date")); err != nil {
+	if parsed.Watched, err = parseWatchDate(r, requireWatchDate); err != nil {
 		return reviewPutRequest{}, err
 	}
 
@@ -225,6 +189,92 @@ func parseReviewPutRequest(r *http.Request) (reviewPutRequest, error) {
 	}
 
 	return parsed, nil
+}
+
+// parseWatchDate parses the watch-date form field. When the field is optional
+// (drafts) and empty, it returns the zero WatchDate without error.
+func parseWatchDate(r *http.Request, required bool) (screenjournal.WatchDate, error) {
+	raw := r.PostFormValue("watch-date")
+	if !required && raw == "" {
+		return screenjournal.WatchDate{}, nil
+	}
+	return parse.WatchDate(raw)
+}
+
+// formBool reports whether the named form field holds a truthy value.
+func formBool(r *http.Request, field string) bool {
+	v := r.PostFormValue(field)
+	return v == "true" || v == "1"
+}
+
+// loadOwnedReview reads the review at id and verifies the logged-in user owns
+// it. On any failure it writes the appropriate error response and returns
+// ok=false.
+func (s Server) loadOwnedReview(w http.ResponseWriter, r *http.Request, id screenjournal.ReviewID) (screenjournal.Review, bool) {
+	review, err := s.store.ReadReview(id)
+	if err == store.ErrReviewNotFound {
+		http.Error(w, "Review not found", http.StatusNotFound)
+		return screenjournal.Review{}, false
+	} else if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to read review: %v", err), http.StatusInternalServerError)
+		return screenjournal.Review{}, false
+	}
+
+	if !review.Owner.Equal(mustGetUsernameFromContext(r.Context())) {
+		http.Error(w, "You can't edit another user's review", http.StatusForbidden)
+		return screenjournal.Review{}, false
+	}
+
+	return review, true
+}
+
+// reviewFromPostRequest builds a Review from a parsed POST request, resolving
+// its movie or TV show from the TMDB ID. On any failure it writes the
+// appropriate error response and returns ok=false.
+func (s Server) reviewFromPostRequest(w http.ResponseWriter, req reviewPostRequest, owner screenjournal.Username, isDraft bool) (screenjournal.Review, bool) {
+	review := screenjournal.Review{
+		Owner:        owner,
+		TvShowSeason: req.TvShowSeason,
+		Rating:       req.Rating,
+		Watched:      req.WatchDate,
+		Blurb:        req.Blurb,
+		IsDraft:      isDraft,
+		Comments:     []screenjournal.ReviewComment{},
+	}
+
+	var err error
+	if req.MediaType == screenjournal.MediaTypeMovie {
+		review.Movie, err = s.moviefromTmdbID(s.store, req.TmdbID)
+		if err == store.ErrMovieNotFound {
+			http.Error(w, fmt.Sprintf("Could not find movie with TMDB ID: %v", req.TmdbID), http.StatusNotFound)
+			return screenjournal.Review{}, false
+		} else if err != nil {
+			log.Printf("failed to get local media ID for movie with TMDB ID %v: %v", req.TmdbID, err)
+			http.Error(w, fmt.Sprintf("Failed to look up movie with TMDB ID: %v: %v", req.TmdbID, err), http.StatusInternalServerError)
+			return screenjournal.Review{}, false
+		}
+	} else if req.MediaType == screenjournal.MediaTypeTvShow {
+		review.TvShow, err = s.tvShowfromTmdbID(s.store, req.TmdbID)
+		if err == store.ErrTvShowNotFound {
+			http.Error(w, fmt.Sprintf("Could not find tv show with TMDB ID: %v", req.TmdbID), http.StatusNotFound)
+			return screenjournal.Review{}, false
+		} else if err != nil {
+			log.Printf("failed to get local media ID for TV show with TMDB ID %v: %v", req.TmdbID, err)
+			http.Error(w, fmt.Sprintf("Failed to look up TV show with TMDB ID: %v: %v", req.TmdbID, err), http.StatusInternalServerError)
+			return screenjournal.Review{}, false
+		}
+	}
+
+	return review, true
+}
+
+// publishedReviewRoute returns the URL of a published review, anchored to the
+// review on its movie or TV show page.
+func publishedReviewRoute(review screenjournal.Review) string {
+	if review.MediaType() == screenjournal.MediaTypeMovie {
+		return fmt.Sprintf("/movies/%d#review%d", review.Movie.ID.Int64(), review.ID.UInt64())
+	}
+	return fmt.Sprintf("/tv-shows/%d?season=%d#review%d", review.TvShow.ID.Int64(), review.TvShowSeason.UInt8(), review.ID.UInt64())
 }
 
 func (s Server) moviefromTmdbID(db sqlite.Store, tmdbID screenjournal.TmdbID) (screenjournal.Movie, error) {
